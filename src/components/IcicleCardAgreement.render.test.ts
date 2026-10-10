@@ -4,6 +4,12 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import BudgetIcicle from './BudgetIcicle';
 import CategoryList from './CategoryList';
 import { sortCategoriesByAmount } from '../data/sortCategories';
+import {
+  NYC_CURRENT_OPERATIONS,
+  NYC_CURRENT_OPERATIONS_TOTAL,
+  NYC_DEBT_SERVICE,
+  nycCurrentOperationsNode,
+} from '../data/__fixtures__/nycCurrentOperations';
 import type { BudgetCategory } from '../types/budget';
 
 /**
@@ -31,38 +37,22 @@ import type { BudgetCategory } from '../types/budget';
  * environment as a `.test.ts`. See `LineItemsTable.render.test.ts`.
  */
 
-const cat = (name: string, amount: number, pct: number): BudgetCategory =>
-  ({ name, amount, percentage: pct, subcategories: [] } as unknown as BudgetCategory);
-
-/** New York City FY2002 `Current Operations`, in the ACFR's own row order. */
-const FUNCTIONS = [
-  cat('General Government', 2_399_900_000, 5.2),
-  cat('Public safety and judicial', 7_290_800_000, 15.9),
-  cat('Education', 13_480_900_000, 29.3),
-  cat('City University', 428_500_000, 0.9),
-  cat('Social services', 9_203_900_000, 20.0),
-  cat('Environmental protection', 2_824_500_000, 6.1),
-  cat('Transportation services', 1_593_500_000, 3.5),
-  cat('Parks, recreation and cultural activities', 674_600_000, 1.5),
-  cat('Housing', 820_700_000, 1.8),
-  cat('Libraries', 158_400_000, 0.3),
-];
-
-const CURRENT_OPS_TOTAL = FUNCTIONS.reduce((n, c) => n + c.amount, 0);
+/**
+ * ⚠ The real level, all fifteen functions — see the fixture for why an
+ * abridged copy changes every segment's width.
+ */
+const FUNCTIONS = NYC_CURRENT_OPERATIONS;
+const CURRENT_OPS_TOTAL = NYC_CURRENT_OPERATIONS_TOTAL;
 
 /** What `dataLoader` hands every view: one tree, sorted once. */
 const sorted = () => sortCategoriesByAmount(FUNCTIONS);
 
 function renderIcicle(functions: BudgetCategory[]): string {
-  const currentOps = {
-    name: 'Current Operations', amount: CURRENT_OPS_TOTAL, percentage: 96,
-    subcategories: functions,
-  } as unknown as BudgetCategory;
-  const debtService = cat('Debt Service', 1_800_000_000, 4);
+  const currentOps = nycCurrentOperationsNode(functions);
   return renderToStaticMarkup(createElement(BudgetIcicle, {
-    categories: [currentOps, debtService],
+    categories: [currentOps, NYC_DEBT_SERVICE],
     navigationPath: [currentOps],
-    totalBudget: CURRENT_OPS_TOTAL + 1_800_000_000,
+    totalBudget: CURRENT_OPS_TOTAL + NYC_DEBT_SERVICE.amount,
     onPathClick: () => {},
   } as never));
 }
