@@ -88,7 +88,17 @@ const BudgetIcicle: React.FC<BudgetIcicleProps> = ({
           >
             {level.segments.map((segment, segmentIndex) => {
               const isClickable = true;
-              const showText = canFitLabel(segment.width, containerWidth, level.isAncestor);
+              // ⚠⚠ THE SEGMENT'S OWN STRINGS, not a worst-case floor. These are
+              // the exact two values rendered below, so what is measured and
+              // what is drawn cannot drift apart. ⚠ An ancestor row prints no
+              // amount — passing one would reserve width for a figure that is
+              // never shown.
+              const labelText = {
+                name: displayName(segment.category),
+                amount: level.isAncestor ? null : formatCurrency(segment.category.amount),
+              };
+              const showText = canFitLabel(
+                segment.width, containerWidth, level.isAncestor, labelText);
 
               // ⚠⚠ COLOURED BY POSITION IN ITS OWN LEVEL — the same rule, and the
               // same `DATA_VIZ_HUES` cycle, that `CategoryList` uses for the cards

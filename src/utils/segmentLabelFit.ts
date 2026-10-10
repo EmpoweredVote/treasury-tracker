@@ -91,18 +91,86 @@ export const LABEL_FLOOR_PX = {
 export const LEGACY_PCT_FLOOR = { current: 8, ancestor: 6 } as const;
 
 /**
- * @param widthPct     the segment's share of its own level, 0–100
+ * ── ⚠⚠ THE TYPE SIZES THE LABELS ARE SET IN, from `BudgetIcicle.css` ────────
+ * Current level: `.segment-name` 0.75rem / 600 over `.segment-amount`
+ * 0.7rem / 500. Ancestor: name only, 0.7rem / 600, laid out in a row.
+ */
+const TYPE = {
+  current: { namePx: 12, nameWeight: 600 as const, amountPx: 11.2, amountWeight: 500 as const },
+  ancestor: { namePx: 11.2, nameWeight: 600 as const },
+};
+
+/** Characters of a long name worth showing before the CSS ellipsis. */
+const MIN_NAME_CHARS = 6;
+const MIN_ANCESTOR_CHARS = 4;
+
+/**
+ * The shortest form of a name worth drawing: the whole thing when it is short,
+ * otherwise a fragment plus the ellipsis `.segment-name` already applies.
+ */
+function shortestUsefulName(name: string, minChars: number): string {
+  return name.length <= minChars ? name : name.slice(0, minChars).trimEnd() + '…';
+}
+
+/** What a segment actually has to print. */
+export interface SegmentText {
+  name: string;
+  /** The formatted figure, or null on an ancestor row, which prints none. */
+  amount: string | null;
+}
+
+/**
+ * ⚠⚠ THE WIDTH A SEGMENT REALLY NEEDS, from the strings it really prints.
+ *
+ * `.segment-name` ellipsises in CSS, so a long name only needs room for a
+ * useful FRAGMENT — but `.segment-amount` has no `text-overflow` and sits in an
+ * `overflow: hidden` box, so an amount that does not fit is HARD-CLIPPED
+ * mid-glyph. A clipped figure is not a tidier figure, it is a different number:
+ * `$13.5B` losing its tail reads as `$13.5` or `$1`. So the amount must fit
+ * WHOLE and the name need not.
+ *
+ * They are stacked, so the requirement is the wider of the two, not the sum.
+ */
+export function requiredLabelPx(text: SegmentText, isAncestor: boolean): number {
+  if (isAncestor) {
+    const t = TYPE.ancestor;
+    return PADDING_PX + measureTextPx(
+      shortestUsefulName(text.name, MIN_ANCESTOR_CHARS), t.namePx, t.nameWeight);
+  }
+  const t = TYPE.current;
+  const namePx = measureTextPx(
+    shortestUsefulName(text.name, MIN_NAME_CHARS), t.namePx, t.nameWeight);
+  const amountPx = text.amount
+    ? measureTextPx(text.amount, t.amountPx, t.amountWeight)
+    : 0;
+  return PADDING_PX + Math.max(namePx, amountPx);
+}
+
+/**
+ * @param widthPct     the segment's share of its own level, 0-100
  * @param containerPx  the measured chart width, or null before it is known
+ * @param text         the strings this segment prints. ⚠ Omit ONLY where they
+ *                     are genuinely unavailable; without them this falls back
+ *                     to `LABEL_FLOOR_PX`, which is sized for the worst case
+ *                     and therefore hides labels that would have fitted.
  */
 export function canFitLabel(
   widthPct: number,
   containerPx: number | null,
   isAncestor: boolean,
+  text?: SegmentText,
 ): boolean {
   const tier = isAncestor ? 'ancestor' : 'current';
   if (!Number.isFinite(widthPct) || widthPct <= 0) return false;
   if (containerPx === null || !Number.isFinite(containerPx) || containerPx <= 0) {
     return widthPct >= LEGACY_PCT_FLOOR[tier];
   }
-  return (widthPct / 100) * containerPx >= LABEL_FLOOR_PX[tier];
+  const segmentPx = (widthPct / 100) * containerPx;
+  // ⚠⚠ MEASURE THE SEGMENT'S OWN STRINGS WHEN THEY ARE KNOWN. A single floor
+  // has to be sized for the widest figure the ladder can print (`-$999.9M`),
+  // so it held a segment showing `$2.2B` to a bar meant for a figure half again
+  // as wide — New York City's `Health` lost its label at 66px while its real
+  // text needs about 46. That is the same "one average for everything" mistake
+  // the glyph constant was, one level up.
+  return segmentPx >= (text ? requiredLabelPx(text, isAncestor) : LABEL_FLOOR_PX[tier]);
 }

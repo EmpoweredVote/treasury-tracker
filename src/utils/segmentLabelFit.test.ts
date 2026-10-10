@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { canFitLabel, LABEL_FLOOR_PX, LEGACY_PCT_FLOOR } from './segmentLabelFit';
+import { canFitLabel, requiredLabelPx, LABEL_FLOOR_PX, LEGACY_PCT_FLOOR } from './segmentLabelFit';
 import { measureTextPx } from './manropeMetrics';
 
 /**
@@ -78,6 +78,66 @@ describe('canFitLabel', () => {
   it('keeps the ancestor row more permissive than the current one', () => {
     // An ancestor is a breadcrumb: recognition, not reading.
     expect(LABEL_FLOOR_PX.ancestor).toBeLessThan(LABEL_FLOOR_PX.current);
+  });
+
+  it('labels a segment whose OWN text fits, where the worst-case floor hid it', () => {
+    // ⚠⚠ THE DEFECT. New York City FY2002 `Health (including payments to HHC)`
+    // is 66px on a 1350px chart. The global floor is sized for `-$999.9M`, the
+    // widest figure the ladder can print, so it hid a segment whose real text
+    // -- `$2.2B` over a six-letter fragment -- needs about 46px.
+    const HEALTH = { name: 'Health (including payments to HHC)', amount: '$2.2B' };
+    const widthPct = (66 / DESKTOP_CHART) * 100;
+
+    expect(66).toBeLessThan(LABEL_FLOOR_PX.current);          // the floor hid it
+    expect(requiredLabelPx(HEALTH, false)).toBeLessThan(66);  // its own text fits
+    expect(canFitLabel(widthPct, DESKTOP_CHART, false, HEALTH)).toBe(true);
+    expect(canFitLabel(widthPct, DESKTOP_CHART, false)).toBe(false);
+  });
+
+  it('asks MORE of a wide figure than of a narrow one at the same name', () => {
+    // The point of measuring: `$1,234,567` and `$2.2B` are not the same width,
+    // so they must not be held to the same bar.
+    const wide = requiredLabelPx({ name: 'Housing', amount: '$1,234,567' }, false);
+    const narrow = requiredLabelPx({ name: 'Housing', amount: '$2.2B' }, false);
+    expect(wide).toBeGreaterThan(narrow);
+  });
+
+  it('reserves no width for an amount an ancestor never prints', () => {
+    // ⚠ An ancestor row renders the name only. Charging it for a figure would
+    // strip labels off breadcrumbs for text that is not there.
+    const t = { name: 'Current Operations', amount: '$45.9B' };
+    expect(requiredLabelPx(t, true)).toBeLessThan(requiredLabelPx(t, false));
+  });
+
+  it('demands the WHOLE amount, because a clipped figure is a wrong figure', () => {
+    // `.segment-amount` has no `text-overflow` and sits in an `overflow:hidden`
+    // box, so a figure that does not fit is cut mid-glyph -- `$13.5B` reads as
+    // `$13.5` or `$1`. A long name is fine; it ellipsises.
+    // Two names of very different length that share a six-letter opening cost
+    // exactly the same, because that is all either will ever show.
+    const a = requiredLabelPx({ name: 'Environmental protection', amount: '$2.8B' }, false);
+    const b = requiredLabelPx({ name: 'Environmentally sustainable transport', amount: '$2.8B' }, false);
+    expect(a).toBe(b);
+
+    const longAmount = requiredLabelPx({ name: 'Housing', amount: '$123,456,789' }, false);
+    const shortAmount = requiredLabelPx({ name: 'Housing', amount: '$1K' }, false);
+    expect(longAmount).toBeGreaterThan(shortAmount);   // the amount is NOT capped
+  });
+
+  it('needs only the whole name when the name is short', () => {
+    // "Parks" is shorter than the fragment, so nothing is ellipsised and the
+    // requirement is the word itself.
+    const short = requiredLabelPx({ name: 'Parks', amount: null }, false);
+    const long = requiredLabelPx({ name: 'Parksssssssss', amount: null }, false);
+    expect(short).toBeLessThan(long);
+  });
+
+  it('still falls back to the worst-case floor when no text is given', () => {
+    // ⚠ The old call shape must keep working -- `renderToStaticMarkup` and any
+    // caller that genuinely has no strings.
+    const atFloor = (LABEL_FLOOR_PX.current / DESKTOP_CHART) * 100;
+    expect(canFitLabel(atFloor, DESKTOP_CHART, false)).toBe(true);
+    expect(canFitLabel(atFloor * 0.99, DESKTOP_CHART, false)).toBe(false);
   });
 
   it('never labels a zero-width segment', () => {
