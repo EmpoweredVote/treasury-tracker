@@ -47,6 +47,24 @@ const FUNCTIONS = sortCategoriesByAmount(NYC_CURRENT_OPERATIONS);
 const TOTAL = NYC_CURRENT_OPERATIONS_TOTAL;
 const currentOps = nycCurrentOperationsNode(FUNCTIONS);
 
+/**
+ * jsdom implements no `matchMedia`, so the component's `sm` query cannot be
+ * asked and falls back to INTERACTIVE. `atWidth` installs a stub so the mobile
+ * branch can be exercised.
+ */
+function stubMatchMedia(viewportPx: number) {
+  (globalThis as Record<string, unknown>).matchMedia = (q: string) => {
+    const m = /min-width:\s*(\d+)px/.exec(q);
+    return {
+      matches: m ? viewportPx >= Number(m[1]) : false,
+      media: q,
+      addEventListener() {}, removeEventListener() {},
+      addListener() {}, removeListener() {}, onchange: null,
+      dispatchEvent: () => false,
+    } as unknown as MediaQueryList;
+  };
+}
+
 /** Captured so a test can fire a resize the way the browser would. */
 let observerCallbacks: (() => void)[] = [];
 
@@ -86,6 +104,9 @@ beforeEach(() => {
 afterEach(() => {
   act(() => root.unmount());
   host.remove();
+  // ⚠ The stub is a GLOBAL. Left in place it would decide the branch for
+  // whichever test ran next, making results depend on file order.
+  delete (globalThis as Record<string, unknown>).matchMedia;
 });
 
 function mountAt(width: number) {
@@ -172,5 +193,56 @@ describe('BudgetIcicle labels from a MEASURED width', () => {
     expect(segments).toHaveLength(FUNCTIONS.length);
     const gg = [...segments].find((s) => (s.getAttribute('title') ?? '').startsWith('General Government'));
     expect(gg?.getAttribute('aria-label')).toContain('$2.4B');
+  });
+});
+
+/**
+ * ⚠⚠ BELOW `sm` THE CHART IS A PICTURE, NOT A CONTROL.
+ *
+ * Measured on production: drilled into NYC's fifteen functions at 390px, TWELVE
+ * segments are under the 24px WCAG 2.5.8 minimum target size and the narrowest
+ * is 2px. A 2px tap target is a promise to nobody, so the strip keeps its one
+ * real job — proportion at a glance — and the cards become the control.
+ */
+describe('BudgetIcicle on a phone', () => {
+  it('offers no tap target it cannot honour', () => {
+    stubMatchMedia(390);
+    mountAt(342);
+    const segments = [...host.querySelectorAll('.icicle-segment')];
+    expect(segments.length).toBeGreaterThan(5);
+    for (const s of segments) {
+      expect(s.getAttribute('tabindex')).toBe('-1');
+      expect(s.className).not.toContain('clickable');
+    }
+    expect(host.querySelector('.icicle-wrapper')!.getAttribute('aria-hidden')).toBe('true');
+  });
+
+  it('still draws the proportions', () => {
+    // ⚠ The picture is the point of keeping it. Widths must survive.
+    stubMatchMedia(390);
+    mountAt(342);
+    const widths = [...host.querySelectorAll('.icicle-level.current .icicle-segment')]
+      .map((s) => Number(/width:\s*([\d.]+)%/.exec(s.getAttribute('style') ?? '')?.[1] ?? 0));
+    expect(widths.length).toBe(FUNCTIONS.length);
+    expect(Math.max(...widths)).toBeGreaterThan(20);
+    for (let i = 1; i < widths.length; i++) expect(widths[i]).toBeLessThanOrEqual(widths[i - 1]);
+  });
+
+  it('is fully interactive again at sm and above', () => {
+    stubMatchMedia(640);
+    mountAt(1350);
+    const segments = [...host.querySelectorAll('.icicle-segment')];
+    expect(segments.every((s) => s.getAttribute('tabindex') === '0')).toBe(true);
+    expect(host.querySelector('.icicle-wrapper')!.getAttribute('aria-hidden')).toBeNull();
+  });
+
+  it('stays interactive where matchMedia cannot be asked', () => {
+    // ⚠⚠ The fallback matters: an environment that cannot answer the question
+    // must render the FULLER behaviour, not silently strip it. This is the
+    // path `renderToStaticMarkup` takes on every render.
+    delete (globalThis as Record<string, unknown>).matchMedia;
+    mountAt(1350);
+    const segments = [...host.querySelectorAll('.icicle-segment')];
+    expect(segments.every((s) => s.getAttribute('tabindex') === '0')).toBe(true);
   });
 });
