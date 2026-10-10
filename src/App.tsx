@@ -1420,7 +1420,18 @@ function App() {
                 reasoning as PR #198: an inapplicable prompt is worse than silence.
                 Government pages keep it exactly as before. */}
             {hasEnrichment && selectedEntity?.entity_type !== 'nonprofit' && (
-              <div className="flex-1 min-w-0">
+              // ⚠⚠ FULL WIDTH BELOW `sm`, SHARING THE ROW ABOVE IT. As a plain
+              // `flex-1` this shrank to whatever the two dropdowns left over --
+              // 38px on a 390px phone. The input inside carries `pl-10 pr-10`,
+              // i.e. 80px of padding, and a border box CANNOT shrink below its
+              // own padding, so it stayed 82px and hung 17px past the edge,
+              // scrolling the WHOLE PAGE sideways. `min-w-0` was already here
+              // and could not help: the floor is the padding, not the content.
+              //
+              // ⚠ The overflow was the smaller half of it. A 82px-wide search
+              // box that prompts for "roads" or "police" is unusable, so on a
+              // phone this now gets its own line at the full 342px.
+              <div className="w-full min-w-0 sm:w-auto sm:flex-1">
                 <BudgetSearch
                   cityId={selectedEntity.id}
                   cityName={selectedEntity.name}
