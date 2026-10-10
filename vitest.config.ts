@@ -3,7 +3,28 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
   test: {
     environment: 'node',
-    include: ['src/**/*.test.ts', 'tests/**/*.test.mjs', 'scripts/**/*.test.mjs'],
+    // ⚠⚠ `.test.tsx` IS IN THIS LIST NOW, AND THAT IS THE POINT.
+    //
+    // It was not, and `environment` is 'node', so for the life of the repo a
+    // component test was SILENTLY NOT RUN — not skipped, not reported, just
+    // never collected, which reads as a green suite. That gap is why the icicle
+    // shipped a level builder that was wrong for every leaf click (G2,
+    // 2026-08-22) and a drilled level whose colours disagreed with the cards
+    // beside them (2026-10-10), both of which a mounted component would have
+    // caught immediately.
+    //
+    // ⚠ The default environment stays 'node' deliberately: ~2,880 of these
+    // tests are pure functions, fixture readers and source-tree walkers that
+    // gain nothing from a DOM and would pay for one. A test that needs layout
+    // opts in per file with `// @vitest-environment jsdom`, and
+    // `tests/vitestCollectsEveryTestFile.test.mjs` asserts that no test file on
+    // disk can fall out of this list again.
+    include: [
+      'src/**/*.test.ts',
+      'src/**/*.test.tsx',
+      'tests/**/*.test.mjs',
+      'scripts/**/*.test.mjs',
+    ],
     // ⚠⚠ THIS IS A FIX TO THE CLASS, NOT TO ANOTHER INSTANCE.
     //
     // Dozens of tests here walk the source tree or read fixture workbooks, so

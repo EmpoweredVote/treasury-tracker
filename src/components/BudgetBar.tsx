@@ -1,23 +1,13 @@
 import React from 'react';
 import type { BudgetCategory } from '../types/budget';
 import { DATA_VIZ_HUES } from '../utils/chartColors';
+import { formatMoneyCompact } from '../utils/formatMoney';
 
 interface BudgetBarProps {
   categories: BudgetCategory[];
 }
 
 const BudgetBar: React.FC<BudgetBarProps> = ({ categories }) => {
-  const formatCurrency = (amount: number) => {
-    if (amount >= 1000000) {
-      return `$${(amount / 1000000).toFixed(1)}M`;
-    }
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
 
   const formatPercentage = (percentage: number) => {
     return (Math.round(percentage * 10) / 10).toFixed(1);
@@ -41,7 +31,7 @@ const BudgetBar: React.FC<BudgetBarProps> = ({ categories }) => {
                 width: `${category.percentage}%`,
                 backgroundColor: `var(--color-data-${hue}-500)`,
               }}
-              title={`${category.name}: ${formatCurrency(category.amount)} (${formatPercentage(category.percentage)}%)`}
+              title={`${category.name}: ${formatMoneyCompact(category.amount)} (${formatPercentage(category.percentage)}%)`}
             />
           );
         })}

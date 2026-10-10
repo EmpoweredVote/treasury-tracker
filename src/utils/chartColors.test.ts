@@ -1,66 +1,57 @@
 import { describe, it, expect } from 'vitest';
-import { getCategoryColor, shadeWithinBranch, BRANCH_SHADE_CYCLE } from './chartColors';
+import { getCategoryColor, DATA_VIZ_HUES } from './chartColors';
 
 /**
- * ⚠ UAT 2026-08-22 (G3). A drilled level inherits its ROOT's colour index, on
- * purpose — a branch should read as one colour. But Modesto's salaries chart drills
- * into 36 children, so all 36 rendered in the single fill `var(--color-data-sage-500)`
- * with only 2 of them wide enough to carry a label. Chris: "the green looks odd in
- * that setup." The row read as one undifferentiated block.
+ * ⚠ These tests replaced the `shadeWithinBranch` suite, retired 2026-10-10.
  *
- * Chris's call (2026-08-23): keep the branch colour and VARY LIGHTNESS per child.
- * So the requirement is two-sided — neighbours must differ, and every step must
- * still be recognisably the branch's colour.
+ * That function let a drilled level inherit its ROOT's hue and separate its
+ * children by lightness (G3, UAT 2026-08-22). It worked for the case it was
+ * written for — Modesto's 36 job titles — and failed the general one: New York
+ * City FY2002 drew twelve `Current Operations` functions as twelve teals while
+ * the twelve CARDS under them drew in twelve different hues. One list, two
+ * palettes, reported 2026-10-10.
+ *
+ * The rule now is the CARDS' rule, everywhere: colour by position in the level.
+ * What has to hold is that `getCategoryColor` still separates neighbours over a
+ * long level, because that is the whole of what the lightness steps were for.
  */
-describe('shadeWithinBranch', () => {
-  const SAGE = 'var(--color-data-sage-500)';
-
-  it('leaves the first child on the branch colour exactly', () => {
-    // A single-child level, and the first segment of every level, look exactly as
-    // they do today. The change is additive.
-    expect(shadeWithinBranch(SAGE, 0)).toBe(SAGE);
+describe('getCategoryColor', () => {
+  it('holds the palette the rest of the product is drawn from', () => {
+    expect(getCategoryColor(0)).toBe('var(--color-data-teal-500)');
+    expect(getCategoryColor(4)).toBe('var(--color-data-sage-500)');
   });
 
-  it('gives ADJACENT children different fills', () => {
-    // The defect, stated: 36 identical fills in a row.
-    const fills = Array.from({ length: 6 }, (_, i) => shadeWithinBranch(SAGE, i));
+  it('gives ADJACENT positions different fills', () => {
+    // The defect `shadeWithinBranch` was written for, restated against the
+    // mechanism that replaced it: a long level must never be one flat block.
+    const fills = Array.from({ length: 36 }, (_, i) => getCategoryColor(i));
     for (let i = 1; i < fills.length; i++) {
       expect(fills[i]).not.toBe(fills[i - 1]);
     }
   });
 
-  it('keeps every step recognisably the branch colour', () => {
-    // Lightness varies; hue does not. Every fill still names the same base token,
-    // and the base always stays the dominant term of the mix.
-    for (let i = 0; i < 12; i++) {
-      const fill = shadeWithinBranch(SAGE, i);
-      expect(fill).toContain(SAGE);
-      const pct = Number(fill.match(/(\d+)%/)?.[1] ?? '100');
-      expect(pct).toBeGreaterThanOrEqual(80);
+  it('separates neighbours by HUE, not by lightness', () => {
+    // Stronger than the rule it replaced, and the reason the retirement is safe:
+    // consecutive segments differ in the hue token itself.
+    expect(getCategoryColor(0)).not.toBe(getCategoryColor(1));
+    expect(getCategoryColor(0)).toContain('teal');
+    expect(getCategoryColor(1)).toContain('coral');
+  });
+
+  it('cycles rather than running out of colours on a long level', () => {
+    const n = DATA_VIZ_HUES.length;
+    expect(getCategoryColor(n)).toBe(getCategoryColor(0));
+    expect(getCategoryColor(n + 2)).toBe(getCategoryColor(2));
+  });
+
+  it('colours the icicle and the cards identically for the same position', () => {
+    // ⚠⚠ THE INVARIANT THE 2026-10-10 FIX EXISTS TO CREATE. `CategoryList`
+    // builds its fill as `var(--color-data-${DATA_VIZ_HUES[i % n]}-500)` inline;
+    // `BudgetIcicle` calls `getCategoryColor(i)`. If those two ever drift, the
+    // Nth bar and the Nth card stop matching and nothing else would catch it.
+    for (let i = 0; i < 25; i++) {
+      const asCardListBuildsIt = `var(--color-data-${DATA_VIZ_HUES[i % DATA_VIZ_HUES.length]}-500)`;
+      expect(getCategoryColor(i)).toBe(asCardListBuildsIt);
     }
-  });
-
-  it('cycles rather than fading to nothing across a long level', () => {
-    // 36 children must not mean 36 lightness steps — the far end would be
-    // unreadable. The cycle repeats, so neighbours differ and nothing runs out
-    // of contrast.
-    expect(shadeWithinBranch(SAGE, BRANCH_SHADE_CYCLE)).toBe(shadeWithinBranch(SAGE, 0));
-    expect(shadeWithinBranch(SAGE, BRANCH_SHADE_CYCLE + 2)).toBe(shadeWithinBranch(SAGE, 2));
-  });
-
-  it('mixes both lighter and darker, not only lighter', () => {
-    const fills = Array.from({ length: BRANCH_SHADE_CYCLE }, (_, i) => shadeWithinBranch(SAGE, i));
-    expect(fills.some((f) => f.includes('white'))).toBe(true);
-    expect(fills.some((f) => f.includes('black'))).toBe(true);
-  });
-
-  it('works on a literal hex base as well as a token', () => {
-    // BRAND_BAR_COLORS entries are hex (the nonprofit categories).
-    expect(shadeWithinBranch('#22C55E', 1)).toContain('#22C55E');
-  });
-
-  it('does not disturb the root-level palette', () => {
-    expect(getCategoryColor(0)).toBe('var(--color-data-teal-500)');
-    expect(getCategoryColor(4)).toBe('var(--color-data-sage-500)');
   });
 });

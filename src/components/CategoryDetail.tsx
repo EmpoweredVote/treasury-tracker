@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import type { BudgetCategory } from '../types/budget';
 import BudgetBar from './BudgetBar';
 import { DATA_VIZ_HUES } from '../utils/chartColors';
+import { formatMoneyCompact } from '../utils/formatMoney';
 
 interface CategoryDetailProps {
   category: BudgetCategory;
@@ -14,17 +15,6 @@ const CategoryDetail: React.FC<CategoryDetailProps> = ({
   onCollapse,
   depth,
 }) => {
-  const formatCurrency = (amount: number) => {
-    if (amount >= 1000000) {
-      return `$${(amount / 1000000).toFixed(1)}M`;
-    }
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
 
   const formatPercentage = (percentage: number) => {
     return (Math.round(percentage * 10) / 10).toFixed(1);
@@ -99,7 +89,7 @@ const CategoryDetail: React.FC<CategoryDetailProps> = ({
               <div className="bg-[#F7F7F8] dark:bg-ev-gray-800 rounded-xl p-4 border border-[#E2EBEF] dark:border-ev-gray-700 text-center">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-ev-gray-600 mb-2">Annual Amount</h4>
                 <div className="text-[30px] font-bold font-manrope text-ev-muted-blue tabular-nums leading-tight">
-                  {formatCurrency(category.amount)}
+                  {formatMoneyCompact(category.amount)}
                 </div>
                 <div className="text-xs text-ev-gray-600 mt-1">for 2024</div>
               </div>

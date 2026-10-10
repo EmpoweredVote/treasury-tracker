@@ -9,6 +9,7 @@ import { normalizeScope, normalizeReportingEntity } from './fundScopeVocabulary'
 import { normalizeAuditGrade } from './auditGrade';
 import { normalizeAccountingBasis } from './accountingBasisVocabulary';
 import { promoteWrapperCategories } from './wrapperCategories';
+import { sortCategoriesByAmount } from './sortCategories';
 import { chooseDisplaySeries, normalizeBasis, type SeriesKey } from './budgetSeries';
 import type { BudgetData, BudgetCategory, FederalContext, LinkedTransactionSummary, Municipality, OrgFinancialSummary, SearchResult, HydratedMunicipality } from '../types/budget';
 import type { EntityAlias } from '../utils/entityRouting';
@@ -475,7 +476,17 @@ export function transformAPIResponse(budget: any, categories: BudgetCategory[], 
     // A GAAP statement's `Current` wrapper held 97-99% of the money and hid
     // every function beneath it. Promotion moves NO money (asserted to the
     // penny) and leaves a cash-basis filer's categories untouched.
-    categories: promoteWrapperCategories(categories)
+    //
+    // ⚠⚠ THE SORT IS THE OUTER CALL, AND IT BELONGS HERE RATHER THAN IN A VIEW.
+    // Every view indexes the SAME arrays — the icicle by segment position, the
+    // card grid by card position — so ordering them once at the source is what
+    // makes "the Nth bar is the Nth card" true at all. Sorting inside either
+    // component would leave the other reading the document's order. Presentation
+    // only: a reorder that moves no money. See src/data/sortCategories.ts.
+    //
+    // ⚠ Outer, not inner, because promotion creates rows (a dissolved `Current`
+    // wrapper's functions) that must be sorted alongside their new peers.
+    categories: sortCategoriesByAmount(promoteWrapperCategories(categories))
   };
 }
 
