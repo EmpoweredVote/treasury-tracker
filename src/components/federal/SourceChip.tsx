@@ -28,7 +28,20 @@ const SourceChip: React.FC<SourceChipProps> = ({ sourceName, sourceUrl, fetchDat
       target="_blank"
       rel="noopener noreferrer"
       aria-label={`Data source: ${sourceName}${date ? `, as of ${date}` : ''} (opens in new tab)`}
-      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full border border-[#E2EBEF] dark:border-ev-gray-700 bg-[#F7F7F8] dark:bg-ev-gray-900 text-xs text-ev-gray-500 dark:text-ev-gray-400 hover:text-ev-muted-blue hover:border-ev-muted-blue transition-colors duration-150 whitespace-nowrap"
+      // ⚠⚠ NO `whitespace-nowrap`, AND `max-w-full`. It used to carry both the
+      // nowrap and no width bound, so a long source name made the pill as wide
+      // as the name: New York City's is "New York City ACFR — Total
+      // Governmental Funds Expenditure by Function (FY2002 actual, GAAP basis)"
+      // and rendered 696px wide inside a 390px viewport, dragging the WHOLE
+      // PAGE 330px sideways. Measured on production 2026-10-10, and it is not
+      // the font — blocking Manrope reproduces it exactly.
+      //
+      // ⚠ Wrapping rather than truncating is deliberate. This pill IS the
+      // provenance — the always-sourced standard's UI unit — so which document
+      // a figure came from must stay readable, and on a touch screen there is
+      // no hover to recover a truncated name from. Where it fits on one line
+      // it still does, so nothing changes on a desktop.
+      className="inline-flex flex-wrap items-center gap-x-1 px-2 py-0.5 max-w-full rounded-2xl border border-[#E2EBEF] dark:border-ev-gray-700 bg-[#F7F7F8] dark:bg-ev-gray-900 text-xs text-ev-gray-500 dark:text-ev-gray-400 hover:text-ev-muted-blue hover:border-ev-muted-blue transition-colors duration-150"
     >
       <span>{sourceName}</span>
       {!compact && date && <span className="opacity-70">· as of {date}</span>}
