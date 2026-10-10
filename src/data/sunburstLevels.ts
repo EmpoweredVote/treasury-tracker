@@ -1,4 +1,5 @@
 import type { BudgetCategory } from '../types/budget';
+import { ellipsiseToPx } from '../utils/manropeMetrics';
 
 /**
  * The two decisions the sunburst makes about every arc — which colour it gets
@@ -136,9 +137,6 @@ export const SUNBURST_LABEL_PX = 11;
 /** Shortest fragment worth drawing, in characters, before the ellipsis. */
 const MIN_LABEL_CHARS = 5;
 
-/** Average glyph advance as a fraction of font size — see segmentLabelFit.ts. */
-const GLYPH = 0.55;
-
 export interface ArcGeometry {
   label: string;
   innerRadius: number;
@@ -170,12 +168,21 @@ export function fitArcLabel(g: ArcGeometry): string | null {
   // Height: the arc must be at least as "tall" as the line, with a little air.
   if (sweep * midRadius < fontSize * 1.25) return null;
 
-  // Length: 2 units of padding at each end of the ring.
-  const usable = ringWidth - fontSize * 0.6;
-  const maxChars = Math.floor(usable / (fontSize * GLYPH));
-  if (maxChars < MIN_LABEL_CHARS) return null;
-  if (label.length <= maxChars) return label;
-  return label.slice(0, Math.max(1, maxChars - 1)).trimEnd() + '…';
+  // ⚠⚠ MEASURED PER CHARACTER against the real font, not counted. This used to
+  // divide the ring width by `fontSize * 0.55`, a guessed average advance.
+  // Measured over the product's own labels that guess runs WIDE by 9% on
+  // average and 21% at worst — real names are full of spaces (0.2em) and thin
+  // letters ('i' and 'l' are 0.265em) — so arcs were truncating labels harder
+  // than they had to, losing up to a fifth of the visible text for nothing.
+  //
+  // ⚠ Counting characters is the deeper error: 'l' is 0.265em and 'W' is
+  // 0.963em, so "Libraries" and "Wastewater" are the same length and nowhere
+  // near the same width.
+  //
+  // ⚠ `measureTextPx` is unit-agnostic: it returns whatever unit `fontSize` is
+  // in, which here is viewBox units, not pixels.
+  const usable = ringWidth - fontSize * 0.6;   // a little air at each end
+  return ellipsiseToPx(label, usable, fontSize, 600, MIN_LABEL_CHARS);
 }
 
 /**

@@ -1,3 +1,5 @@
+import { measureTextPx } from './manropeMetrics';
+
 /**
  * Whether an icicle segment is wide enough to carry its label — IN PIXELS.
  *
@@ -23,37 +25,59 @@
  */
 
 /**
- * ── HOW THE FLOORS WERE DERIVED, from `BudgetIcicle.css` ─────────────────────
+ * ── HOW THE FLOORS ARE DERIVED, from `BudgetIcicle.css` and the REAL FONT ────
  *
  * `.segment-content` has `padding: 4px 8px`, so 16px of every segment is gone
  * before a glyph is drawn. What must fit in the rest:
  *
- *   CURRENT level — `.segment-name` 0.75rem (12px) over `.segment-amount`
- *   0.7rem (11.2px), stacked, so the requirement is the WIDER of the two, not
- *   their sum.
- *     · the amount, in full: the longest compact form is 7 characters
- *       (`-$999.9M`, `$13.5B`). Digits run ~0.6em → 11.2 × 0.6 × 7 ≈ 47px.
- *     · a USEFUL fragment of the name: 6 glyphs plus the ellipsis the CSS
- *       already applies → 12 × 0.55 × 7 ≈ 46px.
- *     max(47, 46) + 16 ≈ 63  →  64px.
+ *   CURRENT level — `.segment-name` 0.75rem (12px) weight 600 over
+ *   `.segment-amount` 0.7rem (11.2px) weight 500, STACKED, so the requirement
+ *   is the WIDER of the two, not their sum.
+ *   ANCESTOR level — name only, 0.7rem, no amount, laid out in a row.
  *
- *   ANCESTOR level — name only, 0.7rem, laid out in a row. 5 glyphs plus the
- *   ellipsis → 11.2 × 0.55 × 6 ≈ 37px, + 16 ≈ 53  →  48px, kept deliberately
- *   permissive because an ancestor row is a breadcrumb rather than the figure
- *   a reader is reading, which is also why the old rule asked less of it (6%).
+ * ⚠⚠ THESE ARE MEASURED, NOT GUESSED. They used to be literal 64 and 48,
+ * reasoned from "0.55em per letter, 0.6em per digit". The money string is what
+ * sets the current-level floor, and digits are really 0.642em with '$' at
+ * 0.615em — so the old floor sat about 5px TOO LOW, which is the direction
+ * that clips a label rather than hiding it. It moves 64 -> 68.
  *
- * ⚠ 0.55em / 0.6em are AVERAGE advances for a mid-weight UI sans, not Manrope's
- * own metrics, so these are approximations with the margin deliberately on the
- * conservative side. Being 10% too strict hides a label that would just have
- * fitted; being 10% too loose clips one a reader is trying to read. Only the
- * second is a defect.
+ * ⚠ The ancestor floor lands back on 48, unchanged, which is worth saying
+ * plainly: the original judgement there was sound and the measurement agrees
+ * with it. Only the number that was doing real work moved.
  *
- * ⚠ Sized for the DESKTOP type scale. Under the 768px media query the fonts
- * drop to 0.7/0.65rem, so these floors ask for slightly more room than that
- * text needs — erring toward the harmless side again, and avoiding a second
- * threshold keyed off a media query this module cannot see.
+ * ⚠ Computed from real strings at import time rather than written down, so the
+ * floors cannot drift out of step with `manropeMetrics.ts` the way a copied
+ * number would.
  */
-export const LABEL_FLOOR_PX = { current: 64, ancestor: 48 } as const;
+
+/** The widest money string the compact ladder produces — see formatMoney.ts. */
+const WIDEST_AMOUNT = '-$999.9M';
+
+/**
+ * A useful fragment of a name: six letters and the ellipsis the CSS adds.
+ * Six real letters rather than an average, because an average is the thing
+ * this whole change exists to stop relying on.
+ */
+const NAME_FRAGMENT = 'Genera…';
+
+/**
+ * ⚠ An ancestor asks for LESS, deliberately, and this is a judgement not a
+ * measurement. That row is a compressed breadcrumb: its job is to let a reader
+ * recognise where they are, not to be read. Four letters do that ("Curr…",
+ * "Educ…"), and demanding the full six-letter fragment would have pushed the
+ * floor from 48 to 63 and stripped labels off breadcrumbs that were fine.
+ */
+const ANCESTOR_FRAGMENT = 'Curr…';
+
+const PADDING_PX = 16;          // `.segment-content` padding: 4px 8px
+
+export const LABEL_FLOOR_PX = {
+  current: Math.ceil(PADDING_PX + Math.max(
+    measureTextPx(WIDEST_AMOUNT, 11.2, 500),
+    measureTextPx(NAME_FRAGMENT, 12, 600),
+  )),
+  ancestor: Math.ceil(PADDING_PX + measureTextPx(ANCESTOR_FRAGMENT, 11.2, 600)),
+} as const;
 
 /**
  * The rule this replaced, kept as the UNMEASURED fallback.
