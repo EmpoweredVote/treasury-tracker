@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { canFitLabel, LABEL_FLOOR_PX, LEGACY_PCT_FLOOR } from './segmentLabelFit';
+import { measureTextPx } from './manropeMetrics';
 
 /**
  * ⚠ The two opposite mistakes one percentage threshold was making at once. Both
@@ -61,6 +62,22 @@ describe('canFitLabel', () => {
       expect(canFitLabel(29.3, bad, false)).toBe(true);   // falls back, 29.3 >= 8
       expect(canFitLabel(5.2, bad, false)).toBe(false);
     }
+  });
+
+  it('leaves room for the widest money string the ladder can print', () => {
+    // ⚠⚠ WOULD FAIL AT THE OLD 64. The floor is set by `.segment-amount`, and
+    // the old value was reasoned from 0.60em per digit when Manrope's are
+    // 0.642em with '$' at 0.615em — so it sat ~5px low, the direction that
+    // CLIPS a figure rather than hiding it.
+    const PADDING_PX = 16;
+    const widest = measureTextPx('-$999.9M', 11.2, 500);
+    expect(LABEL_FLOOR_PX.current).toBeGreaterThanOrEqual(Math.ceil(PADDING_PX + widest));
+    expect(LABEL_FLOOR_PX.current).toBeGreaterThan(64);
+  });
+
+  it('keeps the ancestor row more permissive than the current one', () => {
+    // An ancestor is a breadcrumb: recognition, not reading.
+    expect(LABEL_FLOOR_PX.ancestor).toBeLessThan(LABEL_FLOOR_PX.current);
   });
 
   it('never labels a zero-width segment', () => {

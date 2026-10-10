@@ -1,5 +1,9 @@
 @import "tailwindcss" source("../src");
-@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap') layer(base);
+/* ⚠⚠ The Manrope @import USED TO LIVE HERE AND NEVER WORKED. Tailwind v4
+   inlines `@import "tailwindcss"` above it, so in the built css this rule no
+   longer preceded every other rule and the browser dropped it — zero font
+   requests in production, everything rendering in the system fallback. It is a
+   <link> in index.html now; see the note there. Do not move it back. */
 
 @custom-variant dark (&:where(.dark, .dark *));
 

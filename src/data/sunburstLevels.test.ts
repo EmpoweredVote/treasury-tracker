@@ -8,6 +8,7 @@ import {
   nycCurrentOperationsNode,
 } from './__fixtures__/nycCurrentOperations';
 import { getCategoryColor } from '../utils/chartColors';
+import { measureTextPx } from '../utils/manropeMetrics';
 import type { BudgetCategory } from '../types/budget';
 
 const cat = (name: string, amount: number, subcategories?: BudgetCategory[]): BudgetCategory =>
@@ -155,6 +156,30 @@ describe('fitArcLabel', () => {
     const sweep = 2 * Math.PI * 0.061;
     expect(fit('Housing', sweep, RING, 21)).not.toBeNull();   // 500px container
     expect(fit('Housing', sweep, RING, 60)).toBeNull();        // ~180px container
+  });
+
+  it('truncates by WIDTH, not by character count', () => {
+    // ⚠⚠ WOULD FAIL UNDER THE OLD RULE, which divided the ring by a flat
+    // 0.55em and therefore gave both of these the same number of characters.
+    // In Manrope 'l' is 0.265em and 'W' is 0.963em.
+    const narrow = fit('lililililililili', 2);
+    const wide = fit('WAWAWAWAWAWAWAWA', 2);
+    expect(narrow).not.toBeNull();
+    expect(narrow!.length).toBeGreaterThan((wide ?? '').length);
+  });
+
+  it('returns a label that MEASURES inside the ring it was given', () => {
+    // The property a count-based rule could not hold. Checked against the real
+    // font for every function on the reported NYC level.
+    const names = ['Education', 'Social services', 'Public safety and judicial',
+      'Environmental protection', 'Parks, recreation and cultural activities',
+      'Health (including payments to HHC)', 'Libraries', 'Housing'];
+    const usable = (RING.outerRadius - RING.innerRadius) - FONT * 0.6;
+    for (const n of names) {
+      const out = fit(n, 2);
+      if (out === null) continue;
+      expect(measureTextPx(out, FONT, 600)).toBeLessThanOrEqual(usable);
+    }
   });
 
   it('never returns an empty or whitespace label', () => {

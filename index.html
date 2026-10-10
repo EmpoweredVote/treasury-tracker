@@ -9,6 +9,21 @@
     <meta name="description" content="Follow your tax dollars. Treasury Tracker turns dense public budgets into an interactive view of where the money goes and what it pays for." />
     <meta name="keywords" content="city budget, public spending, budget tracker, civic engagement, government finances" />
     <meta name="author" content="Empowered.Vote" />
+    <!-- ⚠⚠ MANROPE IS LOADED HERE, NOT FROM index.css, AND THAT IS THE FIX.
+         The stylesheet carried `@import url(...Manrope...)`. Tailwind v4 inlines
+         its own `@import "tailwindcss"` ahead of it, so in the BUILT css the
+         font import no longer preceded every other rule — which the spec
+         requires — and it was dropped outright. `npm run build` said so on
+         every build ("@import rules must precede all rules aside from @charset
+         and @layer statements") and the warning was not a style nit: measured
+         on production 2026-10-10, the page made ZERO font requests,
+         `document.fonts.size` was 0, and every element rendered in the system
+         fallback while computed `font-family` still read "Manrope, sans-serif".
+         A <link> cannot be reordered out of existence by a bundler, and the
+         preconnects remove a round-trip the @import could never avoid. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" />
     <title>Treasury Tracker</title>
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Empowered Vote" />
