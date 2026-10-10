@@ -567,6 +567,7 @@ class CityConfig:
                  revenue_section_header='revenues',
                  expenditures_follow_revenue_total=False,
                  decimal_money=False, whitespace_repair=False,
+                 underscore_rules=False,
                  multipage=False, multipage_max=6,
                  subparents=(), subparent_member_prefixes=(),
                  subparent_close='members',
@@ -641,6 +642,9 @@ class CityConfig:
         self.exclude_ignore = tuple(t.lower() for t in exclude_ignore)
         self.decimal_money = bool(decimal_money)
         self.whitespace_repair = bool(whitespace_repair)
+        # ⚠ Opt-in; see `strip_underline_rules`. Default False keeps every
+        # existing entity byte-identical.
+        self.underscore_rules = bool(underscore_rules)
         if revenue_group_close not in ('members', 'numeric_chart', 'next_heading'):
             raise ValueError('revenue_group_close must be "members", '
                              '"numeric_chart" or "next_heading", got %r' % revenue_group_close)
@@ -863,6 +867,16 @@ def norm_label(raw):
     "Debt Service - Principal" and "Non-departmental" survive intact."""
     s = re.sub(r'\s+', ' ', raw).strip()
     s = re.sub(r'(?:\s+[-–—]+)+$', '', s)
+    # ⚠ Drop a trailing DOT-LEADER run. NYC sets its statement with leaders
+    # between the label and the figures ("Real estate taxes. . . . . . ."), and
+    # without this the LEADER IS PUBLISHED AS PART OF THE CATEGORY NAME -- a
+    # reader-facing defect no arithmetic gate can see, because the money is
+    # untouched.
+    #
+    # ⚠ Requires at least TWO dots separated only by whitespace, so an
+    # abbreviation survives: "... Hospitals Inc." and "U.S. Department" both
+    # end in a dot that no second dot follows. One dot is never a leader.
+    s = re.sub(r'\.(?:\s*\.)+\s*$', '', s)
     return s.strip().rstrip(':').strip()
 
 def label_of(line):
@@ -2767,6 +2781,43 @@ def repair_ocr_whitespace(text):
     return text
 
 
+# ⚠ A rule drawn as underscore characters, not a glyph. See
+# `strip_underline_rules`.
+_UNDERLINE_RULE = re.compile(r'_+')
+
+
+def strip_underline_rules(text):
+    """Remove '_' run-characters used to draw UNDERLINE RULES. Digits are never
+    changed, and nothing but '_' is removed.
+
+    ⚠⚠ WHY THIS EXISTS, AND WHY IT IS OPT-IN. The City of New York's ACFR draws
+    the rule above each subtotal as a run of underscore characters that
+    `pdftotext -table` interleaves INTO the digits of that row:
+
+        ' To tal revenue s. . .   _1_1_2_,_3_8_7_,_40__7   ____2,_5_0_2'
+        '$________4__,0__3__7__,__1__1__1'
+
+    `_MONEY` cannot see through that, so the row tokenises to
+    ['1','1','2','3','8','7','40','7', ...]. That is not a cosmetic problem:
+    `anchors()` builds the POSITIONAL COLUMN GRID from the fully-populated
+    `Total revenues` / `Total expenditures` rows, which are precisely the rows
+    carrying the rule. With the anchor row destroyed every column edge is
+    nonsense and EVERY data row reads zero -- the whole statement comes back
+    empty while the tie gate reports a confident -1000 failure.
+
+    ⚠ `column_strategy='ordinal'` does NOT escape it. The defect is in
+    tokenisation, upstream of both strategies.
+
+    ⚠ This is deliberately a page-level repair behind `CityConfig(
+    underscore_rules=True)`, defaulting False, exactly as `whitespace_repair`
+    is. No entity that does not ask for it sees a single changed byte. An
+    underscore has no other meaning anywhere in this corpus -- it is never part
+    of a label and never part of a figure -- but the flag keeps that claim
+    scoped to the one issuer where it has been checked.
+    """
+    return _UNDERLINE_RULE.sub('', text)
+
+
 def _to_dollars(cents):
     """Exact cents -> dollars, half-up, sign-symmetric. Never floats."""
     if cents is None:
@@ -2815,8 +2866,20 @@ def extract(pdf_path, mode, cfg):
     _DECIMAL_MONEY = cfg.decimal_money
     _LEADING_CODE = cfg.leading_account_code
     pages = table_pages(pdf_path)
+    # ⚠⚠ KEEP THE UNREPAIRED PAGES. `physical_page_for` fingerprints a page by
+    # EXACT equality against a freshly rendered `pdftotext -table -f k -l k`, so
+    # handing it a repaired page can never match and `statement_page` silently
+    # falls back to the pdftotext CHUNK INDEX -- the provenance defect the
+    # Hilton Head note calls corrosive. Measured on NYC: every one of 96
+    # extractions reported `statement_page_resolved: false` until this line
+    # existed. `whitespace_repair` had the same latent shape.
+    raw_pages = pages
     if cfg.whitespace_repair:
         pages = [repair_ocr_whitespace(p) for p in pages]
+    # ⚠ Before ANY page test or row parse: the rules sit on the very rows
+    # `anchors()` builds the column grid from.
+    if cfg.underscore_rules:
+        pages = [strip_underline_rules(p) for p in pages]
     span_pages = span_raw = None
     if cfg.multipage:
         pi, pg, span_pages, span_raw = find_statement_span(pages, cfg)
@@ -2952,7 +3015,7 @@ def extract(pdf_path, mode, cfg):
     # see `physical_page_for`. `statement_page_index` keeps the raw index so the
     # two can be compared when they disagree, and so this change is legible in a
     # diff of the extracted corpus instead of silently rewriting a number.
-    physical = physical_page_for(pdf_path, pages, pi)
+    physical = physical_page_for(pdf_path, raw_pages, pi)
     result = {
         'fiscal_year': fy,
         'mode': mode,

@@ -14,7 +14,8 @@ from lib.acfrGF import (CityConfig, column_value, classify, build_revenue,
                          nums_with_pos, _expenditure_lines, _is_section_end,
                          _section, _END_EXPENDITURE_LABELS, build_operating,
                          anchors as _anchors, select_statement_for_fy,
-                         find_statement_pages, resolve_statement_page, fy_from_path)
+                         find_statement_pages, resolve_statement_page, fy_from_path,
+                         strip_underline_rules, _MONEY, norm_label)
 # The SHIPPED Bainbridge configs themselves, not copies of them -- see
 # TestShippedBainbridgeConfigsAreWholeDollars at the bottom of this file for
 # why the real objects have to be under test rather than a local fixture.
@@ -3361,6 +3362,67 @@ class TestTrailingContinuationDiscardsAPendingFragment(unittest.TestCase):
             self._cfg())
         self.assertEqual(total, 100)
         self.assertEqual([c['n'] for c in tree['c']], ['Natural and Economic Environment'])
+
+
+class TestUnderlineRuleStripping(unittest.TestCase):
+    """⚠⚠ NYC renders its underline RULES as '_' characters interleaved into
+    the digits -- and it does so on the `Total revenues` / `Total expenditures`
+    rows, which are exactly the rows `anchors()` builds the positional column
+    grid from. Transcribed verbatim from
+    `pdftotext -table -f 82 -l 82 docs/NYC/nyc-2024-acfr.pdf`.
+    """
+
+    NYC_TOTAL_ROW = (' To tal revenue s.  .  .  .  .  .                      '
+                     '_1_1_2_,_3_8_7_,_40__7            ____2,_5_0_2')
+    NYC_BALANCE_CELL = '$________4__,0__3__7__,__1__1__1'
+
+    def test_untouched_line_tokenises_to_single_digits(self):
+        # This is the defect, pinned: without the repair the anchor row yields
+        # ['1','1','2','3','8','7','40','7', ...] and every column edge built
+        # from it is nonsense, so every data row reads zero.
+        toks = [m.group(0).strip() for m in _MONEY.finditer(self.NYC_TOTAL_ROW)]
+        self.assertEqual(toks[:4], ['1', '1', '2', '3'])
+
+    def test_repair_restores_the_interleaved_figure(self):
+        self.assertIn('112,387,407', strip_underline_rules(self.NYC_TOTAL_ROW))
+
+    def test_repair_restores_a_leading_rule_run(self):
+        self.assertIn('4,037,111', strip_underline_rules(self.NYC_BALANCE_CELL))
+
+    def test_repair_leaves_a_clean_figure_alone(self):
+        clean = 'Real estate taxes.  .  .   $32,987,024     --     $ 32,987,024'
+        self.assertEqual(strip_underline_rules(clean), clean)
+
+    def test_repair_preserves_the_label_text(self):
+        self.assertIn('To tal revenue s', strip_underline_rules(self.NYC_TOTAL_ROW))
+
+    def test_dot_leaders_are_stripped_from_a_label(self):
+        # NYC prints dot leaders between the label and the figures. Without
+        # this the published category name is
+        # "Real estate taxes. . . . . . . . . . . ." -- a reader-facing defect
+        # no arithmetic gate can see, since the money is untouched.
+        self.assertEqual(
+            norm_label('Real estate taxes.  .  .  .  .  .  .  .  .'),
+            'Real estate taxes')
+
+    def test_dot_leaders_stripped_when_the_run_is_detached(self):
+        self.assertEqual(norm_label('Pensions  .  .  .  .  .'), 'Pensions')
+
+    def test_a_single_trailing_period_survives(self):
+        # An abbreviation is not a leader. One dot is never a leader run.
+        self.assertEqual(norm_label('Payments to NYC Health + Hospitals Inc.'),
+                         'Payments to NYC Health + Hospitals Inc.')
+
+    def test_an_internal_abbreviation_survives(self):
+        self.assertEqual(norm_label('U.S. Department transfers'),
+                         'U.S. Department transfers')
+
+    def test_is_opt_in_so_every_existing_entity_is_unchanged(self):
+        default = CityConfig(city='Somewhere', parents=('current',))
+        self.assertFalse(default.underscore_rules)
+        opted = CityConfig(city='New York City', parents=('debt service',),
+                           underscore_rules=True)
+        self.assertTrue(opted.underscore_rules)
 
 
 if __name__ == '__main__':
