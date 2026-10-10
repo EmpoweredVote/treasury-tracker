@@ -109,3 +109,86 @@ export const ARC_OPACITY: Record<ArcEmphasis, number> = {
   current: 1,
   dim: 0.3,
 };
+
+/**
+ * ── ⚠⚠ ARC LABELS ───────────────────────────────────────────────────────────
+ *
+ * The sunburst drew NO labels at all — every figure was tooltip-only, so the
+ * chart could not be read without a pointer, and not at all on a touch screen.
+ * The bars beside it label any segment with room. Reported 2026-10-10 with the
+ * crop below.
+ *
+ * ⚠ THE FIT TEST IS THE SAME SHAPE AS THE ICICLE'S, AND FOR THE SAME REASON:
+ * it is about PIXELS, not about fractions. An arc has two independent
+ * dimensions and a label needs both —
+ *
+ *   · RADIAL room (ring width) bounds the text's LENGTH;
+ *   · TANGENTIAL room (arc length at the middle of the ring) bounds its HEIGHT.
+ *
+ * A thin wedge of a fat ring has length but no height; a wide wedge of a thin
+ * ring has the opposite. Checking one and not the other is how a label ends up
+ * crossing its own arc boundary.
+ */
+
+/** Rendered size we aim a label at, in CSS pixels. */
+export const SUNBURST_LABEL_PX = 11;
+
+/** Shortest fragment worth drawing, in characters, before the ellipsis. */
+const MIN_LABEL_CHARS = 5;
+
+/** Average glyph advance as a fraction of font size — see segmentLabelFit.ts. */
+const GLYPH = 0.55;
+
+export interface ArcGeometry {
+  label: string;
+  innerRadius: number;
+  outerRadius: number;
+  startAngle: number;
+  endAngle: number;
+  /** In the SAME units as the radii — the caller converts from pixels. */
+  fontSize: number;
+}
+
+/**
+ * The text to draw inside an arc, ellipsised to the ring width, or null when
+ * the arc cannot carry a legible fragment.
+ *
+ * ⚠ Returns a TRUNCATION rather than hiding whenever five characters fit. SVG
+ * `<text>` has no `text-overflow`, so this is where the icicle's CSS ellipsis
+ * has to be done by hand; without it the chart would label only its two or
+ * three widest arcs and stay unreadable.
+ */
+export function fitArcLabel(g: ArcGeometry): string | null {
+  const { label, innerRadius, outerRadius, startAngle, endAngle, fontSize } = g;
+  if (!label || !Number.isFinite(fontSize) || fontSize <= 0) return null;
+
+  const ringWidth = outerRadius - innerRadius;
+  const midRadius = (outerRadius + innerRadius) / 2;
+  const sweep = Math.abs(endAngle - startAngle);
+  if (!(ringWidth > 0) || !(sweep > 0)) return null;
+
+  // Height: the arc must be at least as "tall" as the line, with a little air.
+  if (sweep * midRadius < fontSize * 1.25) return null;
+
+  // Length: 2 units of padding at each end of the ring.
+  const usable = ringWidth - fontSize * 0.6;
+  const maxChars = Math.floor(usable / (fontSize * GLYPH));
+  if (maxChars < MIN_LABEL_CHARS) return null;
+  if (label.length <= maxChars) return label;
+  return label.slice(0, Math.max(1, maxChars - 1)).trimEnd() + '…';
+}
+
+/**
+ * Keep radial text the right way up.
+ *
+ * d3 angles run clockwise from twelve o'clock, so an arc centred anywhere in
+ * the left half (π … 2π) has its outward direction pointing leftward and its
+ * text would read upside down and backwards. Those labels are rotated a
+ * further 180°, which is why this returns the flip as well as the angle.
+ */
+export function arcLabelTransform(startAngle: number, endAngle: number, midRadius: number): string {
+  const mid = (startAngle + endAngle) / 2;
+  const deg = (mid * 180) / Math.PI - 90;
+  const flip = mid > Math.PI ? 180 : 0;
+  return `rotate(${deg}) translate(${midRadius},0) rotate(${flip})`;
+}

@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type RefObject } from 'react';
 
 /**
  * ⚠ `useLayoutEffect` warns when React renders on the server, and this repo's
@@ -19,8 +19,15 @@ const useIsomorphicLayoutEffect =
  * ⚠ The measurement runs in a LAYOUT effect, so it happens before the browser
  * paints: the chart does not visibly re-label itself one frame after it appears.
  */
-export function useElementWidth<T extends HTMLElement>() {
-  const ref = useRef<T | null>(null);
+/**
+ * @param external an existing ref to measure. Pass one when the element
+ *   already has a ref for another purpose — the sunburst's container is held
+ *   for callout positioning — rather than standing up a second
+ *   ResizeObserver beside this one.
+ */
+export function useElementWidth<T extends HTMLElement>(external?: RefObject<T | null>) {
+  const own = useRef<T | null>(null);
+  const ref = external ?? own;
   const [width, setWidth] = useState<number | null>(null);
 
   useIsomorphicLayoutEffect(() => {
