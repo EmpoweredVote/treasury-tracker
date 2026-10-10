@@ -1,7 +1,8 @@
 import React, { useMemo } from 'react';
 import type { BudgetCategory } from '../types/budget';
 import { buildIcicleLevels, type BarSegment } from '../data/icicleLevels';
-import { getCategoryColor, shadeWithinBranch } from '../utils/chartColors';
+import { getCategoryColor } from '../utils/chartColors';
+import { formatMoneyCompact, formatMoneyExact } from '../utils/formatMoney';
 import { BRAND_BAR_COLORS, getContrastText } from '../utils/brandColors';
 import './BudgetIcicle.css';
 
@@ -41,32 +42,10 @@ const BudgetIcicle: React.FC<BudgetIcicleProps> = ({
     [categories, navigationPath, totalBudget],
   );
 
-  // Format currency
-  const formatCurrency = (amount: number) => {
-    if (isNonprofit) {
-      return new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'USD',
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0,
-      }).format(amount);
-    }
-    if (amount >= 1_000_000_000) {
-      return `$${(amount / 1_000_000_000).toFixed(1)}B`;
-    }
-    if (amount >= 1_000_000) {
-      return `$${(amount / 1_000_000).toFixed(1)}M`;
-    }
-    if (amount >= 1_000) {
-      return `$${(amount / 1_000).toFixed(0)}K`;
-    }
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
+  // ⚠ A nonprofit's whole ledger is smaller than one municipal line item, so
+  // abbreviating it would round away the figure rather than tidy it.
+  const formatCurrency = (amount: number) =>
+    isNonprofit ? formatMoneyExact(amount) : formatMoneyCompact(amount);
 
   // Format percentage
   const formatPercentage = (value: number, total: number) => {
@@ -107,19 +86,25 @@ const BudgetIcicle: React.FC<BudgetIcicleProps> = ({
               const isClickable = true;
               const showText = canFitText(segment.width, level.isAncestor);
 
-              const baseColor = BRAND_BAR_COLORS[segment.category.name] ?? getCategoryColor(segment.categoryIndex);
-              // ⚠ G3: children of a drilled category all inherit the ROOT's colour
-              // index, so a branch reads as one colour. On a 36-child level that
-              // rendered 36 identical fills with 2 legible labels — one block of
-              // green. Lightness varies per child, hue never does, and the ROOT
-              // level is untouched because its segments already carry distinct hues.
-              const bgColor = levelIndex === 0
-                ? baseColor
-                : shadeWithinBranch(baseColor, segmentIndex);
-              // Deliberately the BASE, not the shaded fill: getContrastText returns
-              // white for any non-hex input, which is what every var() fill already
-              // got, so the text colour is unchanged by construction.
-              const textColor = getContrastText(baseColor);
+              // ⚠⚠ COLOURED BY POSITION IN ITS OWN LEVEL — the same rule, and the
+              // same `DATA_VIZ_HUES` cycle, that `CategoryList` uses for the cards
+              // directly below. The current level and the card grid are always the
+              // SAME list, so this makes "the Nth bar is the Nth card" an invariant
+              // a reader can rely on rather than a coincidence.
+              //
+              // ⚠ What this REPLACED, and why: a drilled level used to inherit its
+              // ROOT's colour index and vary only lightness (G3, 2026-08-23), so a
+              // branch read as one colour. New York City's `Current Operations`
+              // holds twelve functions, which rendered as twelve teals while the
+              // twelve cards beneath them were teal/coral/yellow/dusk/sage — one
+              // list, two palettes. Chris's call, 2026-10-10: match the cards.
+              // `shadeWithinBranch` is retired with this; the ten-hue cycle solves
+              // the 36-child case too, by giving neighbours different HUES.
+              //
+              // ⚠ Index alignment survives `displayCategories` dropping zero-amount
+              // rows only because the sort puts zeros last — see sortCategories.ts.
+              const bgColor = BRAND_BAR_COLORS[segment.category.name] ?? getCategoryColor(segmentIndex);
+              const textColor = getContrastText(bgColor);
               return (
                 <div
                   key={segment.category.name}

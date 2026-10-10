@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { DollarSign, TrendingDown, Users, Info } from 'lucide-react';
 import { useAnimatedCounter } from '../../hooks/useAnimatedCounter';
 import { financingInflowNote, SERIES_TOGGLE_COPY, type FinancingInflow } from '../../data/fundScopeVocabulary';
+import { formatMoneyCompact } from '../../utils/formatMoney';
 
 interface DatasetCardsProps {
   activeDataset: string;
@@ -29,11 +30,10 @@ interface DatasetCardsProps {
 }
 
 const formatCurrency = (amount: number, exact = false): string => {
+  // ⚠ `exact` is a cents-precise figure a reader may be reconciling against a
+  // filing, so it is deliberately NOT routed through the abbreviating ladder.
   if (exact) return `$${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-  if (amount >= 1_000_000_000) return `$${(amount / 1_000_000_000).toFixed(1)}B`;
-  if (amount >= 1_000_000) return `$${(amount / 1_000_000).toFixed(1)}M`;
-  if (amount >= 1_000) return `$${(amount / 1_000).toFixed(0)}K`;
-  return `$${amount.toFixed(0)}`;
+  return formatMoneyCompact(amount);
 };
 
 const BASE_CARDS = [

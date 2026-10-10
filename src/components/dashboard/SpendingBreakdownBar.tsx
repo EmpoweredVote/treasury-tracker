@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import type { BudgetCategory } from '../../types/budget';
 import { DATA_VIZ_HUES } from '../../utils/chartColors';
+import { formatMoneyCompact } from '../../utils/formatMoney';
 
 interface SpendingBreakdownBarProps {
   categories: BudgetCategory[];
@@ -25,11 +26,6 @@ const SpendingBreakdownBar: React.FC<SpendingBreakdownBarProps> = ({
   const otherAmount = sorted.slice(maxCategories).reduce((sum, c) => sum + c.amount, 0);
   const total = categories.reduce((sum, c) => sum + c.amount, 0);
 
-  const formatCurrency = (amount: number) => {
-    if (amount >= 1_000_000) return `$${(amount / 1_000_000).toFixed(1)}M`;
-    if (amount >= 1_000) return `$${(amount / 1_000).toFixed(0)}K`;
-    return `$${amount.toFixed(0)}`;
-  };
 
   // Normalize ALL_CAPS names (Indiana Gateway) to Title Case for display
   const toDisplayName = (name: string) => {
@@ -64,7 +60,7 @@ const SpendingBreakdownBar: React.FC<SpendingBreakdownBarProps> = ({
               onFocus={() => setHoveredIndex(i)}
               onBlur={() => setHoveredIndex(null)}
               onClick={() => onCategoryClick?.(cat)}
-              aria-label={`${cat.name}: ${formatCurrency(cat.amount)} (${pct.toFixed(1)}%)`}
+              aria-label={`${cat.name}: ${formatMoneyCompact(cat.amount)} (${pct.toFixed(1)}%)`}
             >
               {pct > 8 && (
                 <span className="absolute inset-0 flex items-center justify-center text-[11px] font-semibold text-white truncate px-2">
@@ -124,7 +120,7 @@ const SpendingBreakdownBar: React.FC<SpendingBreakdownBarProps> = ({
         <div className="bg-ev-gray-900 dark:bg-ev-gray-700 dark:border dark:border-ev-gray-600 text-white text-xs rounded-lg px-3 py-2 inline-flex items-center gap-3">
           <span className="font-semibold">{toDisplayName(visible[hoveredIndex].name)}</span>
           <span className="text-ev-gray-300">·</span>
-          <span className="tabular-nums">{formatCurrency(visible[hoveredIndex].amount)}</span>
+          <span className="tabular-nums">{formatMoneyCompact(visible[hoveredIndex].amount)}</span>
           <span className="text-ev-gray-300">·</span>
           <span className="tabular-nums">
             {((visible[hoveredIndex].amount / total) * 100).toFixed(1)}% of total

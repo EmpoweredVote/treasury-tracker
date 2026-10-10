@@ -22,6 +22,7 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import { DATA_VIZ_HUES } from '../utils/chartColors';
+import { formatMoneyCompact } from '../utils/formatMoney';
 
 interface CategoryListProps {
   categories: BudgetCategory[];
@@ -98,17 +99,6 @@ const CATEGORY_LOGOS: Record<string, { src: string; bg: string; cover?: boolean;
 };
 
 const CategoryList: React.FC<CategoryListProps> = ({ categories, onCategoryClick, isPastYear = false }) => {
-  const formatCurrency = (amount: number) => {
-    if (amount >= 1000000) {
-      return `$${(amount / 1000000).toFixed(1)}M`;
-    }
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
 
   const formatPercentage = (percentage: number) => {
     return (Math.round(percentage * 10) / 10).toFixed(1);
@@ -164,7 +154,7 @@ const CategoryList: React.FC<CategoryListProps> = ({ categories, onCategoryClick
                 )}
                 <div className="flex items-center gap-1.5 mt-0.5">
                   <span className="text-sm font-medium tabular-nums text-[#1C1C1C] dark:text-ev-gray-200">
-                    {formatCurrency(isPastYear && category.actualAmount != null ? category.actualAmount : category.amount)}
+                    {formatMoneyCompact(isPastYear && category.actualAmount != null ? category.actualAmount : category.amount)}
                   </span>
                   <span className="text-[#D3D7DE] dark:text-ev-gray-600">•</span>
                   <span className="text-xs text-ev-gray-600 tabular-nums">{formatPercentage(category.percentage)}%</span>
@@ -189,7 +179,7 @@ const CategoryList: React.FC<CategoryListProps> = ({ categories, onCategoryClick
               key={`${category.name}-${index}`}
               className="relative bg-white dark:bg-ev-gray-800 border border-[#E2EBEF] dark:border-ev-gray-700 rounded-xl p-4 cursor-pointer transition-all duration-200 hover:shadow-md hover:border-[#D3D7DE] dark:hover:border-ev-gray-500 text-left w-full overflow-hidden"
               onClick={() => onCategoryClick(category)}
-              aria-label={`${category.name}, ${formatCurrency(category.amount)}, ${formatPercentage(category.percentage)}%, tap to explore`}
+              aria-label={`${category.name}, ${formatMoneyCompact(category.amount)}, ${formatPercentage(category.percentage)}%, tap to explore`}
             >
               {cardContent}
             </button>
@@ -200,7 +190,7 @@ const CategoryList: React.FC<CategoryListProps> = ({ categories, onCategoryClick
           <div
             key={`${category.name}-${index}`}
             className="relative bg-white dark:bg-ev-gray-800 border border-[#E2EBEF] dark:border-ev-gray-700 rounded-xl p-4 overflow-hidden"
-            aria-label={`${category.name}, ${formatCurrency(category.amount)}, ${formatPercentage(category.percentage)}%`}
+            aria-label={`${category.name}, ${formatMoneyCompact(category.amount)}, ${formatPercentage(category.percentage)}%`}
           >
             {cardContent}
           </div>

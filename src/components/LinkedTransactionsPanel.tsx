@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { Receipt, Building2, Calendar, CreditCard, ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
 import type { LinkedTransactionSummary } from '../types/budget';
+import { formatMoneyCompact } from '../utils/formatMoney';
 
 interface LinkedTransactionsPanelProps {
   linkedTransactions: LinkedTransactionSummary;
@@ -11,20 +12,6 @@ interface LinkedTransactionsPanelProps {
 
 const TRANSACTIONS_PER_PAGE = 20;
 
-const formatCurrency = (amount: number): string => {
-  if (amount >= 1000000) {
-    return `$${(amount / 1000000).toFixed(1)}M`;
-  }
-  if (amount >= 1000) {
-    return `$${(amount / 1000).toFixed(1)}K`;
-  }
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(amount);
-};
 
 const formatDate = (dateStr: string): string => {
   if (!dateStr) return '';
@@ -100,7 +87,7 @@ export default function LinkedTransactionsPanel({
         {/* Summary Stats */}
         <div className="grid grid-cols-3 gap-4 mb-6">
           <div className="bg-[#F7F7F8] dark:bg-ev-gray-700 rounded-lg p-4 text-center">
-            <div className="text-lg font-bold font-manrope text-[#1C1C1C] dark:text-ev-gray-100 tabular-nums">{formatCurrency(totalAmount)}</div>
+            <div className="text-lg font-bold font-manrope text-[#1C1C1C] dark:text-ev-gray-100 tabular-nums">{formatMoneyCompact(totalAmount)}</div>
             <div className="text-xs font-bold uppercase tracking-wider text-ev-gray-500 mt-1">Total Spent</div>
           </div>
           <div className="bg-[#F7F7F8] dark:bg-ev-gray-700 rounded-lg p-4 text-center">
@@ -126,7 +113,7 @@ export default function LinkedTransactionsPanel({
                   <div className="flex flex-col flex-1 min-w-0">
                     <span className="text-sm font-medium text-[#1C1C1C] dark:text-ev-gray-200 truncate">{vendor.name}</span>
                     <span className="text-xs text-ev-gray-500 tabular-nums">
-                      {formatCurrency(vendor.amount)} ({vendor.count} transaction{vendor.count !== 1 ? 's' : ''})
+                      {formatMoneyCompact(vendor.amount)} ({vendor.count} transaction{vendor.count !== 1 ? 's' : ''})
                     </span>
                   </div>
                 </div>
@@ -153,7 +140,7 @@ export default function LinkedTransactionsPanel({
               <div key={index} className="px-4 py-3 bg-[#F7F7F8] dark:bg-ev-gray-700 rounded-lg border-l-2 border-ev-muted-blue">
                 <div className="flex justify-between items-start gap-4 mb-2">
                   <div className="text-sm text-[#1C1C1C] dark:text-ev-gray-200 flex-1 min-w-0 leading-snug">{tx.description}</div>
-                  <div className="text-sm font-bold text-[#1C1C1C] dark:text-ev-gray-100 whitespace-nowrap tabular-nums">{formatCurrency(tx.amount)}</div>
+                  <div className="text-sm font-bold text-[#1C1C1C] dark:text-ev-gray-100 whitespace-nowrap tabular-nums">{formatMoneyCompact(tx.amount)}</div>
                 </div>
                 <div className="flex flex-wrap gap-3 text-xs text-ev-gray-500">
                   <span className="flex items-center gap-1">

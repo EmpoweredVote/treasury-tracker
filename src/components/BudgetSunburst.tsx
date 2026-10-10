@@ -3,6 +3,7 @@ import * as d3 from 'd3';
 import type { BudgetCategory } from '../types/budget';
 import { getCategoryColor } from '../utils/chartColors';
 import './BudgetSunburst.css';
+import { formatMoneyCompact } from '../utils/formatMoney';
 
 // Target angle for selected category (right side, 90 degrees from top)
 // In D3's coordinate system, 0 is at top, going clockwise
@@ -73,17 +74,6 @@ const BudgetSunburst: React.FC<BudgetSunburstProps> = ({
   }, [navigationPath, totalBudget]);
 
   // Format currency
-  const formatCurrency = (amount: number) => {
-    if (amount >= 1000000) {
-      return `$${(amount / 1000000).toFixed(1)}M`;
-    }
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
 
   // Format percentage
   const formatPercentage = (value: number, total: number) => {
@@ -332,7 +322,7 @@ const BudgetSunburst: React.FC<BudgetSunburstProps> = ({
           .style('top', `${event.clientY - 10}px`)
           .html(`
             <div class="tooltip-name">${d.data.name}</div>
-            <div class="tooltip-amount">${formatCurrency(d.value || 0)}</div>
+            <div class="tooltip-amount">${formatMoneyCompact(d.value || 0)}</div>
             <div class="tooltip-percentage">${formatPercentage(d.value || 0, totalBudget)} of total budget</div>
             ${hasChildren ? '<div class="tooltip-hint">Click to explore</div>' : ''}
           `);
@@ -392,7 +382,7 @@ const BudgetSunburst: React.FC<BudgetSunburstProps> = ({
       .attr('fill', 'white')
       .attr('font-size', '36px')
       .attr('font-weight', '700')
-      .text(formatCurrency(totalBudget));
+      .text(formatMoneyCompact(totalBudget));
 
     // Draw callout line and update callout box position if there's a selection
     if (selectedNode && currentPathNames.length > 0) {
@@ -499,7 +489,7 @@ const BudgetSunburst: React.FC<BudgetSunburstProps> = ({
         {currentCategory && (
           <div className="sunburst-callout" style={{ display: 'none' }}>
             <div className="callout-name">{currentCategory.name}</div>
-            <div className="callout-amount">{formatCurrency(currentCategory.amount)}</div>
+            <div className="callout-amount">{formatMoneyCompact(currentCategory.amount)}</div>
             <div className="callout-percentages">
               <div className="callout-percentage">
                 <span className="percentage-value">{formatPercentage(currentCategory.amount, totalBudget)}</span>

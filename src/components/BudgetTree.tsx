@@ -3,6 +3,7 @@ import * as d3 from 'd3';
 import type { BudgetCategory } from '../types/budget';
 import { getCategoryColor } from '../utils/chartColors';
 import './BudgetTree.css';
+import { formatMoneyCompact } from '../utils/formatMoney';
 
 interface BudgetTreeProps {
   categories: BudgetCategory[];
@@ -93,20 +94,6 @@ const BudgetTree: React.FC<BudgetTreeProps> = ({
   }, [categories, navigationPath, totalBudget]);
 
   // Format currency
-  const formatCurrency = (amount: number) => {
-    if (amount >= 1000000) {
-      return `$${(amount / 1000000).toFixed(1)}M`;
-    }
-    if (amount >= 1000) {
-      return `$${(amount / 1000).toFixed(0)}K`;
-    }
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
 
   // Format percentage
   const formatPercentage = (value: number, total: number) => {
@@ -265,7 +252,7 @@ const BudgetTree: React.FC<BudgetTreeProps> = ({
           .style('top', `${event.pageY - 10}px`)
           .html(`
             <div class="tooltip-name">${d.name}</div>
-            <div class="tooltip-amount">${formatCurrency(d.value)}</div>
+            <div class="tooltip-amount">${formatMoneyCompact(d.value)}</div>
             <div class="tooltip-percentage">${formatPercentage(d.value, totalBudget)} of total</div>
             ${d.hasChildren && d.isCurrentLevel ? '<div class="tooltip-hint">Click to explore</div>' : ''}
             ${d.isAncestor && d.path.length > 0 ? '<div class="tooltip-hint">Click to go back</div>' : ''}

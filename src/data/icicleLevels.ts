@@ -16,9 +16,15 @@ export interface BarSegment {
   width: number;
   isSelected: boolean;
   hasChildren: boolean;
-  /** Root-level category index, for colour cycling. */
-  categoryIndex: number;
 }
+
+/**
+ * ⚠ `categoryIndex` was REMOVED on 2026-10-10. It carried the ROOT category's
+ * position down to every descendant so a whole branch could share one hue. The
+ * icicle now colours by a segment's position in its OWN level, matching the card
+ * grid below it, so nothing read the field any more — and a field documented as
+ * "for colour cycling" that no colour reads is a lie waiting to be believed.
+ */
 
 export interface BarLevel {
   segments: BarSegment[];
@@ -36,18 +42,13 @@ export function buildIcicleLevels(
 ): BarLevel[] {
   const result: BarLevel[] = [];
 
-  // Root category name → its index, so descendants can inherit its colour.
-  const rootIndexMap = new Map<string, number>();
-  categories.forEach((c, i) => rootIndexMap.set(c.name, i));
-
   result.push({
-    segments: categories.map((c, i) => ({
+    segments: categories.map((c) => ({
       category: c,
       path: [c],
       width: (c.amount / totalBudget) * 100,
       isSelected: navigationPath.length > 0 && navigationPath[0].name === c.name,
       hasChildren: (c.subcategories && c.subcategories.length > 0) || false,
-      categoryIndex: i,
     })),
     isAncestor: navigationPath.length > 0,
     totalAmount: totalBudget,
@@ -66,7 +67,6 @@ export function buildIcicleLevels(
     // parent whose official total nets out offsetting receipts.
     const childrenSum = subcats.reduce((sum, c) => sum + c.amount, 0);
     const levelTotal = childrenSum > 0 ? childrenSum : pathCat.amount;
-    const rootCatIndex = rootIndexMap.get(navigationPath[0].name) ?? 0;
 
     result.push({
       segments: subcats.map((c) => ({
@@ -75,7 +75,6 @@ export function buildIcicleLevels(
         width: (c.amount / levelTotal) * 100,
         isSelected: navigationPath[pathIndex + 1]?.name === c.name,
         hasChildren: (c.subcategories && c.subcategories.length > 0) || false,
-        categoryIndex: rootCatIndex,
       })),
       isAncestor: true,
       totalAmount: levelTotal,
