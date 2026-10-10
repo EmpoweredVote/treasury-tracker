@@ -21,6 +21,7 @@
 import { spawnSync } from 'node:child_process';
 import { createClient } from '@supabase/supabase-js';
 import { resolvePython } from './lib/pythonBin.mjs';
+import { readOpinion } from './lib/nycOpinion.mjs';
 import { NYC_FYS, nycAcfrUrl } from './lib/nycAcfrSources.mjs';
 import { NYC_ENTITY } from './seedNewYorkCity.mjs';
 import {
@@ -38,20 +39,21 @@ let c3 = 0;
 for (const fy of NYC_FYS) {
   const r = spawnSync('pdftotext', ['-f', '1', '-l', '140', pdfFor(fy), '-'],
     { encoding: 'utf8', maxBuffer: 128 * 1024 * 1024 });
-  const flat = (r.stdout || '').replace(/\s+/g, ' ').toLowerCase();
   c3 += 1;
 
-  const hasOpinion = flat.includes('present fairly, in all material respects');
-  // ⚠⚠ `qualified` is a SUBSTRING of `unqualified`. Blank out the compound
-  // first, so only a genuine "qualified opinion" can match.
-  const masked = flat.replace(/unqualified/g, 'UNQUAL');
-  const modified = /(?:^|[^a-z])(adverse opinion|disclaimer of opinion|qualified opinion)/.test(masked);
+  // ⚠ The gate lives in scripts/lib/nycOpinion.mjs so it can be tested against
+  // real wording -- including the PRE-2012 "except for" qualification, which
+  // contains the unmodified phrase and never says "qualified opinion". Ten of
+  // these 24 books predate that heading.
+  const op = readOpinion(r.stdout);
+  const hasOpinion = op.hasOpinionPhrase;
+  const modified = op.modifiedHits.length > 0;
 
   if (!hasOpinion) {
     fail(`CHECK 3 FY${fy}: no unmodified-opinion language found `
       + '(FY2018 has a known interleaved opinion-page text layer — confirm by eye)');
   } else if (modified) {
-    fail(`CHECK 3 FY${fy}: a MODIFIED opinion phrase is present`);
+    fail(`CHECK 3 FY${fy}: MODIFIED opinion phrase(s): ${op.modifiedHits.join(', ')}`);
   }
 }
 console.log(`         ${c3} books read\n`);

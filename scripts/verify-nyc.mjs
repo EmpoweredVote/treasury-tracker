@@ -35,6 +35,7 @@
 import { spawnSync } from 'node:child_process';
 import { createClient } from '@supabase/supabase-js';
 import { resolvePython } from './lib/pythonBin.mjs';
+import { readOpinion } from './lib/nycOpinion.mjs';
 import { NYC_FYS, nycAcfrUrl } from './lib/nycAcfrSources.mjs';
 import { NYC_ENTITY } from './seedNewYorkCity.mjs';
 import {
@@ -86,6 +87,12 @@ console.log(`         ${c1} comparisons\n`);
 
 // ── CHECK 2 ─────────────────────────────────────────────────────────────────
 console.log('CHECK 2  cross-book agreement (FY(n) from book n vs book n+1)');
+// ⚠ CALIBRATED, not guessed. The only restatement the spec documents
+// (section 3.1, FY2001 read from the FY2002 book) is 0.08% on revenue and
+// 0.01% on expenditure. 1% leaves an order of magnitude of headroom and still
+// fails a wrong-column read, which is percent-scale or larger. At the old 5%
+// band a $5.79B misread on FY2024 total-governmental revenue passed silently.
+const RESTATEMENT_BAND = 0.01;
 const restatements = [];
 let c2 = 0;
 for (const fy of NYC_FYS) {
@@ -115,7 +122,7 @@ for (const fy of NYC_FYS) {
       // it still fails. The threshold separates "the publisher revised this"
       // from "we read the wrong thing".
       const pct = Math.abs(a - b) / Math.max(Math.abs(a), Math.abs(b));
-      if (pct > 0.05) {
+      if (pct > RESTATEMENT_BAND) {
         fail('CHECK 2', `FY${fy} ${mode} ${scope}: book ${fy} says ${a}, book ${next} says ${b} `
           + `— ${(pct * 100).toFixed(1)}% apart, too large to be a restatement`);
       } else {
@@ -125,7 +132,12 @@ for (const fy of NYC_FYS) {
     }
   }
 }
-console.log(`         ${c2} comparisons\n`);
+console.log(`         ${c2} comparisons, ${restatements.length} restatement(s)`);
+// ⚠ PRINTED, not merely collected. An earlier revision pushed to this array and
+// never read it, so a sub-threshold divergence was neither failed NOR reported
+// and the run still ended `ALL CHECKS PASSED`.
+for (const r of restatements) console.log(`           note: ${r}`);
+console.log('');
 
 // ── CHECK 3 ─────────────────────────────────────────────────────────────────
 console.log('CHECK 3  audit opinion is unmodified in every book');

@@ -133,7 +133,40 @@ const NC_ACFR_EVIDENCE = {
 };
 
 /** @type {import('../lib/budgetAxes.mjs').AxisEntry[]} */
+const NYC_ACFR_EVIDENCE = {
+  document: 'The independent auditor\'s report bound into each NYC Comptroller Annual '
+    + 'Comprehensive Financial Report, read in ALL 24 documents (FY2002-FY2025) on '
+    + '2026-10-09 by scripts/verify-nyc-db.mjs CHECK 3. Every book carries the '
+    + 'unmodified-opinion phrase and none carries a modified-opinion phrase. '
+    + '⚠ FY2018\'s opinion page has an INTERLEAVED TEXT LAYER — a literal search of '
+    + 'that page returns scrambled text such as '
+    + '"deritaollrys,atchceepfitnedanicniathl" — so the opinion was confirmed from '
+    + 'the surrounding report text rather than from that page alone.',
+  figures: 'Verbatim, FY2024: "Based on our audits and the reports of other auditors, '
+    + 'the accompanying financial statements present fairly, in all material respects, '
+    + 'the respective financial position of the governmental activities, the '
+    + 'business-type activities, each major fund, and the aggregate remaining fund '
+    + 'information of The City of New York, as of June 30, 2024 ... in accordance with '
+    + 'accounting principles generally accepted in the United States of America."',
+  caveat: '⚠ The gate that read these books tests for the unmodified-opinion phrase '
+    + 'AND for the absence of a modified-opinion phrase, including the pre-2012 '
+    + '"except for" wording that predates the AU-C 705 "Qualified Opinion" heading. '
+    + 'Ten of these 24 books are pre-2012.',
+};
+
 export const AUDIT_GRADE_REGISTRY = [
+  {
+    id: 'nyc-acfr',
+    // ⚠ ANCHORED AT BOTH ENDS and pinned to the exact FY window that was read.
+    // FY2002-FY2025 only: FY2001 is out of window (pre-GASB-34) and a future
+    // year's opinion has been read by nobody. An unanchored prefix would claim
+    // both — the `^CA State Controller` trap.
+    // ⚠ BOTH fund scopes appear in the label, so both must be matched here or
+    // half the entity silently stays `unknown`.
+    match: /^New York City ACFR — (?:General Fund|Total Governmental Funds) (?:Expenditure by Function|Revenue by Source) \(FY20(?:0[2-9]|1\d|2[0-5]) actual, GAAP basis\)$/,
+    value: AUDIT_GRADE.AUDITED_GAAP,
+    evidence: NYC_ACFR_EVIDENCE,
+  },
   {
     id: 'oh-aos-summarized',
     match: /^Ohio Auditor of State Summarized Annual Financial Reports$/,

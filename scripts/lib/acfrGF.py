@@ -2866,6 +2866,14 @@ def extract(pdf_path, mode, cfg):
     _DECIMAL_MONEY = cfg.decimal_money
     _LEADING_CODE = cfg.leading_account_code
     pages = table_pages(pdf_path)
+    # ⚠⚠ KEEP THE UNREPAIRED PAGES. `physical_page_for` fingerprints a page by
+    # EXACT equality against a freshly rendered `pdftotext -table -f k -l k`, so
+    # handing it a repaired page can never match and `statement_page` silently
+    # falls back to the pdftotext CHUNK INDEX -- the provenance defect the
+    # Hilton Head note calls corrosive. Measured on NYC: every one of 96
+    # extractions reported `statement_page_resolved: false` until this line
+    # existed. `whitespace_repair` had the same latent shape.
+    raw_pages = pages
     if cfg.whitespace_repair:
         pages = [repair_ocr_whitespace(p) for p in pages]
     # ⚠ Before ANY page test or row parse: the rules sit on the very rows
@@ -3007,7 +3015,7 @@ def extract(pdf_path, mode, cfg):
     # see `physical_page_for`. `statement_page_index` keeps the raw index so the
     # two can be compared when they disagree, and so this change is legible in a
     # diff of the extracted corpus instead of silently rewriting a number.
-    physical = physical_page_for(pdf_path, pages, pi)
+    physical = physical_page_for(pdf_path, raw_pages, pi)
     result = {
         'fiscal_year': fy,
         'mode': mode,
