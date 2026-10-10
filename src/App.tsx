@@ -64,6 +64,7 @@ import { fetchEntities, fetchEntityById, fetchEntityIndex } from './data/entityQ
 import { panelQueryFor, parentsQueryFor } from './data/panelQueries';
 import { resolveEntityParam, resolveEntityParamViaLookup, toSlug, displayLabel } from './utils/entityRouting';
 import { heroSubtitle } from './data/narrativeCopy';
+import { linkedTxView, type LinkedTxStatus } from './data/linkedTransactionsView';
 
 interface BreadcrumbItem {
   label: string;
@@ -314,6 +315,10 @@ function App() {
   const [budgetLoadError, setBudgetLoadError] = useState(false);
   const [navigationPath, setNavigationPath] = useState<BudgetCategory[]>([]);
   const [linkedTransactions, setLinkedTransactions] = useState<LinkedTransactionSummary | null>(null);
+  // ⚠⚠ The SUMMARY alone cannot say whether a request is in flight: `null`
+  // meant "not started", "loaded, none found" AND "failed", and the view read
+  // all three as loading, so a leaf with no transactions spun forever.
+  const [linkedTxStatus, setLinkedTxStatus] = useState<LinkedTxStatus>('idle');
   const [heroImage, setHeroImage] = useState<HeroImage | null>(null);
 
   // Resolve the hero banner (shared bucket → Wikipedia fallback) when entity changes
@@ -925,6 +930,7 @@ function App() {
   // Lazy-load linked transactions when navigating into a category (operating only)
   useEffect(() => {
     setLinkedTransactions(null);
+    setLinkedTxStatus('idle');
 
     if (activeDataset !== 'operating' || navigationPath.length === 0 || !budgetData) return;
 
@@ -934,12 +940,28 @@ function App() {
     const budgetId = budgetData.budgetId;
     if (!budgetId) return;
 
+    // ⚠ A late response from a category the reader has already navigated away
+    // from must not resurrect a spinner or show another category's rows.
+    let cancelled = false;
+    setLinkedTxStatus('loading');
+
     loadLinkedTransactions(budgetId, currentCat.linkKey)
-      .then(summary => setLinkedTransactions(summary))
+      .then(summary => {
+        if (cancelled) return;
+        setLinkedTransactions(summary);
+        // ⚠⚠ `loadLinkedTransactions` returns null for a non-ok response, for a
+        // thrown fetch AND for "this category has no transactions". All three
+        // are FINISHED, not loading -- which is the whole bug.
+        setLinkedTxStatus(summary ? 'loaded' : 'empty');
+      })
       .catch(err => {
+        if (cancelled) return;
         console.error('Failed to load linked transactions:', err);
         setLinkedTransactions(null);
+        setLinkedTxStatus('empty');
       });
+
+    return () => { cancelled = true; };
   }, [navigationPath, activeDataset, budgetData]);
 
   // Drive the treasury_category_drilled + treasury_line_item_viewed funnel events
@@ -1214,6 +1236,13 @@ function App() {
 
   // Determine what to display (only when budgetData is loaded)
   const currentCategory = navigationPath.length > 0 ? navigationPath[navigationPath.length - 1] : null;
+  // Decided ONCE, from an explicit status -- see linkedTransactionsView.ts.
+  const txView = linkedTxView({
+    activeDataset,
+    linkKey: currentCategory?.linkKey,
+    status: linkedTxStatus,
+    summary: linkedTransactions,
+  });
   const showLineItems = currentCategory &&
                         currentCategory.lineItems &&
                         currentCategory.lineItems.length > 0 &&
@@ -1709,9 +1738,9 @@ function App() {
                         onPathClick={handlePathClick}
                         isNonprofit={selectedEntity?.entity_type === 'nonprofit'}
                       />
-                      {linkedTransactions ? (
+                      {txView === 'panel' ? (
                         <LinkedTransactionsPanel
-                          linkedTransactions={linkedTransactions}
+                          linkedTransactions={linkedTransactions!}
                           categoryName={currentCategory!.name}
                           linkKey={currentCategory!.linkKey}
                           fiscalYear={parsePeriod(selectedYear).fiscalYear}
@@ -1775,9 +1804,9 @@ function App() {
                     onCategoryClick={handleCategoryClick}
                     isPastYear={hasActualData}
                   />
-                  {activeDataset === 'operating' && linkedTransactions && currentCategory && (
+                  {txView === 'panel' && currentCategory && (
                     <LinkedTransactionsPanel
-                      linkedTransactions={linkedTransactions}
+                      linkedTransactions={linkedTransactions!}
                       categoryName={currentCategory.name}
                       linkKey={currentCategory.linkKey}
                       fiscalYear={parsePeriod(selectedYear).fiscalYear}
@@ -1794,14 +1823,19 @@ function App() {
                     onPathClick={handlePathClick}
                     isNonprofit={selectedEntity?.entity_type === 'nonprofit'}
                   />
-                  {linkedTransactions ? (
+                  {/* ⚠⚠ Decided by `linkedTxView`, not by the truthiness of the
+                      summary. `null` meant three different things and the
+                      spinner was shown for all of them, so a leaf category with
+                      no transactions — the normal case, since only two entities
+                      carry any — hung on "Loading transactions…" forever. */}
+                  {txView === 'panel' ? (
                     <LinkedTransactionsPanel
-                      linkedTransactions={linkedTransactions}
+                      linkedTransactions={linkedTransactions!}
                       categoryName={currentCategory!.name}
                       linkKey={currentCategory!.linkKey}
                       fiscalYear={parsePeriod(selectedYear).fiscalYear}
                     />
-                  ) : activeDataset === 'operating' && currentCategory?.linkKey ? (
+                  ) : txView === 'spinner' ? (
                     <div className="bg-white dark:bg-ev-gray-800 border border-[#E2EBEF] dark:border-ev-gray-700 rounded-xl p-8 flex flex-col items-center gap-3">
                       <div className="w-6 h-6 rounded-full border-[3px] border-[#E2EBEF] dark:border-ev-gray-600 border-t-ev-muted-blue animate-spin" />
                       <p className="text-sm text-ev-gray-500">Loading transactions…</p>
