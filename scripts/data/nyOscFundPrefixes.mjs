@@ -12,9 +12,29 @@
  * occur anywhere in the city archive. If one appears, the file changed, and
  * classifyPrefix() returning null is the alarm.
  *
- * ⚠ `CS` (512 lines FY1995-2021) is NOT YET RESOLVED and is deliberately
- * absent. See spec §5.4: an unclassifiable prefix makes that city-year's
- * total_governmental `unknown`, never a short sum.
+ * ⚠⚠ `CS` IS DELIBERATELY ABSENT, and the obvious fix has already been tried
+ * and disproved. Do not add it without new evidence. What is known:
+ *
+ *   - It appears FY1995-FY2000 ONLY, in 28 cities, then stops dead.
+ *   - Its content looks like self-insurance: Judgements, Compensation for
+ *     Loss, Medical Insurance, Worker's Compensation, Unemployment Insurance.
+ *   - The 2021 Chart of Accounts has 120 `MS` codes and ZERO `CS` codes.
+ *
+ * That suggests CS was renamed to MS (Self-Insurance) in FY2001, which would
+ * make it proprietary and excluded. ⚠ TESTED AND FALSE: only 7 of the 18
+ * cities carrying CS in FY2000 have MS in FY2001, and City of Oswego carried
+ * BOTH in FY2000 with different content (CS = judgements/operations/admin;
+ * MS = medical insurance/transfers). They are distinct funds.
+ *
+ * What remains is inference -- either "C_ means Miscellaneous Funds, therefore
+ * special revenue, therefore governmental" or "the content is self-insurance,
+ * therefore proprietary". The registry does not accept inference: an entry is
+ * created when its evidence is. So CS stays out, and the 231 affected
+ * total_governmental cells (7.01% of FY1995-2021, all in FY1995-2000) publish
+ * `unknown` rather than a total that is silently short or silently inflated.
+ * general_fund is unaffected -- those cities keep full GF coverage.
+ *
+ * See spec §5.4.
  */
 
 const ARM = 'OSC Accounting and Reporting Manual ch. 4, Funds and Supplemental Schedules';
@@ -169,7 +189,12 @@ export const NY_FUND_PREFIXES = Object.freeze({
   MS: {
     type: 'internal_service',
     name: 'Self-Insurance',
-    citation: `${ARM}: "Self-Insurance funds account for insurance coverage when the governing body has decided to have a self-insurance program on an actuarial basis." Grouped with the proprietary funds; its rows report Net Position, not fund balance.`,
+    citation: 'OSC Accounting and Reporting Manual ch. 2, Types of Funds: "Self-Insurance funds '
+      + 'account for insurance coverage when the governing body has decided to have a self-insurance '
+      + 'program on an actuarial basis." Printed inside the "Proprietary funds account for a '
+      + 'government\'s ongoing activities that are similar to those found in the private sector" '
+      + 'block, between Internal service funds and Fiduciary funds. Corroborated in the data: MS rows '
+      + 'report Net Position, not fund balance.',
   },
 
   // ── Fiduciary — EXCLUDED ─────────────────────────────────────────────────
