@@ -1,5 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { aggregateCityYear, classifyPrefix } from '../scripts/lib/nyOsc.mjs';
+import { existsSync } from 'node:fs';
+import {
+  aggregateCityYear, classifyPrefix,
+  SCHOOL_ARCHIVE_PATH, SCHOOL_ARCHIVE_URL, readYear,
+} from '../scripts/lib/nyOsc.mjs';
 import {
   NY_SCHOOL_FUND_PREFIXES, SCHOOL_GOVERNMENTAL_TYPES,
 } from '../scripts/data/nyOscSchoolFundPrefixes.mjs';
@@ -66,5 +70,36 @@ describe('aggregateCityYear for school districts', () => {
       { section: 'EXPENDITURE', scope: 'total_governmental' });
     expect(out.scope).toBe('total_governmental');
     expect(out.total).toBe(100);
+  });
+});
+
+const archiveIt = existsSync(SCHOOL_ARCHIVE_PATH) ? it : it.skip;
+
+describe('the school archive', () => {
+  it('exports a well-formed path and url', () => {
+    expect(SCHOOL_ARCHIVE_PATH).toMatch(/school_all_years\.zip$/);
+    expect(SCHOOL_ARCHIVE_URL).toMatch(/^https:\/\/wwe1\.osc\.state\.ny\.us\/.*schooldistrict_all_years\.zip$/);
+  });
+
+  archiveIt('reads a modern district year', () => {
+    const rows = readYear(SCHOOL_ARCHIVE_PATH, 2021, 'SchoolDistrict');
+    expect(rows.length).toBeGreaterThan(100000);
+    expect(new Set(rows.map((r) => r.section))).toEqual(new Set(['REVENUE', 'EXPENDITURE']));
+
+    // ⚠⚠ 689, NOT the 692 in §3 of the spec. Both numbers are right and they
+    // count different things. 692 districts APPEAR in 2021_SchoolDistrict.csv;
+    // only 689 filed a REVENUE or EXPENDITURE section. Measured from the raw
+    // member: REVENUE 689, EXPENDITURE 689, GL 689, FBNP 692. The three that
+    // filed balance-sheet sections ONLY are Berkshire UFSD, Hopevale and West
+    // Park UFSD. `readYear` drops section OTHER, so it returns what is
+    // loadable, which is the number that matters to the loader — those three
+    // contribute no FY2021 row and that is correct, not a miss.
+    expect(new Set(rows.map((r) => r.entityName)).size).toBe(689);
+  });
+
+  archiveIt('reads an old-era district year with the same row shape', () => {
+    const rows = readYear(SCHOOL_ARCHIVE_PATH, 2010, 'SchoolDistrict');
+    expect(new Set(rows.map((r) => r.entityName)).size).toBe(696);
+    expect(rows.every((r) => r.fiscalYearStartMonth === 7)).toBe(true);
   });
 });
