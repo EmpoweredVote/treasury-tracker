@@ -353,6 +353,14 @@ export function checkPartition({ byEntry, unknownRows, overlaps }, totalRows, op
     }
   }
   for (const id of Object.keys(EXPECTED_ROWS)) {
+    // ⚠ An expectation of EXACTLY 0 means "registered, not yet loaded": the
+    // registry entry and its pattern have shipped but the loader has not run.
+    // Without this, adding a registry entry ahead of its load breaks the gate
+    // for EVERY family — which is how someone reaches for --force, and a gate
+    // that cannot run is measuring nothing. A non-zero expectation that
+    // matched nothing is still a problem, which is the case this must not
+    // weaken.
+    if (EXPECTED_ROWS[id] === 0) continue;
     if (!byEntry.has(id)) problems.push(`EXPECTED_ROWS has "${id}" but no source matched it`);
   }
   if (claimed + unknownRows !== totalRows) {

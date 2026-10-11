@@ -451,7 +451,15 @@ describe('the shipped registry', () => {
     // discretely presented component units, and Lake County ADVERSE for omitting
     // its component units entirely. Both concern a column this scope does not
     // report, which is precisely why the boundary has to be stated.
-    expect(totGov.map((e) => e.id).sort()).toEqual(['ca-sco-derived-tg', 'fl-dfs-afr', 'in-county-acfr-tg', 'mi-treasury-f65-tg', 'mn-osa', 'oh-aos', 'pa-dced-clgs30-county']);
+    // ⚠ `ny-osc-city-total-governmental` joins on 2026-10-10. It is the first at
+    // this level whose reporting entity is UNKNOWN on evidence rather than for
+    // want of probing: the ARM hands the inclusion decision to each local
+    // government ("a decision will have to be made as to whether the library
+    // meets the criteria for inclusion in the reporting entity"), and the CB
+    // Housing Authority prefix shows some of the 61 cities fold a legally
+    // separate component unit in as a fund while others do not. One answer
+    // cannot cover the family, which is itself the finding.
+    expect(totGov.map((e) => e.id).sort()).toEqual(['ca-sco-derived-tg', 'fl-dfs-afr', 'in-county-acfr-tg', 'mi-treasury-f65-tg', 'mn-osa', 'ny-osc-city-total-governmental', 'oh-aos', 'pa-dced-clgs30-county']);
     for (const e of totGov) {
       expect(e.evidence.figures, e.id).toMatch(/REPORTING ENTITY|reporting-entity/);
     }

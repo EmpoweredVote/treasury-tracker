@@ -382,6 +382,27 @@ export const EXPECTED_ROWS = Object.freeze({
   // are the 17 GAAP-filing counties that route established.
   'in-county-acfr-tg': 198,
   'in-gateway-afr': 16878,
+  // ⚠⚠ NY OSC city AFRs — BOTH ENTRIES ARE 0 BECAUSE NOTHING IS LOADED YET,
+  // and 0 is the measured count, not a placeholder: the registry entries and
+  // their patterns shipped with Tasks 1-9 of the NY cities onboarding, while
+  // the loader (Task 10) was deliberately held back. These two lines exist so
+  // the "every registry entry has an expectation" gate stays honest in the gap.
+  //
+  // ⚠⚠ TASK 10 MUST RE-MEASURE BOTH, in the house style
+  // (rows / DISTINCT ids / strings / entities), and must NOT simply paste the
+  // predictions below. They are arithmetic over the archive, not a reading of
+  // the live table:
+  //     ny-osc-city-general-fund        expect ~3,294 rows / 61 entities
+  //                                     (61 cities x 27 FYs x 2 datasets)
+  //     ny-osc-city-total-governmental  expect ~3,063 rows / 61 entities
+  //                                     (3,294 minus the 231 cells refused as
+  //                                      `unknown` because the CS fund prefix
+  //                                      is unresolved against the ARM —
+  //                                      see scripts/data/nyOscFundPrefixes.mjs)
+  // A real measurement that lands on exactly those numbers is a coincidence
+  // worth distrusting until the DISTINCT-ids guard confirms it.
+  'ny-osc-city-general-fund': 0,
+  'ny-osc-city-total-governmental': 0,
   // SCOPE-01-RECON.md §12, measured 2026-10-09 against the live table.
   // The cities' OWN portals, added to close 4 of the 21 scope seams. Four NEW
   // families, so no pre-existing count moved.
