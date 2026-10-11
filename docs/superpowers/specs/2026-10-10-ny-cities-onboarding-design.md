@@ -63,6 +63,25 @@ Sibling files, all confirmed HTTP 200 on a bare GET:
 
 The zip holds one CSV per year, `YYYY_City.csv`, **1995–2026** (32 files).
 
+### 2.1 ⭐ Kept on disk — `docs/NY/`, gitignored
+
+Fetched 2026-10-10. `docs/*` is gitignored, so these sit on disk the way
+`docs/NYC/*.pdf` does and are never committed:
+
+| File | Size | SHA-256 |
+|---|---|---|
+| `city_all_years.zip` | 12,497,143 B | `b210d3eaa1cce6f4d06920f28a54a8279b559e91f1b8887d15d88bb139c0c84e` |
+| `osc-accounting-and-reporting-manual-2021.pdf` | 1,614,494 B | the §5 evidence of record |
+| `osc-chart-of-accounts-2021-05.pdf` | 1,092,113 B | account-code reference |
+
+The fetch script must **skip any file already present**, so re-verification is
+free. The archive is the complete 1995–2026 series in one file — there is no
+per-year fetching to do and no reason to re-download 12.5 MB.
+
+⚠ The two PDFs are the documentary basis for every fund classification in §5
+and for the basis grade in §6. If they are deleted, those claims lose their
+evidence and the registry entries must not be trusted until re-sourced.
+
 ---
 
 ## 3. Coverage
