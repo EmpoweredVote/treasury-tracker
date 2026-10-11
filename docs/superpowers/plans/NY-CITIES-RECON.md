@@ -110,25 +110,65 @@ evidence than it looks.
 ⚠️ Utica's `Total revenue` row wraps and its figures could not be read from the
 glyph coordinates. **Not read is not the same as agreeing** and it is left blank.
 
-### 4.1 The dominant cause: dependent school districts
+### 4.1 The cause, traced to the dollar
 
-Buffalo and Rochester both carry **Education inside the city General Fund**:
+⚠ An earlier draft of this section said the city's audited General Fund
+"carries the dependent school district". **That is wrong and is corrected
+here.** The district is roughly TWICE the size of the city's entire General
+Fund (§4.3) and is nowhere inside it. What the ACFR General Fund carries is
+the city's **education support payment** and the intergovernmental aid behind
+it — both of which OSC's city AFR omits, because OSC captures the district as
+a separate filer.
 
-| City | Education in ACFR GF | expenditure gap | |
+**The expenditure side is now a closed identity, exact to $26 on $488 million:**
+
+```
+  OSC A-fund expenditures            417,528,158
+  − OSC "Other Uses" (transfers out)    −423,881   ACFR reports these BELOW its total
+  + ACFR "Education"                 +70,822,758   OSC's city file has NO such category
+  ───────────────────────────────────────────────
+  = predicted ACFR total             487,927,035
+    actual ACFR total                487,927,061
+    residue                                   26
+```
+
+Measured directly: **OSC's Buffalo A-fund contains no Education category at
+all.** Its ten expenditure categories are Public Safety, Employee Benefits,
+General Government, Transportation, Debt Service, Culture and Recreation,
+Community Services, Sanitation, Other Uses and Social Services.
+
+**The revenue side is localised but not closed.** The gap, net of transfers,
+is **98,488,278**, and it sits in intergovernmental revenue:
+
+| | ACFR GF | OSC A-fund | difference |
 |---|---|---|---|
-| Buffalo | **70,822,758** | 70,398,903 | within **0.6%** |
-| Rochester | **119,100,000** | 89,622,148 | same order, not exact |
+| Intergovernmental | 330,639,303 | 225,891,169 (State Aid + Federal Aid) | **104,748,134** |
 
-Buffalo's gap is almost exactly its Education line. Its GF also shows
-$330,639,303 of intergovernmental revenue — state school aid flowing through
-the city — against a city whose own operations are a fraction of that.
+That is education aid the city receives and OSC's city file does not record.
+⚠ Note the asymmetry: the city takes in ~$105M more than OSC shows but spends
+only $70.8M on Education. The ~$34M difference is close to the $34,319,292
+excess of revenues over expenditures its own statement reports, which it then
+transfers out — plausible, **not verified**, and recorded as such.
 
-**OSC's city AFR does not carry the dependent school district; the city's own
-audited General Fund does.** These are two different scopes wearing one name.
+Rochester shows the same shape (Education $119,100,000 in its GF) but its gap
+does not land on that line, so only Buffalo's is traced to the dollar. One
+exact identity is not a proven rule for the other 60 cities.
 
-Rochester's gap is the same shape but does not land on its Education line, so
-the explanation is *directionally* confirmed and *not* fully quantified. Saying
-so is the honest position; one clean match is not a proven rule.
+### 4.2 This is not a hole in OSC's data
+
+Checked directly: **Buffalo City School District files its own OSC AFR**, over
+the same period (2020-07-01 → 2021-06-30), with a General Fund of
+**$916,884,897 revenue / $870,179,312 expenditure** — more than twice the
+city's. Rochester City School District likewise: **$742,625,774 /
+$689,302,823**. Neither district's filing contains any row naming the city.
+
+So OSC's city file and OSC's school-district file are a clean partition, not a
+gap. **TT loads only the city half.** That is a defensible scope, but it means
+a reader looking at a TT New York city sees a smaller number than the same
+city's own ACFR, for a reason nothing on the page explains.
+
+The districts are in `schooldistrict_all_years.zip` — 692 districts in FY2021,
+the same static-zip mechanism, the same two schema eras.
 
 ### 4.2 What does NOT explain the gaps
 
@@ -167,10 +207,13 @@ be narrated as if those years were checked.
 1. **TT reproduces OSC faithfully.** Task 11 CHECK 5 re-derived 1,187 stored
    totals to the cent, and mutation testing proved that check can fail. Nothing
    here disturbs that.
-2. **OSC's "General Fund" is not the ACFR's "General Fund"** for cities whose
-   dependent school district is funded through the city. For Buffalo and
-   Rochester the audited General Fund is **17–19% larger** than what TT
-   publishes under that label.
+2. **OSC's "General Fund" is not the ACFR's "General Fund"** for cities that
+   support a dependent school district. For Buffalo and Rochester the audited
+   General Fund is **17-19% larger** than what TT publishes under that label.
+   Buffalo's expenditure difference is explained to **$26 on $488 million**
+   (§4.1); its revenue difference is localised to intergovernmental aid but
+   not closed. The districts themselves are a separate OSC filer, not a gap
+   (§4.2).
 3. **`audit_grade = self_reported_unaudited` is doing real work** and is
    correct. So is `accounting_basis = unknown`: these filings are not audited,
    and §4 is what that distinction looks like in dollars.
@@ -191,4 +234,11 @@ edited for looking wrong. Every figure in §4 is as published by its publisher.
    and it is a product decision, not a data one.
 2. Albany's +2.0M/+5.2M and Utica's +5.2% remain unexplained. Worth a line-item
    trace, or acceptable as self-reported-vs-audited drift?
-3. FY1995–2012 has no audit route at all (§5). Accept, or seek another oracle?
+3. FY1995-2012 has no audit route at all (§5). Accept, or seek another oracle?
+4. **Should TT load the 692 school districts?** (§4.2) They are in the same
+   archive, the same static zip, the same two schema eras, and the same loader
+   shape. It would make New York's picture complete rather than city-only --
+   and it is the direct answer to "why is this number smaller than my city's
+   ACFR". It is also a second load of comparable size and its own scope
+   question (a school district's `A` fund is its General Fund, but the ARM's
+   fund letters for districts were not read for this work).
