@@ -56,13 +56,19 @@ for (const e of NY_CITY_ENTITIES) {
 
 // ⚠ Count what the DATABASE holds, not what the loop iterated — the loop
 // counter was a tautology over the roster length and verified nothing.
+//
+// ⚠ The publisher's key is NOT a column on `municipalities`. It lives in
+// `treasury.municipality_source_keys`, which `treasury_ensure_municipality`
+// writes via `attach_source_key`. A first version of this query filtered
+// `municipalities.source` and asked for the `public` schema, and returned a
+// null count — which the guard below then reported, correctly, as a failure.
 const { count, error } = await db
-  .from('municipalities')
-  .select('id', { count: 'exact', head: true })
-  .eq('state', 'NY')
-  .eq('entity_type', 'city')
+  .schema('treasury')
+  .from('municipality_source_keys')
+  .select('municipality_id', { count: 'exact', head: true })
   .eq('source', 'NY_OSC');
 if (error) throw new Error(`verification query failed: ${error.message}`);
+if (count === null) throw new Error('verification query returned no count');
 
 console.log(`ensured ${EXPECTED_CITIES} NY cities; database now holds ${count} with source=NY_OSC`);
 if (count !== EXPECTED_CITIES) {
