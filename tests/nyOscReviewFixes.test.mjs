@@ -1,13 +1,20 @@
 import { describe, it, expect } from 'vitest';
-import { existsSync } from 'node:fs';
 
 import {
   normLabel, parseCsv, buildNyTree, fiscalYearStartMonth, aggregateCityYear,
   sourceNameFor, readYear, ARCHIVE_PATH, assertRosterHasNoNyc,
 } from '../scripts/lib/nyOsc.mjs';
 import { checkPartition } from '../scripts/lib/fundScope.mjs';
+import { makeArchiveIt } from './support/nyOscArchive.mjs';
 
-const archiveIt = existsSync(ARCHIVE_PATH) ? it : it.skip;
+// ⚠ Its OWN instance. The counter is per file, so this file's warning reports
+// this file's skips and not the other NY suite's.
+const archiveIt = makeArchiveIt();
+
+it('announces when the archive is absent instead of quietly skipping', () => {
+  archiveIt.warnIfMissing();
+  expect(true).toBe(true);
+});
 
 /**
  * Regression tests for the whole-branch review of Tasks 1-9.

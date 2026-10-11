@@ -215,15 +215,13 @@ describe('fiscalYearStartMonth', () => {
   });
 });
 
-import { existsSync } from 'node:fs';
 import { ARCHIVE_PATH, readYear } from '../scripts/lib/nyOsc.mjs';
+import { makeArchiveIt } from './support/nyOscArchive.mjs';
 
 // ⚠ ARCHIVE_PATH must be a real exported path BEFORE the skip guard runs.
 // existsSync(undefined) is merely false, so a missing export would silently
 // skip every archive test instead of failing one -- a harness nobody runs.
-const haveArchive = typeof ARCHIVE_PATH === 'string' && ARCHIVE_PATH.length > 0
-  && existsSync(ARCHIVE_PATH);
-const archiveIt = haveArchive ? it : it.skip;
+const archiveIt = makeArchiveIt();
 
 describe('readYear (needs docs/NY/city_all_years.zip)', () => {
   it('exports a well-formed archive path', () => {
@@ -234,11 +232,10 @@ describe('readYear (needs docs/NY/city_all_years.zip)', () => {
 
   it('announces when the archive is absent instead of quietly skipping', () => {
     // The archive is gitignored, so CI genuinely cannot have it. That is fine
-    // -- but a run where these tests vanished must say so out loud.
-    if (!haveArchive) {
-      console.warn(`\n  ⚠ ${ARCHIVE_PATH} absent — 4 archive-backed tests SKIPPED.`
-        + ' Run `node scripts/fetchNyOsc.mjs` to enable them.\n');
-    }
+    // -- but a run where these tests vanished must say so out loud, with the
+    // REAL count. See tests/support/nyOscArchive.mjs: the number is derived,
+    // because the hardcoded one said 4 while CI skipped 11.
+    archiveIt.warnIfMissing();
     expect(true).toBe(true);
   });
 
