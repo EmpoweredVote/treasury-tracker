@@ -229,24 +229,37 @@ The loader must **fail loudly listing the unknown prefixes**, not skip quietly.
 
 ## 6. Basis and audit grade
 
-The AFR (the Annual Update Document) is **filed by the local government**. The
-dataset carries no audit flag, no opinion, and no auditor; OSC's own AFR page
-states no audit status. TT's honest value is therefore:
+⚠⚠ **These are FOUR independent axes and an earlier draft of this spec
+conflated two of them.** `self_reported_unaudited` is an **`audit_grade`**
+value; it is not a legal `accounting_basis`, whose vocabulary is
+`gaap | modified_cash | cash | unknown`. Measurement and assurance are separate
+questions — `scripts/lib/budgetAxes.mjs` says so at length, and the OCBOA
+migration exists because they were once confused. The axes for this load:
 
-```
-accounting_basis       = self_reported_unaudited
-```
+| Axis | Value | Why |
+|---|---|---|
+| `basis` | **`actual`** | Closed-year reported actuals. The AFR reports what happened, not an appropriation |
+| `audit_grade` | **`self_reported_unaudited`** | Filed *by the local government*. No opinion, no auditor, no audit flag in the dataset, and OSC's AFR page asserts no audit status |
+| `accounting_basis` | **`unknown`** | See below |
+| `reporting_entity` | **`unknown`** | Nothing read yet establishes whether component units are consolidated |
+| `derivation` | **`derived`** | OSC publishes line items and **no total row**, so every total TT shows is a sum TT computed. `published` would misdescribe it |
 
-⚠ `basisRegistry` creates an entry **only when its evidence is created**. This
-spec does not authorise the entry — the implementation must cite the ARM's
-accounting-basis chapter (ch. 3, modified accrual for governmental funds) and
-OSC's filing requirements, and record the citation in the registry entry. If
-that evidence cannot be produced, the basis is `unknown` and the load still
-ships; `unknown` is a correct outcome.
+### 6.1 ⚠ Why `accounting_basis` is `unknown`, not `gaap`
 
-`derivation = derived` for **both** scopes. OSC publishes line items and **no
-total row**, so every total TT shows is a sum TT computed. Calling it
-`published` would misdescribe it.
+The ARM ch. 3 directs governmental funds to **modified accrual**, which is the
+GAAP measurement focus — so `gaap` is tempting. It is not supported. Modified
+accrual is the *measurement focus the ARM instructs*; whether a given city's
+filing achieved GAAP is exactly what an audit opinion would establish, and
+there is none. Asserting `gaap` would convert an instruction into an outcome
+across 61 cities at once.
+
+`unknown` is a correct outcome rather than a shortfall. An individual city can
+be raised later on the evidence of its own ACFR — one city at a time, the way
+the IN county route did it.
+
+⚠ Every registry here creates an entry **only when its evidence is created**.
+This spec authorises the `audit_grade` and `basis` entries, whose evidence is
+named above. It does **not** authorise an `accounting_basis` entry.
 
 ---
 
