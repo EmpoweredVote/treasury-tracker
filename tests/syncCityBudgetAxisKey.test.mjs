@@ -71,6 +71,19 @@ const EXEMPT = {
  * would be duplicated by a re-run if they stopped.
  */
 const REQUIRED = {
+  // ⚠⚠ The NY OSC city load is the SECOND two-scope caller, and by far the
+  // largest: 61 cities x 27 fiscal years x 2 datasets x 2 scopes. Measured in
+  // the live table after the 2026-10-11 load:
+  //     general_fund      / actual / derived  3294 rows / 3294 distinct ids
+  //     total_governmental/ actual / derived  3063 rows / 3063 distinct ids
+  // 6,357 rows, equal to the loader's own count. The two scopes are
+  // DELIBERATELY unequal: 3294 - 3063 = 231 city-years whose
+  // total_governmental was refused because the `CS` fund prefix is unresolved
+  // against OSC's Accounting and Reporting Manual, all of them in FY1995-2000.
+  // Omit p_fund_scope and both passes would ask for unknown/unknown, collide
+  // on one key, and the second scope would overwrite the first — a load of
+  // half the data that looks entirely successful.
+  'loadNyOscCities.mjs': 'NY OSC city AFRs — 6,357 rows, general_fund + total_governmental / actual (two scopes per city-year)',
   // ⚠⚠ NYC is the first caller to write TWO SCOPES for the SAME city-year, so
   // the axis pair is not decoration here — it is the only thing separating the
   // two series. Measured in the live table after the 2026-10-09 load:
