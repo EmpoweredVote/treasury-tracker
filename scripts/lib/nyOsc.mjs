@@ -142,3 +142,24 @@ export function buildNyTree(rows) {
 
   return { tree, total };
 }
+
+/**
+ * ⚠⚠ PER ENTITY, PER YEAR. NY cities do NOT share one calendar -- FY2024 alone
+ * shows five year-ends (Dec 31, Jun 30, Mar 31, Jul 31, May 31). Carrying one
+ * month across the state is exactly the FYSM `NOT NULL DEFAULT 1` defect that
+ * lied on ~18,700 rows, and a gate asserting every city shares a month would
+ * be asserting conformity to a hardcode rather than measuring anything.
+ *
+ * ⚠ NEVER carry a target month between entities.
+ */
+export function fiscalYearStartMonth(row) {
+  if (row.PERIOD_START) {
+    const m = Number(String(row.PERIOD_START).slice(5, 7));
+    if (m >= 1 && m <= 12) return m;
+  }
+  if (row.FISCAL_YEAR_END) {
+    const endMonth = Number(String(row.FISCAL_YEAR_END).slice(0, 2));
+    if (endMonth >= 1 && endMonth <= 12) return (endMonth % 12) + 1;
+  }
+  throw new Error(`no fiscal period on row: ${JSON.stringify(row).slice(0, 120)}`);
+}

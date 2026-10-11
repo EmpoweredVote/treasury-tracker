@@ -169,3 +169,25 @@ describe('buildNyTree', () => {
     expect(buildNyTree([])).toEqual({ tree: [], total: 0 });
   });
 });
+
+import { fiscalYearStartMonth } from '../scripts/lib/nyOsc.mjs';
+
+describe('fiscalYearStartMonth', () => {
+  it('reads PERIOD_START directly in the modern era', () => {
+    expect(fiscalYearStartMonth({ PERIOD_START: '2024-01-01', PERIOD_END: '2024-12-31' })).toBe(1);
+    expect(fiscalYearStartMonth({ PERIOD_START: '2023-07-01', PERIOD_END: '2024-06-30' })).toBe(7);
+  });
+
+  it('derives it from FISCAL_YEAR_END + 1 in the old era', () => {
+    // Old files give MM/DD with no year at all.
+    expect(fiscalYearStartMonth({ FISCAL_YEAR_END: '12/31' })).toBe(1);
+    expect(fiscalYearStartMonth({ FISCAL_YEAR_END: '06/30' })).toBe(7);
+    expect(fiscalYearStartMonth({ FISCAL_YEAR_END: '03/31' })).toBe(4);
+    expect(fiscalYearStartMonth({ FISCAL_YEAR_END: '07/31' })).toBe(8);
+    expect(fiscalYearStartMonth({ FISCAL_YEAR_END: '05/31' })).toBe(6);
+  });
+
+  it('refuses a row that establishes no period', () => {
+    expect(() => fiscalYearStartMonth({})).toThrow(/no fiscal period/i);
+  });
+});
