@@ -354,3 +354,66 @@ describe('the NY city roster', () => {
     }
   });
 });
+
+import { SOURCE_PREFIX, sourceNameFor } from '../scripts/lib/nyOsc.mjs';
+import { classify } from '../scripts/lib/fundScope.mjs';
+import { FUND_SCOPE_REGISTRY } from '../scripts/data/fundScopeRegistry.mjs';
+import { BASIS_REGISTRY } from '../scripts/data/basisRegistry.mjs';
+import { AUDIT_GRADE_REGISTRY } from '../scripts/data/auditGradeRegistry.mjs';
+import { ACCOUNTING_BASIS_REGISTRY } from '../scripts/data/accountingBasisRegistry.mjs';
+
+describe('source naming and registry coverage', () => {
+  it('names the source distinctly per scope', () => {
+    const gf = sourceNameFor('operating', 2021, 'general_fund');
+    const tg = sourceNameFor('operating', 2021, 'total_governmental');
+    expect(gf).toContain(SOURCE_PREFIX);
+    expect(gf).not.toBe(tg);
+  });
+
+  it('classifies both scopes from the registry', () => {
+    // classify() returns { scope, entryId } -- not a bare string.
+    expect(classify(sourceNameFor('operating', 2021, 'general_fund'), FUND_SCOPE_REGISTRY).scope)
+      .toBe('general_fund');
+    expect(classify(sourceNameFor('revenue', 2005, 'total_governmental'), FUND_SCOPE_REGISTRY).scope)
+      .toBe('total_governmental');
+    // the matching entry is named, so a future loose pattern elsewhere is visible
+    expect(classify(sourceNameFor('operating', 2021, 'general_fund'), FUND_SCOPE_REGISTRY).entryId)
+      .toBe('ny-osc-city-general-fund');
+  });
+
+  it('matches every year in the load window, both datasets, both scopes', () => {
+    for (const fy of [1995, 2000, 2012, 2013, 2021]) {
+      for (const dt of ['operating', 'revenue']) {
+        for (const sc of ['general_fund', 'total_governmental']) {
+          const name = sourceNameFor(dt, fy, sc);
+          expect(classify(name, FUND_SCOPE_REGISTRY).scope, name).toBe(sc);
+          expect(BASIS_REGISTRY.some((e) => e.match.test(name)), `basis ${name}`).toBe(true);
+          expect(AUDIT_GRADE_REGISTRY.some((e) => e.match.test(name)), `grade ${name}`).toBe(true);
+        }
+      }
+    }
+  });
+
+  it('does NOT claim an accounting basis', () => {
+    // Spec §6.1: the ARM directs modified accrual, but no audit establishes
+    // that any city achieved GAAP. Asserting it would convert an instruction
+    // into an outcome across 61 cities at once.
+    const hit = ACCOUNTING_BASIS_REGISTRY.filter((e) =>
+      e.match.test(sourceNameFor('operating', 2021, 'general_fund')));
+    expect(hit).toHaveLength(0);
+  });
+
+  it('does not claim any source outside NY OSC', () => {
+    const foreign = ['CA State Controller - Expenditures',
+      'Pennsylvania DCED Municipal Annual Audit and Financial Report — Revenues (FY2023 actual)',
+      'New York City ACFR — General Fund (FY2024 actual)'];
+    const mine = (reg) => reg.filter((x) => String(x.id).startsWith('ny-osc'));
+    for (const f of foreign) {
+      for (const reg of [FUND_SCOPE_REGISTRY, BASIS_REGISTRY, AUDIT_GRADE_REGISTRY]) {
+        for (const e of mine(reg)) {
+          expect(e.match.test(f), `${e.id} claims ${f}`).toBe(false);
+        }
+      }
+    }
+  });
+});

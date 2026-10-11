@@ -269,3 +269,23 @@ export function aggregateCityYear(rows, { section, scope }) {
   const { tree, total } = buildNyTree(govt);
   return { scope: 'total_governmental', tree, total, unknownPrefixes: [] };
 }
+
+export const SOURCE_PREFIX = 'New York OSC Annual Financial Report';
+export const SOURCE_URL = 'https://www.osc.ny.gov/local-government/data';
+
+const SCOPE_FACE = {
+  general_fund: 'General Fund',
+  total_governmental: 'Total Governmental',
+};
+
+/**
+ * ⚠ The scope is IN THE NAME. `treasury_sync_city_budget` keys on
+ * fund_scope + basis, and the axis registries key on this string, so the two
+ * scopes must be distinguishable as text or one silently relabels the other.
+ */
+export function sourceNameFor(datasetType, fiscalYear, scope) {
+  const face = datasetType === 'revenue' ? 'Revenues' : 'Expenditures';
+  const scopeFace = SCOPE_FACE[scope];
+  if (!scopeFace) throw new Error(`unknown scope for source name: ${scope}`);
+  return `${SOURCE_PREFIX} — ${face}, ${scopeFace} (FY${fiscalYear} actual, self-reported)`;
+}

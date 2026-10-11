@@ -156,6 +156,28 @@ const NYC_ACFR_EVIDENCE = {
 
 export const AUDIT_GRADE_REGISTRY = [
   {
+    id: 'ny-osc-city',
+    // ⚠ NOT the same publisher as `nyc-acfr` below, despite both being New
+    // York. That entry is New York CITY's own audited ACFR; this one is the
+    // STATE COMPTROLLER's unaudited filing by the other 61 cities. The two
+    // patterns are anchored and cannot claim each other's rows.
+    match: /^New York OSC Annual Financial Report — (Revenues|Expenditures), (General Fund|Total Governmental) \(FY\d{4} actual, self-reported\)$/,
+    value: AUDIT_GRADE.SELF_REPORTED_UNAUDITED,
+    evidence: {
+      document: 'OSC Annual Financial Report filing requirements '
+              + '(osc.ny.gov/local-government/required-reporting/annual-financial-report); spec '
+              + 'docs/superpowers/specs/2026-10-10-ny-cities-onboarding-design.md §6',
+      figures: 'The AFR is filed BY the local government under General Municipal Law Article 3. The '
+             + 'dataset carries no audit flag, no opinion and no auditor — its 15 columns are '
+             + 'CALENDAR_YEAR, MUNICIPAL_CODE, ENTITY_NAME, CLASS_DESCRIPTION, COUNTY, the period '
+             + 'columns, ACCOUNT_CODE, ACCOUNT_CODE_NARRATIVE, the section column, the three category '
+             + 'columns, AMOUNT and SNAPSHOT_DATE — and OSC\'s AFR page asserts no audit status. '
+             + '⚠ This is ASSURANCE, not measurement: accounting_basis stays `unknown` (spec §6.1), '
+             + 'because the ARM ch. 3 directing modified accrual is an INSTRUCTION, not an outcome, '
+             + 'and no opinion establishes that any of the 61 cities achieved it.',
+    },
+  },
+  {
     id: 'nyc-acfr',
     // ⚠ ANCHORED AT BOTH ENDS and pinned to the exact FY window that was read.
     // FY2002-FY2025 only: FY2001 is out of window (pre-GASB-34) and a future

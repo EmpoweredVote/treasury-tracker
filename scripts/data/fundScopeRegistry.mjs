@@ -37,6 +37,51 @@ import { SCOPE } from '../lib/fundScope.mjs';
 /** @type {import('../lib/fundScope.mjs').RegistryEntry[]} */
 export const FUND_SCOPE_REGISTRY = [
   {
+    id: 'ny-osc-city-general-fund',
+    match: /^New York OSC Annual Financial Report — (Revenues|Expenditures), General Fund \(FY\d{4} actual, self-reported\)$/,
+    scope: SCOPE.GENERAL_FUND,
+    evidence: {
+      document: 'OSC Accounting and Reporting Manual ch. 4 '
+              + '(docs/NY/osc-accounting-and-reporting-manual-2021.pdf); spec '
+              + 'docs/superpowers/specs/2026-10-10-ny-cities-onboarding-design.md §5.2',
+      figures: 'The scope is the `A` account-code prefix alone. ARM ch. 4: "General Fund (A) — the '
+             + 'principal operating fund of a local government. It includes all financial resources not '
+             + 'accounted for and reported in another fund." All 61 cities carry an A fund with both '
+             + 'revenue and expenditure in every loaded year (measured on FY2021). Corroborated against '
+             + 'an INDEPENDENT publisher: City of Albany FY2024 A1120 sales-tax distribution reads '
+             + "$46,685,814 in OSC and $46,686 thousand in Albany's own Q4 2024 quarterly report.",
+    },
+  },
+  {
+    id: 'ny-osc-city-total-governmental',
+    match: /^New York OSC Annual Financial Report — (Revenues|Expenditures), Total Governmental \(FY\d{4} actual, self-reported\)$/,
+    scope: SCOPE.TOTAL_GOVERNMENTAL,
+    evidence: {
+      document: 'OSC Accounting and Reporting Manual ch. 4 '
+              + '(docs/NY/osc-accounting-and-reporting-manual-2021.pdf); spec §5.3; prefix table '
+              + 'scripts/data/nyOscFundPrefixes.mjs, every entry carrying its ARM wording',
+      figures: 'Governmental = general (A) + special revenue (CB CD CL CM CP CR CT CU FX G L) + '
+             + 'capital projects (H) + debt service (V) + permanent (PN). EXCLUDED on the ARM\'s own '
+             + 'grouping: Enterprise E_ ("Enterprise Funds (E_) include Airports (EA), Electric '
+             + 'Utilities (EE)…"), internal service M, Self-Insurance MS (ARM ch. 2 prints it inside '
+             + 'the Proprietary block, between Internal service and Fiduciary; its rows report Net '
+             + 'Position, not fund balance), and fiduciary T_. K and W are not funds but the Schedules '
+             + 'of Non-Current Governmental Assets/Liabilities and appear only in balance-sheet rows. '
+             + 'Across FY1995-2021 this splits 392,234 revenue/expenditure lines into 368,870 '
+             + 'governmental and 23,364 excluded. ⚠ A city-year containing an unclassifiable prefix is '
+             + 'written `unknown`, never summed short: CS (FY1995-2000, 28 cities) is unresolved, so '
+             + '231 of 3,294 total_governmental cells (7.01%) publish unknown by design. '
+             + 'REPORTING ENTITY: UNKNOWN, and knowably so rather than unprobed. The AFR is '
+             + 'fund-level reporting of whatever funds the filing government chose to maintain, and '
+             + 'the ARM leaves inclusion to local judgement in as many words — "For the purposes of '
+             + 'financial reporting, a decision will have to be made as to whether the library meets '
+             + 'the criteria for inclusion in the reporting entity." The data bears that out: the CB '
+             + '(Housing Authority) prefix means some cities report a legally separate component unit '
+             + 'as one of their funds while others do not, so neither primary_government nor '
+             + 'incl_component_units can be asserted across all 61.',
+    },
+  },
+  {
     id: 'ca-sco-city-exp',
     match: /^CA State Controller - Expenditures$/,
     scope: SCOPE.ALL_FUNDS,

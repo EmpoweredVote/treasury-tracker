@@ -18,6 +18,22 @@ import { BASIS } from '../lib/budgetAxes.mjs';
 /** @type {import('../lib/budgetAxes.mjs').AxisEntry[]} */
 export const BASIS_REGISTRY = [
   {
+    id: 'ny-osc-city',
+    match: /^New York OSC Annual Financial Report — (Revenues|Expenditures), (General Fund|Total Governmental) \(FY\d{4} actual, self-reported\)$/,
+    value: BASIS.ACTUAL,
+    evidence: {
+      document: 'OSC Local Government Financial Data, city archive '
+              + '(docs/NY/city_all_years.zip); spec '
+              + 'docs/superpowers/specs/2026-10-10-ny-cities-onboarding-design.md §6',
+      figures: 'The AFR reports a CLOSED fiscal period, not an appropriation: every row carries '
+             + 'PERIOD_START/PERIOD_END (2013+) or FISCAL_YEAR_END (1995-2012) bounding a completed '
+             + 'year, and CALENDAR_YEAR always equals the year of PERIOD_END (verified across the '
+             + 'archive). The separate N-suffixed estimated codes — A2801N "Est Rev - Interfund '
+             + 'Revenues", A599N "Appropriated Fund Balance" — are the BUDGETARY series and are not '
+             + 'loaded: the loader keeps only ACCOUNT_CODE_SECTION REVENUE/EXPENDITURE rows.',
+    },
+  },
+  {
     id: 'ca-sco-city-exp',
     match: /^CA State Controller - Expenditures$/,
     value: BASIS.ACTUAL,
