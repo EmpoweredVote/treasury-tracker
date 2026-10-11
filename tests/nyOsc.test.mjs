@@ -312,3 +312,45 @@ describe('aggregateCityYear', () => {
     expect(out).toMatchObject({ total: 0, tree: [] });
   });
 });
+
+import { NY_CITY_ENTITIES } from '../scripts/data/nyOscCityEntities.mjs';
+
+describe('the NY city roster', () => {
+  it('has exactly 61 cities', () => {
+    expect(NY_CITY_ENTITIES).toHaveLength(61);
+  });
+
+  it('does not contain New York City', () => {
+    // NYC is loaded from its own ACFRs (PR #243) and is absent from this
+    // source entirely — OSC files it as a separate `cityny` dataset.
+    const names = NY_CITY_ENTITIES.map((e) => e.name.toLowerCase());
+    expect(names).not.toContain('new york');
+    expect(names.some((n) => n.includes('new york'))).toBe(false);
+  });
+
+  it('stores display names without the "City of " prefix', () => {
+    expect(NY_CITY_ENTITIES.some((e) => e.name === 'Albany')).toBe(true);
+    expect(NY_CITY_ENTITIES.every((e) => !e.name.startsWith('City of '))).toBe(true);
+  });
+
+  it('carries a unique OSC municipal code and a county for every city', () => {
+    expect(new Set(NY_CITY_ENTITIES.map((e) => e.municipalCode)).size).toBe(61);
+    expect(NY_CITY_ENTITIES.every((e) => /^\d{12}$/.test(e.municipalCode))).toBe(true);
+    expect(NY_CITY_ENTITIES.every((e) => e.county && e.county.length > 1)).toBe(true);
+  });
+
+  archiveIt('matches the archive exactly for a mid-window year', () => {
+    const fromArchive = new Set(readYear(ARCHIVE_PATH, 2010).map((r) => r.municipalCode));
+    expect(fromArchive.size).toBe(61);
+    for (const e of NY_CITY_ENTITIES) expect(fromArchive.has(e.municipalCode), e.name).toBe(true);
+  });
+
+  archiveIt('covers every city in every loaded year FY1995-2021', () => {
+    const known = new Set(NY_CITY_ENTITIES.map((e) => e.municipalCode));
+    for (const fy of [1995, 2003, 2012, 2013, 2021]) {
+      const inYear = new Set(readYear(ARCHIVE_PATH, fy).map((r) => r.municipalCode));
+      expect(inYear.size, `FY${fy} entity count`).toBe(61);
+      for (const c of inYear) expect(known.has(c), `FY${fy} has unknown city ${c}`).toBe(true);
+    }
+  });
+});
