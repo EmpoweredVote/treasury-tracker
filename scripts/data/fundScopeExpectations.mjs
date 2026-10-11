@@ -382,27 +382,29 @@ export const EXPECTED_ROWS = Object.freeze({
   // are the 17 GAAP-filing counties that route established.
   'in-county-acfr-tg': 198,
   'in-gateway-afr': 16878,
-  // ⚠⚠ NY OSC city AFRs — BOTH ENTRIES ARE 0 BECAUSE NOTHING IS LOADED YET,
-  // and 0 is the measured count, not a placeholder: the registry entries and
-  // their patterns shipped with Tasks 1-9 of the NY cities onboarding, while
-  // the loader (Task 10) was deliberately held back. These two lines exist so
-  // the "every registry entry has an expectation" gate stays honest in the gap.
+  // NY OSC city AFRs, loaded 2026-10-11 (Task 10). MEASURED against the live
+  // table, not carried over from the plan's arithmetic. House style —
+  // rows / DISTINCT ids / strings / entities:
   //
-  // ⚠⚠ TASK 10 MUST RE-MEASURE BOTH, in the house style
-  // (rows / DISTINCT ids / strings / entities), and must NOT simply paste the
-  // predictions below. They are arithmetic over the archive, not a reading of
-  // the live table:
-  //     ny-osc-city-general-fund        expect ~3,294 rows / 61 entities
-  //                                     (61 cities x 27 FYs x 2 datasets)
-  //     ny-osc-city-total-governmental  expect ~3,063 rows / 61 entities
-  //                                     (3,294 minus the 231 cells refused as
-  //                                      `unknown` because the CS fund prefix
-  //                                      is unresolved against the ARM —
-  //                                      see scripts/data/nyOscFundPrefixes.mjs)
-  // A real measurement that lands on exactly those numbers is a coincidence
-  // worth distrusting until the DISTINCT-ids guard confirms it.
-  'ny-osc-city-general-fund': 0,
-  'ny-osc-city-total-governmental': 0,
+  //     ny-osc-city-general-fund        3294 / 3294 / 54 / 61
+  //     ny-osc-city-total-governmental  3063 / 3063 / 54 / 61
+  //
+  // rows == DISTINCT ids on both, which is the guard against a paged read
+  // duplicating rows. 54 strings each = 27 fiscal years x 2 datasets. All 61
+  // entities appear in both scopes. 3294 + 3063 = 6357, equal to the loader's
+  // own count of rows written. No string is claimed by more than one entry.
+  //
+  // ⚠ THE TWO SCOPES ARE DELIBERATELY UNEQUAL, unlike the Michigan halves
+  // above. 3294 - 3063 = 231, and those 231 city-years are exactly the ones
+  // whose total_governmental was refused because the `CS` fund prefix is
+  // unresolved against the ARM. They are confined to FY1995-2000: General
+  // Fund is 61 in all 27 years, while Total Governmental runs 35/38/44/45/45/47
+  // (expenditure) and 34/38/43/44/44/44 (revenue) across FY1995-2000 and 61
+  // everywhere after. The shortfalls sum to 112 + 119 = 231.
+  // See scripts/data/nyOscFundPrefixes.mjs for why CS stays unregistered, and
+  // do NOT "fix" the inequality by registering it on inference.
+  'ny-osc-city-general-fund': 3294,
+  'ny-osc-city-total-governmental': 3063,
   // SCOPE-01-RECON.md §12, measured 2026-10-09 against the live table.
   // The cities' OWN portals, added to close 4 of the 21 scope seams. Four NEW
   // families, so no pre-existing count moved.

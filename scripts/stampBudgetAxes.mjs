@@ -431,6 +431,16 @@ export const EXPECTED_BASIS_ROWS = Object.freeze({
   // 64 distinct source names (2 faces x 16 years x 2 scopes). A widened pattern
   // shows up in those columns, not in the count.
   'mi-treasury-f65': 116456,
+  // NY OSC city AFRs, measured 2026-10-11 against the live table after the
+  // load. 6,357 rows / 6,357 DISTINCT ids / 108 strings / 61 entities. The
+  // basis entry is ONE pattern covering BOTH fund scopes (the fund-scope
+  // registry splits them into 3,294 general_fund + 3,063 total_governmental,
+  // and 3294 + 3063 = 6357 — the two tables reconcile).
+  // ⚠ The gate failed closed here first, `basis/ny-osc-city: expected 0, got
+  // 6357`, because a new family defaults to 0 until it is measured. That is
+  // the gate working, exactly as the header says. The number below is the
+  // MEASURED count, not an edit to make a red gate green.
+  'ny-osc-city': 6357,
   // The sixteen entity-published city/state ACFR families, measured 2026-08-19.
   // Evidence: docs/superpowers/plans/ACFR-GF-CLASSIFICATION-RECON.md §2.
   'or-city-acfr-gf': 106,
