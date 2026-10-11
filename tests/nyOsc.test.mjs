@@ -87,10 +87,33 @@ describe('parseAmount', () => {
     expect(parseAmount('61667390')).toBe(61667390);
   });
 
-  it('treats blank and null as zero', () => {
+  it('treats a blank cell as zero — it is the publisher\'s own nil', () => {
+    // 7,068 revenue/expenditure rows FY2000-2012 carry a blank AMOUNT.
     expect(parseAmount('')).toBe(0);
     expect(parseAmount(null)).toBe(0);
-    expect(parseAmount(undefined)).toBe(0);
+  });
+
+  it('THROWS on undefined — that is a missing column, not a nil', () => {
+    // Blank and undefined are different facts. `undefined` means the column
+    // was absent or the row was short; coercing it to 0 let a renamed AMOUNT
+    // column produce an empty tree with a $0 total and no error at all.
+    expect(() => parseAmount(undefined)).toThrow(/column missing/i);
+  });
+
+  it('refuses the values Number() would silently accept', () => {
+    // An anchored decimal regex, not Number(). The realistic hazard is an
+    // Excel round-trip emitting `1.23457E+08`, which Number() parses
+    // SUCCESSFULLY with lost precision rather than throwing.
+    for (const v of ['0x10', '1e5', '1.23457E+08', 'Infinity', '1,234', '(500)', '$5']) {
+      expect(() => parseAmount(v), v).toThrow(/non-numeric amount/i);
+    }
+  });
+
+  it('treats a whitespace-only cell as blank, not as an error', () => {
+    // Deliberate: a cell holding only spaces is the publisher's nil with
+    // stray whitespace, the same fact as an empty cell.
+    expect(parseAmount(' ')).toBe(0);
+    expect(parseAmount('\t')).toBe(0);
   });
 
   it('refuses a non-numeric string rather than coercing it to zero', () => {
@@ -241,16 +264,48 @@ describe('readYear (needs docs/NY/city_all_years.zip)', () => {
     }
   });
 
-  archiveIt('agrees with the measured era split on category casing', () => {
-    // Review Focus #4, end to end: both eras normalise onto one label set.
-    const l1 = (y) => new Set(readYear(ARCHIVE_PATH, y)
-      .filter((r) => r.section === 'EXPENDITURE')
-      .map((r) => normLabel(r.LEVEL_1_CATEGORY)));
-    const old2012 = l1(2012);
-    const new2013 = l1(2013);
-    const shared = [...old2012].filter((x) => new2013.has(x));
-    expect(shared.length).toBeGreaterThan(8);
-    for (const s of shared) expect(s).toBe(normLabel(s));
+  archiveIt('normalises both eras onto ONE label set, at every level', () => {
+    // Review Focus #4, end to end -- and this is the assertion spec §4.2
+    // actually asked for. The previous version of this test compared the
+    // INTERSECTION (`shared.length > 8`, which passes while any number of
+    // labels double) and then looped `expect(s).toBe(normLabel(s))` over
+    // outputs of normLabel -- vacuously true, since normLabel is idempotent.
+    // It could not fail, and it never looked below LEVEL_1. It missed a real
+    // $830M split: "Interest & Penalties" vs "Interest and Penalties".
+    // ⚠ Compare ERA UNIONS, not two adjacent years. A single-year comparison
+    // is noisy: `Federal Aid - Utilities` is in FY2012 and absent from FY2013,
+    // but present again in FY2017 — a reporting gap, not a rename.
+    const union = (years, level, section) => {
+      const s = new Set();
+      for (const y of years) {
+        for (const r of readYear(ARCHIVE_PATH, y)) {
+          if (r.section !== section) continue;
+          const v = normLabel(r[level]);
+          if (v) s.add(v);
+        }
+      }
+      return s;
+    };
+    const OLD_YEARS = [1995, 2003, 2012];
+    const NEW_YEARS = [2013, 2017, 2021];
+
+    // Labels genuinely retired at the boundary, not casing or ampersand
+    // splits. Named individually so a NEW divergence fails the test instead of
+    // hiding behind a loose threshold — which is exactly how the ampersand
+    // split survived the first version of this test.
+    const RETIRED = new Set([
+      'Miscellaneous Other Sources', 'Community Services Charges',
+      'Social Service Administration', 'Public Health Facilities',
+    ]);
+
+    for (const level of ['LEVEL_1_CATEGORY', 'LEVEL_2_CATEGORY', 'OBJECT_OF_EXPENDITURE']) {
+      for (const section of ['REVENUE', 'EXPENDITURE']) {
+        const before = union(OLD_YEARS, level, section);
+        const after = union(NEW_YEARS, level, section);
+        const onlyOld = [...before].filter((x) => !after.has(x) && !RETIRED.has(x));
+        expect(onlyOld, `${level}/${section}: old era only, unaccounted for`).toEqual([]);
+      }
+    }
   });
 });
 

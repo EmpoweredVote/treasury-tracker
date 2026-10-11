@@ -28,9 +28,14 @@ export const BASIS_REGISTRY = [
       figures: 'The AFR reports a CLOSED fiscal period, not an appropriation: every row carries '
              + 'PERIOD_START/PERIOD_END (2013+) or FISCAL_YEAR_END (1995-2012) bounding a completed '
              + 'year, and CALENDAR_YEAR always equals the year of PERIOD_END (verified across the '
-             + 'archive). The separate N-suffixed estimated codes — A2801N "Est Rev - Interfund '
-             + 'Revenues", A599N "Appropriated Fund Balance" — are the BUDGETARY series and are not '
-             + 'loaded: the loader keeps only ACCOUNT_CODE_SECTION REVENUE/EXPENDITURE rows.',
+             + 'archive). ⚠ An earlier draft of this evidence credited the REVENUE/EXPENDITURE '
+             + 'section filter with excluding OSC\'s N-suffixed estimated codes (A2801N "Est Rev - '
+             + 'Interfund Revenues", A599N "Appropriated Fund Balance"), which are the BUDGETARY '
+             + 'series in the Chart of Accounts. That was wrong about the mechanism and would '
+             + 'mislead anyone re-confirming this claim: MEASURED across all 32 members, in EVERY '
+             + 'section, the archive contains ZERO N-suffixed account codes. They are not in this '
+             + 'dataset at all, so nothing has to exclude them. Pinned by '
+             + 'tests/nyOscReviewFixes.test.mjs.',
     },
   },
   {
