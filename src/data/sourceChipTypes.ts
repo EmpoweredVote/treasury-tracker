@@ -57,6 +57,12 @@
  */
 export const SOURCE_CHIP_ENTITY_TYPES: ReadonlySet<string> = new Set([
   'city', 'municipality', 'town', 'township', 'village', 'borough', 'county', 'state',
+  // ⚠⚠ `school_district` added 2026-10-11, ahead of the 719-district NY load.
+  // It was absent not by decision but because no district had ever carried
+  // data — the test pinned it beside `null` and `''`. 949 PA boroughs and 253
+  // MI villages each shipped figures with no provenance for exactly this
+  // reason. Added BEFORE the load, so no district-year is ever chip-less.
+  'school_district',
 ]);
 
 /** True when this entity type renders the source chip. */

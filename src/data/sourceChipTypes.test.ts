@@ -39,7 +39,14 @@ describe('showsSourceChip', () => {
     expect(showsSourceChip(null)).toBe(false);
     expect(showsSourceChip(undefined)).toBe(false);
     expect(showsSourceChip('')).toBe(false);
-    expect(showsSourceChip('school_district')).toBe(false);
+  });
+
+  it('shows the chip for school districts', () => {
+    // ⚠ 719 NY districts arrive with data in the school-district load. Until
+    // then NO district had any, which is why this type sat with `null` and ''
+    // in the "unknown type" test rather than in a deliberate exclusion like
+    // `federal`/`nonprofit`. A figure with no provenance is the borough defect.
+    expect(showsSourceChip('school_district')).toBe(true);
   });
 
   it('enumerates exactly the types that get a chip', () => {
@@ -49,7 +56,8 @@ describe('showsSourceChip', () => {
     // boroughs all carry data and all rendered NO chip, i.e. a figure with no
     // provenance. See the header in sourceChipTypes.ts.
     expect([...SOURCE_CHIP_ENTITY_TYPES].sort()).toEqual(
-      ['borough', 'city', 'county', 'municipality', 'state', 'town', 'township', 'village'],
+      ['borough', 'city', 'county', 'municipality', 'school_district', 'state',
+        'town', 'township', 'village'],
     );
   });
 
