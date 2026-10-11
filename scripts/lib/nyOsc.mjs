@@ -13,7 +13,7 @@
 
 import { execFileSync } from 'node:child_process';
 
-import { NY_FUND_PREFIXES } from '../data/nyOscFundPrefixes.mjs';
+import { NY_FUND_PREFIXES, GOVERNMENTAL_TYPES } from '../data/nyOscFundPrefixes.mjs';
 import { resolvePython } from './pythonBin.mjs';
 
 export const ERA_OLD = '1995-2012';
@@ -238,4 +238,34 @@ export function readYear(zipPath, year) {
     });
   }
   return out;
+}
+
+/**
+ * Aggregate one city-year to one scope.
+ *
+ * ⚠⚠ UNKNOWN IS A CORRECT OUTCOME. If any revenue/expenditure row in the
+ * city-year carries a prefix the ARM-backed registry cannot classify, the
+ * `total_governmental` scope is reported as `unknown` rather than summed
+ * without that fund. Omitting a governmental fund understates the total;
+ * including a proprietary one overstates it. Both are wrong, and the
+ * destructive direction is "declare two cities comparable".
+ *
+ * `general_fund` is unaffected: `A` is unambiguous.
+ */
+export function aggregateCityYear(rows, { section, scope }) {
+  const inSection = rows.filter((r) => r.section === section);
+
+  if (scope === 'general_fund') {
+    const { tree, total } = buildNyTree(inSection.filter((r) => r.fundPrefix === 'A'));
+    return { scope, tree, total, unknownPrefixes: [] };
+  }
+
+  const unknown = [...new Set(
+    inSection.map((r) => r.fundPrefix).filter((p) => classifyPrefix(p) === null),
+  )].sort();
+  if (unknown.length) return { scope: 'unknown', tree: [], total: 0, unknownPrefixes: unknown };
+
+  const govt = inSection.filter((r) => GOVERNMENTAL_TYPES.has(classifyPrefix(r.fundPrefix).type));
+  const { tree, total } = buildNyTree(govt);
+  return { scope: 'total_governmental', tree, total, unknownPrefixes: [] };
 }

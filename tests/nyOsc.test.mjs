@@ -253,3 +253,62 @@ describe('readYear (needs docs/NY/city_all_years.zip)', () => {
     for (const s of shared) expect(s).toBe(normLabel(s));
   });
 });
+
+import { aggregateCityYear } from '../scripts/lib/nyOsc.mjs';
+
+const R = (fundPrefix, l1, amt) => ({
+  fundPrefix, section: 'EXPENDITURE',
+  LEVEL_1_CATEGORY: l1, LEVEL_2_CATEGORY: 'Sub', OBJECT_OF_EXPENDITURE: 'Obj', AMOUNT: amt,
+});
+
+describe('aggregateCityYear', () => {
+  it('general_fund takes the A fund alone', () => {
+    const out = aggregateCityYear(
+      [R('A', 'General Government', '100'), R('EW', 'Utilities', '900')],
+      { section: 'EXPENDITURE', scope: 'general_fund' });
+    expect(out.scope).toBe('general_fund');
+    expect(out.total).toBe(100);
+  });
+
+  it('total_governmental includes governmental funds and excludes proprietary', () => {
+    const out = aggregateCityYear([
+      R('A', 'General Government', '100'),
+      R('H', 'Transportation', '50'),
+      R('V', 'Debt Service', '25'),
+      R('EW', 'Utilities', '900'),
+      R('MS', 'General Government', '7'),
+      R('TA', 'General Government', '3'),
+    ], { section: 'EXPENDITURE', scope: 'total_governmental' });
+    expect(out.scope).toBe('total_governmental');
+    expect(out.total).toBe(175);
+  });
+
+  it('an unclassifiable prefix makes the scope unknown, NOT a short sum', () => {
+    const out = aggregateCityYear([
+      R('A', 'General Government', '100'),
+      R('CS', 'General Government', '40'),
+    ], { section: 'EXPENDITURE', scope: 'total_governmental' });
+    expect(out.scope).toBe('unknown');
+    expect(out.unknownPrefixes).toEqual(['CS']);
+  });
+
+  it('an unclassifiable prefix does NOT disturb general_fund', () => {
+    const out = aggregateCityYear([
+      R('A', 'General Government', '100'),
+      R('CS', 'General Government', '40'),
+    ], { section: 'EXPENDITURE', scope: 'general_fund' });
+    expect(out.scope).toBe('general_fund');
+    expect(out.total).toBe(100);
+  });
+
+  it('filters by section', () => {
+    const rows = [R('A', 'General Government', '100'),
+      { ...R('A', 'State Aid', '70'), section: 'REVENUE' }];
+    expect(aggregateCityYear(rows, { section: 'REVENUE', scope: 'general_fund' }).total).toBe(70);
+  });
+
+  it('returns an empty result for a city-year with no matching rows', () => {
+    const out = aggregateCityYear([], { section: 'REVENUE', scope: 'general_fund' });
+    expect(out).toMatchObject({ total: 0, tree: [] });
+  });
+});
