@@ -11,6 +11,8 @@
  * as PA DCED's pre-2015 report and Ohio AOS's county-vs-city workbooks.
  */
 
+import { NY_FUND_PREFIXES } from '../data/nyOscFundPrefixes.mjs';
+
 export const ERA_OLD = '1995-2012';
 export const ERA_NEW = '2013-2026';
 
@@ -61,4 +63,22 @@ export function normLabel(s) {
   return words
     .map((w, i) => (i > 0 && SMALL_WORDS.has(w) ? w : w.charAt(0).toUpperCase() + w.slice(1)))
     .join(' ');
+}
+
+/** The fund is the leading run of capitals on the account code. */
+export function fundPrefixOf(accountCode) {
+  const m = /^([A-Z]+)/.exec(String(accountCode || ''));
+  return m ? m[1] : '';
+}
+
+/**
+ * ⚠ Returns null for anything the ARM-backed registry does not cover. Null is
+ * a CORRECT outcome, not a shortfall: the caller must drive that city-year's
+ * total_governmental to `unknown`, never sum without the fund. Omitting a
+ * governmental fund understates; including a proprietary one overstates. The
+ * destructive direction is "declare two cities comparable".
+ */
+export function classifyPrefix(prefix) {
+  const e = NY_FUND_PREFIXES[prefix];
+  return e ? { type: e.type, name: e.name } : null;
 }
