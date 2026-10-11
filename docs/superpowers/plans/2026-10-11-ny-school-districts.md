@@ -471,7 +471,9 @@ git commit -m "refactor(ny): take the fund registry by parameter, defaulting to 
 
 **Interfaces:**
 - Consumes: Task 3
-- Produces: `SCHOOL_ARCHIVE_PATH = 'docs/NY/school_all_years.zip'`; `SCHOOL_ARCHIVE_URL`; `SCHOOL_FIRST_YEAR = 1995`; `SCHOOL_LAST_YEAR = 2026`; `schoolMemberFor(year) -> string`
+- Produces: `SCHOOL_ARCHIVE_PATH = 'docs/NY/school_all_years.zip'`; `SCHOOL_ARCHIVE_URL`; `SCHOOL_FIRST_YEAR = 1995`; `SCHOOL_LAST_YEAR = 2026`; `SCHOOL_SOURCE_PREFIX`; `schoolSourceNameFor(datasetType, fiscalYear, scope) -> string`
+
+⚠⚠ **`schoolSourceNameFor` is defined HERE, not in Task 9.** An earlier draft of this plan introduced it at Task 9 while Task 7 already loaded using the CITY `sourceNameFor` — which would have written 86,000 rows under city-shaped source strings that the district registry cannot claim, leaving every axis `unknown`. Defining it before the loader exists removes the ordering hazard.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -521,7 +523,31 @@ export const SCHOOL_ARCHIVE_URL =
 /** The districts file FY1995-FY2026; FY2026 is partial and not loaded. */
 export const SCHOOL_FIRST_YEAR = 1995;
 export const SCHOOL_LAST_YEAR = 2026;
+
+export const SCHOOL_SOURCE_PREFIX = 'New York OSC School District Annual Financial Report';
+
+/**
+ * ⚠ A SEPARATE prefix from the cities'. The two registries are anchored at
+ * both ends, so a district row under a city-shaped string would be claimed by
+ * nothing and land with fund_scope, basis AND audit_grade all `unknown`.
+ */
+export function schoolSourceNameFor(datasetType, fiscalYear, scope) {
+  const face = DATASET_FACE[datasetType];
+  if (!face) {
+    throw new Error(`unknown dataset type ${JSON.stringify(datasetType)} — expected operating or revenue`);
+  }
+  const scopeFace = SCOPE_FACE[scope];
+  if (!scopeFace) throw new Error(`unknown fund scope for source name: ${JSON.stringify(scope)}`);
+  if (!Number.isInteger(fiscalYear)
+      || fiscalYear < SCHOOL_FIRST_YEAR || fiscalYear > SCHOOL_LAST_YEAR) {
+    throw new Error(`fiscal year ${fiscalYear} is not an integer in `
+      + `FY${SCHOOL_FIRST_YEAR}-FY${SCHOOL_LAST_YEAR}`);
+  }
+  return `${SCHOOL_SOURCE_PREFIX} — ${face}, ${scopeFace} (FY${fiscalYear} actual, self-reported)`;
+}
 ```
+
+⚠ `DATASET_FACE` and `SCOPE_FACE` already exist in the module (they back the city `sourceNameFor`) and are reused unchanged.
 
 Change `readYear` to take the member class, defaulting to the city one. Its year-range check must use the right bounds:
 
@@ -846,7 +872,8 @@ import { createClient } from '@supabase/supabase-js';
 import { parseArgs } from 'node:util';
 
 import {
-  SCHOOL_ARCHIVE_PATH, readYear, aggregateCityYear, sourceNameFor, SOURCE_URL, SOURCE_PREFIX,
+  SCHOOL_ARCHIVE_PATH, readYear, aggregateCityYear, schoolSourceNameFor, SOURCE_URL,
+  SCHOOL_SOURCE_PREFIX,
 } from './lib/nyOsc.mjs';
 import {
   NY_SCHOOL_FUND_PREFIXES, SCHOOL_GOVERNMENTAL_TYPES,
@@ -963,7 +990,7 @@ for (let fy = FROM; fy <= TO; fy++) {
         if (agg.tree.length === 0) continue;
 
         const prior = existing.get(`${municipalityId}|${datasetType}|${scope}`);
-        if (prior && !String(prior).startsWith(SOURCE_PREFIX)) {
+        if (prior && !String(prior).startsWith(SCHOOL_SOURCE_PREFIX)) {
           conflicts++;
           console.log(`  SKIP ${code} FY${fy} ${datasetType} ${scope} — "${prior}" preserved`);
           continue;
@@ -978,7 +1005,7 @@ for (let fy = FROM; fy <= TO; fy++) {
           p_total: agg.total,
           p_tree: agg.tree,
           p_row_count: agg.tree.length,
-          p_data_source_name: sourceNameFor(datasetType, fy, scope),
+          p_data_source_name: schoolSourceNameFor(datasetType, fy, scope),
           p_source_url: SOURCE_URL,
           p_source_date: new Date().toISOString().slice(0, 10),
           p_fiscal_year_start_month: fysm,
@@ -1172,28 +1199,7 @@ git commit -m "test(ny): five district checks; CHECK 4 inverted for a uniform ca
 
 - [ ] **Step 1: Add the registry entries**
 
-The district source strings must be distinguishable from the city ones. In `scripts/lib/nyOsc.mjs`, `sourceNameFor` currently emits `New York OSC Annual Financial Report — …`. Add a district variant rather than overloading it:
-
-```js
-export const SCHOOL_SOURCE_PREFIX = 'New York OSC School District Annual Financial Report';
-
-export function schoolSourceNameFor(datasetType, fiscalYear, scope) {
-  const face = DATASET_FACE[datasetType];
-  if (!face) {
-    throw new Error(`unknown dataset type ${JSON.stringify(datasetType)} — expected operating or revenue`);
-  }
-  const scopeFace = SCOPE_FACE[scope];
-  if (!scopeFace) throw new Error(`unknown fund scope for source name: ${JSON.stringify(scope)}`);
-  if (!Number.isInteger(fiscalYear)
-      || fiscalYear < SCHOOL_FIRST_YEAR || fiscalYear > SCHOOL_LAST_YEAR) {
-    throw new Error(`fiscal year ${fiscalYear} is not an integer in `
-      + `FY${SCHOOL_FIRST_YEAR}-FY${SCHOOL_LAST_YEAR}`);
-  }
-  return `${SCHOOL_SOURCE_PREFIX} — ${face}, ${scopeFace} (FY${fiscalYear} actual, self-reported)`;
-}
-```
-
-⚠ Change Task 7's loader to import and call `schoolSourceNameFor`, and its guard to compare against `SCHOOL_SOURCE_PREFIX`.
+`schoolSourceNameFor` and `SCHOOL_SOURCE_PREFIX` already exist from Task 4, so the loader is already emitting district-shaped strings. This task only adds the registry entries that claim them.
 
 Add to `FUND_SCOPE_REGISTRY`, at the head:
 
