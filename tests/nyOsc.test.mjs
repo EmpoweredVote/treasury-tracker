@@ -76,3 +76,96 @@ describe('normLabel', () => {
     expect(normLabel(null)).toBe('');
   });
 });
+
+import { parseAmount, buildNyTree } from '../scripts/lib/nyOsc.mjs';
+
+describe('parseAmount', () => {
+  it('parses decimals — the archive really contains these', () => {
+    // City of Batavia A64601 FY2021 is literally "-.29".
+    expect(parseAmount('-.29')).toBeCloseTo(-0.29, 6);
+    expect(parseAmount('-1481.26')).toBeCloseTo(-1481.26, 6);
+    expect(parseAmount('61667390')).toBe(61667390);
+  });
+
+  it('treats blank and null as zero', () => {
+    expect(parseAmount('')).toBe(0);
+    expect(parseAmount(null)).toBe(0);
+    expect(parseAmount(undefined)).toBe(0);
+  });
+
+  it('refuses a non-numeric string rather than coercing it to zero', () => {
+    expect(() => parseAmount('n/a')).toThrow(/non-numeric amount/i);
+  });
+});
+
+describe('buildNyTree', () => {
+  const row = (l1, l2, obj, amt) => ({
+    LEVEL_1_CATEGORY: l1, LEVEL_2_CATEGORY: l2,
+    OBJECT_OF_EXPENDITURE: obj, AMOUNT: amt,
+  });
+
+  it('nests level 1 -> level 2 -> object and totals each node', () => {
+    const { tree, total } = buildNyTree([
+      row('General Government', 'Administration', 'Personal Services', '100'),
+      row('General Government', 'Administration', 'Contractual', '50'),
+      row('General Government', 'Finance', 'Personal Services', '25'),
+      row('Public Safety', 'Police', 'Personal Services', '200'),
+    ]);
+    expect(total).toBe(375);
+    expect(tree).toHaveLength(2);
+    const gg = tree.find((n) => n.n === 'General Government');
+    expect(gg.a).toBe(175);
+    expect(gg.c.find((c) => c.n === 'Administration').a).toBe(150);
+    expect(gg.c.find((c) => c.n === 'Administration').i).toEqual([
+      { d: 'Personal Services', a: 100 },
+      { d: 'Contractual', a: 50 },
+    ]);
+  });
+
+  it('KEEPS negative amounts — they are real contra entries', () => {
+    // ~28 a year across the archive. A builder that filters `> 0` silently
+    // shrinks every total that contains one.
+    const { tree, total } = buildNyTree([
+      row('State Aid', 'Public Safety', 'Federal Aid', '1000'),
+      row('State Aid', 'Public Safety', 'Federal Aid Other Public Safety', '-1481.26'),
+    ]);
+    expect(total).toBeCloseTo(-481.26, 6);
+    expect(tree[0].c[0].i).toHaveLength(2);
+  });
+
+  it('drops rows that are exactly zero, and only those', () => {
+    const { tree, total } = buildNyTree([
+      row('State Aid', 'Aid', 'Grant', '0'),
+      row('State Aid', 'Aid', 'Other', '-5'),
+    ]);
+    expect(total).toBe(-5);
+    expect(tree[0].c[0].i).toEqual([{ d: 'Other', a: -5 }]);
+  });
+
+  it('never emits `aa` — this source has no appropriations', () => {
+    const { tree } = buildNyTree([row('A', 'B', 'C', '10')]);
+    const item = tree[0].c[0].i[0];
+    expect(item).toEqual({ d: 'C', a: 10 });
+    expect('aa' in item).toBe(false);
+  });
+
+  it('normalises labels so both eras land on one branch', () => {
+    const { tree } = buildNyTree([
+      row('GENERAL GOVERNMENT', 'ADMINISTRATION', 'PERSONAL SERVICES', '10'),
+      row('General Government', 'Administration', 'Personal Services', '10'),
+    ]);
+    expect(tree).toHaveLength(1);
+    expect(tree[0].n).toBe('General Government');
+    expect(tree[0].a).toBe(20);
+  });
+
+  it('buckets a blank object of expenditure rather than dropping the money', () => {
+    const { tree, total } = buildNyTree([row('Sales and Use Tax', 'Sales Tax', '', '46685814')]);
+    expect(total).toBe(46685814);
+    expect(tree[0].c[0].i[0].d).toBe('Total');
+  });
+
+  it('returns an empty tree and zero total for no rows', () => {
+    expect(buildNyTree([])).toEqual({ tree: [], total: 0 });
+  });
+});

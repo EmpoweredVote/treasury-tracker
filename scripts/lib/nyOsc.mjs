@@ -82,3 +82,63 @@ export function classifyPrefix(prefix) {
   const e = NY_FUND_PREFIXES[prefix];
   return e ? { type: e.type, name: e.name } : null;
 }
+
+/**
+ * ⚠ DECIMAL, NOT INTEGER. The archive contains values like `-.29` (City of
+ * Batavia A64601 FY2021) and `-1481.26` (Cortland A4389). An integer parse
+ * throws or truncates on real rows.
+ *
+ * ⚠ A non-numeric amount THROWS. Coercing it to 0 would silently delete money.
+ */
+export function parseAmount(v) {
+  if (v === null || v === undefined) return 0;
+  const s = String(v).trim();
+  if (s === '') return 0;
+  const n = Number(s);
+  if (!Number.isFinite(n)) throw new Error(`non-numeric amount: ${JSON.stringify(v)}`);
+  return n;
+}
+
+/**
+ * LEVEL_1_CATEGORY -> LEVEL_2_CATEGORY -> OBJECT_OF_EXPENDITURE.
+ *
+ * ⚠⚠ Items carry `a` (actual_amount) and NEVER `aa` (approved_amount). OSC
+ * publishes closed-year actuals only; emitting `aa: 0` would assert an adopted
+ * budget of zero, which is false -- the adopted figure is UNKNOWN, not zero.
+ * Absent means unknown. See tests/budgetTreeItemContract.test.mjs for what
+ * `_treasury_insert_tree` does with each key; the a/aa inversion cost TT eight
+ * PRs and left approved_amount NULL on ~18,700 rows.
+ *
+ * ⚠ Negative amounts are KEPT -- they are genuine contra entries (refunds,
+ * corrections), ~28 a year across the archive. Only exact zeros are dropped.
+ */
+export function buildNyTree(rows) {
+  const l1s = new Map();
+  let total = 0;
+
+  for (const r of rows) {
+    const a = parseAmount(r.AMOUNT);
+    if (a === 0) continue;
+
+    const n1 = normLabel(r.LEVEL_1_CATEGORY) || 'Unclassified';
+    const n2 = normLabel(r.LEVEL_2_CATEGORY) || 'Unclassified';
+    const d = normLabel(r.OBJECT_OF_EXPENDITURE) || 'Total';
+
+    if (!l1s.has(n1)) l1s.set(n1, new Map());
+    const l2s = l1s.get(n1);
+    if (!l2s.has(n2)) l2s.set(n2, []);
+    l2s.get(n2).push({ d, a });
+    total += a;
+  }
+
+  const tree = [...l1s.entries()].map(([n1, l2s]) => {
+    const c = [...l2s.entries()].map(([n2, items]) => ({
+      n: n2,
+      a: items.reduce((s, i) => s + i.a, 0),
+      i: items,
+    }));
+    return { n: n1, a: c.reduce((s, k) => s + k.a, 0), c };
+  });
+
+  return { tree, total };
+}
