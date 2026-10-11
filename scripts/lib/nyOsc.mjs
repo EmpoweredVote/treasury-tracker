@@ -37,3 +37,28 @@ export function sectionOf(row) {
   if (fs.includes('EXPENDITURES')) return 'EXPENDITURE';
   return 'OTHER';
 }
+
+/**
+ * ⚠⚠ THE ERA BOUNDARY IS A LABEL-CASING TRAP.
+ *
+ * `LEVEL_1_CATEGORY` is `GENERAL GOVERNMENT` before 2013 and `General
+ * Government` after. Loaded as published, every city grows two parallel icicle
+ * branches across FY2012/FY2013 and every category appears twice -- while
+ * tying at EXACTLY $0, because casing moves no money. Same family as NYC's
+ * `Current Operations:` weld, which published a category called
+ * `Current Operations General government` at a perfect tie.
+ *
+ * Both eras normalise to the modern era's Title Case.
+ */
+const SMALL_WORDS = new Set([
+  'a', 'an', 'and', 'as', 'at', 'but', 'by', 'for', 'in', 'nor', 'of', 'on',
+  'or', 'the', 'to', 'via', 'vs',
+]);
+
+export function normLabel(s) {
+  if (!s) return '';
+  const words = String(s).trim().toLowerCase().split(/\s+/).filter(Boolean);
+  return words
+    .map((w, i) => (i > 0 && SMALL_WORDS.has(w) ? w : w.charAt(0).toUpperCase() + w.slice(1)))
+    .join(' ');
+}

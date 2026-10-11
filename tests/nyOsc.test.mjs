@@ -40,3 +40,39 @@ describe('sectionOf', () => {
     expect(sectionOf({ FINANCIAL_STATEMENT: 'CHANGE IN EQUITY' })).toBe('OTHER');
   });
 });
+
+import { normLabel } from '../scripts/lib/nyOsc.mjs';
+
+describe('normLabel', () => {
+  it('collapses the 2012/2013 casing change to one label', () => {
+    // The whole reason this function exists: loaded raw, one city grows TWO
+    // parallel icicle branches across the era boundary -- at an exact $0 tie,
+    // because casing moves no money.
+    expect(normLabel('GENERAL GOVERNMENT')).toBe(normLabel('General Government'));
+    expect(normLabel('REAL PROPERTY TAXES AND ASSESSMENTS'))
+      .toBe(normLabel('Real Property Taxes and Assessments'));
+  });
+
+  it('produces Title Case, matching the modern era as published', () => {
+    expect(normLabel('GENERAL GOVERNMENT')).toBe('General Government');
+    expect(normLabel('CULTURE AND RECREATION')).toBe('Culture and Recreation');
+  });
+
+  it('keeps small words lowercase except in first position', () => {
+    expect(normLabel('USE AND SALE OF PROPERTY')).toBe('Use and Sale of Property');
+    expect(normLabel('CHARGES TO OTHER GOVERNMENTS')).toBe('Charges to Other Governments');
+  });
+
+  it('trims and collapses interior whitespace', () => {
+    expect(normLabel('  PUBLIC   SAFETY  ')).toBe('Public Safety');
+  });
+
+  it('is idempotent', () => {
+    expect(normLabel(normLabel('STATE AID'))).toBe('State Aid');
+  });
+
+  it('passes an empty label through as empty', () => {
+    expect(normLabel('')).toBe('');
+    expect(normLabel(null)).toBe('');
+  });
+});
