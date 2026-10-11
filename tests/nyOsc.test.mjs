@@ -191,3 +191,65 @@ describe('fiscalYearStartMonth', () => {
     expect(() => fiscalYearStartMonth({})).toThrow(/no fiscal period/i);
   });
 });
+
+import { existsSync } from 'node:fs';
+import { ARCHIVE_PATH, readYear } from '../scripts/lib/nyOsc.mjs';
+
+// ⚠ ARCHIVE_PATH must be a real exported path BEFORE the skip guard runs.
+// existsSync(undefined) is merely false, so a missing export would silently
+// skip every archive test instead of failing one -- a harness nobody runs.
+const haveArchive = typeof ARCHIVE_PATH === 'string' && ARCHIVE_PATH.length > 0
+  && existsSync(ARCHIVE_PATH);
+const archiveIt = haveArchive ? it : it.skip;
+
+describe('readYear (needs docs/NY/city_all_years.zip)', () => {
+  it('exports a well-formed archive path', () => {
+    // Unconditional: this one fails rather than skips when the export is gone.
+    expect(typeof ARCHIVE_PATH).toBe('string');
+    expect(ARCHIVE_PATH).toMatch(/city_all_years\.zip$/);
+  });
+
+  it('announces when the archive is absent instead of quietly skipping', () => {
+    // The archive is gitignored, so CI genuinely cannot have it. That is fine
+    // -- but a run where these tests vanished must say so out loud.
+    if (!haveArchive) {
+      console.warn(`\n  ⚠ ${ARCHIVE_PATH} absent — 4 archive-backed tests SKIPPED.`
+        + ' Run `node scripts/fetchNyOsc.mjs` to enable them.\n');
+    }
+    expect(true).toBe(true);
+  });
+
+  archiveIt('reads a modern year and keeps only revenue and expenditure', () => {
+    const rows = readYear(ARCHIVE_PATH, 2021);
+    expect(rows.length).toBeGreaterThan(10000);
+    expect(new Set(rows.map((r) => r.section))).toEqual(new Set(['REVENUE', 'EXPENDITURE']));
+    expect(new Set(rows.map((r) => r.entityName)).size).toBe(61);
+    expect(rows.every((r) => r.fiscalYear === 2021)).toBe(true);
+  });
+
+  archiveIt('reads an old-era year with the same row shape', () => {
+    const rows = readYear(ARCHIVE_PATH, 2010);
+    expect(new Set(rows.map((r) => r.entityName)).size).toBe(61);
+    expect(new Set(rows.map((r) => r.section))).toEqual(new Set(['REVENUE', 'EXPENDITURE']));
+    expect(rows.every((r) => r.fiscalYearStartMonth >= 1 && r.fiscalYearStartMonth <= 12)).toBe(true);
+  });
+
+  archiveIt('never returns a K or W schedule row', () => {
+    for (const y of [2010, 2021]) {
+      const bad = readYear(ARCHIVE_PATH, y).filter((r) => r.fundPrefix === 'K' || r.fundPrefix === 'W');
+      expect(bad, `year ${y}`).toHaveLength(0);
+    }
+  });
+
+  archiveIt('agrees with the measured era split on category casing', () => {
+    // Review Focus #4, end to end: both eras normalise onto one label set.
+    const l1 = (y) => new Set(readYear(ARCHIVE_PATH, y)
+      .filter((r) => r.section === 'EXPENDITURE')
+      .map((r) => normLabel(r.LEVEL_1_CATEGORY)));
+    const old2012 = l1(2012);
+    const new2013 = l1(2013);
+    const shared = [...old2012].filter((x) => new2013.has(x));
+    expect(shared.length).toBeGreaterThan(8);
+    for (const s of shared) expect(s).toBe(normLabel(s));
+  });
+});

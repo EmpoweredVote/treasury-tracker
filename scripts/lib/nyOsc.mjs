@@ -11,7 +11,10 @@
  * as PA DCED's pre-2015 report and Ohio AOS's county-vs-city workbooks.
  */
 
+import { execFileSync } from 'node:child_process';
+
 import { NY_FUND_PREFIXES } from '../data/nyOscFundPrefixes.mjs';
+import { resolvePython } from './pythonBin.mjs';
 
 export const ERA_OLD = '1995-2012';
 export const ERA_NEW = '2013-2026';
@@ -162,4 +165,77 @@ export function fiscalYearStartMonth(row) {
     if (endMonth >= 1 && endMonth <= 12) return (endMonth % 12) + 1;
   }
   throw new Error(`no fiscal period on row: ${JSON.stringify(row).slice(0, 120)}`);
+}
+
+export const ARCHIVE_PATH = 'docs/NY/city_all_years.zip';
+export const ARCHIVE_URL =
+  'https://wwe1.osc.state.ny.us/localgov/findata/level3zip/city_all_years.zip';
+
+/** Minimal RFC4180 reader — the OSC files quote fields containing commas. */
+export function parseCsv(text) {
+  const rows = [];
+  let row = [], field = '', inQ = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (inQ) {
+      if (c === '"') { if (text[i + 1] === '"') { field += '"'; i++; } else inQ = false; }
+      else field += c;
+    } else if (c === '"') inQ = true;
+    else if (c === ',') { row.push(field); field = ''; }
+    else if (c === '\n') { row.push(field); field = ''; rows.push(row); row = []; }
+    else if (c !== '\r') field += c;
+  }
+  if (field !== '' || row.length) { row.push(field); rows.push(row); }
+  return rows.filter((r) => r.length > 1);
+}
+
+/**
+ * Pull one year's CSV out of the archive and return only the revenue and
+ * expenditure rows, era-normalised.
+ *
+ * ⚠ `GL`/`FBNP` (modern) and `BALANCE SHEET`/`CHANGE IN EQUITY` (old) are
+ * dropped here. In FY2024 they are 7,663 of 20,234 rows; sweeping them into a
+ * revenue or expenditure tree double-counts badly. Dropping them also removes
+ * every K and W schedule row, which appear nowhere else.
+ */
+export function readYear(zipPath, year) {
+  const member = `${year}_City.csv`;
+  const text = execFileSync(resolvePython(), ['-I', '-c',
+    'import sys,zipfile;sys.stdout.write(zipfile.ZipFile(sys.argv[1]).read(sys.argv[2]).decode("utf-8-sig",errors="replace"))',
+    zipPath, member,
+  ], { encoding: 'utf8', maxBuffer: 1024 * 1024 * 256 });
+
+  const grid = parseCsv(text);
+  const header = grid[0];
+  eraForHeader(header); // throws on an unrecognised header
+  const ix = Object.fromEntries(header.map((h, i) => [h, i]));
+  const get = (r, k) => (ix[k] === undefined ? undefined : r[ix[k]]);
+
+  const out = [];
+  for (let i = 1; i < grid.length; i++) {
+    const r = grid[i];
+    const raw = {
+      ACCOUNT_CODE_SECTION: get(r, 'ACCOUNT_CODE_SECTION'),
+      FINANCIAL_STATEMENT: get(r, 'FINANCIAL_STATEMENT'),
+      PERIOD_START: get(r, 'PERIOD_START'),
+      FISCAL_YEAR_END: get(r, 'FISCAL_YEAR_END'),
+    };
+    const section = sectionOf(raw);
+    if (section === 'OTHER') continue;
+
+    out.push({
+      municipalCode: get(r, 'MUNICIPAL_CODE'),
+      entityName: get(r, 'ENTITY_NAME'),
+      county: get(r, 'COUNTY'),
+      fiscalYear: Number(get(r, 'CALENDAR_YEAR')),
+      fundPrefix: fundPrefixOf(get(r, 'ACCOUNT_CODE')),
+      section,
+      fiscalYearStartMonth: fiscalYearStartMonth(raw),
+      LEVEL_1_CATEGORY: get(r, 'LEVEL_1_CATEGORY'),
+      LEVEL_2_CATEGORY: get(r, 'LEVEL_2_CATEGORY'),
+      OBJECT_OF_EXPENDITURE: get(r, 'OBJECT_OF_EXPENDITURE'),
+      AMOUNT: get(r, 'AMOUNT'),
+    });
+  }
+  return out;
 }
