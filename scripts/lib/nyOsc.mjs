@@ -105,18 +105,23 @@ export function fundPrefixOf(accountCode) {
 }
 
 /**
- * ⚠ Returns null for anything the ARM-backed registry does not cover. Null is
- * a CORRECT outcome, not a shortfall: the caller must drive that city-year's
+ * ⚠ Returns null for anything the given registry does not cover. Null is a
+ * CORRECT outcome, not a shortfall: the caller must drive that entity-year's
  * total_governmental to `unknown`, never sum without the fund. Omitting a
  * governmental fund understates; including a proprietary one overstates. The
- * destructive direction is "declare two cities comparable".
+ * destructive direction is "declare two entities comparable".
  *
- * ⚠ `Object.hasOwn`, not a bare index — `NY_FUND_PREFIXES['constructor']`
- * would otherwise return a truthy inherited value and escape the null check.
+ * ⚠⚠ THE REGISTRY IS A PARAMETER because NY has TWO publications. The same
+ * letter means different things: `C` is a city's absent code and a district's
+ * GOVERNMENTAL food-service fund. Defaulting to the city table keeps every
+ * existing caller unchanged.
+ *
+ * ⚠ `Object.hasOwn`, not a bare index — `registry['constructor']` would
+ * otherwise return a truthy inherited value and escape the null check.
  */
-export function classifyPrefix(prefix) {
-  if (!Object.hasOwn(NY_FUND_PREFIXES, prefix)) return null;
-  const e = NY_FUND_PREFIXES[prefix];
+export function classifyPrefix(prefix, registry = NY_FUND_PREFIXES) {
+  if (!Object.hasOwn(registry, prefix)) return null;
+  const e = registry[prefix];
   return { type: e.type, name: e.name };
 }
 
@@ -395,7 +400,10 @@ const LEGAL_SCOPES = Object.freeze(new Set(['general_fund', 'total_governmental'
  * what the caller asked for; a typo'd section returned a silent $0
  * indistinguishable from a genuinely missing city-year.
  */
-export function aggregateCityYear(rows, { section, scope }) {
+export function aggregateCityYear(
+  rows,
+  { section, scope, registry = NY_FUND_PREFIXES, governmentalTypes = GOVERNMENTAL_TYPES },
+) {
   if (!LEGAL_SECTIONS.has(section)) {
     throw new Error(`unknown section ${JSON.stringify(section)} — expected REVENUE or EXPENDITURE`);
   }
@@ -412,11 +420,12 @@ export function aggregateCityYear(rows, { section, scope }) {
   }
 
   const unknown = [...new Set(
-    inSection.map((r) => r.fundPrefix).filter((p) => classifyPrefix(p) === null),
+    inSection.map((r) => r.fundPrefix).filter((p) => classifyPrefix(p, registry) === null),
   )].sort();
   if (unknown.length) return { scope: 'unknown', tree: [], total: 0, unknownPrefixes: unknown };
 
-  const govt = inSection.filter((r) => GOVERNMENTAL_TYPES.has(classifyPrefix(r.fundPrefix).type));
+  const govt = inSection.filter(
+    (r) => governmentalTypes.has(classifyPrefix(r.fundPrefix, registry).type));
   const { tree, total } = buildNyTree(govt);
   return { scope: 'total_governmental', tree, total, unknownPrefixes: [] };
 }
