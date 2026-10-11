@@ -4,6 +4,7 @@ import {
   aggregateCityYear, classifyPrefix,
   SCHOOL_ARCHIVE_PATH, SCHOOL_ARCHIVE_URL, readYear,
 } from '../scripts/lib/nyOsc.mjs';
+import { NY_SCHOOL_ENTITIES } from '../scripts/data/nyOscSchoolEntities.mjs';
 import {
   NY_SCHOOL_FUND_PREFIXES, SCHOOL_GOVERNMENTAL_TYPES,
 } from '../scripts/data/nyOscSchoolFundPrefixes.mjs';
@@ -101,5 +102,44 @@ describe('the school archive', () => {
     const rows = readYear(SCHOOL_ARCHIVE_PATH, 2010, 'SchoolDistrict');
     expect(new Set(rows.map((r) => r.entityName)).size).toBe(696);
     expect(rows.every((r) => r.fiscalYearStartMonth === 7)).toBe(true);
+  });
+});
+
+describe('the district roster', () => {
+  it('has 719 districts on 717 municipal codes', () => {
+    // ⚠ The counts DIFFER ON PURPOSE. Two codes carry two spellings each:
+    //   260631600100  Gates Chili / Gates-Chili Central School District
+    //   140936100300  Hopevale / Hopevale School District
+    // Keying on the NAME would fork both. The roster keeps one row per NAME so
+    // every spelling resolves, and treasury_ensure_municipality collapses them
+    // onto one entity by code, recording the other spelling as an alias.
+    expect(NY_SCHOOL_ENTITIES).toHaveLength(719);
+    expect(new Set(NY_SCHOOL_ENTITIES.map((e) => e.municipalCode)).size).toBe(717);
+  });
+
+  it('names the two double-spelled codes explicitly', () => {
+    const dupes = new Map();
+    for (const e of NY_SCHOOL_ENTITIES) {
+      if (!dupes.has(e.municipalCode)) dupes.set(e.municipalCode, []);
+      dupes.get(e.municipalCode).push(e.name);
+    }
+    const multi = [...dupes.entries()].filter(([, n]) => n.length > 1).map(([c]) => c).sort();
+    expect(multi).toEqual(['140936100300', '260631600100']);
+  });
+
+  it('carries a well-formed code and a county for every district', () => {
+    expect(NY_SCHOOL_ENTITIES.every((e) => /^\d{12}$/.test(e.municipalCode))).toBe(true);
+    expect(NY_SCHOOL_ENTITIES.every((e) => e.county && e.county.length > 1)).toBe(true);
+    expect(NY_SCHOOL_ENTITIES.every((e) => e.name && e.name.length > 1)).toBe(true);
+  });
+
+  archiveIt('covers every district in every sampled year', () => {
+    const known = new Set(NY_SCHOOL_ENTITIES.map((e) => e.municipalCode));
+    for (const fy of [1995, 2003, 2012, 2013, 2021, 2025]) {
+      for (const c of new Set(readYear(SCHOOL_ARCHIVE_PATH, fy, 'SchoolDistrict')
+        .map((r) => r.municipalCode))) {
+        expect(known.has(c), `FY${fy} has unknown district ${c}`).toBe(true);
+      }
+    }
   });
 });
