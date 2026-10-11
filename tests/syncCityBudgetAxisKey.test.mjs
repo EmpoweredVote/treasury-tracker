@@ -84,6 +84,21 @@ const REQUIRED = {
   // on one key, and the second scope would overwrite the first — a load of
   // half the data that looks entirely successful.
   'loadNyOscCities.mjs': 'NY OSC city AFRs — 6,357 rows, general_fund + total_governmental / actual (two scopes per city-year)',
+  // ⚠⚠ The NY OSC SCHOOL DISTRICT load is now the largest two-scope caller in
+  // the repo, 13x the cities': 717 districts x 31 fiscal years FY1995-FY2025 x
+  // 2 datasets x 2 scopes. Measured in the live table after the 2026-10-11
+  // load:
+  //     general_fund      / actual / derived  43,163 rows / 43,163 distinct ids
+  //     total_governmental/ actual / derived  39,401 rows / 39,401 distinct ids
+  // 82,564 rows, equal to the loader's own count. The two scopes are
+  // DELIBERATELY unequal: 43163 - 39401 = 3,762 district-years whose
+  // total_governmental was refused because `CS`, `TN` or `B` is unresolved
+  // against OSC's Accounting and Reporting Manual for SCHOOL DISTRICTS, all of
+  // them in FY1995-FY2012.
+  // Omit p_fund_scope and both passes would ask for unknown/unknown, collide
+  // on one key, and the second scope would overwrite the first — a load of
+  // half the data that looks entirely successful.
+  'loadNyOscSchools.mjs': 'NY OSC school district AFRs — 82,564 rows, general_fund + total_governmental / actual (two scopes per district-year)',
   // ⚠⚠ NYC is the first caller to write TWO SCOPES for the SAME city-year, so
   // the axis pair is not decoration here — it is the only thing separating the
   // two series. Measured in the live table after the 2026-10-09 load:

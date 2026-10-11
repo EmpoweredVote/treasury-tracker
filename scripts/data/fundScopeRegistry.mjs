@@ -37,6 +37,39 @@ import { SCOPE } from '../lib/fundScope.mjs';
 /** @type {import('../lib/fundScope.mjs').RegistryEntry[]} */
 export const FUND_SCOPE_REGISTRY = [
   {
+    id: 'ny-osc-school-general-fund',
+    match: /^New York OSC School District Annual Financial Report — (Revenues|Expenditures), General Fund \(FY\d{4} actual, self-reported\)$/,
+    scope: SCOPE.GENERAL_FUND,
+    evidence: {
+      document: 'OSC Accounting and Reporting Manual for School Districts '
+              + '(docs/NY/osc-arm-school-districts.pdf); spec '
+              + 'docs/superpowers/specs/2026-10-11-ny-school-districts-design.md §4',
+      figures: 'The scope is the `A` prefix alone. The manual\'s fund table reads '
+             + '"Governmental Funds … General  A". Corroborated against the city reconciliation: '
+             + 'Buffalo City School District FY2021 General Fund revenue reads 916,884,897, more '
+             + 'than twice the City of Buffalo\'s entire General Fund, which is why the city AFR '
+             + 'could not have contained it.',
+    },
+  },
+  {
+    id: 'ny-osc-school-total-governmental',
+    match: /^New York OSC School District Annual Financial Report — (Revenues|Expenditures), Total Governmental \(FY\d{4} actual, self-reported\)$/,
+    scope: SCOPE.TOTAL_GOVERNMENTAL,
+    evidence: {
+      document: 'OSC Accounting and Reporting Manual for School Districts '
+              + '(docs/NY/osc-arm-school-districts.pdf), the explicit fund table; prefix table '
+              + 'scripts/data/nyOscSchoolFundPrefixes.mjs',
+      figures: 'Governmental = A + C + CM + F + L + H + PN + V. EXCLUDED: TC and TE, the only two '
+             + 'fiduciary funds; districts have NO enterprise and NO internal service funds at all. '
+             + '⚠ `C` (School Food Service Programs) is SPECIAL REVENUE and therefore INCLUDED here, '
+             + 'while the equivalent city activity sits in an E_ enterprise fund and is excluded — '
+             + '278,779 rows turn on that difference. A district-year carrying a retired prefix '
+             + '(CS/TN/B) is written `unknown`: 3,762 of 43,163 cells (8.71%), all FY1995-FY2012. '
+             + 'REPORTING ENTITY: UNKNOWN — nothing read establishes whether a district consolidates '
+             + 'component units.',
+    },
+  },
+  {
     id: 'ny-osc-city-general-fund',
     match: /^New York OSC Annual Financial Report — (Revenues|Expenditures), General Fund \(FY\d{4} actual, self-reported\)$/,
     scope: SCOPE.GENERAL_FUND,

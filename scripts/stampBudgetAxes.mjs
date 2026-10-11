@@ -441,6 +441,16 @@ export const EXPECTED_BASIS_ROWS = Object.freeze({
   // the gate working, exactly as the header says. The number below is the
   // MEASURED count, not an edit to make a red gate green.
   'ny-osc-city': 6357,
+  // NY OSC SCHOOL DISTRICT AFRs, loaded 2026-10-11 and MEASURED against the
+  // live table — the plan estimated ~85,400 and the truth is 82,564. Like
+  // `ny-osc-city` above, this basis entry is ONE pattern covering BOTH fund
+  // scopes (the fund-scope registry splits them into 43,163 general_fund +
+  // 39,401 total_governmental, and 43163 + 39401 = 82564 — the two tables
+  // reconcile). 717 districts x 31 fiscal years FY1995-FY2025 x 2 datasets,
+  // less the 3,762 total_governmental cells refused for a retired fund prefix
+  // and the district-years where a district filed no revenue/expenditure
+  // section at all.
+  'ny-osc-school': 82564,
   // The sixteen entity-published city/state ACFR families, measured 2026-08-19.
   // Evidence: docs/superpowers/plans/ACFR-GF-CLASSIFICATION-RECON.md §2.
   'or-city-acfr-gf': 106,
