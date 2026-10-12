@@ -28,6 +28,10 @@
     "ny:seed": "node --env-file=.env scripts/seedNyCities.mjs",
     "ny:load": "node --env-file=.env scripts/loadNyOscCities.mjs",
     "ny:verify": "node --env-file=.env scripts/verifyNyOscCities.mjs",
+    "ny:fetch-schools": "node scripts/fetchNyOsc.mjs --schools",
+    "ny:seed-schools": "node --env-file=.env scripts/seedNySchools.mjs",
+    "ny:load-schools": "node --env-file=.env scripts/loadNyOscSchools.mjs",
+    "ny:verify-schools": "node --env-file=.env scripts/verifyNyOscSchools.mjs",
     "verify:live-sync": "node scripts/liveSyncExclusions.mjs --check",
     "verify:grants": "node scripts/verifyAnonExecute.mjs",
     "check:single-copy": "node scripts/checkSingleCopy.mjs"

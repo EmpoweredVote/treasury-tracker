@@ -405,6 +405,39 @@ export const EXPECTED_ROWS = Object.freeze({
   // do NOT "fix" the inequality by registering it on inference.
   'ny-osc-city-general-fund': 3294,
   'ny-osc-city-total-governmental': 3063,
+  // NY OSC SCHOOL DISTRICT AFRs, loaded 2026-10-11. MEASURED against the live
+  // table after the load, not carried over from the plan — the plan's estimate
+  // was ~85,400 and the truth is 82,564. House style —
+  // rows / DISTINCT ids / strings / entities:
+  //
+  //     ny-osc-school-general-fund        43163 / 43163 / 62 / 717
+  //     ny-osc-school-total-governmental  39401 / 39401 / 62 / 714
+  //
+  // rows == DISTINCT ids on both, the guard against a paged read duplicating
+  // rows. 62 strings each = 31 fiscal years x 2 datasets. 43163 + 39401 =
+  // 82564, equal to the loader's own count of rows written.
+  //
+  // ⚠ THE TWO SCOPES ARE DELIBERATELY UNEQUAL, for the same reason as the
+  // cities above but with a different retired prefix set. 43163 - 39401 =
+  // 3762, and those 3,762 district-years are exactly the ones whose
+  // total_governmental was refused because `CS`, `TN` or `B` is unresolved
+  // against the district manual. Every one of them is FY1995-FY2012; the
+  // measured per-year shortfall is 1995:928 1996:858 1997:295 1998:377
+  // 1999:321 2000:331 2001:325, then 34/35/35/31/37/37/37/34/42 across
+  // FY2002-FY2010, then 2011:1 and 2012:4, and ZERO from FY2013 onward — the
+  // schema-era boundary. General Fund is never refused: `A` is unambiguous.
+  //
+  // ⚠ 714 entities on total_governmental, not 717. Belmont, South New Berlin
+  // and Mayville School Districts carry a General Fund row but NO
+  // total_governmental row in any year, because every year they filed contains
+  // a retired prefix. That is the refusal rule working, not missing data.
+  //
+  // See scripts/data/nyOscSchoolFundPrefixes.mjs for why CS/TN/B stay
+  // unregistered. ⚠ `CS` is retired in the CITY data over the same era and the
+  // obvious CS->MS rename was tested there and DISPROVED — do NOT "fix" this
+  // inequality by registering them on inference.
+  'ny-osc-school-general-fund': 43163,
+  'ny-osc-school-total-governmental': 39401,
   // SCOPE-01-RECON.md §12, measured 2026-10-09 against the live table.
   // The cities' OWN portals, added to close 4 of the 21 scope seams. Four NEW
   // families, so no pre-existing count moved.

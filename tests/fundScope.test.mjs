@@ -459,7 +459,10 @@ describe('the shipped registry', () => {
     // Housing Authority prefix shows some of the 61 cities fold a legally
     // separate component unit in as a fund while others do not. One answer
     // cannot cover the family, which is itself the finding.
-    expect(totGov.map((e) => e.id).sort()).toEqual(['ca-sco-derived-tg', 'fl-dfs-afr', 'in-county-acfr-tg', 'mi-treasury-f65-tg', 'mn-osa', 'ny-osc-city-total-governmental', 'oh-aos', 'pa-dced-clgs30-county']);
+    // ⚠ `ny-osc-school-total-governmental` joins on 2026-10-11, and its
+    // reporting entity is UNKNOWN for the same reason: nothing in the district
+    // AFR establishes whether a district consolidates its component units.
+    expect(totGov.map((e) => e.id).sort()).toEqual(['ca-sco-derived-tg', 'fl-dfs-afr', 'in-county-acfr-tg', 'mi-treasury-f65-tg', 'mn-osa', 'ny-osc-city-total-governmental', 'ny-osc-school-total-governmental', 'oh-aos', 'pa-dced-clgs30-county']);
     for (const e of totGov) {
       expect(e.evidence.figures, e.id).toMatch(/REPORTING ENTITY|reporting-entity/);
     }

@@ -156,6 +156,32 @@ const NYC_ACFR_EVIDENCE = {
 
 export const AUDIT_GRADE_REGISTRY = [
   {
+    id: 'ny-osc-school',
+    // ⚠ NOT `ny-osc-city` below and NOT `nyc-acfr`. Three distinct New York
+    // streams: this one is the 717 SCHOOL DISTRICTS' own unaudited AFR filing,
+    // `ny-osc-city` is the other 61 cities', and `nyc-acfr` is New York City's
+    // audited ACFR. All three patterns are anchored and cannot claim each
+    // other's rows.
+    match: /^New York OSC School District Annual Financial Report — (Revenues|Expenditures), (General Fund|Total Governmental) \(FY\d{4} actual, self-reported\)$/,
+    value: AUDIT_GRADE.SELF_REPORTED_UNAUDITED,
+    evidence: {
+      document: 'OSC Annual Financial Report filing requirements for school districts; OSC '
+              + 'Accounting and Reporting Manual for School Districts '
+              + '(docs/NY/osc-arm-school-districts.pdf); spec '
+              + 'docs/superpowers/specs/2026-10-11-ny-school-districts-design.md §6',
+      figures: 'The AFR is filed BY the district under the same General Municipal Law regime as the '
+             + 'cities\'. It carries no opinion, no auditor and no audit flag, and OSC asserts no '
+             + 'audit status over it. ⚠ This is ASSURANCE, not measurement: accounting_basis stays '
+             + '`unknown`, because the district manual DIRECTING modified accrual is an INSTRUCTION, '
+             + 'not an outcome, and no opinion establishes that any of the 717 districts achieved '
+             + 'it. ⚠ An independent audit route exists but does not cover this window: FAC serves '
+             + 'audited district ACFRs only from audit year 2016, leaving FY1995-FY2015 — 19 of the '
+             + '31 loaded years — with no audit route at all. That reconciliation is a separate '
+             + 'task and has NOT been performed; these rows establish that TT read OSC faithfully, '
+             + 'not that OSC is right.',
+    },
+  },
+  {
     id: 'ny-osc-city',
     // ⚠ NOT the same publisher as `nyc-acfr` below, despite both being New
     // York. That entry is New York CITY's own audited ACFR; this one is the

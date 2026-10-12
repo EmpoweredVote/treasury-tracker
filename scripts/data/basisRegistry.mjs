@@ -18,6 +18,25 @@ import { BASIS } from '../lib/budgetAxes.mjs';
 /** @type {import('../lib/budgetAxes.mjs').AxisEntry[]} */
 export const BASIS_REGISTRY = [
   {
+    id: 'ny-osc-school',
+    // ⚠ A SEPARATE publisher stream from `ny-osc-city` below, and the two
+    // patterns are anchored at both ends so neither can claim the other's
+    // rows. Same comptroller, different manual and different filer class.
+    match: /^New York OSC School District Annual Financial Report — (Revenues|Expenditures), (General Fund|Total Governmental) \(FY\d{4} actual, self-reported\)$/,
+    value: BASIS.ACTUAL,
+    evidence: {
+      document: 'OSC Local Government Financial Data, school-district archive '
+              + '(docs/NY/school_all_years.zip); spec '
+              + 'docs/superpowers/specs/2026-10-11-ny-school-districts-design.md §6',
+      figures: 'The district AFR reports a CLOSED fiscal period, not an appropriation: every row '
+             + 'carries PERIOD_START/PERIOD_END (2013+) or FISCAL_YEAR_END (1995-2012) bounding a '
+             + 'completed year, and the loader stores CALENDAR_YEAR as the fiscal year. The window '
+             + 'is FY1995-FY2025; FY2026 is a partial OSC snapshot (690 districts, ~70% of FY2025\'s '
+             + 'rows) and is deliberately NOT loaded. Only the REVENUE and EXPENDITURE sections are '
+             + 'read — the archive\'s GL and FBNP balance-sheet sections are not budget activity.',
+    },
+  },
+  {
     id: 'ny-osc-city',
     match: /^New York OSC Annual Financial Report — (Revenues|Expenditures), (General Fund|Total Governmental) \(FY\d{4} actual, self-reported\)$/,
     value: BASIS.ACTUAL,
