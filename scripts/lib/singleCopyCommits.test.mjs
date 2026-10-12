@@ -80,6 +80,9 @@ describe('analyzeRepo', () => {
     expect(report.exposed).toEqual([]);
   });
 
+  // ⚠ Explicit budget: builds a throwaway git repo and shells out per commit,
+  // so its duration tracks the MACHINE. ~3.9s idle x ~8 under contention is past
+  // the 30s global. See reference_ci_and_io_test_timeouts.
   it('calls a squash-merged commit BACKED even when the subject was rewritten', () => {
     // The 7-false-positive case. The branch commit is unreachable from every
     // remote ref and its patch-id is gone, but its content shipped.
@@ -96,8 +99,11 @@ describe('analyzeRepo', () => {
     expect(report.unpushed).toBe(1);
     expect(report.exposed).toEqual([]);
     expect(report.backed).toHaveLength(1);
-  });
+  }, 60_000);
 
+  // ⚠ Explicit budget: builds a throwaway git repo and shells out per commit,
+  // so its duration tracks the MACHINE. ~4.0s idle x ~8 under contention is past
+  // the 30s global. See reference_ci_and_io_test_timeouts.
   it('calls a commit BACKED when its content shipped and the baseline then moved on', () => {
     // ⚠ THE FALSE POSITIVE THIS TOOL ITSELF PRODUCED on its first real run.
     // Comparing against the baseline's CURRENT blob reports five-month-old
@@ -117,7 +123,7 @@ describe('analyzeRepo', () => {
     const report = analyzeRepo(git);
     expect(report.exposed).toEqual([]);
     expect(report.backed).toHaveLength(1);
-  });
+  }, 60_000);
 
   it('finds content that shipped under a DIFFERENT path', () => {
     // A squash that also moved the file. Searching history by blob with a path

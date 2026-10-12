@@ -82,6 +82,11 @@ describe('the school archive', () => {
     expect(SCHOOL_ARCHIVE_URL).toMatch(/^https:\/\/wwe1\.osc\.state\.ny\.us\/.*schooldistrict_all_years\.zip$/);
   });
 
+
+  // ⚠ Explicit budget: this reads the 111 MB school archive, so its duration
+  // tracks the MACHINE, not the code. Measured ~3.5s idle; vitest.config.ts
+  // records ~8x slowdown under disk contention, which puts it past the 30s
+  // global default. See reference_ci_and_io_test_timeouts.
   archiveIt('reads a modern district year', () => {
     const rows = readYear(SCHOOL_ARCHIVE_PATH, 2021, 'SchoolDistrict');
     expect(rows.length).toBeGreaterThan(100000);
@@ -96,13 +101,18 @@ describe('the school archive', () => {
     // loadable, which is the number that matters to the loader — those three
     // contribute no FY2021 row and that is correct, not a miss.
     expect(new Set(rows.map((r) => r.entityName)).size).toBe(689);
-  });
+  }, 60_000);
 
+
+  // ⚠ Explicit budget: this reads the 111 MB school archive, so its duration
+  // tracks the MACHINE, not the code. Measured ~4.6s idle; vitest.config.ts
+  // records ~8x slowdown under disk contention, which puts it past the 30s
+  // global default. See reference_ci_and_io_test_timeouts.
   archiveIt('reads an old-era district year with the same row shape', () => {
     const rows = readYear(SCHOOL_ARCHIVE_PATH, 2010, 'SchoolDistrict');
     expect(new Set(rows.map((r) => r.entityName)).size).toBe(696);
     expect(rows.every((r) => r.fiscalYearStartMonth === 7)).toBe(true);
-  });
+  }, 60_000);
 });
 
 describe('the district roster', () => {
@@ -133,6 +143,11 @@ describe('the district roster', () => {
     expect(NY_SCHOOL_ENTITIES.every((e) => e.name && e.name.length > 1)).toBe(true);
   });
 
+
+  // ⚠ Explicit budget: this reads the 111 MB school archive, so its duration
+  // tracks the MACHINE, not the code. Measured ~19.4s idle; vitest.config.ts
+  // records ~8x slowdown under disk contention, which puts it past the 30s
+  // global default. See reference_ci_and_io_test_timeouts.
   archiveIt('covers every district in every sampled year', () => {
     const known = new Set(NY_SCHOOL_ENTITIES.map((e) => e.municipalCode));
     for (const fy of [1995, 2003, 2012, 2013, 2021, 2025]) {
@@ -141,5 +156,5 @@ describe('the district roster', () => {
         expect(known.has(c), `FY${fy} has unknown district ${c}`).toBe(true);
       }
     }
-  });
+  }, 120_000);
 });

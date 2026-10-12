@@ -93,10 +93,14 @@ describe('every registered file exists and parses', () => {
 describe('exclusion ids', () => {
   const ids = (baseline.excluded_ids_files ?? []).flatMap(readList);
 
+  // ⚠ Raised 30s -> 60s 2026-10-12. This reads every exclusion-id file, which
+  // now includes the 82,564-id NY school district list, and measured ~6.4s idle.
+  // vitest.config.ts records ~8x slowdown under disk contention (~51s), so a
+  // budget EQUAL to the global default gave it no headroom at all.
   it('are all non-empty strings', () => {
     for (const id of ids) expect(typeof id).toBe('string');
     expect(ids.every((id) => id.trim() !== '')).toBe(true);
-  }, 30_000);
+  }, 60_000);
 
   // ⚠ A row registered twice would be excluded once but counted twice by anyone
   // reconciling the arithmetic, which is how an off-by-N hides.

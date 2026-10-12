@@ -37,10 +37,20 @@ export const haveArchive = typeof ARCHIVE_PATH === 'string'
 export function makeArchiveIt({ have = haveArchive, itFn = vitestIt } = {}) {
   let skipped = 0;
 
-  const archiveIt = (name, fn) => {
-    if (have) return itFn(name, fn);
+  /**
+   * ⚠⚠ `timeout` IS FORWARDED, AND IT USED NOT TO BE. This took only
+   * `(name, fn)`, so a call-site budget — `}, 60_000)`, the remedy
+   * vitest.config.ts prescribes for a test whose duration tracks the MACHINE —
+   * was accepted by the reader and DISCARDED by the code. Nothing failed: the
+   * suite stayed green and the test stayed unprotected. `nyOsc.test.mjs >
+   * normalises both eras` then timed out at 32,753ms against the 30s global on
+   * 2026-10-12. A wrapper that silently narrows the signature it is standing in
+   * for turns a correct fix into a no-op, which is worse than refusing it.
+   */
+  const archiveIt = (name, fn, timeout) => {
+    if (have) return itFn(name, fn, timeout);
     skipped += 1;
-    return itFn.skip(name, fn);
+    return itFn.skip(name, fn, timeout);
   };
 
   archiveIt.skippedCount = () => skipped;
