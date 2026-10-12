@@ -261,6 +261,11 @@ describe('readYear (needs docs/NY/city_all_years.zip)', () => {
     }
   });
 
+  // ⚠ Explicit budget. THIS IS THE TEST THAT ACTUALLY TIMED OUT, at 32,753ms
+  // against the 30s global, on 2026-10-12. The redundant reads below were the
+  // cause and are fixed (~24s -> ~2s isolated), but it reads six years of the
+  // archive and its duration still tracks the MACHINE, so it says so here.
+  // See reference_ci_and_io_test_timeouts.
   archiveIt('normalises both eras onto ONE label set, at every level', () => {
     // Review Focus #4, end to end -- and this is the assertion spec §4.2
     // actually asked for. The previous version of this test compared the
@@ -272,10 +277,22 @@ describe('readYear (needs docs/NY/city_all_years.zip)', () => {
     // ⚠ Compare ERA UNIONS, not two adjacent years. A single-year comparison
     // is noisy: `Federal Aid - Utilities` is in FY2012 and absent from FY2013,
     // but present again in FY2017 — a reporting gap, not a rename.
+    const OLD_YEARS = [1995, 2003, 2012];
+    const NEW_YEARS = [2013, 2017, 2021];
+
+    // ⚠ READ EACH YEAR ONCE. The original `union(years, level, section)` called
+    // readYear inside its loop, so the 3 levels x 2 sections re-read the same
+    // six years SIX TIMES OVER -- 36 archive reads for 6 years of data, each
+    // one spawning python and parsing a whole year. That is what made this the
+    // second-slowest test in the suite at ~24s and left it timing out under
+    // contention. The assertions below are unchanged; only the I/O is.
+    const rowsByYear = new Map(
+      [...OLD_YEARS, ...NEW_YEARS].map((y) => [y, readYear(ARCHIVE_PATH, y)]));
+
     const union = (years, level, section) => {
       const s = new Set();
       for (const y of years) {
-        for (const r of readYear(ARCHIVE_PATH, y)) {
+        for (const r of rowsByYear.get(y)) {
           if (r.section !== section) continue;
           const v = normLabel(r[level]);
           if (v) s.add(v);
@@ -283,8 +300,6 @@ describe('readYear (needs docs/NY/city_all_years.zip)', () => {
       }
       return s;
     };
-    const OLD_YEARS = [1995, 2003, 2012];
-    const NEW_YEARS = [2013, 2017, 2021];
 
     // Labels genuinely retired at the boundary, not casing or ampersand
     // splits. Named individually so a NEW divergence fails the test instead of
@@ -303,7 +318,7 @@ describe('readYear (needs docs/NY/city_all_years.zip)', () => {
         expect(onlyOld, `${level}/${section}: old era only, unaccounted for`).toEqual([]);
       }
     }
-  });
+  }, 60_000);
 });
 
 import { aggregateCityYear } from '../scripts/lib/nyOsc.mjs';
