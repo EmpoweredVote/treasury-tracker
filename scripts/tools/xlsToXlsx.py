@@ -26,6 +26,13 @@ from, failing on any mismatch outside the documented tolerances below.
 Anything else is a hard failure: a silent cell change here would be invisible
 downstream, which is the whole reason --check exists. A third class was found
 and FIXED rather than tolerated — see the formula guard in convert().
+
+⚠⚠ SOME PUBLISHED WORKBOOKS CANNOT BE READ AT ALL. DCA serves at least one
+genuinely ENCRYPTED .xls (Jenkins County FY2020) that passes the d0cf11e0
+magic-byte gate — it is a real OLE2 file — and then fails in xlrd with
+"Workbook is encrypted". An unreadable workbook is REFUSED and named, never
+converted and never silently skipped; the exit code stays non-zero so a batch
+containing one cannot read as clean. It costs one filing, not the run.
 """
 import sys, os, glob, re, warnings
 warnings.filterwarnings("ignore")
@@ -129,12 +136,32 @@ def main():
     os.makedirs(outdir, exist_ok=True)
     total_cells = 0
     problems = []
+    unreadable = []
+    done = 0
+    # A WORKBOOK THIS CANNOT READ IS A REFUSAL, NOT A CRASH. The Georgia
+    # statewide sweep hit `XLRDError: Workbook is encrypted` on file 743 of
+    # 1,443 (Jenkins County FY2020) and the whole batch died, discarding the
+    # --check results of the 742 that had already passed. One unreadable file
+    # must cost one filing, not the run — but it must also be impossible to
+    # MISS, so every refusal is named below and the exit code is still non-zero.
     for f in srcs:
         dst = os.path.join(outdir, os.path.splitext(os.path.basename(f))[0] + ".xlsx")
-        total_cells += convert(f, dst)
-        if do_check:
-            problems += check(f, dst)
-    print(f"converted {len(srcs)} workbook(s), {total_cells:,} cells -> {outdir}")
+        try:
+            total_cells += convert(f, dst)
+            if do_check:
+                problems += check(f, dst)
+        except Exception as e:  # noqa: BLE001 - the reason is reported, not swallowed
+            unreadable.append(f"{os.path.basename(f)}: {type(e).__name__}: {e}")
+            if os.path.exists(dst):
+                os.remove(dst)  # never leave a half-written workbook to be loaded
+            continue
+        done += 1
+    print(f"converted {done} of {len(srcs)} workbook(s), {total_cells:,} cells -> {outdir}")
+    if unreadable:
+        # ASCII only: this console is cp1252.
+        print(f"\n[REFUSED] {len(unreadable)} WORKBOOK(S) COULD NOT BE READ AT ALL:")
+        for u in unreadable:
+            print("   " + u)
     if do_check:
         if problems:
             # ASCII only: the Windows console this runs on is cp1252 and a check
@@ -144,6 +171,8 @@ def main():
                 print("   " + p)
             sys.exit(1)
         print("[OK] --check: every cell round-trips inside the documented tolerances")
+    if unreadable:
+        sys.exit(1)
 
 
 if __name__ == "__main__":
