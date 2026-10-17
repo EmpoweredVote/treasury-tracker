@@ -9,6 +9,8 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
+    "with:dev": "node scripts/withDevServer.mjs",
+    "dev:stop": "node scripts/stopDevServers.mjs",
     "test": "vitest run",
     "test:acfr": "node scripts/runPythonTests.mjs",
     "smoke:essentials": "node scripts/essentials-live-smoke.mjs",
