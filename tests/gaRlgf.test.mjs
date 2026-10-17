@@ -5,8 +5,13 @@ import {
   readLog1, monthFromEndText, scopedLookup, readPageValues,
   EXPENDITURE_SECTIONS, REVENUE_SECTIONS, OBJECT_COLUMNS,
 } from '../scripts/lib/gaRlgf.mjs';
-import { parseFilename, auditBranch, sourceNameFor, resolveMonth } from '../scripts/loadGeorgiaRLGF.mjs';
-import { GA_KNIGHT_ENTITIES, entityByCicoid } from '../scripts/data/georgiaKnightEntities.mjs';
+import {
+  parseFilename, auditBranch, sourceNameFor, resolveMonth, explainChecks,
+} from '../scripts/loadGeorgiaRLGF.mjs';
+import {
+  formTotalDefect, GA_FORM_TOTAL_DEFECTS, GA_FIGURE_FLAGS,
+} from '../scripts/data/gaRlgfAnomalies.mjs';
+import { GA_RLGF_ENTITIES, entityByCicoid } from '../scripts/data/georgiaRlgfEntities.mjs';
 
 describe('parseCodeCell', () => {
   it('reads a plain UCOA code', () => {
@@ -200,21 +205,21 @@ describe('fiscal calendar', () => {
   });
 
   it('falls back to the registry when the form says nothing, and says so', () => {
-    const baldwin = GA_KNIGHT_ENTITIES.find((e) => e.key === 'baldwin-county');
+    const baldwin = GA_RLGF_ENTITIES.find((e) => e.key === 'baldwin-county');
     const r = resolveMonth(baldwin, { fyEndMonth: null, fyEndMonthText: 'MONTH' });
     expect(r.month).toBe(1);
     expect(r.how).toMatch(/registry only/);
   });
 
   it('refuses when the form and the registry disagree', () => {
-    const baldwin = GA_KNIGHT_ENTITIES.find((e) => e.key === 'baldwin-county');
+    const baldwin = GA_RLGF_ENTITIES.find((e) => e.key === 'baldwin-county');
     const r = resolveMonth(baldwin, { fyEndMonth: 7, fyEndMonthText: 'June 30' });
     expect(r.ok).toBe(false);
     expect(r.month).toBeNull();
   });
 
   it('⚠ Georgia is not a uniform-month state', () => {
-    const months = new Set(GA_KNIGHT_ENTITIES.map((e) => e.fiscalYearStartMonth));
+    const months = new Set(GA_RLGF_ENTITIES.map((e) => e.fiscalYearStartMonth));
     expect(months).toEqual(new Set([1, 7]));
   });
 });
@@ -269,7 +274,7 @@ describe('loader identity and naming', () => {
   // The NAME "Macon-Bibb County" is deliberately unchanged: it is the
   // government's legal name, and only the type moved.
   it('types both consolidated governments as ONE `city` entity each', () => {
-    const consolidated = GA_KNIGHT_ENTITIES.filter((e) => e.cicoid.startsWith('3'));
+    const consolidated = GA_RLGF_ENTITIES.filter((e) => e.cicoid.startsWith('3'));
     expect(consolidated).toHaveLength(2);
     for (const e of consolidated) {
       expect(e.entityType).toBe('city');
@@ -277,8 +282,8 @@ describe('loader identity and naming', () => {
       expect(e.parentCountyKey).toBeNull();
     }
     // No second row was created for the county half.
-    expect(GA_KNIGHT_ENTITIES.filter((e) => e.name === 'Bibb County')).toHaveLength(0);
-    expect(GA_KNIGHT_ENTITIES.filter((e) => e.name === 'Muscogee County')).toHaveLength(0);
+    expect(GA_RLGF_ENTITIES.filter((e) => e.name === 'Bibb County')).toHaveLength(0);
+    expect(GA_RLGF_ENTITIES.filter((e) => e.name === 'Muscogee County')).toHaveLength(0);
   });
 
   it('⚠ does not claim census confirmation it does not have', () => {
@@ -286,6 +291,167 @@ describe('loader identity and naming', () => {
     expect(entityByCicoid('3106002').censusConfirms).toBe(false);
     expect(entityByCicoid('3011011').censusConfirms).toBe(false);
     expect(entityByCicoid('2005001').censusConfirms).toBe(true);
+  });
+});
+
+describe('wave 2 — Atlanta and both of its counties', () => {
+  const atlanta = () => entityByCicoid('2060002');
+
+  it('⚠⚠ resolves Atlanta by CICOID, and South Fulton is a different government', () => {
+    // `South Fulton City` is a city incorporated in 2017 — not part of Atlanta
+    // and not Fulton County. The wave-1 name-collision shape, one metro over.
+    expect(atlanta().name).toBe('Atlanta');
+    expect(entityByCicoid('2060505')).toBeNull();
+    expect(GA_RLGF_ENTITIES.filter((e) => e.name === 'South Fulton')).toHaveLength(0);
+  });
+
+  it('⚠⚠ parents Atlanta to Fulton — an APPROXIMATION, and DeKalb is not a parent', () => {
+    // TT's county_id is single-valued and Atlanta lies in two counties. Fulton
+    // holds 91.9% of the population, so it is the parent; DeKalb is loaded as a
+    // full entity that simply is not reachable as Atlanta's parent.
+    expect(atlanta().parentCountyKey).toBe('fulton-county');
+    const dekalb = entityByCicoid('1044044');
+    expect(dekalb.entityType).toBe('county');
+    expect(GA_RLGF_ENTITIES.filter((e) => e.parentCountyKey === 'dekalb-county')).toHaveLength(0);
+  });
+
+  it('⚠ the population is the WHOLE PLACE, not one county part', () => {
+    // Census Vintage 2024 SUMLEV=157 county parts: Fulton 477,903 + DeKalb
+    // 42,167. Using either part alone would understate the city by 8% or 92%.
+    expect(atlanta().population).toBe(520070);
+    expect(477903 + 42167).toBe(atlanta().population);
+  });
+
+  it('⚠⚠ a city and its own counties do NOT share a fiscal month', () => {
+    // The fysm defect is carrying one month across a boundary. Here the
+    // boundary is inside a single metro: Atlanta starts in July, both of its
+    // counties start in January.
+    expect(atlanta().fiscalYearStartMonth).toBe(7);
+    expect(entityByCicoid('1060060').fiscalYearStartMonth).toBe(1);
+    expect(entityByCicoid('1044044').fiscalYearStartMonth).toBe(1);
+  });
+
+  it('⚠ the form-total exception is wired to the real DeKalb FY2020 numbers', () => {
+    const d = formTotalDefect('1044044', 2020, '5B');
+    expect(d).not.toBeNull();
+    expect(d.formTotal).toBe(76597267.89);
+    expect(d.itemsTotal).toBe(86076708.72);
+    // The shortfall IS the omitted line, to the cent.
+    expect(Number((d.itemsTotal - d.formTotal).toFixed(2))).toBe(d.shortfall);
+    expect(d.omittedLabel).toBe('Public Defender Administration');
+    // ⚠ The items load, never the form's broken total.
+    expect(d.loaded).toBe('items');
+  });
+
+  it('⚠⚠ the DeKalb FY2018 flag is recorded, LOADED, and never suppressed', () => {
+    const f = GA_FIGURE_FLAGS.find((x) => x.id === 'dekalb-fy2018-expenditure-side-is-about-one-twelfth');
+    expect(f).toBeTruthy();
+    // The Milledgeville Rule: a flagged figure is published, not withheld.
+    expect(f.loaded).toBe(true);
+    expect(f.amount).toBe(92044262.00);
+    // The audited control total is what makes this a finding rather than a hunch.
+    expect(f.verifiedBecause.join(' ')).toMatch(/654,486K/);
+    // ⚠ Both agents, and both approaches, must be on the record.
+    expect(f.corroboration).toMatch(/2 independent agents/);
+    expect(f.benignExplanations.length).toBeGreaterThanOrEqual(3);
+  });
+
+  it('⚠ the loaded DeKalb FY2018 figure is the one the government filed', () => {
+    // TT transcribes $92,044,262 and flags it. It does NOT substitute the
+    // county's audited $654,486,000 — that would be asserting a figure this
+    // publisher never reported, which is the Dallas/LA-TRAN failure mode.
+    const f = GA_FIGURE_FLAGS.find((x) => x.fiscalYear === 2018 && x.entity === 'DeKalb County');
+    expect(f.amount).toBe(92044262.00);
+    expect(f.what).toMatch(/654,486,000/);
+  });
+
+  it('⚠ every registry entry carries its corroboration', () => {
+    // Chris's standing rule: a flag about a government's published figures is
+    // not recorded on one reasoning chain. No entry may exist without evidence.
+    for (const d of GA_FORM_TOTAL_DEFECTS) {
+      expect(d.corroboration).toMatch(/independent/i);
+      expect(d.verifiedBecause.length).toBeGreaterThanOrEqual(2);
+      expect(d.benignExplanations.length).toBeGreaterThanOrEqual(1);
+    }
+  });
+
+  describe('⚠⚠ the exception cannot absorb anything it was not built for', () => {
+    const failing = (over = {}) => ({
+      tag: 'EXP', id: '5B', expected: 76597267.89, actual: 86076708.72, ok: false, ...over,
+    });
+
+    it('explains the exact recorded defect', () => {
+      const checks = [failing()];
+      expect(explainChecks(checks, '1044044', 2020)).toHaveLength(1);
+      expect(checks[0].explainedBy.id).toBe('dekalb-fy2020-5b-total-omits-public-defender');
+    });
+
+    it('refuses the right delta on the wrong figures', () => {
+      // Same 9,479,440.83 gap, but both totals moved — a different filing.
+      const checks = [failing({ expected: 50000000, actual: 59479440.83 })];
+      expect(explainChecks(checks, '1044044', 2020)).toHaveLength(0);
+      expect(checks[0].explainedBy).toBeUndefined();
+    });
+
+    it('refuses another year, another entity and another section', () => {
+      for (const [cicoid, fy] of [['1044044', 2021], ['1060060', 2020], ['2060002', 2020]]) {
+        const checks = [failing()];
+        expect(explainChecks(checks, cicoid, fy)).toHaveLength(0);
+        expect(checks[0].explainedBy).toBeUndefined();
+      }
+      const other = [failing({ id: '5C' })];
+      expect(explainChecks(other, '1044044', 2020)).toHaveLength(0);
+    });
+
+    it('⚠ never explains a REVENUE check with an expenditure defect', () => {
+      const checks = [failing({ tag: 'REV' })];
+      expect(explainChecks(checks, '1044044', 2020)).toHaveLength(0);
+    });
+
+    it('explains the Part V grand total only as the SUM of explained sections', () => {
+      const good = [
+        failing(),
+        { tag: 'EXP', id: 'Part V grand', expected: 1056796376.16, actual: 1066275816.99, ok: false },
+      ];
+      explainChecks(good, '1044044', 2020);
+      expect(good[1].explainedBy.id).toBe('inherited-from-sections');
+
+      // ⚠ A grand gap LARGER than the section shortfall is a second, unexplained
+      // problem — it must still refuse, not ride along on the first.
+      const bad = [
+        failing(),
+        { tag: 'EXP', id: 'Part V grand', expected: 1056796376.16, actual: 1070000000, ok: false },
+      ];
+      explainChecks(bad, '1044044', 2020);
+      expect(bad[1].explainedBy).toBeUndefined();
+    });
+
+    it('⚠ never explains a grand total when no section was explained', () => {
+      const checks = [
+        { tag: 'EXP', id: 'Part V grand', expected: 1056796376.16, actual: 1066275816.99, ok: false },
+      ];
+      expect(explainChecks(checks, '1044044', 2020)).toHaveLength(0);
+      expect(checks[0].explainedBy).toBeUndefined();
+    });
+
+    it('leaves a passing or skipped check alone', () => {
+      const passing = [failing({ ok: true })];
+      expect(explainChecks(passing, '1044044', 2020)).toHaveLength(0);
+      const skipped = [failing({ ok: false, skipped: true })];
+      expect(explainChecks(skipped, '1044044', 2020)).toHaveLength(0);
+    });
+  });
+
+  it('keeps every key and CICOID unique across both waves', () => {
+    const keys = GA_RLGF_ENTITIES.map((e) => e.key);
+    const cicoids = GA_RLGF_ENTITIES.map((e) => e.cicoid);
+    expect(new Set(keys).size).toBe(keys.length);
+    expect(new Set(cicoids).size).toBe(cicoids.length);
+    // Every declared parent must itself be in the roster, or the commit path
+    // would write a null county_id without saying so.
+    for (const e of GA_RLGF_ENTITIES) {
+      if (e.parentCountyKey) expect(keys).toContain(e.parentCountyKey);
+    }
   });
 });
 

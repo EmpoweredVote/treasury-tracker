@@ -251,3 +251,372 @@ Deferred, filed as follow-ups:
 3. **Macon-Bibb FY2016's 921-key variant** (vs 924) — unexplained; that year is
    parsed only if its key set covers the loaded tree.
 4. **Macon-Bibb FY2024 is absent from DCA's own listing** — not a fetch failure.
+
+---
+
+# Wave 2 — Atlanta, Fulton and DeKalb (2026-10-17)
+
+**Scope: FY2016–2025, the same `LOAD1` form generation, 3 entities, 27
+entity-years.** No new parsing: the wave-1 loader read all 27 workbooks
+unchanged. This wave is not a Knight community — it is the first use of the GA
+route as an ordinary onboarding path, which is why
+`scripts/data/georgiaKnightEntities.mjs` was renamed `georgiaRlgfEntities.mjs`.
+
+## 1. Identity
+
+| Entity | CICOID | DCA's own listing | Loaded |
+|---|---|---|---|
+| Atlanta City | `2060002` | FY2009–2025 (17) | FY2016–2025 (10) |
+| Fulton County | `1060060` | FY2009–2024 (16) | FY2016–2024 (9) |
+| DeKalb County | `1044044` | FY2009–2023 (15) | FY2016–2023 (8) |
+
+⚠ **NAME-COLLISION TRAP, the wave-1 shape one metro over:** `South Fulton City`
+(`2060505`) is a DIFFERENT government — a city incorporated in 2017, neither
+part of Atlanta nor part of Fulton County. **Select by CICOID, never by name.**
+
+⚠ **The CICOID independently corroborates Atlanta's parent county.** The middle
+three digits are DCA's county number: Atlanta's `2060002` carries `060` =
+Fulton (`1060060`), not `044` = DeKalb (`1044044`).
+
+## 2. ⚠⚠ A STATUS CODE IS NOT EVIDENCE A FILING EXISTS
+
+DCA serves a **1,245-byte HTML 404 page** for an absent year, and a *ranged*
+request for that page returns **`206 Partial Content`**. A status-code probe
+therefore reports **every year of every entity as present**, including the three
+that do not exist.
+
+The gaps above were found only by reading the **first four bytes**:
+
+* a real filing is OLE2/BIFF8 → `d0cf11e0`
+* the error page → `3c21444f` (`"<!DO"`)
+
+Confirmed independently by driving the `Default.aspx` postback navigator, which
+returns each entity's true `<a href>` list. Both routes agree exactly on all
+three gaps. **Probe the bytes; let the converter's `--check` be the second gate.**
+
+## 3. Fiscal calendars — the trap is inside one metro
+
+| Entity | Start month | Form `FYEmonth` | FAC census |
+|---|---|---|---|
+| Atlanta | **7** | June 30 | month 7, 2011–2024 — CONFIRMS |
+| Fulton County | **1** | December 31 | month 1, 1998–2021 — confirms, ⚠ list ends 2021 |
+| DeKalb County | **1** | December 31 | month 1, 2003–2024 — CONFIRMS |
+
+⚠⚠ **A city and both of its own counties disagree.** A loader resolving a month
+once per state, or carrying one across a city/county boundary, would be wrong on
+three of three. All 27 filings report `MosRptd` = 12 with no calendar change.
+
+⚠ **Atlanta changed its fiscal calendar** — the Baldwin shape again. FAC: month
+1 for 1999–2001 and 2003–2005, a **6-month "other" stub in 2006**, then month 7
+from 2007. Entirely before the load window; a live trap for the FY2009–2015
+follow-up.
+
+⚠ **Fulton's FAC audit-year list ends at 2021**, so FY2022–2024 rest on the
+filing's own `FYEmonth` alone. Weaker than two-source agreement, recorded as
+such. It is NOT the Columbus-Muscogee case, where no census row exists at all.
+
+## 4. Atlanta straddles a county line
+
+Census Vintage 2024 splits the city's **520,070** people across two SUMLEV=157
+county parts: **Fulton 477,903 (91.9%)** and **DeKalb 42,167 (8.1%)**, which sum
+to the whole-place figure exactly.
+
+TT's `county_id` is single-valued, so `parentCountyKey` is **Fulton — an
+APPROXIMATION**, the same one Durham carries, not an identity like
+Milledgeville's. DeKalb is loaded as a full entity in its own right and is
+simply not reachable as Atlanta's parent. That is a limitation of the column,
+recorded rather than papered over by calling a 91.9% share exact.
+
+## 5. Audit branch
+
+All three branches appear, and all three still grade `self_reported_unaudited`
+(the wave-1 decision — DCA reconciles nothing):
+
+* **Atlanta** — `YES` ×8, **not stated ×2** (FY2021, FY2022 carry raw `"0"`)
+* **Fulton** — `YES` ×7, `NO` ×2 (FY2019, FY2024)
+* **DeKalb** — `YES` ×7, not stated ×1 (FY2017)
+
+⚠ Raw `"0"` is **NOT STATED**, never "No" — the wave-1 lesson, live again here.
+
+## 6. ⚠⚠ The printed form's own total contradicts its own line items
+
+**DeKalb County FY2020, Part V Section B (Judicial).** The first measured case
+where **the printed form is wrong INSIDE the loaded Parts I–V scope**. Recorded
+in `GA_FORM_TOTAL_DEFECTS` (`scripts/data/gaRlgfAnomalies.mjs`).
+
+| | |
+|---|---|
+| Printed `Total Section 5B` | **$76,597,267.89** |
+| Its own fourteen line rows sum to | **$86,076,708.72** |
+| Shortfall | **$9,479,440.83** = UCOA 2800 Public Defender Administration, exactly |
+
+### The stored formula, not an inference
+
+Disassembling the BIFF8 token stream of that total row:
+
+| Column | Stored range | A1 | Covers |
+|---|---|---|---|
+| **(a)** | `tArea (29,2)..(41,2)` | **`SUM(C30:C42)`** | 2100 … **2750** |
+| (b) | `tArea (29,3)..(42,3)` | `SUM(D30:D43)` | 2100 … 2800 |
+| (c) | `tArea (29,4)..(42,4)` | `SUM(E30:E43)` | 2100 … 2800 |
+| (d) | `tArea (29,5)..(42,5)` | `SUM(F30:F43)` | 2100 … 2800 |
+
+Column (a) stops one row short of its own siblings. In **FY2016–2019 and
+FY2021–2023 all four columns span `(29,c)..(42,c)`** — FY2020 column (a) is the
+sole outlier in eight years.
+
+⚠ **It is invisible on the printed page because columns (b), (c) and (d) are all
+$0.00** — the short range and the correct ranges produce identical visible
+output. Only the arithmetic, or the token stream, shows it.
+
+### The same gesture broke LOAD1 twice more
+
+`2200A` (District Attorney) is a `tRefErr3d` **`#REF!`**; `2800A` is a `tRef3d`
+pointing at **Page 3 row 33 — the District Attorney's row, not row 42**. So the
+Public Defender's money is carried by **no LOAD1 key at all** and the DA's
+figure appears twice. Summing the broken extract reproduces the short printed
+total **exactly**: `56,261,497.44 + 20,335,770.45 = 76,597,267.89`.
+
+The identical fingerprint appears in **Part IV** of the same workbook
+(`34_4160` orphaned, `34_4130` re-pointed to Page 2 row 63) — one editing pass
+touched both pages.
+
+### What TT does
+
+**The line items load; the broken total does not.** Both figures are the
+government's and the document contradicts itself, so this is neither the
+Milledgeville case (a verified figure that merely looks wrong) nor a
+read-fidelity failure (TT reproduces both numbers exactly). When a document
+disagrees with itself, the sum of its own detail is the better reading — and
+both numbers are recorded so the choice stays visible and reversible.
+
+⚠ **The gate is not weakened.** `loadGeorgiaRLGF.mjs` still refuses any filing
+whose sections do not tie, unless a registry entry pins **the form's total, the
+items' total AND the shortfall, all to the cent**. A different size, section,
+year or entity still refuses. The Part V grand total is explained only as the
+**sum** of explained section shortfalls, never on its own. Nine tests in
+`tests/gaRlgf.test.mjs` hold that line.
+
+### Corroboration
+
+Two independent agents, neutral prompts, raw sources, neither told the
+conclusion nor shown the other's work:
+
+* one audited the arithmetic of all eight DeKalb filings in `Decimal` and
+  disassembled the BIFF8 formula tokens — **223 of 224 section-column checks
+  tie**; all 10,750 numeric cells agree between the `.xls` and TT's `.xlsx`;
+  the LOAD1 Part V key set is a perfect bijection with the page key set in
+  every year.
+* one read DeKalb's own CAFRs — **Public defender actual $11,038K (2020)**,
+  $9,447K / $10,355K / $9,979K / $12,447K across 2018–2022. A real, material,
+  recurring line, so a Judicial total excluding it is understated.
+
+⚠ No allegation is made or implied. This is routine spreadsheet mechanics on a
+hand-maintained form, it understates rather than inflates, and DeKalb's other
+seven years are internally flawless.
+
+## 7. Open follow-ups from wave 2
+
+1. ✅ **DeKalb FY2018 — CORROBORATED AND FLAGGED 2026-10-17.** See §8 below.
+1. ✅ **Fulton FY2017/18 property tax — CORROBORATED 2026-10-17.** See §9: a REAL court-ordered billing delay, not a defect.
+2. **FY2009–2015 for all three wave-2 entities** (`Exportable Data`, 1,219
+   keys). ⚠ Atlanta changed its fiscal calendar inside that range — month 1
+   through 2005, a 6-month stub in 2006, month 7 from 2007.
+3. **Fulton FY2025 and DeKalb FY2024/FY2025** do not exist yet; re-check the
+   listing rather than assuming a fetch failure.
+
+---
+
+## 8. ✅ DeKalb FY2018 — corroborated, flagged, and still loaded
+
+The §7 observation was put to **two independent agents, neutral prompts, neither
+told the conclusion nor shown the other's work**, approached differently: one
+characterised the eight filings from the **raw workbooks only**, one read
+**external published sources only**. They converged.
+
+### What the filing says, and what the county says
+
+| | |
+|---|---|
+| RLGF FY2018 Part V (what TT loads) | **$92,044,262** |
+| DeKalb's own AUDITED CAFR, governmental funds, same calendar year | **$654,486,000** |
+| The filing reports | **14.1%** of the audited figure |
+
+DeKalb additionally books **enterprise/utility spending inside Part V**, so the
+truly comparable figure is higher still.
+
+### It is pervasive, not sectional
+
+Restricted to the 47 lines non-zero in 2017, 2018 **and** 2019: FY2018 is
+**0.102** of the two-year average, per-line **median 0.0867**, with **34 of 47
+lines (72%) between 1/14 and 1/8**. The external agent measured the same thing
+through a different channel and got a **median 11.4x** shortfall over 56 lines.
+Two methods, no contact, same order of magnitude.
+
+| Line | 2017 | **2018** | 2019 |
+|---|---|---|---|
+| Police Protection | 79,199,817 | **6,458,448** | 77,561,454 |
+| Fire Protection | 52,256,028 | **4,318,276** | 53,825,220 |
+| Jail Operations | 50,202,147 | **3,468,510** | 54,842,841 |
+
+⚠⚠ **The REVENUE side of the same filing is a full twelve months** — Parts I–III
+$921,906,986, median line ratio 0.965. Revenue intact, expenditure at ~1/12.
+
+### Why it is a real defect and not a real year
+
+* **The audited control total has never been restated.** The 2018 column is
+  reprinted unchanged in the 2019, 2020, 2021 and 2022 ACFRs, and the printed
+  "excess of revenues over expenditures" row (+$44,458K) ties exactly.
+* **The audited series is monotonic**: $591,662K → $620,072K → **$654,486K
+  (+5.6%)** → $717,066K → $834,890K. 2018 is not an outlier in DeKalb's real
+  finances.
+* **Triple-sourced inside the file** — LOAD1, the printed pages and a direct
+  `xlrd` read of the BIFF8 original agree to the dollar.
+* **Reproduced through a second publisher pipeline** — UGA's TED export returns
+  the identical $92,044,262. ⚠ TED republishes the same DCA survey, so it is an
+  independent **access path**, not an independent **measurement**; what it proves
+  is that the defect is in the filing **as submitted**.
+* **Entity-specific, measured twice.** TT's Fulton and Atlanta run smooth through
+  FY2018; pulled the same way from TED, Fulton, Cobb, Gwinnett, Clayton and
+  Chatham all sit in line with their own neighbours. No statewide FY2018 problem.
+* **The form offers no explanation.** `MosRptd` = 12, `MoChng` = No, Part XV
+  certifies "uses AUDITED Figures = YES" (approved 2019-06-28), and the
+  DCA-provided note sheet is the blank template.
+
+**Leading benign explanation:** a **partial-period extract** — the expenditure
+side of the GL query run for a single accounting period while revenue was pulled
+year-to-date. A ~1/12 ratio across every function with ordinary per-line
+lumpiness is exactly that shape. FY2018 is also the only DeKalb year with the
+**preparer-name block blank**, fitting a draft filed and never amended.
+⚠ **Ruled out:** a units error (would be 0.001 and uniform) and a narrower fund
+scope (would remove whole functions, not shave every one alike).
+
+### ⚠⚠ TT LOADS $92,044,262 — the Milledgeville Rule
+
+The figure stays exactly as filed and is flagged. TT does **not** substitute the
+county's audited $654,486,000: that would assert a figure this publisher never
+reported, which is the Dallas-$0 / LA-TRAN failure mode, not this one. The
+source said exactly this, so it loads and it gets flagged.
+
+### A second, differently-shaped defect in the same entity
+
+**FY2017 omits the utility lines.** Storm Drainage, Wastewater, Water, Solid
+Waste Administration and Solid Waste Collection are **all $0** in FY2017, while
+the non-utility 5D lines are ordinary full-year figures — so this is a
+**category omission**, not the FY2018 scaling.
+
+| UCOA | 2016 | **2017** | 2019 |
+|---|---|---|---|
+| 4250 Storm Drainage | 10,727,035 | **0** | 12,780,368 |
+| 4400 Water | 155,071,343 | **0** | 141,615,361 |
+| 4510 Solid Waste Admin | 41,513,503 | **0** | 43,798,568 |
+
+FY2017 reports $336,041,721 of Part IV enterprise revenue and **$0** of Part VI
+enterprise expense, so ~$230M of enterprise cost appears nowhere.
+
+⚠⚠ **The wider consequence matters more than the one year: DeKalb books
+enterprise/utility spending INSIDE Part V** (Water alone runs $141M–$201M). So
+TT's DeKalb operating series is **gross** of utility operations in most years and
+**net** of them in FY2017 — not year-over-year comparable, and not comparable to
+an entity that reports utilities in Part VI. This is exactly why these rows carry
+`fund_scope = unknown`.
+
+### ⚠ Still open after this
+
+* **The flags are repo-only.** `GA_FIGURE_FLAGS` is read by no UI code — grep
+  confirms nothing under `src/` consumes it. Memory is explicit that *"an anomaly
+  flag is evidence to publish, not a reason to withhold; surfacing it to readers
+  is the goal, a registry in the repo is the minimum."* **TT is at the minimum.**
+  Surfacing these to readers is its own piece of work.
+* **Fulton FY2021 section 5F** is $622,851 against $31M–$44M in every other
+  Fulton year — the FY2017-DeKalb shape, **inside the loaded scope**, noticed in
+  passing and **NOT corroborated**. An open observation, not a finding.
+* **FY2018 revenue categories** are not comparable either, though the total is in
+  trend: General Business Licenses $0 in FY2018, and the sanitation/water/sewer
+  service-charge categories re-mapped that year.
+
+## 9. ✅ Fulton FY2017/FY2018 — a REAL EVENT, not a defect
+
+The §7 follow-up, corroborated 2026-10-17. **This is the first entry in the
+register where nothing is wrong with the figure.**
+
+### What happened — the county's own words, and a court order
+
+Fulton County **could not bill its 2017 property taxes on time**. The Georgia
+Department of Revenue did not approve the 2017 tax digest after the Board of
+Commissioners voted to hold residential values at 2016 levels, and the county
+had to obtain a **Superior Court Temporary Collection Order** (filed
+2017-11-03, O.C.G.A. § 48-5-310) before it could issue bills at all.
+
+> The County's due date for property taxes was extended to January 15, 2018.
+> **67% was collected in fiscal 2017, with the remainder collected in January
+> of 2018.**
+> — Fulton County FY2017 CAFR, transmittal letter (repeated in the MD&A and Note 4(a))
+
+> (10) The last Fulton County Tax Digest that was approved by the Revenue
+> Commissioner was from 2016.
+> — Superior Court of Fulton County, Final Order, 2017-11-03
+
+### The same signature in three independent county funds
+
+General Fund current-year collection rate, 2015–2020:
+**97.3% · 94.9% · 66.9% · 95.4% · 97.2% · 95.4%.**
+Debt Service: 68.1% → 125.7%. South Fulton: 53.6% → 211.9%.
+FY2018 delinquent collections **$159,945K**, against $8.7K–$44.9K in normal
+years. Two-year General Fund levy **$1,007,635K** against **$1,007,252K**
+collected — a gap of **$383K on a billion**.
+
+### In the filing
+
+| | 2016 | **2017** | **2018** | 2019 |
+|---|---|---|---|---|
+| `31.1100` current year | 478,490,362 | **296,236,285** | 522,468,953 | 558,481,802 |
+| `31.1200` **prior** year | 10,688,324 | 27,219,737 | **215,787,678** | 38,541,682 |
+
+Fitted to the clean 2016/2019 endpoints the residuals are **−$189,705,539** and
+**+$182,694,508** — they cancel to **−0.64%**. Two-year Part I window closes to
+**−0.61%**.
+
+### ⚠⚠ Reader distortion — the reason this is surfaced
+
+Of the **$407,620,756** apparent Part I increase from FY2017 to FY2018,
+**$375,790,658 (92.2%) is the delay unwinding.** True growth is ~5%, so the
+published comparison **overstates the move by a factor of 18** (+93.2% vs ~5%).
+A reader comparing FY2016 to FY2017 concludes revenue **fell 26.8%** when it
+rose about 5%.
+
+### ⚠ Three bases, all correct, none comparable
+
+| Basis | 2017 | 2018 |
+|---|---|---|
+| Cash / levy (Schedule 8-A, General Fund) | $343,227K | $664,025K |
+| Modified accrual, all taxes, governmental funds | $575,978K | $696,787K |
+| **Government-wide accrual, property taxes** | **$558,945K** | **$589,027K** ← smooth |
+
+Accrual recognises the levy in the year assessed, so the county's audited
+accrual statements show **no anomaly at all**. The RLGF follows the money when
+received. ⭐ **If a Georgia figure disagrees with an ACFR, check the basis
+before calling it a defect — and the SIGN of the gap tells you which basis you
+are on.** The mechanism is published: "unavailable revenues — property taxes"
+runs $16,536K / $24,200K / **$67,807K** / $21,324K / $14,360K / $17,252K.
+
+⚠ **No accounting change and no restatement.** The 60-day availability period
+is identical every year, and Schedule 8-A's 2015–2018 rows are byte-identical
+across three ACFR editions.
+
+⚠ **FY2018 was not a clean return either, and the county contradicts itself:**
+its FY2018 transmittal letter says 2018 "saw normal activity" while its own
+MD&A says the 2017 digest "has yet to be approved… therefore the County
+obtained a temporary collection order to issue tax bills for 2018."
+
+### What TT does
+
+Both years carry a **`not-comparable`** flag — informational blue, never the
+warning triangle. The figures are correct and are shown as filed; what the
+banner says is that the two years cannot be compared, and why.
+
+⭐⭐ **This case is why the reappearance test is mandatory.** A ratio sweep alone
+flagged FY2017 at 0.592 of its neighbours — indistinguishable from the DeKalb
+and Fulton *defects*. Only checking whether the money turns up elsewhere showed
+it was a shift rather than a loss, and only then did the external leg find the
+court order behind it.

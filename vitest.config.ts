@@ -23,6 +23,15 @@ export default defineConfig({
       'src/**/*.test.ts',
       'src/**/*.test.tsx',
       'tests/**/*.test.mjs',
+      // ⚠ `tests/**/*.test.ts` earns its place the same way `.test.tsx` did.
+      // A guard that imports a TypeScript source module (src/data/figureFlags.ts)
+      // cannot be a .mjs without giving up the types it checks. Left out of this
+      // list it would have gone QUIET rather than red, which is the exact
+      // failure the comment above describes.
+      // ⚠⚠ NO APOSTROPHES IN THIS BLOCK. vitestCollectsEveryTestFile parses
+      // the array with a single-quote regex, so a lone apostrophe in a comment
+      // swallows the next entries and the guard reports false orphans.
+      'tests/**/*.test.ts',
       'scripts/**/*.test.mjs',
     ],
     // ⚠⚠ THIS IS A FIX TO THE CLASS, NOT TO ANOTHER INSTANCE.
