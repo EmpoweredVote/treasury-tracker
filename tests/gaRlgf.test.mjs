@@ -6,7 +6,7 @@ import {
   EXPENDITURE_SECTIONS, REVENUE_SECTIONS, OBJECT_COLUMNS,
 } from '../scripts/lib/gaRlgf.mjs';
 import { parseFilename, auditBranch, sourceNameFor, resolveMonth } from '../scripts/loadGeorgiaRLGF.mjs';
-import { GA_KNIGHT_ENTITIES, entityByCicoid } from '../scripts/data/georgiaKnightEntities.mjs';
+import { GA_RLGF_ENTITIES, entityByCicoid } from '../scripts/data/georgiaRlgfEntities.mjs';
 
 describe('parseCodeCell', () => {
   it('reads a plain UCOA code', () => {
@@ -200,21 +200,21 @@ describe('fiscal calendar', () => {
   });
 
   it('falls back to the registry when the form says nothing, and says so', () => {
-    const baldwin = GA_KNIGHT_ENTITIES.find((e) => e.key === 'baldwin-county');
+    const baldwin = GA_RLGF_ENTITIES.find((e) => e.key === 'baldwin-county');
     const r = resolveMonth(baldwin, { fyEndMonth: null, fyEndMonthText: 'MONTH' });
     expect(r.month).toBe(1);
     expect(r.how).toMatch(/registry only/);
   });
 
   it('refuses when the form and the registry disagree', () => {
-    const baldwin = GA_KNIGHT_ENTITIES.find((e) => e.key === 'baldwin-county');
+    const baldwin = GA_RLGF_ENTITIES.find((e) => e.key === 'baldwin-county');
     const r = resolveMonth(baldwin, { fyEndMonth: 7, fyEndMonthText: 'June 30' });
     expect(r.ok).toBe(false);
     expect(r.month).toBeNull();
   });
 
   it('⚠ Georgia is not a uniform-month state', () => {
-    const months = new Set(GA_KNIGHT_ENTITIES.map((e) => e.fiscalYearStartMonth));
+    const months = new Set(GA_RLGF_ENTITIES.map((e) => e.fiscalYearStartMonth));
     expect(months).toEqual(new Set([1, 7]));
   });
 });
@@ -269,7 +269,7 @@ describe('loader identity and naming', () => {
   // The NAME "Macon-Bibb County" is deliberately unchanged: it is the
   // government's legal name, and only the type moved.
   it('types both consolidated governments as ONE `city` entity each', () => {
-    const consolidated = GA_KNIGHT_ENTITIES.filter((e) => e.cicoid.startsWith('3'));
+    const consolidated = GA_RLGF_ENTITIES.filter((e) => e.cicoid.startsWith('3'));
     expect(consolidated).toHaveLength(2);
     for (const e of consolidated) {
       expect(e.entityType).toBe('city');
@@ -277,8 +277,8 @@ describe('loader identity and naming', () => {
       expect(e.parentCountyKey).toBeNull();
     }
     // No second row was created for the county half.
-    expect(GA_KNIGHT_ENTITIES.filter((e) => e.name === 'Bibb County')).toHaveLength(0);
-    expect(GA_KNIGHT_ENTITIES.filter((e) => e.name === 'Muscogee County')).toHaveLength(0);
+    expect(GA_RLGF_ENTITIES.filter((e) => e.name === 'Bibb County')).toHaveLength(0);
+    expect(GA_RLGF_ENTITIES.filter((e) => e.name === 'Muscogee County')).toHaveLength(0);
   });
 
   it('⚠ does not claim census confirmation it does not have', () => {
@@ -286,6 +286,56 @@ describe('loader identity and naming', () => {
     expect(entityByCicoid('3106002').censusConfirms).toBe(false);
     expect(entityByCicoid('3011011').censusConfirms).toBe(false);
     expect(entityByCicoid('2005001').censusConfirms).toBe(true);
+  });
+});
+
+describe('wave 2 — Atlanta and both of its counties', () => {
+  const atlanta = () => entityByCicoid('2060002');
+
+  it('⚠⚠ resolves Atlanta by CICOID, and South Fulton is a different government', () => {
+    // `South Fulton City` is a city incorporated in 2017 — not part of Atlanta
+    // and not Fulton County. The wave-1 name-collision shape, one metro over.
+    expect(atlanta().name).toBe('Atlanta');
+    expect(entityByCicoid('2060505')).toBeNull();
+    expect(GA_RLGF_ENTITIES.filter((e) => e.name === 'South Fulton')).toHaveLength(0);
+  });
+
+  it('⚠⚠ parents Atlanta to Fulton — an APPROXIMATION, and DeKalb is not a parent', () => {
+    // TT's county_id is single-valued and Atlanta lies in two counties. Fulton
+    // holds 91.9% of the population, so it is the parent; DeKalb is loaded as a
+    // full entity that simply is not reachable as Atlanta's parent.
+    expect(atlanta().parentCountyKey).toBe('fulton-county');
+    const dekalb = entityByCicoid('1044044');
+    expect(dekalb.entityType).toBe('county');
+    expect(GA_RLGF_ENTITIES.filter((e) => e.parentCountyKey === 'dekalb-county')).toHaveLength(0);
+  });
+
+  it('⚠ the population is the WHOLE PLACE, not one county part', () => {
+    // Census Vintage 2024 SUMLEV=157 county parts: Fulton 477,903 + DeKalb
+    // 42,167. Using either part alone would understate the city by 8% or 92%.
+    expect(atlanta().population).toBe(520070);
+    expect(477903 + 42167).toBe(atlanta().population);
+  });
+
+  it('⚠⚠ a city and its own counties do NOT share a fiscal month', () => {
+    // The fysm defect is carrying one month across a boundary. Here the
+    // boundary is inside a single metro: Atlanta starts in July, both of its
+    // counties start in January.
+    expect(atlanta().fiscalYearStartMonth).toBe(7);
+    expect(entityByCicoid('1060060').fiscalYearStartMonth).toBe(1);
+    expect(entityByCicoid('1044044').fiscalYearStartMonth).toBe(1);
+  });
+
+  it('keeps every key and CICOID unique across both waves', () => {
+    const keys = GA_RLGF_ENTITIES.map((e) => e.key);
+    const cicoids = GA_RLGF_ENTITIES.map((e) => e.cicoid);
+    expect(new Set(keys).size).toBe(keys.length);
+    expect(new Set(cicoids).size).toBe(cicoids.length);
+    // Every declared parent must itself be in the roster, or the commit path
+    // would write a null county_id without saying so.
+    for (const e of GA_RLGF_ENTITIES) {
+      if (e.parentCountyKey) expect(keys).toContain(e.parentCountyKey);
+    }
   });
 });
 

@@ -251,3 +251,89 @@ Deferred, filed as follow-ups:
 3. **Macon-Bibb FY2016's 921-key variant** (vs 924) — unexplained; that year is
    parsed only if its key set covers the loaded tree.
 4. **Macon-Bibb FY2024 is absent from DCA's own listing** — not a fetch failure.
+
+---
+
+# Wave 2 — Atlanta, Fulton and DeKalb (2026-10-17)
+
+**Scope: FY2016–2025, the same `LOAD1` form generation, 3 entities, 27
+entity-years.** No new parsing: the wave-1 loader read all 27 workbooks
+unchanged. This wave is not a Knight community — it is the first use of the GA
+route as an ordinary onboarding path, which is why
+`scripts/data/georgiaKnightEntities.mjs` was renamed `georgiaRlgfEntities.mjs`.
+
+## 1. Identity
+
+| Entity | CICOID | DCA's own listing | Loaded |
+|---|---|---|---|
+| Atlanta City | `2060002` | FY2009–2025 (17) | FY2016–2025 (10) |
+| Fulton County | `1060060` | FY2009–2024 (16) | FY2016–2024 (9) |
+| DeKalb County | `1044044` | FY2009–2023 (15) | FY2016–2023 (8) |
+
+⚠ **NAME-COLLISION TRAP, the wave-1 shape one metro over:** `South Fulton City`
+(`2060505`) is a DIFFERENT government — a city incorporated in 2017, neither
+part of Atlanta nor part of Fulton County. **Select by CICOID, never by name.**
+
+⚠ **The CICOID independently corroborates Atlanta's parent county.** The middle
+three digits are DCA's county number: Atlanta's `2060002` carries `060` =
+Fulton (`1060060`), not `044` = DeKalb (`1044044`).
+
+## 2. ⚠⚠ A STATUS CODE IS NOT EVIDENCE A FILING EXISTS
+
+DCA serves a **1,245-byte HTML 404 page** for an absent year, and a *ranged*
+request for that page returns **`206 Partial Content`**. A status-code probe
+therefore reports **every year of every entity as present**, including the three
+that do not exist.
+
+The gaps above were found only by reading the **first four bytes**:
+
+* a real filing is OLE2/BIFF8 → `d0cf11e0`
+* the error page → `3c21444f` (`"<!DO"`)
+
+Confirmed independently by driving the `Default.aspx` postback navigator, which
+returns each entity's true `<a href>` list. Both routes agree exactly on all
+three gaps. **Probe the bytes; let the converter's `--check` be the second gate.**
+
+## 3. Fiscal calendars — the trap is inside one metro
+
+| Entity | Start month | Form `FYEmonth` | FAC census |
+|---|---|---|---|
+| Atlanta | **7** | June 30 | month 7, 2011–2024 — CONFIRMS |
+| Fulton County | **1** | December 31 | month 1, 1998–2021 — confirms, ⚠ list ends 2021 |
+| DeKalb County | **1** | December 31 | month 1, 2003–2024 — CONFIRMS |
+
+⚠⚠ **A city and both of its own counties disagree.** A loader resolving a month
+once per state, or carrying one across a city/county boundary, would be wrong on
+three of three. All 27 filings report `MosRptd` = 12 with no calendar change.
+
+⚠ **Atlanta changed its fiscal calendar** — the Baldwin shape again. FAC: month
+1 for 1999–2001 and 2003–2005, a **6-month "other" stub in 2006**, then month 7
+from 2007. Entirely before the load window; a live trap for the FY2009–2015
+follow-up.
+
+⚠ **Fulton's FAC audit-year list ends at 2021**, so FY2022–2024 rest on the
+filing's own `FYEmonth` alone. Weaker than two-source agreement, recorded as
+such. It is NOT the Columbus-Muscogee case, where no census row exists at all.
+
+## 4. Atlanta straddles a county line
+
+Census Vintage 2024 splits the city's **520,070** people across two SUMLEV=157
+county parts: **Fulton 477,903 (91.9%)** and **DeKalb 42,167 (8.1%)**, which sum
+to the whole-place figure exactly.
+
+TT's `county_id` is single-valued, so `parentCountyKey` is **Fulton — an
+APPROXIMATION**, the same one Durham carries, not an identity like
+Milledgeville's. DeKalb is loaded as a full entity in its own right and is
+simply not reachable as Atlanta's parent. That is a limitation of the column,
+recorded rather than papered over by calling a 91.9% share exact.
+
+## 5. Audit branch
+
+All three branches appear, and all three still grade `self_reported_unaudited`
+(the wave-1 decision — DCA reconciles nothing):
+
+* **Atlanta** — `YES` ×8, **not stated ×2** (FY2021, FY2022 carry raw `"0"`)
+* **Fulton** — `YES` ×7, `NO` ×2 (FY2019, FY2024)
+* **DeKalb** — `YES` ×7, not stated ×1 (FY2017)
+
+⚠ Raw `"0"` is **NOT STATED**, never "No" — the wave-1 lesson, live again here.

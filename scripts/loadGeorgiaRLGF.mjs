@@ -61,7 +61,7 @@ import {
   readLog1, EXPENDITURE_SECTIONS, REVENUE_SECTIONS, OBJECT_COLUMNS,
   PAGE_GEOMETRY, num,
 } from './lib/gaRlgf.mjs';
-import { GA_KNIGHT_ENTITIES, entityByCicoid, GA_LOAD_WINDOW } from './data/georgiaKnightEntities.mjs';
+import { GA_RLGF_ENTITIES, entityByCicoid, GA_LOAD_WINDOW } from './data/georgiaRlgfEntities.mjs';
 
 import { ensureMunicipality } from './lib/ensureMunicipality.mjs';
 const SOURCE_PREFIX = 'Georgia DCA Report of Local Government Finances';
@@ -222,8 +222,8 @@ async function main() {
   const files = readdirSync(dir).filter((f) => f.toLowerCase().endsWith('.xlsx')).sort();
   const wanted = new Set(
     argv.entity
-      ? GA_KNIGHT_ENTITIES.filter((e) => e.key === argv.entity).map((e) => e.cicoid)
-      : GA_KNIGHT_ENTITIES.map((e) => e.cicoid),
+      ? GA_RLGF_ENTITIES.filter((e) => e.key === argv.entity).map((e) => e.cicoid)
+      : GA_RLGF_ENTITIES.map((e) => e.cicoid),
   );
   if (argv.entity && wanted.size === 0) {
     console.error(`Unknown --entity ${argv.entity}`);
@@ -315,7 +315,7 @@ async function main() {
   const db = createClient(url, key);
 
   // Counties first: a city's county_id must exist before the city is created.
-  const order = [...GA_KNIGHT_ENTITIES].sort((a, b) => (a.parentCountyKey ? 1 : 0) - (b.parentCountyKey ? 1 : 0));
+  const order = [...GA_RLGF_ENTITIES].sort((a, b) => (a.parentCountyKey ? 1 : 0) - (b.parentCountyKey ? 1 : 0));
   const ids = new Map();
   for (const ent of order) {
     const { id: data } = await ensureMunicipality(db, {
@@ -324,7 +324,7 @@ async function main() {
     ids.set(ent.key, data);
     console.log(`  entity ${ent.name} -> ${data}`);
   }
-  for (const ent of GA_KNIGHT_ENTITIES) {
+  for (const ent of GA_RLGF_ENTITIES) {
     if (!ent.parentCountyKey) continue;
     const { error } = await db.schema('treasury').from('municipalities')
       .update({ county_id: ids.get(ent.parentCountyKey) }).eq('id', ids.get(ent.key));
