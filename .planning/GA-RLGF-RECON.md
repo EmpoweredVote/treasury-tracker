@@ -418,6 +418,7 @@ seven years are internally flawless.
 ## 7. Open follow-ups from wave 2
 
 1. ✅ **DeKalb FY2018 — CORROBORATED AND FLAGGED 2026-10-17.** See §8 below.
+1. ✅ **Fulton FY2017/18 property tax — CORROBORATED 2026-10-17.** See §9: a REAL court-ordered billing delay, not a defect.
 2. **FY2009–2015 for all three wave-2 entities** (`Exportable Data`, 1,219
    keys). ⚠ Atlanta changed its fiscal calendar inside that range — month 1
    through 2005, a 6-month stub in 2006, month 7 from 2007.
@@ -533,3 +534,89 @@ an entity that reports utilities in Part VI. This is exactly why these rows carr
 * **FY2018 revenue categories** are not comparable either, though the total is in
   trend: General Business Licenses $0 in FY2018, and the sanitation/water/sewer
   service-charge categories re-mapped that year.
+
+## 9. ✅ Fulton FY2017/FY2018 — a REAL EVENT, not a defect
+
+The §7 follow-up, corroborated 2026-10-17. **This is the first entry in the
+register where nothing is wrong with the figure.**
+
+### What happened — the county's own words, and a court order
+
+Fulton County **could not bill its 2017 property taxes on time**. The Georgia
+Department of Revenue did not approve the 2017 tax digest after the Board of
+Commissioners voted to hold residential values at 2016 levels, and the county
+had to obtain a **Superior Court Temporary Collection Order** (filed
+2017-11-03, O.C.G.A. § 48-5-310) before it could issue bills at all.
+
+> The County's due date for property taxes was extended to January 15, 2018.
+> **67% was collected in fiscal 2017, with the remainder collected in January
+> of 2018.**
+> — Fulton County FY2017 CAFR, transmittal letter (repeated in the MD&A and Note 4(a))
+
+> (10) The last Fulton County Tax Digest that was approved by the Revenue
+> Commissioner was from 2016.
+> — Superior Court of Fulton County, Final Order, 2017-11-03
+
+### The same signature in three independent county funds
+
+General Fund current-year collection rate, 2015–2020:
+**97.3% · 94.9% · 66.9% · 95.4% · 97.2% · 95.4%.**
+Debt Service: 68.1% → 125.7%. South Fulton: 53.6% → 211.9%.
+FY2018 delinquent collections **$159,945K**, against $8.7K–$44.9K in normal
+years. Two-year General Fund levy **$1,007,635K** against **$1,007,252K**
+collected — a gap of **$383K on a billion**.
+
+### In the filing
+
+| | 2016 | **2017** | **2018** | 2019 |
+|---|---|---|---|---|
+| `31.1100` current year | 478,490,362 | **296,236,285** | 522,468,953 | 558,481,802 |
+| `31.1200` **prior** year | 10,688,324 | 27,219,737 | **215,787,678** | 38,541,682 |
+
+Fitted to the clean 2016/2019 endpoints the residuals are **−$189,705,539** and
+**+$182,694,508** — they cancel to **−0.64%**. Two-year Part I window closes to
+**−0.61%**.
+
+### ⚠⚠ Reader distortion — the reason this is surfaced
+
+Of the **$407,620,756** apparent Part I increase from FY2017 to FY2018,
+**$375,790,658 (92.2%) is the delay unwinding.** True growth is ~5%, so the
+published comparison **overstates the move by a factor of 18** (+93.2% vs ~5%).
+A reader comparing FY2016 to FY2017 concludes revenue **fell 26.8%** when it
+rose about 5%.
+
+### ⚠ Three bases, all correct, none comparable
+
+| Basis | 2017 | 2018 |
+|---|---|---|
+| Cash / levy (Schedule 8-A, General Fund) | $343,227K | $664,025K |
+| Modified accrual, all taxes, governmental funds | $575,978K | $696,787K |
+| **Government-wide accrual, property taxes** | **$558,945K** | **$589,027K** ← smooth |
+
+Accrual recognises the levy in the year assessed, so the county's audited
+accrual statements show **no anomaly at all**. The RLGF follows the money when
+received. ⭐ **If a Georgia figure disagrees with an ACFR, check the basis
+before calling it a defect — and the SIGN of the gap tells you which basis you
+are on.** The mechanism is published: "unavailable revenues — property taxes"
+runs $16,536K / $24,200K / **$67,807K** / $21,324K / $14,360K / $17,252K.
+
+⚠ **No accounting change and no restatement.** The 60-day availability period
+is identical every year, and Schedule 8-A's 2015–2018 rows are byte-identical
+across three ACFR editions.
+
+⚠ **FY2018 was not a clean return either, and the county contradicts itself:**
+its FY2018 transmittal letter says 2018 "saw normal activity" while its own
+MD&A says the 2017 digest "has yet to be approved… therefore the County
+obtained a temporary collection order to issue tax bills for 2018."
+
+### What TT does
+
+Both years carry a **`not-comparable`** flag — informational blue, never the
+warning triangle. The figures are correct and are shown as filed; what the
+banner says is that the two years cannot be compared, and why.
+
+⭐⭐ **This case is why the reappearance test is mandatory.** A ratio sweep alone
+flagged FY2017 at 0.592 of its neighbours — indistinguishable from the DeKalb
+and Fulton *defects*. Only checking whether the money turns up elsewhere showed
+it was a shift rather than a loss, and only then did the external leg find the
+court order behind it.

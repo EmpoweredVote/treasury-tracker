@@ -78,6 +78,32 @@ describe('figure flags — reader-facing surfacing', () => {
     }
   });
 
+  it('⚠⚠ a not-comparable flag never claims the figure is wrong', () => {
+    // These figures are CORRECT — only the year-over-year comparison breaks.
+    // Copy that implies a defect would tell the reader something false AND
+    // impute a fault to a government that has none.
+    const wrongness = /\b(understated|overstated|missing|incorrect|wrong|error|defect|should be)\b/i;
+    for (const [key, f] of Object.entries(figureFlags)) {
+      if (f.severity !== 'not-comparable') continue;
+      expect(wrongness.test(f.headline), `${key} headline implies the figure is wrong`).toBe(false);
+      // It must instead say what IS true: the comparison is the problem.
+      const prose = `${f.headline} ${f.summary}`;
+      expect(/not comparable|comparing|comparison|not a real/i.test(prose), key).toBe(true);
+    }
+  });
+
+  it('⚠ both sides of a two-year seam are flagged, not just one', () => {
+    // A reader can land on either year. Flagging only the odd-looking one
+    // leaves the other silently misleading.
+    const seam = Object.entries(figureFlags)
+      .filter(([, f]) => f.id === 'fulton-fy2017-fy2018-property-tax-timing')
+      .map(([k]) => k);
+    expect(seam.sort()).toEqual([
+      'Fulton County|GA|2017|revenue',
+      'Fulton County|GA|2018|revenue',
+    ]);
+  });
+
   it('⚠ states plainly that the figure is shown as filed', () => {
     // The reader must be able to tell that TT did not alter the number — that
     // is the whole difference between flagging and quietly correcting.

@@ -32,8 +32,8 @@ describe('FigureFlagBanner', () => {
     host.remove();
   });
 
-  const mount = (entity: string, year: number) => {
-    const flag = figureFlagFor(entity, 'GA', year, 'operating');
+  const mount = (entity: string, year: number, dataset = 'operating') => {
+    const flag = figureFlagFor(entity, 'GA', year, dataset);
     expect(flag, `no flag fixture for ${entity} ${year}`).toBeTruthy();
     act(() => { root.render(createElement(FigureFlagBanner, { flag: flag!, label: `${entity} ${year}` })); });
   };
@@ -91,5 +91,35 @@ describe('FigureFlagBanner', () => {
     }
     const darkPairs = classes.filter((c) => c.startsWith('dark:'));
     expect(darkPairs.length, 'no dark-mode colours declared').toBeGreaterThan(0);
+  });
+
+  it('⚠⚠ a not-comparable flag is INFORMATIONAL, never a warning', () => {
+    // The figure is correct; only the comparison breaks. A warning triangle
+    // here would tell the reader something false about the number AND impute
+    // a fault to a government that has none.
+    mount('Fulton County', 2017, 'revenue');
+    const text = host.textContent ?? '';
+    expect(text).toMatch(/ⓘ/);            // informational glyph
+    expect(text).not.toMatch(/⚠/);        // never the warning triangle
+    expect(text).toMatch(/the figures are right, the comparison is not/i);
+    expect(host.querySelector('[role="note"]')?.getAttribute('aria-label'))
+      .toMatch(/Comparability notice/);
+
+    // ...and the warning variant still is one.
+    act(() => { root.render(createElement(FigureFlagBanner, {
+      flag: figureFlagFor('DeKalb County', 'GA', 2018, 'operating')!,
+    })); });
+    expect(host.textContent).toMatch(/⚠/);
+    expect(host.querySelector('[role="note"]')?.getAttribute('aria-label'))
+      .toMatch(/Data quality notice/);
+  });
+
+  it('⚠ both sides of the seam render, each pointing at the other year', () => {
+    mount('Fulton County', 2017, 'revenue');
+    expect(host.textContent).toMatch(/into 2018/);
+    act(() => { root.render(createElement(FigureFlagBanner, {
+      flag: figureFlagFor('Fulton County', 'GA', 2018, 'revenue')!,
+    })); });
+    expect(host.textContent).toMatch(/late 2017 tax/);
   });
 });

@@ -45,7 +45,7 @@
 
 import type { ComparabilitySource } from '../types/budget';
 
-export type FigureFlagSeverity = 'understated' | 'outlier';
+export type FigureFlagSeverity = 'understated' | 'outlier' | 'not-comparable';
 
 export interface FigureFlag {
   /** Matches the id in the author-facing register, so the two can be tied. */
@@ -55,11 +55,21 @@ export interface FigureFlag {
   /** One or two sentences for the banner body. Plain language. */
   summary: string;
   /**
-   * Steers the banner's colour and icon only.
-   *   understated — the published figure is lower than the government's own
-   *                 audited statements, so the page is showing too little.
-   *   outlier     — the figure is extreme against its own history but the
-   *                 publisher's arithmetic carries it.
+   * Steers the banner's colour, icon and assurance line.
+   *
+   *   understated     — the published figure is lower than the government's own
+   *                     audited statements, so the page is showing too little.
+   *   outlier         — the figure is extreme against its own history but the
+   *                     publisher's arithmetic carries it.
+   *   not-comparable  — ⚠⚠ THE FIGURE IS CORRECT. Nothing is wrong with the
+   *                     number; what breaks is comparing it to its neighbour,
+   *                     because a real event moved money between two years.
+   *
+   * ⚠⚠ `not-comparable` IS NOT A SOFTER `understated`, AND MUST NOT READ AS
+   * ONE. Telling a reader a correct figure "looks wrong" is its own kind of
+   * misinformation, and it would also defame a government that did nothing
+   * wrong. It gets a neutral colour and an informational icon, never the
+   * warning triangle.
    */
   severity: FigureFlagSeverity;
   /** Expandable detail. Every entry renders with its own SourceChip. */
@@ -121,6 +131,114 @@ export const figureFlags: Record<string, FigureFlag> = {
           + 'were both tested and ruled out. No wrongdoing is implied or suggested — the state does not '
           + 'audit or certify these forms, and this error understates spending rather than inflating it.',
         source_name: 'Georgia DCA Rule 110-3-1 — “DCA cannot certify the accuracy of the report figures submitted”',
+        source_url: DCA_URL,
+        source_date: '2026-10-17',
+      },
+    ],
+  },
+
+  // ── The two sides of one seam. Each points at the other, because a reader
+  // landing on either year needs to be told about the one next to it. ──
+  'Fulton County|GA|2017|revenue': {
+    id: 'fulton-fy2017-fy2018-property-tax-timing',
+    severity: 'not-comparable',
+    headline: 'A court-ordered billing delay moved tax money out of this year and into 2018',
+    summary:
+      'Fulton County could not issue its 2017 property tax bills on time: the state did not approve '
+      + 'the county’s 2017 tax digest, and a court order was needed before bills could go out at all. '
+      + 'Payment was not due until 15 January 2018, so about a third of the year’s property tax was '
+      + 'collected in 2018 instead. This year’s revenue is genuinely lower as a result, and 2018’s is '
+      + 'correspondingly higher. Both figures are correct as filed — but comparing the two years to '
+      + 'each other will mislead you.',
+    entries: [
+      {
+        title: 'The county’s own account of what happened',
+        text:
+          'From Fulton County’s 2017 annual financial report: “2017 saw unusual circumstances '
+          + 'regarding the County’s property tax digest… The Georgia Department of Revenue did not '
+          + 'approve this adjustment, and the County obtained a Temporary Collection Order in late '
+          + '2017 to facilitate distribution of the tax bills.” The county reassessed property, the '
+          + 'commissioners voted to hold residential values at 2016 levels to soften large increases, '
+          + 'and the state declined to approve the result.',
+        quote:
+          'The County’s due date for property taxes was extended to January 15, 2018. 67% was '
+          + 'collected in fiscal 2017, with the remainder collected in January of 2018.',
+        source_name: 'Fulton County, Georgia — 2017 Comprehensive Annual Financial Report, transmittal letter',
+        source_url: 'https://www.fultoncountyga.gov/-/media/Departments/Finance/ACFR-or-CAFR/Fulton_County_Georgia_CAFR_2017-.pdf',
+        source_date: '2018-09-28',
+      },
+      {
+        title: 'How much moved, in the county’s own collection records',
+        text:
+          'Fulton normally collects 95–97% of each year’s property tax levy within that year. In 2017 '
+          + 'it collected 66.9%. In 2018 it collected 95.4% of the new levy PLUS $159.9 million of '
+          + 'late 2017 tax, taking total collections to 125.7% of that year’s levy. The same pattern '
+          + 'appears in three separate county funds. Across the two years together the county '
+          + 'collected $1,007.3 million against a levy of $1,007.6 million — a gap of less than '
+          + '$0.4 million on a billion. Nothing was lost; it arrived a few weeks late.',
+        source_name: 'Fulton County, Georgia — 2020 CAFR, Schedule 8-A, Property Tax Levies and Collections',
+        source_url: 'https://www.fultoncountyga.gov/-/media/Departments/Finance/ACFR-or-CAFR/FULTON-COUNTY-CAFR-2020.pdf',
+        source_date: '2021-09-15',
+      },
+      {
+        title: 'Why the county’s own accounts look smooth and this figure does not',
+        text:
+          'The county’s audited accounts record property tax in the year the bill is raised, so they '
+          + 'show a steady rise straight through the disruption ($525.8m in 2016, $558.9m in 2017, '
+          + '$589.0m in 2018, $609.5m in 2019). The state form shown here follows the money when it '
+          + 'is actually received. Both are legitimate ways to count, and neither is a mistake — but '
+          + 'they answer different questions, and only one of them shows the delay.',
+        source_name: 'Fulton County, Georgia — 2020 CAFR, Schedule 2, Changes in Net Position',
+        source_url: 'https://www.fultoncountyga.gov/-/media/Departments/Finance/ACFR-or-CAFR/FULTON-COUNTY-CAFR-2020.pdf',
+        source_date: '2021-09-15',
+      },
+    ],
+  },
+
+  'Fulton County|GA|2018|revenue': {
+    id: 'fulton-fy2017-fy2018-property-tax-timing',
+    severity: 'not-comparable',
+    headline: 'This year contains a second year’s worth of late 2017 tax — it is not a real increase',
+    summary:
+      'Fulton County’s 2017 property tax bills went out late under a court order and were not due '
+      + 'until 15 January 2018, so $159.9 million of 2017 tax was collected during 2018 on top of '
+      + '2018’s own. That makes this year look far larger than it was: revenue appears to jump 93% '
+      + 'over 2017, when the underlying increase is about 5%. The figures are correct as filed — the '
+      + 'comparison between the two years is what breaks.',
+    entries: [
+      {
+        title: 'What the jump actually consists of',
+        text:
+          'Of the $407.6 million apparent increase in tax revenue between 2017 and 2018, about '
+          + '$375.8 million — roughly 92% — is the delay unwinding: money that belonged to 2017 '
+          + 'arriving in 2018. Only around $32 million, or about 5%, is real growth. The county’s own '
+          + 'collection records show 2018 collecting 125.7% of its levy, because $159.9 million of it '
+          + 'was late 2017 tax.',
+        source_name: 'Fulton County, Georgia — 2020 CAFR, Schedule 8-A, Property Tax Levies and Collections',
+        source_url: 'https://www.fultoncountyga.gov/-/media/Departments/Finance/ACFR-or-CAFR/FULTON-COUNTY-CAFR-2020.pdf',
+        source_date: '2021-09-15',
+      },
+      {
+        title: 'Why the bills were late',
+        text:
+          'The Georgia Department of Revenue did not approve Fulton County’s 2017 tax digest after '
+          + 'the commissioners voted to hold residential values at their 2016 levels. The county had '
+          + 'to obtain a court order in November 2017 before it could issue 2017 bills at all, and '
+          + 'payment was not due until 15 January 2018.',
+        quote:
+          'The last Fulton County Tax Digest that was approved by the Revenue Commissioner was from 2016.',
+        source_name: 'Superior Court of Fulton County — Final Order Authorizing the Immediate and Temporary Collection of Taxes',
+        source_url: 'https://saportareport.com/wp-content/uploads/2017/11/Final-Order-filed-11.3.17.pdf',
+        source_date: '2017-11-03',
+      },
+      {
+        title: 'What to use instead',
+        text:
+          'Take 2017 and 2018 together rather than separately. Across the pair the county collected '
+          + '$1,007.3 million against a levy of $1,007.6 million, and the two-year total matches the '
+          + 'surrounding years to better than one percent. A single-year comparison, a growth rate or '
+          + 'a per-resident figure for either year on its own will be wrong by roughly $190 million.',
+        source_name: 'Georgia DCA Report of Local Government Finances',
         source_url: DCA_URL,
         source_date: '2026-10-17',
       },

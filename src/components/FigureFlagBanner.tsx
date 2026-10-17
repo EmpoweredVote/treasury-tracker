@@ -35,30 +35,62 @@ const FigureFlagBanner: React.FC<FigureFlagBannerProps> = ({ flag, label }) => {
   const [open, setOpen] = useState(false);
   const detailId = `figure-flag-detail-${flag.id}`;
 
+  // ⚠⚠ `not-comparable` MUST NOT LOOK LIKE A WARNING. On those the figure is
+  // CORRECT — only the year-over-year comparison breaks — so a warning
+  // triangle would tell the reader something false about the number AND
+  // impute a fault to a government that has none. Neutral blue, an
+  // informational icon, and an assurance line that says the figure is right.
+  const informational = flag.severity === 'not-comparable';
+
+  const shell = informational
+    ? 'border-ev-skyblue-300 bg-ev-skyblue-050 dark:border-ev-skyblue-800 dark:bg-ev-skyblue-900'
+    : 'border-ev-yellow-300 bg-ev-yellow-050 dark:border-ev-yellow-800 dark:bg-ev-yellow-950';
+  const icon = informational
+    ? 'text-ev-skyblue-700 dark:text-ev-skyblue-300'
+    : 'text-ev-yellow-700 dark:text-ev-yellow-400';
+  const heading = informational
+    ? 'text-ev-gray-900 dark:text-ev-skyblue-100'
+    : 'text-ev-gray-900 dark:text-ev-yellow-100';
+  const body = informational
+    ? 'text-ev-gray-700 dark:text-ev-skyblue-200'
+    : 'text-ev-gray-700 dark:text-ev-yellow-200';
+  const assuranceTone = informational
+    ? 'text-ev-skyblue-700 dark:text-ev-skyblue-300'
+    : 'text-ev-yellow-800 dark:text-ev-yellow-400';
+  const rule = informational
+    ? 'border-ev-skyblue-200 dark:border-ev-skyblue-800'
+    : 'border-ev-yellow-200 dark:border-ev-yellow-800';
+  const quoteRule = informational
+    ? 'border-ev-skyblue-300 dark:border-ev-skyblue-800'
+    : 'border-ev-yellow-300 dark:border-ev-yellow-800';
+  const assurance = informational
+    ? 'Both years are shown exactly as filed — the figures are right, the comparison is not'
+    : 'Shown exactly as filed — not corrected or removed';
+
   return (
     <div
       // role=note, not role=alert: an alert interrupts a screen reader
       // mid-task, and this is standing context about the figure, not an event.
       role="note"
-      aria-label={`Data quality notice${label ? ` for ${label}` : ''}`}
-      className="rounded-xl border border-ev-yellow-300 bg-ev-yellow-050 dark:border-ev-yellow-800 dark:bg-ev-yellow-950 overflow-hidden"
+      aria-label={`${informational ? 'Comparability notice' : 'Data quality notice'}${label ? ` for ${label}` : ''}`}
+      className={`rounded-xl border overflow-hidden ${shell}`}
     >
       <div className="px-4 py-3 sm:px-5 sm:py-4 flex gap-3">
         <span
           aria-hidden="true"
-          className="shrink-0 text-ev-yellow-700 dark:text-ev-yellow-400 text-lg leading-6"
+          className={`shrink-0 text-lg leading-6 ${icon}`}
         >
-          ⚠
+          {informational ? 'ⓘ' : '⚠'}
         </span>
         <div className="min-w-0 flex-1">
-          <p className="text-sm sm:text-base font-bold text-ev-gray-900 dark:text-ev-yellow-100">
+          <p className={`text-sm sm:text-base font-bold ${heading}`}>
             {flag.headline}
           </p>
-          <p className="mt-1 text-sm text-ev-gray-700 dark:text-ev-yellow-200 leading-relaxed">
+          <p className={`mt-1 text-sm leading-relaxed ${body}`}>
             {flag.summary}
           </p>
-          <p className="mt-2 text-xs font-semibold uppercase tracking-wide text-ev-yellow-800 dark:text-ev-yellow-400">
-            Shown exactly as filed — not corrected or removed
+          <p className={`mt-2 text-xs font-semibold uppercase tracking-wide ${assuranceTone}`}>
+            {assurance}
           </p>
           <button
             type="button"
@@ -75,12 +107,12 @@ const FigureFlagBanner: React.FC<FigureFlagBannerProps> = ({ flag, label }) => {
       {open && (
         <div
           id={detailId}
-          className="px-4 pb-4 sm:px-5 sm:pb-5 space-y-4 text-sm text-ev-gray-700 dark:text-ev-yellow-200 leading-relaxed border-t border-ev-yellow-200 dark:border-ev-yellow-800 pt-4"
+          className={`px-4 pb-4 sm:px-5 sm:pb-5 space-y-4 text-sm leading-relaxed border-t pt-4 ${body} ${rule}`}
         >
           {flag.entries.map((e, i) => (
             <section key={e.source_url + i}>
               {e.title && (
-                <h4 className="font-semibold text-ev-gray-900 dark:text-ev-yellow-100 mb-1">
+                <h4 className={`font-semibold mb-1 ${heading}`}>
                   {e.title}
                 </h4>
               )}
@@ -94,7 +126,7 @@ const FigureFlagBanner: React.FC<FigureFlagBannerProps> = ({ flag, label }) => {
                 />
               </p>
               {e.quote && (
-                <p className="mt-2 pl-3 border-l-2 border-ev-yellow-300 dark:border-ev-yellow-800 italic text-ev-gray-600 dark:text-ev-yellow-300">
+                <p className={`mt-2 pl-3 border-l-2 italic ${quoteRule} ${body}`}>
                   &ldquo;{e.quote}&rdquo;
                 </p>
               )}

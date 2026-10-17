@@ -191,6 +191,101 @@ export const GA_FIGURE_FLAGS = Object.freeze([
       + 'order of magnitude independently. Chris\'s standing requirement.',
   },
   {
+    id: 'fulton-fy2017-fy2018-property-tax-timing',
+    entity: 'Fulton County',
+    state: 'GA',
+    fiscalYear: 2017,
+    alsoAffects: [2018],
+    dataset: 'revenue',
+    section: '1A',
+    ucoa: '31.1100 / 31.1200',
+    label: 'Real Property Taxes, current year and prior year',
+    amount: 632142190.16,
+    loaded: true,
+    severity: 'not-comparable',
+    // ⚠⚠ THE FIGURES ARE CORRECT. This is the first entry in this register
+    // where NOTHING IS WRONG WITH THE NUMBER. The filing faithfully records a
+    // real event on a cash-like basis; what breaks is comparing the two years.
+    // Recording it as a defect would defame a government that did nothing
+    // wrong AND tell the reader something false about the figure.
+    what:
+      'Fulton County could not bill its 2017 property taxes on time. The Georgia Department of '
+      + 'Revenue did NOT approve the county\'s 2017 tax digest after the Board of Commissioners '
+      + 'voted to hold residential values at 2016 levels, and the county had to obtain a Superior '
+      + 'Court Temporary Collection Order (filed 2017-11-03, O.C.G.A. § 48-5-310) before it could '
+      + 'issue bills at all. The due date moved from 15 October to 15 JANUARY 2018, so roughly a '
+      + 'third of the 2017 levy was collected in 2018. In the filing, 31.1100 (current year) is '
+      + '$296,236,285 in FY2017 against a $500,479,657 neighbour mean, and 31.1200 (PRIOR year) is '
+      + '$215,787,678 in FY2018 against a $32,880,709 mean.',
+    magnitude: [
+      'FY2017 31.1100 ratio 0.592 (short $204,243,372); FY2018 31.1200 ratio 6.563 (excess '
+        + '$182,906,969).',
+      'Fitted log-linearly to the clean 2016/2019 endpoints, the real-property family residuals are '
+        + '-$189,705,539 (2017) and +$182,694,508 (2018) — they CANCEL to -$7,011,032, or -0.640% '
+        + 'of the two-year expectation.',
+      'Two-year Part I window: 2017+2018 = $1,282,125,297 against 2016+2019 = $1,290,004,088, '
+        + '-0.61%.',
+      '⚠⚠ READER DISTORTION: of the $407,620,756 apparent Part I increase from FY2017 to FY2018, '
+        + '$375,790,658 — 92.2% — is the two residuals unwinding. True growth is ~5%, so the '
+        + 'published comparison overstates the move by a FACTOR OF 18 (93.2% vs ~5%). A reader '
+        + 'comparing FY2016 to FY2017 concludes revenue FELL 26.8% when it rose ~5%.',
+    ],
+    verifiedBecause: [
+      '⚠⚠ THE GOVERNMENT SAYS SO ITSELF, four times in its own report. FY2017 CAFR transmittal '
+        + 'letter, verbatim: "The County\'s due date for property taxes was extended to January 15, '
+        + '2018. 67% was collected in fiscal 2017, with the remainder collected in January of 2018." '
+        + 'Repeated in the MD&A ("Tax Digest Process for 2017") and in Note 4(a).',
+      'PRIMARY COURT RECORD: Superior Court of Fulton County, "Final Order Authorizing the '
+        + 'Immediate and Temporary Collection of Taxes", e-filed 2017-11-03 — finding of fact (10): '
+        + '"The last Fulton County Tax Digest that was approved by the Revenue Commissioner was from '
+        + '2016."',
+      'THE COUNTY\'S OWN COLLECTION RECORDS SHOW THE SAME SHAPE IN THREE INDEPENDENT FUNDS '
+        + '(Schedule 8-A/8-C). General Fund current-year collection: 97.3% / 94.9% / 66.9% / 95.4% / '
+        + '97.2% / 95.4% for 2015-2020. Debt Service: 68.1% then 125.7%. South Fulton: 53.6% then '
+        + '211.9%. FY2018 delinquent collections are $159,945K against $8.7K-$44.9K in normal years.',
+      'NOTHING WAS LOST: 2017+2018 General Fund levy $1,007,635K against $1,007,252K collected — a '
+        + 'gap of $383K on a billion.',
+      '⚠ THE DEFERRED INFLOW IS THE MECHANISM, and it is published: "unavailable revenues — '
+        + 'property taxes" at 12/31 runs $16,536K / $24,200K / $67,807K / $21,324K / $14,360K / '
+        + '$17,252K for 2015-2020. The FY2017 spike is exactly the receivable not collected within '
+        + 'the 60-day availability window.',
+      '⚠⚠ NO ACCOUNTING CHANGE AND NO RESTATEMENT. The 60-day availability period is identical in '
+        + 'every year; the 2015-2018 rows of Schedule 8-A are byte-identical across the FY2017, '
+        + 'FY2018 and FY2020 editions. The only restatement in the window is GASB 75 OPEB.',
+      'ENTITY-SPECIFIC: DeKalb 31.1100 FY2017 ratio 1.055 and FY2018 0.983, with a monotonic '
+        + 'real-property series; Atlanta (a June-30 reporter, so differently phased) shows no '
+        + '200M-scale prior-year excess in any year.',
+      'Triple-sourced inside the file — printed Page 1, LOAD1 and a direct xlrd read of the BIFF8 '
+        + 'original agree on all 55 Part I cells per year, 0 mismatches, and every subtotal foots.',
+    ],
+    // ⚠ There is nothing to excuse here — the filing is RIGHT.
+    benignExplanations: [
+      '⭐ NOT APPLICABLE IN THE USUAL SENSE: this is not a defect needing a benign reading. The '
+        + 'figures faithfully record what happened on the basis the form uses.',
+      'The apparent conflict between sources is a BASIS difference, not an error. Cash/levy basis: '
+        + '2017 $343,227K, 2018 $664,025K. Modified accrual (all taxes, governmental funds): '
+        + '$575,978K and $696,787K. Government-wide accrual (property taxes): $558,945K and '
+        + '$589,027K — SMOOTH, because accrual recognises the levy in the year assessed. All three '
+        + 'are correct and none is comparable to another.',
+    ],
+    supportingContext:
+      '⚠ FY2018 WAS NOT A CLEAN RETURN EITHER, and the county\'s own report contradicts itself on '
+      + 'this: the FY2018 transmittal letter says 2018 "saw normal activity" while the FY2018 MD&A '
+      + 'says "The 2017 Digest has yet to be approved by the Georgia Department of Revenue, '
+      + 'therefore the County obtained a temporary collection order to issue tax bills for 2018." '
+      + 'The 2018 due date was 31 October, itself two weeks past normal. '
+      + '⚠ Fulton\'s ACFR has NO property-tax line on the governmental funds operating statement — '
+      + 'only an aggregated "Taxes" — and no current/prior or real/personal split of revenue '
+      + 'anywhere, so Schedule 8-A is the only published control at this granularity.',
+    corroboration:
+      '2 independent agents, neutral prompts, neither told the conclusion nor shown the other\'s '
+      + 'work. One swept every Part I line of all 27 filings by ratio from the raw workbooks, with '
+      + 'a MANDATORY reappearance test, and established the offset and the two-year closure with no '
+      + 'external data. The other read six Fulton ACFRs and the court record and found the '
+      + 'documented cause. The first said "this looks like a billing cycle slipping across a year '
+      + 'boundary"; the second found the court order that made it slip.',
+  },
+  {
     id: 'fulton-fy2021-confined-cluster-at-two-percent',
     entity: 'Fulton County',
     state: 'GA',
@@ -667,20 +762,16 @@ export const GA_OUT_OF_SCOPE_FINDINGS = Object.freeze([
       + 'because a ratio test against neighbouring years detects it cheaply.',
   },
   {
-    what: '⚠ NOT CORROBORATED — DO NOT PUBLISH AS A FLAG. Fulton FY2017/FY2018 property tax '
-      + 'looks like a TIMING SHIFT between two adjacent UCOA codes, not a loss: 31.1100 '
-      + '(current-year real property) is $296.2M in FY2017 against a $500.5M neighbour '
-      + 'mean, while 31.1200 (PRIOR-year) is $215.8M in FY2018 against a $32.9M mean. The '
-      + 'two-year total holds to within 1.4%. Read alone, FY2017 looks like a collapse and '
-      + 'FY2018 like a windfall; read as a pair, almost nothing moved. ⚠ BOTH YEARS ARE '
-      + 'INSIDE THE LOADED REVENUE SCOPE.',
-    why: '⭐⭐ THE REAPPEARANCE TEST IS WHY THIS IS NOT A FLAG. The same blind sweep that '
-      + 'corroborated FY2021 found this and checked whether the money turns up elsewhere '
-      + 'in the filing — it does. An omission and a reclassification look IDENTICAL from a '
-      + 'single line, and only one of them is a defect. ⚠ One reasoning chain has seen '
-      + 'this; it needs its own corroboration before TT says anything about it, and the '
-      + 'comparability point (these two years are not comparable to each other) may be '
-      + 'worth surfacing even if no figure is wrong.',
+    what: '✅ PROMOTED TO GA_FIGURE_FLAGS 2026-10-17 — the Fulton FY2017/FY2018 property-tax '
+      + 'timing shift was corroborated and is now '
+      + '`fulton-fy2017-fy2018-property-tax-timing`, carrying severity `not-comparable`.',
+    why: '⭐⭐ THE CASE THAT PROVED THE REAPPEARANCE TEST EARNS ITS KEEP. A ratio sweep alone '
+      + 'flagged FY2017 at 0.592 of its neighbours — indistinguishable from the DeKalb and '
+      + 'Fulton DEFECTS — and only checking whether the money turns up elsewhere showed it '
+      + 'was a shift, not a loss. The external leg then found the Superior Court order that '
+      + 'caused it. ⭐ It also forced a THIRD severity: the figures here are CORRECT and '
+      + 'only the comparison breaks, so dressing it as a warning would tell the reader '
+      + 'something false AND impute a fault to a government that has none.',
   },
   {
     what: '⚠ NOT CORROBORATED. Further single-chain observations from the Fulton sweep, '
