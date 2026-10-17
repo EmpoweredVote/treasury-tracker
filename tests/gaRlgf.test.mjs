@@ -8,7 +8,9 @@ import {
 import {
   parseFilename, auditBranch, sourceNameFor, resolveMonth, explainChecks,
 } from '../scripts/loadGeorgiaRLGF.mjs';
-import { formTotalDefect, GA_FORM_TOTAL_DEFECTS } from '../scripts/data/gaRlgfAnomalies.mjs';
+import {
+  formTotalDefect, GA_FORM_TOTAL_DEFECTS, GA_FIGURE_FLAGS,
+} from '../scripts/data/gaRlgfAnomalies.mjs';
 import { GA_RLGF_ENTITIES, entityByCicoid } from '../scripts/data/georgiaRlgfEntities.mjs';
 
 describe('parseCodeCell', () => {
@@ -339,6 +341,28 @@ describe('wave 2 — Atlanta and both of its counties', () => {
     expect(d.omittedLabel).toBe('Public Defender Administration');
     // ⚠ The items load, never the form's broken total.
     expect(d.loaded).toBe('items');
+  });
+
+  it('⚠⚠ the DeKalb FY2018 flag is recorded, LOADED, and never suppressed', () => {
+    const f = GA_FIGURE_FLAGS.find((x) => x.id === 'dekalb-fy2018-expenditure-side-is-about-one-twelfth');
+    expect(f).toBeTruthy();
+    // The Milledgeville Rule: a flagged figure is published, not withheld.
+    expect(f.loaded).toBe(true);
+    expect(f.amount).toBe(92044262.00);
+    // The audited control total is what makes this a finding rather than a hunch.
+    expect(f.verifiedBecause.join(' ')).toMatch(/654,486K/);
+    // ⚠ Both agents, and both approaches, must be on the record.
+    expect(f.corroboration).toMatch(/2 independent agents/);
+    expect(f.benignExplanations.length).toBeGreaterThanOrEqual(3);
+  });
+
+  it('⚠ the loaded DeKalb FY2018 figure is the one the government filed', () => {
+    // TT transcribes $92,044,262 and flags it. It does NOT substitute the
+    // county's audited $654,486,000 — that would be asserting a figure this
+    // publisher never reported, which is the Dallas/LA-TRAN failure mode.
+    const f = GA_FIGURE_FLAGS.find((x) => x.fiscalYear === 2018 && x.entity === 'DeKalb County');
+    expect(f.amount).toBe(92044262.00);
+    expect(f.what).toMatch(/654,486,000/);
   });
 
   it('⚠ every registry entry carries its corroboration', () => {

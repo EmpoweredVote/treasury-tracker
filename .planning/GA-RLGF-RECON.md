@@ -417,15 +417,119 @@ seven years are internally flawless.
 
 ## 7. Open follow-ups from wave 2
 
-1. ⚠ **NOT YET CORROBORATED — DeKalb FY2018 reports a Part V total of
-   $92,044,262, an order of magnitude below FY2017 ($618M) and FY2019 ($891M)**
-   while its revenue stays in trend. The filing is internally flawless, so it is
-   not an arithmetic defect; it has the shape of a much narrower fund scope. It
-   is LOADED (the Milledgeville Rule), but TT asserts nothing about it until two
-   independent agents reach the same conclusion. Promote to `GA_FIGURE_FLAGS`
-   only then.
+1. ✅ **DeKalb FY2018 — CORROBORATED AND FLAGGED 2026-10-17.** See §8 below.
 2. **FY2009–2015 for all three wave-2 entities** (`Exportable Data`, 1,219
    keys). ⚠ Atlanta changed its fiscal calendar inside that range — month 1
    through 2005, a 6-month stub in 2006, month 7 from 2007.
 3. **Fulton FY2025 and DeKalb FY2024/FY2025** do not exist yet; re-check the
    listing rather than assuming a fetch failure.
+
+---
+
+## 8. ✅ DeKalb FY2018 — corroborated, flagged, and still loaded
+
+The §7 observation was put to **two independent agents, neutral prompts, neither
+told the conclusion nor shown the other's work**, approached differently: one
+characterised the eight filings from the **raw workbooks only**, one read
+**external published sources only**. They converged.
+
+### What the filing says, and what the county says
+
+| | |
+|---|---|
+| RLGF FY2018 Part V (what TT loads) | **$92,044,262** |
+| DeKalb's own AUDITED CAFR, governmental funds, same calendar year | **$654,486,000** |
+| The filing reports | **14.1%** of the audited figure |
+
+DeKalb additionally books **enterprise/utility spending inside Part V**, so the
+truly comparable figure is higher still.
+
+### It is pervasive, not sectional
+
+Restricted to the 47 lines non-zero in 2017, 2018 **and** 2019: FY2018 is
+**0.102** of the two-year average, per-line **median 0.0867**, with **34 of 47
+lines (72%) between 1/14 and 1/8**. The external agent measured the same thing
+through a different channel and got a **median 11.4x** shortfall over 56 lines.
+Two methods, no contact, same order of magnitude.
+
+| Line | 2017 | **2018** | 2019 |
+|---|---|---|---|
+| Police Protection | 79,199,817 | **6,458,448** | 77,561,454 |
+| Fire Protection | 52,256,028 | **4,318,276** | 53,825,220 |
+| Jail Operations | 50,202,147 | **3,468,510** | 54,842,841 |
+
+⚠⚠ **The REVENUE side of the same filing is a full twelve months** — Parts I–III
+$921,906,986, median line ratio 0.965. Revenue intact, expenditure at ~1/12.
+
+### Why it is a real defect and not a real year
+
+* **The audited control total has never been restated.** The 2018 column is
+  reprinted unchanged in the 2019, 2020, 2021 and 2022 ACFRs, and the printed
+  "excess of revenues over expenditures" row (+$44,458K) ties exactly.
+* **The audited series is monotonic**: $591,662K → $620,072K → **$654,486K
+  (+5.6%)** → $717,066K → $834,890K. 2018 is not an outlier in DeKalb's real
+  finances.
+* **Triple-sourced inside the file** — LOAD1, the printed pages and a direct
+  `xlrd` read of the BIFF8 original agree to the dollar.
+* **Reproduced through a second publisher pipeline** — UGA's TED export returns
+  the identical $92,044,262. ⚠ TED republishes the same DCA survey, so it is an
+  independent **access path**, not an independent **measurement**; what it proves
+  is that the defect is in the filing **as submitted**.
+* **Entity-specific, measured twice.** TT's Fulton and Atlanta run smooth through
+  FY2018; pulled the same way from TED, Fulton, Cobb, Gwinnett, Clayton and
+  Chatham all sit in line with their own neighbours. No statewide FY2018 problem.
+* **The form offers no explanation.** `MosRptd` = 12, `MoChng` = No, Part XV
+  certifies "uses AUDITED Figures = YES" (approved 2019-06-28), and the
+  DCA-provided note sheet is the blank template.
+
+**Leading benign explanation:** a **partial-period extract** — the expenditure
+side of the GL query run for a single accounting period while revenue was pulled
+year-to-date. A ~1/12 ratio across every function with ordinary per-line
+lumpiness is exactly that shape. FY2018 is also the only DeKalb year with the
+**preparer-name block blank**, fitting a draft filed and never amended.
+⚠ **Ruled out:** a units error (would be 0.001 and uniform) and a narrower fund
+scope (would remove whole functions, not shave every one alike).
+
+### ⚠⚠ TT LOADS $92,044,262 — the Milledgeville Rule
+
+The figure stays exactly as filed and is flagged. TT does **not** substitute the
+county's audited $654,486,000: that would assert a figure this publisher never
+reported, which is the Dallas-$0 / LA-TRAN failure mode, not this one. The
+source said exactly this, so it loads and it gets flagged.
+
+### A second, differently-shaped defect in the same entity
+
+**FY2017 omits the utility lines.** Storm Drainage, Wastewater, Water, Solid
+Waste Administration and Solid Waste Collection are **all $0** in FY2017, while
+the non-utility 5D lines are ordinary full-year figures — so this is a
+**category omission**, not the FY2018 scaling.
+
+| UCOA | 2016 | **2017** | 2019 |
+|---|---|---|---|
+| 4250 Storm Drainage | 10,727,035 | **0** | 12,780,368 |
+| 4400 Water | 155,071,343 | **0** | 141,615,361 |
+| 4510 Solid Waste Admin | 41,513,503 | **0** | 43,798,568 |
+
+FY2017 reports $336,041,721 of Part IV enterprise revenue and **$0** of Part VI
+enterprise expense, so ~$230M of enterprise cost appears nowhere.
+
+⚠⚠ **The wider consequence matters more than the one year: DeKalb books
+enterprise/utility spending INSIDE Part V** (Water alone runs $141M–$201M). So
+TT's DeKalb operating series is **gross** of utility operations in most years and
+**net** of them in FY2017 — not year-over-year comparable, and not comparable to
+an entity that reports utilities in Part VI. This is exactly why these rows carry
+`fund_scope = unknown`.
+
+### ⚠ Still open after this
+
+* **The flags are repo-only.** `GA_FIGURE_FLAGS` is read by no UI code — grep
+  confirms nothing under `src/` consumes it. Memory is explicit that *"an anomaly
+  flag is evidence to publish, not a reason to withhold; surfacing it to readers
+  is the goal, a registry in the repo is the minimum."* **TT is at the minimum.**
+  Surfacing these to readers is its own piece of work.
+* **Fulton FY2021 section 5F** is $622,851 against $31M–$44M in every other
+  Fulton year — the FY2017-DeKalb shape, **inside the loaded scope**, noticed in
+  passing and **NOT corroborated**. An open observation, not a finding.
+* **FY2018 revenue categories** are not comparable either, though the total is in
+  trend: General Business Licenses $0 in FY2018, and the sanitation/water/sewer
+  service-charge categories re-mapped that year.

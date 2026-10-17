@@ -87,6 +87,163 @@ export const GA_FIGURE_FLAGS = Object.freeze([
       + 'file\'s internal arithmetic and BIFF8 records, one seeking external evidence of '
       + 'the city\'s real budget size. Both confirmed the figure is genuinely published.',
   },
+
+  // ── wave 2 (2026-10-17) ─────────────────────────────────────────────────
+  {
+    id: 'dekalb-fy2018-expenditure-side-is-about-one-twelfth',
+    entity: 'DeKalb County',
+    state: 'GA',
+    fiscalYear: 2018,
+    dataset: 'operating',
+    section: null,
+    ucoa: null,
+    label: 'Part V — Government Expenditures (entire side)',
+    amount: 92044262.00,
+    loaded: true,
+    severity: 'understated-whole-dataset',
+    what:
+      'DeKalb County\'s FY2018 filing reports TOTAL Part V government expenditures of '
+      + '$92,044,262 while the county\'s OWN AUDITED CAFR reports $654,486,000 of '
+      + 'governmental-fund expenditures for the identical calendar year — and DeKalb '
+      + 'additionally books its enterprise/utility spending inside Part V, so the true '
+      + 'comparable figure is higher still. The shortfall is NOT confined to a section: '
+      + 'it runs through essentially every line of the expenditure side at roughly '
+      + 'one-eleventh of normal. ⚠⚠ THE REVENUE SIDE OF THE SAME FILING IS A FULL '
+      + 'TWELVE MONTHS (Parts I-III $921,906,986, squarely in trend).',
+    magnitude: [
+      '0.122 of the mean of the two adjacent filings ($618,046,436 FY2017, '
+        + '$891,430,961 FY2019).',
+      'Restricted to the 47 line items non-zero in 2017, 2018 AND 2019: 0.102 of the '
+        + 'two-year average. Per-line median ratio 0.0867; 34 of 47 lines (72%) fall '
+        + 'between 1/14 and 1/8; excluding one outlier the aggregate is 1/11.3.',
+      'Independently measured through the UGA TED export: median 11.4x shortfall '
+        + 'across the 56 operating lines non-zero in all three years (min 2.8x, max 65x).',
+      'Line examples (2017 -> 2018 -> 2019): Police Protection 79,199,817 -> 6,458,448 '
+        + '-> 77,561,454. Fire Protection 52,256,028 -> 4,318,276 -> 53,825,220. Jail '
+        + 'Operations 50,202,147 -> 3,468,510 -> 54,842,841.',
+      'Against the audited control total the filing is low by $562,441,738 — the RLGF '
+        + 'reports 14.1% of what DeKalb\'s own CAFR reports for governmental funds alone.',
+      'Part V / Parts I-IV = 0.072 for FY2018, against a 0.47-0.77 band in the other '
+        + 'seven years.',
+    ],
+    verifiedBecause: [
+      'TRIPLE-SOURCED INSIDE THE FILE: DCA\'s LOAD1 extract, the printed Page 3/Page 4 '
+        + 'sheets, and a direct xlrd read of the publisher\'s legacy BIFF8 .xls all agree '
+        + 'to the dollar. This is what was filed, not a conversion or extract artifact.',
+      'REPRODUCED THROUGH A SECOND PUBLISHER PIPELINE: the UGA Carl Vinson Institute TED '
+        + 'export returns the identical $92,044,262 for DeKalb FY2018. ⚠ TED republishes '
+        + 'the same DCA survey, so it is an independent ACCESS PATH, not an independent '
+        + 'MEASUREMENT — it proves the defect is in the filing as submitted, and that it '
+        + 'is not something TT or DCA\'s file serving introduced.',
+      'THE CONTROL TOTAL IS AUDITED AND HAS NEVER BEEN RESTATED. DeKalb\'s governmental '
+        + 'funds Statement of Revenues, Expenditures and Changes in Fund Balances '
+        + '(2018 CAFR p.32, modified accrual, printed in THOUSANDS) gives total '
+        + 'expenditures $654,486K. The identical 2018 column is reprinted unchanged in '
+        + 'the 2019, 2020, 2021 and 2022 ACFRs, and the printed "excess of revenues over '
+        + 'expenditures" row (+$44,458K) ties to it exactly.',
+      'The audited series is MONOTONIC and shows no 2018 event: expenditures $591,662K '
+        + '(2016), $620,072K (2017), $654,486K (2018, +5.6%), $717,066K (2019), '
+        + '$834,890K (2020). 2018 is not an outlier in the county\'s real finances.',
+      'ENTITY-SPECIFIC, measured two ways. TT\'s own Fulton and Atlanta filings run '
+        + 'smooth through FY2018 (Fulton 0.89 of its neighbours, Atlanta the HIGHEST of '
+        + 'its 2016-2019 filings). Pulled the same way from TED, Fulton 671M, Cobb 884M, '
+        + 'Gwinnett 975M, Clayton 221M and Chatham 278M all sit in line with their own '
+        + 'neighbours. There is no portal-wide or statewide FY2018 problem.',
+      'THE FORM ITSELF OFFERS NO EXPLANATION. _LOG1 asserts MosRptd = 12, MoChng = No, '
+        + 'FYEmonth = December 31. Part XV certifies "Report uses AUDITED Figures = YES", '
+        + 'approved 2019-06-28. The DCA-provided "Attachment(s)" note sheet is the blank '
+        + 'template. Parts XI-XIII (debt, cash) are normal and full-year.',
+      'Unanimous across two independent agents run on neutral prompts — one characterising '
+        + 'the eight filings from the raw workbooks with no external data, one reading '
+        + 'DeKalb\'s own CAFRs and the TED export with no sight of the filings. Their '
+        + 'ratio estimates (1/11.3 and 11.4x) agree without either seeing the other.',
+    ],
+    // ⚠ NO ALLEGATION IS MADE OR IMPLIED. This UNDERSTATES spending, and the
+    // publisher explicitly does not certify these self-reported forms.
+    benignExplanations: [
+      'A PARTIAL-PERIOD EXTRACT: the preparer ran the expenditure side of the general '
+        + 'ledger query for a single accounting period while pulling revenue '
+        + 'year-to-date. A ~1/12 ratio spread across every function, with ordinary '
+        + 'month-to-month lumpiness per line (interquartile 0.077-0.103), is exactly '
+        + 'the shape a one-period query produces.',
+      'A DRAFT FILED AND NEVER AMENDED: FY2018 is the only DeKalb year whose preparer-name '
+        + 'block (Page 6 / _LOG1 PreparerName) is blank.',
+      '⚠ RULED OUT — a units error. Thousands-vs-dollars would give 0.001 and would be '
+        + 'uniform; this is 0.087 with a wide spread.',
+      '⚠ RULED OUT — a narrower FUND SCOPE. A partial-fund submission removes whole '
+        + 'functions; it does not shave every function to a similar fraction.',
+      'Context, not excuse: DCA performs no reconciliation, Rule 110-3-1 says the data '
+        + '"does not have to be audited", and the form\'s own page 1 says "DCA cannot '
+        + 'certify the accuracy of the report figures submitted". Nothing upstream was '
+        + 'positioned to catch this.',
+    ],
+    supportingContext:
+      '⚠ The filing\'s REVENUE side is not wholly clean either, though its total is in '
+      + 'trend: General Business Licenses is $0 in FY2018 ($18.9M FY2017, $14.8M FY2019), '
+      + 'and the sanitation/water/sewer service-charge categories were re-mapped starting '
+      + 'in FY2018 (Landfill Use Fees 253M -> 68.7M as Water and Sewerage Charges first '
+      + 'become non-zero). So FY2018 revenue CATEGORIES are not comparable year-over-year '
+      + 'even where the total is.',
+    corroboration:
+      '2 independent agents, neutral prompts, neither told the conclusion nor shown the '
+      + 'other\'s work, approached differently — one from the raw workbooks only, one from '
+      + 'external published sources only. Both reached the same finding and the same '
+      + 'order of magnitude independently. Chris\'s standing requirement.',
+  },
+  {
+    id: 'dekalb-fy2017-utility-lines-omitted',
+    entity: 'DeKalb County',
+    state: 'GA',
+    fiscalYear: 2017,
+    dataset: 'operating',
+    section: '5D',
+    ucoa: '4250/4300/4400/4510/4520',
+    label: 'Public Works — utility and sanitation lines',
+    amount: 618046436.00,
+    loaded: true,
+    severity: 'understated-category-omission',
+    what:
+      'A SECOND and DIFFERENTLY-SHAPED defect in the same entity. DeKalb\'s FY2017 '
+      + 'filing reports $0 on every utility and sanitation line of Section 5D — Storm '
+      + 'Drainage, Wastewater, Water, Solid Waste Administration and Solid Waste '
+      + 'Collection — while reporting $336,041,721 of Part IV enterprise REVENUE and $0 '
+      + 'of Part VI enterprise expense. Roughly $230M of enterprise cost appears nowhere '
+      + 'in the filing. ⚠ This is a CATEGORY OMISSION, not the FY2018 scaling: the '
+      + 'non-utility 5D lines (Public Works Administration $8,084,787, Roads and Bridges '
+      + '$18,046,854, Maintenance Shop $27,443,362) are all normal full-year figures.',
+    magnitude: [
+      'Section 5D FY2017 = $53,575,003 against $284,222,766 (FY2016) and $298,521,849 '
+        + '(FY2019) — 8.7% of Part V, against 27-37% in every other year.',
+      'The five blanked lines carried $237,740,833 in FY2016 and $231,393,041 in FY2019.',
+      'Water alone: $155,071,343 (FY2016) -> $0 (FY2017) -> $141,615,361 (FY2019).',
+    ],
+    verifiedBecause: [
+      'Read directly from the printed page in all eight years: 4250, 4300, 4400, 4510 '
+        + 'and 4520 are simultaneously zero in FY2017 ONLY, while 4100, 4200 and 4900 in '
+        + 'the same section carry ordinary full-year values.',
+      'Reproduced through the independent TED access path, which shows Water and Solid '
+        + 'Waste and Recycling Administration at $0 for DeKalb FY2017.',
+      'DeKalb\'s standing practice in all eight filings is to book enterprise spending on '
+        + 'the Part V utility lines and leave Part VI at zero — so FY2017 is a departure '
+        + 'from the entity\'s own convention, not a different convention.',
+    ],
+    benignExplanations: [
+      'The preparer treated the enterprise funds as out of Part V scope — which the '
+        + 'form\'s instruction permits ONLY if they are reported in Part VI — and then '
+        + 'did not fill Part VI.',
+    ],
+    supportingContext:
+      '⚠⚠ THE WIDER CONSEQUENCE, which matters more than the one year: DeKalb books '
+      + 'ENTERPRISE/UTILITY spending INSIDE Part V (Water runs $141M-$201M), so TT\'s '
+      + 'DeKalb operating series is gross of utility operations in most years and net of '
+      + 'them in FY2017. The series is therefore NOT year-over-year comparable, and it is '
+      + 'not comparable to an entity that reports utilities in Part VI. This is precisely '
+      + 'why these rows carry fund_scope = `unknown` rather than a scope vocabulary value '
+      + 'they would not honour.',
+    corroboration:
+      'Found independently by the raw-workbook agent and the external agent, and verified '
+      + 'a third time directly against the printed pages before being recorded.',
+  },
 ]);
 
 /**
@@ -358,17 +515,26 @@ export const GA_OUT_OF_SCOPE_FINDINGS = Object.freeze([
       + 'scoping must never be flattened for convenience.',
   },
   {
-    what: '⚠ NOT YET CORROBORATED — DO NOT PUBLISH AS A FLAG. DeKalb County FY2018 reports a '
-      + 'Part V total of $92,044,262.00, an ORDER OF MAGNITUDE below its own neighbours '
-      + '(FY2017 $618,046,436, FY2019 $891,430,960.59), while its FY2018 revenue '
-      + '($921,906,986) stays in trend. The filing is internally flawless: every section '
-      + 'ties in all four columns and LOAD1 agrees throughout, so it is NOT an arithmetic '
-      + 'defect. It has the shape of a filing made on a much narrower fund scope.',
-    why: 'Surfaced unprompted by the FY2020 arithmetic audit, from the raw files. It is '
-      + 'LOADED either way — the Milledgeville Rule — but a claim that a government\'s '
-      + 'filing is scoped wrongly is exactly the class that Chris requires independent '
-      + 'agents to reach on their own before TT records it. ONE chain of reasoning has '
-      + 'seen this. Promote it to GA_FIGURE_FLAGS only after corroboration; until then '
-      + 'it is an open observation, not a finding TT asserts.',
+    what: '✅ PROMOTED TO GA_FIGURE_FLAGS 2026-10-17 — the DeKalb FY2018 expenditure '
+      + 'observation was corroborated by two independent agents and is now a recorded '
+      + 'flag (`dekalb-fy2018-expenditure-side-is-about-one-twelfth`), together with the '
+      + 'separate FY2017 utility omission it turned up.',
+    why: '⭐ Kept as a POINTER, not deleted, because the sequence is the lesson: it was '
+      + 'surfaced unprompted by an unrelated audit, held deliberately as an '
+      + 'uncorroborated OBSERVATION that TT asserted nothing about, and only became a '
+      + 'flag once two agents reached it independently. An observation and a flag are '
+      + 'different things and the gap between them is where the discipline lives.',
+  },
+  {
+    what: '⚠ DeKalb reports $0 of Part VIII PERSONNEL in all eight filings, where Fulton '
+      + 'and Atlanta report $380M-$1,072M. Fulton reports $0 for FY2022 and FY2023 only. '
+      + 'Fulton FY2021 section 5F (Culture and Recreation) is $622,851 against $31M-$44M '
+      + 'in every other Fulton year — a one-section, one-year hole of the FY2017-DeKalb '
+      + 'shape.',
+    why: 'Part VIII is not a revenue or expenditure flow and is outside the loaded trees, '
+      + 'so the personnel gap changes no loaded figure. ⚠ The Fulton FY2021 5F hole IS '
+      + 'inside the loaded scope and is NOT YET CORROBORATED — noticed in passing by one '
+      + 'agent, never investigated. Treat it as an open observation, not a finding, and '
+      + 'corroborate before TT asserts anything about it.',
   },
 ]);
