@@ -751,15 +751,66 @@ export const GA_OUT_OF_SCOPE_FINDINGS = Object.freeze([
       + '— a $0 here means NOTHING WAS REPORTED, never that payroll was zero.',
   },
   {
-    what: '⚠⚠ A ×1000 KEYING SLIP RECURS ACROSS THIS SOURCE, and it is NOT confined to one '
-      + 'government. Fulton Part VII (enterprise capital assets) is scaled by 1/1000 in '
-      + 'FY2023 and FY2024 — restoring the factor puts both years inside the 1.003-1.052 '
-      + 'growth band of the preceding six. Fulton Part XIII (fund equity) looks '
-      + 'thousands-denominated in FY2016. Atlanta FY2025 Part XIII reports GF unassigned '
-      + 'as $127,693 against $124,339,000 in FY2024 — the identical break.',
-    why: 'Parts VII and XIII are balance-sheet tables, outside the loaded trees. ⚠ Recorded '
-      + 'because the FY2009-2015 follow-up and the statewide sweep WILL meet this, and '
-      + 'because a ratio test against neighbouring years detects it cheaply.',
+    what: '✅ CORROBORATED 2026-10-17 — ⚠⚠ A ×1000 KEYING SLIP RECURS ACROSS THIS SOURCE, in '
+      + 'TWO governments and FOUR places. A blind sweep of all 85 available filings found '
+      + 'exactly four, every one a factor of 1,000: '
+      + '(1) FULTON Part VII (enterprise capital assets) FY2023 AND FY2024; '
+      + '(2) FULTON Part XIII (fund equity) FY2016; '
+      + '(3) ATLANTA Part XI column (e) "interest paid", Sections A and C only, FY2021; '
+      + '(4) ATLANTA Part XIII (fund equity) FY2025, 5 of 10 cells. DeKalb is clean.',
+    why: '⭐⭐ THE MECHANISM IS CONFIRMED AND IT IS STRUCTURAL: ALL THREE GOVERNMENTS PRINT '
+      + 'THEIR ACFRs IN THOUSANDS ("in thousands of dollars" on every statement, every '
+      + 'year) while the RLGF form instructs "enter dollar amounts". A preparer reading '
+      + 'the ACFR column and forgetting to multiply by 1,000 produces exactly this. '
+      + 'CONFIRMED BY EXACT DIGIT MATCH against the audited statements: Fulton Part VII '
+      + 'FY2024 reports 1,542,837 and Fulton\'s FY2024 ACFR Note 7 gives Water & Sewerage '
+      + 'net book value of 1,542,837 THOUSAND; Fulton Part XIII FY2016 reports 124,580 and '
+      + '682,414 against ACFR GF unassigned 124,580K and net investment in capital assets '
+      + '682,414K; Atlanta Part XIII FY2025 reports 14,481 / 1,201 against ACFR assigned '
+      + '14,481K / committed 1,201K. '
+      + '⚠⚠ Fulton Part VII is proved a SECOND way with no external source at all: the '
+      + 'form is a ROLL-FORWARD, and FY2023\'s beginning balance equals FY2022\'s ending '
+      + 'balance digit-for-digit with three zeros dropped on ALL TEN populated rows. '
+      + 'Atlanta Part XI is proved by an IMPLIED INTEREST RATE of 0.0033% on $6.04bn of '
+      + 'revenue bonds (corrected: 3.28%, against 4.44% and 4.03% either side), with '
+      + 'Section B on the same page as a clean control at 4.292%.',
+  },
+  {
+    what: '⭐⭐ THE NULL RESULT THAT MATTERS MORE: **NO SCALE BREAK EXISTS ANYWHERE IN PARTS '
+      + 'I-VI** — the revenue and expenditure FLOWS — in any of the 7 governments, any '
+      + 'year, in EITHER form edition. Three independent screens (part-level aggregate, '
+      + 'per-line YoY ratio, and an implied-interest-rate test) all came back empty there.',
+    why: '⚠⚠ TT LOADS PARTS I-III AND PART V. So NOT ONE LOADED FIGURE IS AFFECTED by the '
+      + 'keying slips above, and no reader-facing flag is warranted — this is a '
+      + 'source-quality finding for the FY2009-2015 follow-up and the statewide sweep, '
+      + 'not a defect in TT\'s data. ⭐ Recording the null result explicitly matters as '
+      + 'much as recording the breaks: without it a later session re-opens the question.',
+  },
+  {
+    what: '⚠ DEKALB RESTATED ITS FY2020 CAPITAL ASSETS DOWNWARD BY ~$285.7M in the FY2021 '
+      + 'ACFR, after a comprehensive capital-asset inventory (FY2021 Note 5: business-type '
+      + 'cost restated 3,520,830K -> 3,340,511K, book value 2,469,299K -> 2,183,642K). '
+      + 'FY2016-2020 are on the original basis, FY2021+ on the restated one.',
+    why: 'Capital assets are outside the loaded trees, so no loaded figure moves. ⚠ But a '
+      + 'DeKalb capital-asset series spanning 2020/2021 has a genuine BASIS BREAK in it, '
+      + 'and it is the county\'s own restatement rather than a filing defect. Recorded '
+      + 'before anyone builds that series.',
+  },
+  {
+    what: '⚠⚠ TWO HAZARDS REACHING ATLANTA\'S OWN ACFRs, both met head-on 2026-10-17. '
+      + '(1) atlantaga.gov returns HTTP 403 from its Akamai edge to curl, PowerShell, '
+      + 'plain fetch AND a headless same-origin fetch(), while serving its index pages '
+      + 'normally — the document only came back by DRIVING A REAL BROWSER AND CLICKING '
+      + 'THE LINK. The Wayback Machine has no copy. '
+      + '(2) ⚠⚠ THE FY2025 ACFR HAS A PARTLY BROKEN TEXT LAYER: roughly half its pages '
+      + 'extract as a character-shifted cipher AND THE DIGITS DROP OUT ENTIRELY, so an '
+      + 'extractor returns prose-shaped garbage with no numbers.',
+    why: '⭐ The text-layer defect is the WA SAO class in a new place — a ciphered page '
+      + 'yields a silently wrong read, not an obviously empty one. The fix used here was '
+      + 'to RENDER THE PAGE TO AN IMAGE and read the printed table rather than trust the '
+      + 'text layer. FY2024\'s layer is clean, so it is per-document, not per-publisher. '
+      + '⚠ The Federal Audit Clearinghouse carried an identical FY2024 copy and is the '
+      + 'better route where it has the year.',
   },
   {
     what: '✅ PROMOTED TO GA_FIGURE_FLAGS 2026-10-17 — the Fulton FY2017/FY2018 property-tax '
