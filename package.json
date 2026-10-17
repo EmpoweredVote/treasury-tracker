@@ -39,7 +39,7 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.122.0",
     "@empoweredvote/analytics": "^0.3.0",
-    "@empoweredvote/ev-ui": "^0.13.0",
+    "@empoweredvote/ev-ui": "^0.14.0",
     "@floating-ui/react": "^0.27.19",
     "@google-cloud/bigquery": "^9.0.3",
     "@napi-rs/canvas": "^0.1.100",
