@@ -112,4 +112,36 @@ describe('figure flags — reader-facing surfacing', () => {
       expect(/as filed|as published|shown as|displayed exactly|genuinely what/i.test(prose), key).toBe(true);
     }
   });
+
+  it('\u26a0\u26a0 no HEADLINE renders a verdict on the government', () => {
+    // CONTEXT, NOT A VERDICT (Chris, 2026-10-17). A headline says what the
+    // figure covers and what it leaves out. It does not pronounce the number
+    // broken -- TT is not the auditor, and the Fulton FY2017 case showed a
+    // figure can look broken and be a court-ordered delay.
+    const verdict = /\b(wrong|incorrect|error|erroneous|broken|invalid|bogus|failed|failure|bad data|mistake)\b/i;
+    for (const [key, f] of Object.entries(figureFlags)) {
+      expect(verdict.test(f.headline), `${key} headline delivers a verdict`).toBe(false);
+    }
+  });
+
+  it('\u26a0 every flag tells the reader what to DO with the figure', () => {
+    // This replaced the implied verdict. A banner that only says "be wary"
+    // leaves the reader with nothing actionable.
+    for (const [key, f] of Object.entries(figureFlags)) {
+      expect(f.whatThisMeans, key).toBeTruthy();
+      expect(f.whatThisMeans.length, key).toBeGreaterThan(25);
+      expect(f.whatThisMeans, key).not.toBe(f.summary);
+    }
+  });
+
+  it('\u26a0\u26a0 the MAGNITUDE survives in the headline, since styling no longer carries it', () => {
+    // Calm is not quiet. With one neutral treatment for every severity, the
+    // only thing stopping a skimming reader misusing a figure that is out by
+    // sevenfold is the number itself, stated up front.
+    for (const [key, f] of Object.entries(figureFlags)) {
+      const hasScale = /\d/.test(f.headline)
+        || /\b(seven|half|most|almost none|none|all)\b/i.test(f.headline);
+      expect(hasScale, `${key} headline states no magnitude`).toBe(true);
+    }
+  });
 });

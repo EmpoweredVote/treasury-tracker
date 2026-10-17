@@ -44,7 +44,7 @@ describe('FigureFlagBanner', () => {
     expect(note).toBeTruthy();
     const text = host.textContent ?? '';
     // The headline and the reassurance are both unconditional.
-    expect(text).toMatch(/almost entirely missing/i);
+    expect(text).toMatch(/covers almost none of/i);
     expect(text).toMatch(/Shown exactly as filed/i);
     // ⚠ role=note, never role=alert — standing context, not an interruption.
     expect(host.querySelector('[role="alert"]')).toBeNull();
@@ -83,35 +83,43 @@ describe('FigureFlagBanner', () => {
     mount('Fulton County', 2021);
     const classes = [...host.querySelectorAll('*')]
       .flatMap((el) => [...el.classList]);
-    const themed = classes.filter((c) => /^(bg|text|border)-ev-yellow/.test(c));
+    const themed = classes.filter((c) => /^(bg|text|border)-ev-skyblue/.test(c));
     expect(themed.length).toBeGreaterThan(0);
     for (const c of themed) {
-      // ev-yellow-50 would be silently dropped; the token is ev-yellow-050.
-      expect(c, `${c} uses a non-existent numeric step`).not.toMatch(/-ev-yellow-\d{1,2}$/);
+      // ev-skyblue-50 would be silently dropped; the token is ev-skyblue-050.
+      expect(c, `${c} uses a non-existent numeric step`).not.toMatch(/-ev-skyblue-\d{1,2}$/);
     }
     const darkPairs = classes.filter((c) => c.startsWith('dark:'));
     expect(darkPairs.length, 'no dark-mode colours declared').toBeGreaterThan(0);
   });
 
-  it('⚠⚠ a not-comparable flag is INFORMATIONAL, never a warning', () => {
-    // The figure is correct; only the comparison breaks. A warning triangle
-    // here would tell the reader something false about the number AND impute
-    // a fault to a government that has none.
-    mount('Fulton County', 2017, 'revenue');
-    const text = host.textContent ?? '';
-    expect(text).toMatch(/ⓘ/);            // informational glyph
-    expect(text).not.toMatch(/⚠/);        // never the warning triangle
-    expect(text).toMatch(/the figures are right, the comparison is not/i);
-    expect(host.querySelector('[role="note"]')?.getAttribute('aria-label'))
-      .toMatch(/Comparability notice/);
+  it('⚠⚠ NO severity renders a warning triangle or alarm styling', () => {
+    // CONTEXT, NOT A VERDICT. One calm treatment for every severity. TT is not
+    // the auditor, and Fulton FY2017 showed a figure can look broken and be a
+    // court-ordered delay.
+    for (const [entity, year, dataset] of [
+      ['DeKalb County', 2018, 'operating'],
+      ['Fulton County', 2021, 'operating'],
+      ['Fulton County', 2017, 'revenue'],
+    ] as const) {
+      act(() => { root.render(createElement(FigureFlagBanner, {
+        flag: figureFlagFor(entity, 'GA', year, dataset)!,
+      })); });
+      const text = host.textContent ?? '';
+      expect(text, `${entity} ${year}`).toMatch(/ⓘ/);        // informational glyph
+      expect(text, `${entity} ${year}`).not.toMatch(/⚠/);    // never the warning triangle
+      expect(host.querySelector('[role="note"]')?.getAttribute('aria-label'))
+        .toMatch(/About this figure/);
+      // ⚠ Calm is not quiet: the actionable line is always rendered.
+      expect(text).toMatch(/Shown exactly as filed|the figures are right/);
+    }
+  });
 
-    // ...and the warning variant still is one.
-    act(() => { root.render(createElement(FigureFlagBanner, {
-      flag: figureFlagFor('DeKalb County', 'GA', 2018, 'operating')!,
-    })); });
-    expect(host.textContent).toMatch(/⚠/);
-    expect(host.querySelector('[role="note"]')?.getAttribute('aria-label'))
-      .toMatch(/Data quality notice/);
+  it('⚠ renders the actionable line, not just the problem', () => {
+    mount('DeKalb County', 2018);
+    expect(host.textContent).toMatch(/use the county.s own annual financial report/i);
+    mount('Fulton County', 2017, 'revenue');
+    expect(host.textContent).toMatch(/Take 2017 and 2018 together/i);
   });
 
   it('⚠ both sides of the seam render, each pointing at the other year', () => {

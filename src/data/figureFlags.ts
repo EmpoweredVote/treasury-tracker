@@ -34,13 +34,38 @@
  * author-facing register, so a flag cannot be recorded for maintainers and
  * silently left off the page.
  *
+ * ── ⚠⚠ CONTEXT, NOT A VERDICT ──────────────────────────────────────────────
+ *
+ * These banners explain what a figure IS and IS NOT. They do not announce that
+ * something is broken, and they carry no alarm styling — one calm treatment for
+ * every severity.
+ *
+ * That is a deliberate correction (Chris, 2026-10-17). The earlier design shouted
+ * at the reader and positioned TT as adjudicator of a government's competence.
+ * Two things make that wrong:
+ *
+ *   1. TT IS NOT THE AUDITOR. These are self-reported forms that the publisher
+ *      states on their face it "cannot certify". TT transcribes them.
+ *   2. ⚠⚠ WE NEARLY GOT ONE WRONG. Fulton FY2017 property tax sat at 0.592 of
+ *      its neighbours — numerically indistinguishable from the real defects —
+ *      and turned out to be a COURT-ORDERED billing delay. Flagging on the
+ *      shape alone would have accused a county of misreporting when a judge had
+ *      ordered the delay. A tool one step from that mistake should not be
+ *      shouting.
+ *
+ * ⚠ WHAT SURVIVED THE RESTYLE, AND MUST: the practical consequence. A reader
+ * who takes DeKalb FY2018 at face value is wrong SEVENFOLD, and that has to
+ * survive a skim. It is carried by STATING THE MAGNITUDE PLAINLY in the
+ * headline and by `whatThisMeans` — by information, never by colour.
+ *
  * ── Authoring the copy ─────────────────────────────────────────────────────
  *
- * The register entries are technical and long. These are NOT a dump of them:
- * write plain language a non-accountant can act on, state the published figure
- * and the comparison, and never imply wrongdoing — these are self-reported
- * forms that the publisher explicitly does not certify, and the defects found
- * so far UNDERSTATE spending rather than inflate it.
+ * The register entries are technical and long. These are NOT a dump of them.
+ * Lead with what the figure covers and what it leaves out. Give the comparison
+ * and the size. Never imply wrongdoing, and never use a word like "wrong",
+ * "error" or "failed" about a government — `tests/figureFlags.test.ts`
+ * enforces it. Every defect found so far UNDERSTATES spending rather than
+ * inflating it, which is worth remembering when choosing a verb.
  */
 
 import type { ComparabilitySource } from '../types/budget';
@@ -72,6 +97,12 @@ export interface FigureFlag {
    * warning triangle.
    */
   severity: FigureFlagSeverity;
+  /**
+   * ⚠ REQUIRED. One short line telling the reader what to DO with this figure.
+   * This is what replaced the implied verdict: not "something is wrong here"
+   * but "here is how to use this number, and how not to".
+   */
+  whatThisMeans: string;
   /** Expandable detail. Every entry renders with its own SourceChip. */
   entries: ComparabilitySource[];
 }
@@ -90,12 +121,15 @@ export const figureFlags: Record<string, FigureFlag> = {
   'DeKalb County|GA|2018|operating': {
     id: 'dekalb-fy2018-expenditure-side-is-about-one-twelfth',
     severity: 'understated',
-    headline: 'This spending figure is far lower than the county’s audited accounts',
+    headline: 'DeKalb’s own audited accounts report about seven times this much spending for 2018',
     summary:
-      'DeKalb County’s filing to the state reports $92.0 million of spending for 2018, while the '
-      + 'county’s own audited financial statements report $654.5 million for the same year — so the '
-      + 'figure shown here is about a seventh of what the county actually spent. It is displayed '
-      + 'exactly as filed, and flagged rather than altered.',
+      'The state filing this page draws on reports $92.0 million of spending for 2018. DeKalb '
+      + 'County’s own audited financial statements report $654.5 million for the same year. The '
+      + 'difference runs through nearly every line of the filing, while the revenue side of that '
+      + 'same return covers a full twelve months. Shown exactly as filed.',
+    whatThisMeans:
+      'For DeKalb’s 2018 spending, use the county’s own annual financial report rather than this '
+      + 'figure.',
     entries: [
       {
         title: 'What the county’s audited accounts say',
@@ -150,6 +184,9 @@ export const figureFlags: Record<string, FigureFlag> = {
       + 'collected in 2018 instead. This year’s revenue is genuinely lower as a result, and 2018’s is '
       + 'correspondingly higher. Both figures are correct as filed — but comparing the two years to '
       + 'each other will mislead you.',
+    whatThisMeans:
+      'Take 2017 and 2018 together rather than separately — across the pair the figures match the '
+      + 'surrounding years to better than one percent.',
     entries: [
       {
         title: 'The county’s own account of what happened',
@@ -205,6 +242,9 @@ export const figureFlags: Record<string, FigureFlag> = {
       + '2018’s own. That makes this year look far larger than it was: revenue appears to jump 93% '
       + 'over 2017, when the underlying increase is about 5%. The figures are correct as filed — the '
       + 'comparison between the two years is what breaks.',
+    whatThisMeans:
+      'Take 2017 and 2018 together rather than separately. A growth rate or per-resident figure for '
+      + 'either year alone will be out by roughly $190 million.',
     entries: [
       {
         title: 'What the jump actually consists of',
@@ -248,13 +288,16 @@ export const figureFlags: Record<string, FigureFlag> = {
   'Fulton County|GA|2021|operating': {
     id: 'fulton-fy2021-confined-cluster-at-two-percent',
     severity: 'understated',
-    headline: 'Library, recreation and welfare spending is almost entirely missing from this year',
+    headline: 'This total covers almost none of Fulton’s library, recreation and welfare spending for 2021',
     summary:
-      'Fulton County’s filing to the state reports $622,851 of culture and recreation spending for '
-      + '2021, against about $38 million the year before and $35 million the year after. The county’s '
-      + 'own budget records show it actually spent $26.3 million running its libraries that year. '
-      + 'Eight other spending lines are similarly near zero or blank. The figures are shown exactly as '
-      + 'filed, and flagged rather than altered.',
+      'The state filing reports $622,851 of culture and recreation spending for 2021, against about '
+      + '$38 million the year before and $35 million the year after. Fulton County’s own budget '
+      + 'records show it spent $26.3 million running its libraries that year. Nine lines in total are '
+      + 'near zero or blank, while the rest of the return — courts, public safety, health — is '
+      + 'ordinary. Shown exactly as filed.',
+    whatThisMeans:
+      'About a fifth of Fulton’s 2021 spending is not in this total. Do not compare it to the '
+      + 'county’s other years.',
     entries: [
       {
         title: 'What the county’s own records show',
@@ -302,12 +345,16 @@ export const figureFlags: Record<string, FigureFlag> = {
   'DeKalb County|GA|2017|operating': {
     id: 'dekalb-fy2017-utility-lines-omitted',
     severity: 'understated',
-    headline: 'Water, sewer and sanitation spending is missing from this year',
+    headline: 'This total leaves out water, sewer and sanitation — about $230 million in other years',
     summary:
-      'DeKalb County normally reports its water, storm drainage and solid-waste spending inside this '
-      + 'total — more than $230 million in neighbouring years — but every one of those lines is blank '
-      + 'in the 2017 filing. The total shown is therefore lower than, and not comparable to, the '
-      + 'county’s other years. It is displayed exactly as filed, with nothing added back in.',
+      'DeKalb County reports its water, storm drainage and solid-waste spending inside this total in '
+      + 'every year except 2017, where those lines are all blank. Water alone was $155.1 million in '
+      + '2016 and $141.6 million in 2019. The rest of the public-works section that year is ordinary, '
+      + 'so it is these categories specifically that are absent. Shown exactly as filed, with nothing '
+      + 'added back in.',
+    whatThisMeans:
+      'Do not compare this year’s total to DeKalb’s other years — it covers a narrower set of '
+      + 'services.',
     entries: [
       {
         title: 'Which lines are blank',
@@ -338,11 +385,15 @@ export const figureFlags: Record<string, FigureFlag> = {
   'Milledgeville|GA|2025|revenue': {
     id: 'milledgeville-fy2025-rents-royalties',
     severity: 'outlier',
-    headline: 'One revenue line in this filing is extraordinarily large',
+    headline: 'Almost all of this year’s revenue is a single line — $7.18 billion of “Rents and Royalties”',
     summary:
-      'Milledgeville (population 16,664) reported $7.18 billion of “Rents and Royalties” for 2025 — '
-      + 'around 99.6% of its own reported revenue that year, and roughly 18,300 times its previous '
-      + 'maximum for that line. The figure is genuinely what the city filed, and is shown as filed.',
+      'Milledgeville has about 16,664 residents. Its 2025 filing reports $7.18 billion on one revenue '
+      + 'line, which is around 99.6% of the city’s reported revenue for the year and roughly 18,300 '
+      + 'times the most it has ever reported on that line before. The city reported $0.00 on the same '
+      + 'line in both 2023 and 2024. The figure is genuinely what the city filed, and is shown as filed.',
+    whatThisMeans:
+      'Every total for this year is dominated by that one line. Without it the city’s 2025 revenue is '
+      + '$31.2 million, in line with its other years.',
     entries: [
       {
         title: 'What makes it extraordinary',
