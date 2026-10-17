@@ -140,7 +140,157 @@ export const GA_EXTRACT_DEFECTS = Object.freeze([
   { entity: 'Macon-Bibb County', fiscalYear: 2023, section: '2', refCell: '33_1000C',
     displacedTo: '33_6103C', amount: 793967.00, label: 'Crime and Corrections Grants (federal)',
     droppedAmount: 793967.00, breaksSubtotal: true },
+  // ── wave 2 ───────────────────────────────────────────────────────────────
+  // ⚠⚠ THE ONLY ONE WHOSE PRINTED TOTAL ALSO BROKE. Every entry above leaves
+  // the printed form intact, which is why "read the page" rescued them. Here
+  // the same editing gesture shortened the page's own SUM range too, so this
+  // row has a GA_FORM_TOTAL_DEFECTS entry as well — and it is the reason that
+  // register had to exist at all.
+  { entity: 'DeKalb County', fiscalYear: 2020, section: '5B', refCell: '2200A',
+    displacedTo: '2800A', amount: 20335770.45, label: 'District Attorney',
+    droppedAmount: 9479440.83, breaksSubtotal: true,
+    note: '⚠ 2800A is a tRef3d pointing at Page 3 row 33 (the DISTRICT ATTORNEY\'s '
+      + 'row), not row 42. So the DA\'s figure appears TWICE in the extract and the '
+      + 'Public Defender\'s $9,479,440.83 is carried by no LOAD1 key at all. '
+      + 'See GA_FORM_TOTAL_DEFECTS: the printed Total Section 5B is short by that '
+      + 'same amount, so this filing loads from its line items.' },
 ]);
+
+/**
+ * ── FLAG 3: the PRINTED FORM's own total contradicts its own line items ────
+ *
+ * ⚠⚠ THIS IS THE EXCEPTION TO "THE PRINTED FORM IS AUTHORITATIVE", INSIDE THE
+ * LOADED SCOPE. Flag 2's header says TT reads the printed form because it
+ * reconciles where `LOAD1` does not. The Macon-Bibb FY2016 Part XII entry in
+ * GA_OUT_OF_SCOPE_FINDINGS already showed a printed total that was wrong — but
+ * that was Part XII, outside the loaded trees. These entries are inside
+ * Parts I-V, so "prefer the printed page" is now measured as a strong rule with
+ * named exceptions rather than a law.
+ *
+ * MECHANISM: the section's printed `Total Section` cell is a live SUM formula
+ * whose RANGE was never extended when a line was added to the form, so the
+ * total silently omits its own last row(s). The float tail on the stored result
+ * (`76597267.89000002`) is the signature of a computed sum, not a typed
+ * constant.
+ *
+ * ⚠⚠ WHAT TT LOADS, AND WHY. The LINE ITEMS load; the form's broken total does
+ * not. Both figures are the government's, and the document contradicts itself —
+ * so this is NOT the Milledgeville case (a verified figure that merely looks
+ * wrong) and NOT a read-fidelity failure (we reproduce both numbers exactly).
+ * When a document disagrees with itself, the sum of its own detail is the
+ * better reading, and BOTH numbers are recorded here so the choice is visible
+ * and reversible. Nothing is hidden: the omitted line is published money.
+ *
+ * ⚠ THE GATE IS NOT WEAKENED. `loadGeorgiaRLGF.mjs` still refuses any filing
+ * whose sections do not tie, UNLESS an entry below pins ALL THREE of the
+ * form's total, the items' total and the shortfall to the cent. A defect of a
+ * different size, in a different section, or in a different year still refuses.
+ */
+export const GA_FORM_TOTAL_DEFECTS = Object.freeze([
+  {
+    id: 'dekalb-fy2020-5b-total-omits-public-defender',
+    cicoid: '1044044',
+    entity: 'DeKalb County',
+    state: 'GA',
+    fiscalYear: 2020,
+    dataset: 'operating',
+    section: '5B',
+    sectionLabel: 'Judicial',
+    // All three are pinned by the loader. A mismatch in any of them refuses.
+    formTotal: 76597267.89,
+    itemsTotal: 86076708.72,
+    shortfall: 9479440.83,
+    omittedCode: '2800',
+    omittedLabel: 'Public Defender Administration',
+    loaded: 'items',
+    what:
+      'DeKalb County FY2020, Page 3, Part V Section B (Judicial): the printed '
+      + '"Total Section 5B" row reads $76,597,267.89 while the FOURTEEN line rows '
+      + 'printed directly above it sum to $86,076,708.72. The total omits exactly '
+      + 'its own last line, Public Defender Administration (UCOA 2800), '
+      + '$9,479,440.83. The Part V grand total correctly sums the SECTION totals, '
+      + 'so it inherits the shortfall rather than compounding it: $1,056,796,376.16 '
+      + 'printed against $1,066,275,816.99 of line rows, 0.889% low.',
+    verifiedBecause: [
+      '⚠⚠ THE STORED FORMULA SAYS SO — this does not rest on a subset-sum search. '
+        + 'Disassembling the BIFF8 token stream of the Total Section 5B row gives '
+        + 'column (a) as tArea (29,2)..(41,2) = SUM(C30:C42), while its OWN sibling '
+        + 'columns (b), (c) and (d) are (29,c)..(42,c) = SUM(D30:D43). Column (a) '
+        + 'stops one row short. In FY2016-2019 and FY2021-2023 all four columns '
+        + 'span (29,c)..(42,c); FY2020 column (a) is the sole outlier in eight years.',
+      '⚠ It is invisible on the printed page BECAUSE columns (b), (c) and (d) are '
+        + 'all $0.00 — the three correct ranges and the one short range produce the '
+        + 'same visible result, so nothing looks out of place.',
+      'Reproduced to the cent from the printed page itself: rows 30-43 of "Page 3" '
+        + 'sum to 86,076,708.72 against a printed total row of 76,597,267.89, a '
+        + 'difference of 9,479,440.83 = the Public Defender line exactly.',
+      'The stored total is 76597267.89000002 — a float tail only a live SUM '
+        + 'produces, consistent with a formula over a range, not a keyed constant.',
+      'DCA\'s LOAD1 extract breaks a second way from the same editing gesture: '
+        + '2200A (District Attorney) is a tRefErr3d #REF! token, and 2800A is a '
+        + 'tRef3d pointing at Page 3 ROW 33 — the District Attorney\'s row, not the '
+        + 'Public Defender\'s row 42. So the Public Defender\'s $9,479,440.83 is '
+        + 'carried by NO LOAD1 key at all and the DA\'s figure appears twice. '
+        + 'Summing the broken extract reproduces the printed total EXACTLY: '
+        + '56,261,497.44 + 20,335,770.45 = 76,597,267.89.',
+      '⚠ In the raw .xls the #REF! cell\'s stored "value" reads back as the integer '
+        + '23 — the error CODE. A value-only read sees a small plausible number; '
+        + 'only a cell-TYPE check catches it.',
+      'Independently reproduced in both representations: all 10,750 numeric cells '
+        + 'across Page 3, Page 4 and LOAD1 for all eight DeKalb years agree exactly '
+        + 'between the publisher\'s .xls and TT\'s .xlsx conversion, and the LOAD1 '
+        + 'Part V key set is a perfect bijection with the page key set in every '
+        + 'year — so no line row was dropped by either parser.',
+      '223 of the 224 section-column checks across DeKalb\'s eight filings (7 '
+        + 'sections x 4 object columns x 8 years) tie exactly. This is the only one '
+        + 'that does not.',
+      'EXTERNAL: DeKalb County\'s own 2020 CAFR (p. 36, General Fund, budget basis, '
+        + 'stated in thousands) publishes Public defender actual $11,038,000 and '
+        + 'District attorney actual $19,111,000, its twelve office lines summing '
+        + 'exactly to the published total. The Public Defender is a real, material, '
+        + 'recurring line — $9,447K (2018), $10,355K (2019), $11,038K (2020), '
+        + '$9,979K (2021), $12,447K (2022) — so a Judicial total that excludes it '
+        + 'is understated, not merely differently scoped.',
+      'EXTERNAL, magnitude: DeKalb reports its court function as "Civil and '
+        + 'criminal court system", which uniquely INCLUDES the Sheriff\'s Office '
+        + '($85,624K) and Medical Examiner ($4,712K). Removing those from the '
+        + 'FY2020 General Fund actual leaves $90,354K — near the RLGF line-item '
+        + 'sum of $86.08M and far from the broken $76.60M.',
+    ],
+    // ⚠ NO ALLEGATION. This is routine spreadsheet mechanics on a form that is
+    // revised year to year, and it understates a figure rather than inflating it.
+    benignExplanations: [
+      'A SUM range that was not extended, or was re-typed or dragged by hand in '
+        + 'ONE column while the other three kept the original — the single most '
+        + 'common spreadsheet defect there is.',
+      'A row cut, deleted or dragged on Page 3 while the form was being filled in. '
+        + 'Formulas pointing AT a moved row either follow it or collapse to #REF!, '
+        + 'and FY2020 shows exactly one of each (2800A followed a row to position '
+        + '33, 2200A collapsed). ONE editing gesture explains the shortened range, '
+        + 'the orphaned reference and the shifted reference together.',
+      'The same fingerprint appears in the Part IV block on Page 2 of the same '
+        + 'workbook, suggesting one tidying pass touched both pages of that year.',
+      '⚠ It UNDERSTATES a figure rather than inflating one, and the other seven '
+        + 'years of the same form are internally flawless.',
+    ],
+    corroboration:
+      '2 independent agents, neutral prompts, raw sources, neither told the '
+      + 'conclusion nor shown the other\'s work — one auditing the workbooks\' '
+      + 'internal arithmetic across all eight DeKalb filings in Decimal and '
+      + 'disassembling the BIFF8 formula tokens, one seeking DeKalb\'s own '
+      + 'published judicial figures from the county\'s CAFRs. They converged. '
+      + 'Chris\'s standing requirement for any flag of this nature.',
+  },
+]);
+
+/** Look up a form-total defect. All four coordinates must match. */
+export function formTotalDefect(cicoid, fiscalYear, section) {
+  return GA_FORM_TOTAL_DEFECTS.find(
+    (d) => d.cicoid === String(cicoid)
+      && d.fiscalYear === Number(fiscalYear)
+      && d.section === section,
+  ) || null;
+}
 
 /**
  * ── Recorded but OUTSIDE the loaded trees ──────────────────────────────────
@@ -184,5 +334,41 @@ export const GA_OUT_OF_SCOPE_FINDINGS = Object.freeze([
       + 'attachment sheet (`Bonded Debt Schedules`, `Debt Schedule`). None in LOAD1 or Pages 1-6.',
     why: 'Its ten loaded years are clean in the audited surface — the one entity with no '
       + 'extract defect at all.',
+  },
+  // ── wave 2 (2026-10-17) ──────────────────────────────────────────────────
+  {
+    what: 'DeKalb FY2020 Part IV carries the SAME fingerprint as its Part V defect: LOAD1 '
+      + 'key `34_4160` ("Sanitation Fees - Solid Waste Recycling Fees") is a tRefErr3d '
+      + '#REF!, while its neighbour `34_4130` ("Sale of Recycled Materials") points at '
+      + 'Page 2 row 63 — which IS the 34.4160 row ($310,830.06). Page 2 row 61, the real '
+      + '34.4130, is blank. One key re-pointed at a neighbour, one orphaned.',
+    why: 'Part IV is public utility / enterprise REVENUE, excluded from the loaded trees by '
+      + 'the form\'s own scope statement. ⚠ Recorded because it corroborates that ONE '
+      + 'editing pass touched both pages of that workbook, and because the FY2009-2015 '
+      + 'follow-up and the statewide sweep will meet this shape again.',
+  },
+  {
+    what: '⚠⚠ A LOAD1 PARSER TRAP: the sheet REUSES bare UCOA key names (`3200A`, `4400A`, '
+      + '`5100A`, ...) in block `_E9`, which is PART X (intergovernmental expenditures, '
+      + '`TTL_Part10`) — not Part V. A flat key->value dict over the whole sheet collides '
+      + 'and manufactures roughly 12 spurious "LOAD1 says $0" mismatches per filing.',
+    why: 'Not a defect in the source — a defect in any naive reader of it. TT already '
+      + 'scopes lookups per block via SECTION_BLOCKS/scopedLookup, so it is immune; this '
+      + 'is recorded for anyone else reading Georgia\'s LOAD1, and as the reason that '
+      + 'scoping must never be flattened for convenience.',
+  },
+  {
+    what: '⚠ NOT YET CORROBORATED — DO NOT PUBLISH AS A FLAG. DeKalb County FY2018 reports a '
+      + 'Part V total of $92,044,262.00, an ORDER OF MAGNITUDE below its own neighbours '
+      + '(FY2017 $618,046,436, FY2019 $891,430,960.59), while its FY2018 revenue '
+      + '($921,906,986) stays in trend. The filing is internally flawless: every section '
+      + 'ties in all four columns and LOAD1 agrees throughout, so it is NOT an arithmetic '
+      + 'defect. It has the shape of a filing made on a much narrower fund scope.',
+    why: 'Surfaced unprompted by the FY2020 arithmetic audit, from the raw files. It is '
+      + 'LOADED either way — the Milledgeville Rule — but a claim that a government\'s '
+      + 'filing is scoped wrongly is exactly the class that Chris requires independent '
+      + 'agents to reach on their own before TT records it. ONE chain of reasoning has '
+      + 'seen this. Promote it to GA_FIGURE_FLAGS only after corroboration; until then '
+      + 'it is an open observation, not a finding TT asserts.',
   },
 ]);

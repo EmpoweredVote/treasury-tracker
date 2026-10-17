@@ -5,7 +5,10 @@ import {
   readLog1, monthFromEndText, scopedLookup, readPageValues,
   EXPENDITURE_SECTIONS, REVENUE_SECTIONS, OBJECT_COLUMNS,
 } from '../scripts/lib/gaRlgf.mjs';
-import { parseFilename, auditBranch, sourceNameFor, resolveMonth } from '../scripts/loadGeorgiaRLGF.mjs';
+import {
+  parseFilename, auditBranch, sourceNameFor, resolveMonth, explainChecks,
+} from '../scripts/loadGeorgiaRLGF.mjs';
+import { formTotalDefect, GA_FORM_TOTAL_DEFECTS } from '../scripts/data/gaRlgfAnomalies.mjs';
 import { GA_RLGF_ENTITIES, entityByCicoid } from '../scripts/data/georgiaRlgfEntities.mjs';
 
 describe('parseCodeCell', () => {
@@ -324,6 +327,95 @@ describe('wave 2 — Atlanta and both of its counties', () => {
     expect(atlanta().fiscalYearStartMonth).toBe(7);
     expect(entityByCicoid('1060060').fiscalYearStartMonth).toBe(1);
     expect(entityByCicoid('1044044').fiscalYearStartMonth).toBe(1);
+  });
+
+  it('⚠ the form-total exception is wired to the real DeKalb FY2020 numbers', () => {
+    const d = formTotalDefect('1044044', 2020, '5B');
+    expect(d).not.toBeNull();
+    expect(d.formTotal).toBe(76597267.89);
+    expect(d.itemsTotal).toBe(86076708.72);
+    // The shortfall IS the omitted line, to the cent.
+    expect(Number((d.itemsTotal - d.formTotal).toFixed(2))).toBe(d.shortfall);
+    expect(d.omittedLabel).toBe('Public Defender Administration');
+    // ⚠ The items load, never the form's broken total.
+    expect(d.loaded).toBe('items');
+  });
+
+  it('⚠ every registry entry carries its corroboration', () => {
+    // Chris's standing rule: a flag about a government's published figures is
+    // not recorded on one reasoning chain. No entry may exist without evidence.
+    for (const d of GA_FORM_TOTAL_DEFECTS) {
+      expect(d.corroboration).toMatch(/independent/i);
+      expect(d.verifiedBecause.length).toBeGreaterThanOrEqual(2);
+      expect(d.benignExplanations.length).toBeGreaterThanOrEqual(1);
+    }
+  });
+
+  describe('⚠⚠ the exception cannot absorb anything it was not built for', () => {
+    const failing = (over = {}) => ({
+      tag: 'EXP', id: '5B', expected: 76597267.89, actual: 86076708.72, ok: false, ...over,
+    });
+
+    it('explains the exact recorded defect', () => {
+      const checks = [failing()];
+      expect(explainChecks(checks, '1044044', 2020)).toHaveLength(1);
+      expect(checks[0].explainedBy.id).toBe('dekalb-fy2020-5b-total-omits-public-defender');
+    });
+
+    it('refuses the right delta on the wrong figures', () => {
+      // Same 9,479,440.83 gap, but both totals moved — a different filing.
+      const checks = [failing({ expected: 50000000, actual: 59479440.83 })];
+      expect(explainChecks(checks, '1044044', 2020)).toHaveLength(0);
+      expect(checks[0].explainedBy).toBeUndefined();
+    });
+
+    it('refuses another year, another entity and another section', () => {
+      for (const [cicoid, fy] of [['1044044', 2021], ['1060060', 2020], ['2060002', 2020]]) {
+        const checks = [failing()];
+        expect(explainChecks(checks, cicoid, fy)).toHaveLength(0);
+        expect(checks[0].explainedBy).toBeUndefined();
+      }
+      const other = [failing({ id: '5C' })];
+      expect(explainChecks(other, '1044044', 2020)).toHaveLength(0);
+    });
+
+    it('⚠ never explains a REVENUE check with an expenditure defect', () => {
+      const checks = [failing({ tag: 'REV' })];
+      expect(explainChecks(checks, '1044044', 2020)).toHaveLength(0);
+    });
+
+    it('explains the Part V grand total only as the SUM of explained sections', () => {
+      const good = [
+        failing(),
+        { tag: 'EXP', id: 'Part V grand', expected: 1056796376.16, actual: 1066275816.99, ok: false },
+      ];
+      explainChecks(good, '1044044', 2020);
+      expect(good[1].explainedBy.id).toBe('inherited-from-sections');
+
+      // ⚠ A grand gap LARGER than the section shortfall is a second, unexplained
+      // problem — it must still refuse, not ride along on the first.
+      const bad = [
+        failing(),
+        { tag: 'EXP', id: 'Part V grand', expected: 1056796376.16, actual: 1070000000, ok: false },
+      ];
+      explainChecks(bad, '1044044', 2020);
+      expect(bad[1].explainedBy).toBeUndefined();
+    });
+
+    it('⚠ never explains a grand total when no section was explained', () => {
+      const checks = [
+        { tag: 'EXP', id: 'Part V grand', expected: 1056796376.16, actual: 1066275816.99, ok: false },
+      ];
+      expect(explainChecks(checks, '1044044', 2020)).toHaveLength(0);
+      expect(checks[0].explainedBy).toBeUndefined();
+    });
+
+    it('leaves a passing or skipped check alone', () => {
+      const passing = [failing({ ok: true })];
+      expect(explainChecks(passing, '1044044', 2020)).toHaveLength(0);
+      const skipped = [failing({ ok: false, skipped: true })];
+      expect(explainChecks(skipped, '1044044', 2020)).toHaveLength(0);
+    });
   });
 
   it('keeps every key and CICOID unique across both waves', () => {

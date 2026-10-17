@@ -337,3 +337,95 @@ All three branches appear, and all three still grade `self_reported_unaudited`
 * **DeKalb** — `YES` ×7, not stated ×1 (FY2017)
 
 ⚠ Raw `"0"` is **NOT STATED**, never "No" — the wave-1 lesson, live again here.
+
+## 6. ⚠⚠ The printed form's own total contradicts its own line items
+
+**DeKalb County FY2020, Part V Section B (Judicial).** The first measured case
+where **the printed form is wrong INSIDE the loaded Parts I–V scope**. Recorded
+in `GA_FORM_TOTAL_DEFECTS` (`scripts/data/gaRlgfAnomalies.mjs`).
+
+| | |
+|---|---|
+| Printed `Total Section 5B` | **$76,597,267.89** |
+| Its own fourteen line rows sum to | **$86,076,708.72** |
+| Shortfall | **$9,479,440.83** = UCOA 2800 Public Defender Administration, exactly |
+
+### The stored formula, not an inference
+
+Disassembling the BIFF8 token stream of that total row:
+
+| Column | Stored range | A1 | Covers |
+|---|---|---|---|
+| **(a)** | `tArea (29,2)..(41,2)` | **`SUM(C30:C42)`** | 2100 … **2750** |
+| (b) | `tArea (29,3)..(42,3)` | `SUM(D30:D43)` | 2100 … 2800 |
+| (c) | `tArea (29,4)..(42,4)` | `SUM(E30:E43)` | 2100 … 2800 |
+| (d) | `tArea (29,5)..(42,5)` | `SUM(F30:F43)` | 2100 … 2800 |
+
+Column (a) stops one row short of its own siblings. In **FY2016–2019 and
+FY2021–2023 all four columns span `(29,c)..(42,c)`** — FY2020 column (a) is the
+sole outlier in eight years.
+
+⚠ **It is invisible on the printed page because columns (b), (c) and (d) are all
+$0.00** — the short range and the correct ranges produce identical visible
+output. Only the arithmetic, or the token stream, shows it.
+
+### The same gesture broke LOAD1 twice more
+
+`2200A` (District Attorney) is a `tRefErr3d` **`#REF!`**; `2800A` is a `tRef3d`
+pointing at **Page 3 row 33 — the District Attorney's row, not row 42**. So the
+Public Defender's money is carried by **no LOAD1 key at all** and the DA's
+figure appears twice. Summing the broken extract reproduces the short printed
+total **exactly**: `56,261,497.44 + 20,335,770.45 = 76,597,267.89`.
+
+The identical fingerprint appears in **Part IV** of the same workbook
+(`34_4160` orphaned, `34_4130` re-pointed to Page 2 row 63) — one editing pass
+touched both pages.
+
+### What TT does
+
+**The line items load; the broken total does not.** Both figures are the
+government's and the document contradicts itself, so this is neither the
+Milledgeville case (a verified figure that merely looks wrong) nor a
+read-fidelity failure (TT reproduces both numbers exactly). When a document
+disagrees with itself, the sum of its own detail is the better reading — and
+both numbers are recorded so the choice stays visible and reversible.
+
+⚠ **The gate is not weakened.** `loadGeorgiaRLGF.mjs` still refuses any filing
+whose sections do not tie, unless a registry entry pins **the form's total, the
+items' total AND the shortfall, all to the cent**. A different size, section,
+year or entity still refuses. The Part V grand total is explained only as the
+**sum** of explained section shortfalls, never on its own. Nine tests in
+`tests/gaRlgf.test.mjs` hold that line.
+
+### Corroboration
+
+Two independent agents, neutral prompts, raw sources, neither told the
+conclusion nor shown the other's work:
+
+* one audited the arithmetic of all eight DeKalb filings in `Decimal` and
+  disassembled the BIFF8 formula tokens — **223 of 224 section-column checks
+  tie**; all 10,750 numeric cells agree between the `.xls` and TT's `.xlsx`;
+  the LOAD1 Part V key set is a perfect bijection with the page key set in
+  every year.
+* one read DeKalb's own CAFRs — **Public defender actual $11,038K (2020)**,
+  $9,447K / $10,355K / $9,979K / $12,447K across 2018–2022. A real, material,
+  recurring line, so a Judicial total excluding it is understated.
+
+⚠ No allegation is made or implied. This is routine spreadsheet mechanics on a
+hand-maintained form, it understates rather than inflates, and DeKalb's other
+seven years are internally flawless.
+
+## 7. Open follow-ups from wave 2
+
+1. ⚠ **NOT YET CORROBORATED — DeKalb FY2018 reports a Part V total of
+   $92,044,262, an order of magnitude below FY2017 ($618M) and FY2019 ($891M)**
+   while its revenue stays in trend. The filing is internally flawless, so it is
+   not an arithmetic defect; it has the shape of a much narrower fund scope. It
+   is LOADED (the Milledgeville Rule), but TT asserts nothing about it until two
+   independent agents reach the same conclusion. Promote to `GA_FIGURE_FLAGS`
+   only then.
+2. **FY2009–2015 for all three wave-2 entities** (`Exportable Data`, 1,219
+   keys). ⚠ Atlanta changed its fiscal calendar inside that range — month 1
+   through 2005, a 6-month stub in 2006, month 7 from 2007.
+3. **Fulton FY2025 and DeKalb FY2024/FY2025** do not exist yet; re-check the
+   listing rather than assuming a fetch failure.

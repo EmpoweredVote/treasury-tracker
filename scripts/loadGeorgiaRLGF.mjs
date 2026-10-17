@@ -62,6 +62,7 @@ import {
   PAGE_GEOMETRY, num,
 } from './lib/gaRlgf.mjs';
 import { GA_RLGF_ENTITIES, entityByCicoid, GA_LOAD_WINDOW } from './data/georgiaRlgfEntities.mjs';
+import { formTotalDefect } from './data/gaRlgfAnomalies.mjs';
 
 import { ensureMunicipality } from './lib/ensureMunicipality.mjs';
 const SOURCE_PREFIX = 'Georgia DCA Report of Local Government Finances';
@@ -165,6 +166,47 @@ export function resolveMonth(entity, meta) {
   };
 }
 
+/**
+ * Mark the failing checks a corroborated registry entry accounts for.
+ *
+ * Mutates `checks`, setting `explainedBy` on each one it can account for, and
+ * returns the entries used. Everything it does NOT mark still fails the load.
+ *
+ * ⚠⚠ ALL THREE FIGURES ARE PINNED — the form's total, the items' total and the
+ * difference. Matching only the delta would let a registry entry excuse a
+ * section whose numbers had both moved by the same amount, which is a different
+ * filing, not the recorded defect.
+ */
+export function explainChecks(checks, cicoid, fiscalYear) {
+  const explained = [];
+  for (const c of checks) {
+    if (c.ok || c.skipped || c.tag !== 'EXP') continue;
+    const d = formTotalDefect(cicoid, fiscalYear, c.id);
+    if (!d) continue;
+    if (Math.abs(Number(c.expected) - d.formTotal) > 0.005) continue;
+    if (Math.abs(Number(c.actual) - d.itemsTotal) > 0.005) continue;
+    if (Math.abs(Number(c.actual) - Number(c.expected) - d.shortfall) > 0.005) continue;
+    c.explainedBy = d;
+    explained.push(d);
+  }
+  // The Part V grand total is a sum of the section totals, so it inherits every
+  // section shortfall. It is explained ONLY if its own gap equals their SUM —
+  // never on its own, and never by a gap no section accounted for. Without that
+  // rule a single explained section would excuse any grand-total discrepancy.
+  const grand = checks.find((c) => c.id === 'Part V grand');
+  if (grand && !grand.ok && !grand.skipped && explained.length) {
+    const shortfall = explained.reduce((a, d) => a + d.shortfall, 0);
+    if (Math.abs(Number(grand.actual) - Number(grand.expected) - shortfall) <= 0.005) {
+      grand.explainedBy = {
+        id: 'inherited-from-sections',
+        inheritedFrom: explained.map((d) => d.id),
+        shortfall,
+      };
+    }
+  }
+  return explained;
+}
+
 /** Parse one workbook fully, running every oracle. */
 export async function readFiling(path) {
   const meta0 = parseFilename(path);
@@ -201,6 +243,20 @@ export async function readFiling(path) {
     tag: 'EXP', id: 'Part V grand', expected: grandExpected, actual: exp.total,
     ok: Math.abs(grandExpected - exp.total) <= 0.005,
   });
+
+  // ── ⚠⚠ THE ONE WAY A FAILING CHECK MAY STAND ─────────────────────────────
+  //
+  // A section whose printed total contradicts its own printed line items is a
+  // KNOWN, CORROBORATED defect in the publisher's workbook, not a parse error —
+  // but only where GA_FORM_TOTAL_DEFECTS says so, and only where the registry's
+  // recorded numbers match the ones measured here TO THE CENT. All three are
+  // pinned: the form's total, the items' total, and the difference between them.
+  //
+  // ⚠ This deliberately cannot absorb a NEW problem. A defect of a different
+  // size, in a different section, in a different year, or on a different entity
+  // matches nothing and still refuses the filing. The registry entry is the
+  // evidence; this code is only the lookup.
+  explainChecks(checks, meta0.cicoid, meta0.fiscalYear);
 
   return { ...meta0, path, exp, rev, log1, checks, anomalies };
 }
@@ -262,7 +318,11 @@ async function main() {
   for (const f of filings) {
     const ent = entityByCicoid(f.cicoid);
     const m = resolveMonth(ent, f.log1);
-    const bad = f.checks.filter((c) => !c.ok && !c.skipped);
+    // ⚠ `explainedBy` is set ONLY by a corroborated GA_FORM_TOTAL_DEFECTS entry
+    // that pinned every figure. It is excluded from `bad` but printed below, so
+    // it can never pass silently.
+    const bad = f.checks.filter((c) => !c.ok && !c.skipped && !c.explainedBy);
+    const explainedChecks = f.checks.filter((c) => c.explainedBy);
     const skippedChecks = f.checks.filter((c) => c.skipped);
     checksRun += f.checks.length - skippedChecks.length;
     if (bad.length || skippedChecks.length || !m.ok) failed++;
@@ -277,6 +337,13 @@ async function main() {
       console.log(`      ✗ ${c.tag} ${c.id}: form ${Number(c.expected).toLocaleString()} vs tree ${Number(c.actual).toLocaleString()}`);
     }
     for (const c of skippedChecks) console.log(`      ? ${c.tag} ${c.id}: SKIPPED ${c.reason || ''}`);
+    for (const c of explainedChecks) {
+      console.log(
+        `      ⚠ ${c.tag} ${c.id}: the PUBLISHER'S OWN total contradicts its own line items — `
+        + `form ${Number(c.expected).toLocaleString()} vs items ${Number(c.actual).toLocaleString()} `
+        + `(short ${Number(c.explainedBy.shortfall).toLocaleString()}). Loading the items. [${c.explainedBy.id}]`,
+      );
+    }
     if (!m.ok) console.log(`      ✗ fiscal month: ${m.how}`);
   }
 
