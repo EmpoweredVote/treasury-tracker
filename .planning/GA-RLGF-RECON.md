@@ -620,3 +620,75 @@ flagged FY2017 at 0.592 of its neighbours — indistinguishable from the DeKalb
 and Fulton *defects*. Only checking whether the money turns up elsewhere showed
 it was a shift rather than a loss, and only then did the external leg find the
 court order behind it.
+
+## 10. ✅ The ×1000 keying slip — corroborated, and harmless to TT
+
+Corroborated 2026-10-17. **Four breaks, two governments, all factor 1,000 —
+and every one of them is outside the data TT loads.**
+
+### The mechanism is structural, not careless
+
+**All three governments print their ACFRs in THOUSANDS** — `(in thousands of
+dollars)` on every statement, every year, verified across 20 reports — while
+the RLGF form instructs *"enter dollar amounts"*. A preparer reading the ACFR
+column and not multiplying by 1,000 produces exactly this. It will recur.
+
+| # | Government | Part | Year(s) | Confidence |
+|---|---|---|---|---|
+| 1 | Fulton | **VII** Capital Assets, enterprise | FY2023 **and** FY2024 | certain |
+| 2 | Fulton | **XIII** Fund Equity | FY2016 | very high |
+| 3 | Atlanta | **XI** col (e) interest paid, Sections A & C only | FY2021 | certain |
+| 4 | Atlanta | **XIII** Fund Equity, 5 of 10 cells | FY2025 | very high |
+
+DeKalb is clean throughout.
+
+### Confirmed by exact digit match against the audited statements
+
+| Filing reports | ACFR reports (thousands) |
+|---|---|
+| Fulton Part VII FY2024 `1,542,837` | Water & Sewerage net book value `1,542,837` |
+| Fulton Part XIII FY2016 `124,580` | General Fund unassigned `124,580` |
+| Fulton Part XIII FY2016 `682,414` | Net investment in capital assets `682,414` |
+| Atlanta Part XIII FY2025 `14,481` / `1,201` | Assigned `14,481` / Committed `1,201` |
+
+### And proved twice more with no external source at all
+
+* **Fulton Part VII is a ROLL-FORWARD.** FY2023's beginning balance equals
+  FY2022's ending balance **digit for digit with three zeros dropped, on all
+  ten populated rows**. A real change cannot reproduce ten rows' digits; an
+  omission leaves rows empty; a reclassification moves amounts between rows.
+  Only the unit label changed.
+* **Atlanta Part XI fails a physical test.** Interest paid of $198,292 on
+  $6.04bn of revenue bonds implies **0.0033%**. Corrected it is 3.28%, against
+  4.44% (FY2020) and 4.03% (FY2022) — and Section B of the *same page* is a
+  clean control at 4.292%. It is a one-year round trip: ×0.0008 then ×1,237.
+
+### ⭐⭐ The null result matters more than the breaks
+
+**No scale break exists anywhere in Parts I–VI** — the revenue and expenditure
+flows — in any of the seven governments, any year, in either form edition.
+Three independent screens came back empty there.
+
+**TT loads Parts I–III and Part V. Not one loaded figure is affected**, so no
+reader-facing flag is warranted. This is a source-quality finding for the
+FY2009–2015 follow-up and the statewide sweep. ⚠ Recording the null explicitly
+is the point — without it a later session re-opens the question.
+
+### Two things found along the way
+
+* ⚠ **DeKalb restated its FY2020 capital assets down by ~$285.7M** in the
+  FY2021 ACFR after a comprehensive inventory. Outside the loaded trees, but a
+  DeKalb capital-asset series spanning 2020/2021 has a real basis break in it —
+  the county's own restatement, not a filing defect.
+* ⚠⚠ **Reaching Atlanta's own ACFRs has two hazards.** `atlantaga.gov` returns
+  **HTTP 403** from its Akamai edge to curl, PowerShell, plain `fetch` and even
+  a headless same-origin `fetch()`, while serving index pages normally — the
+  document came back only by driving a real browser and **clicking the link**.
+  And the **FY2025 ACFR has a partly broken text layer**: roughly half its pages
+  extract as a character-shifted cipher **with the digits dropping out
+  entirely**, so an extractor returns prose-shaped garbage with no numbers. That
+  is the WA SAO defect class in a new place — a ciphered page yields a silently
+  wrong read, not an obviously empty one. The fix was to **render the page to an
+  image** and read the printed table. FY2024's layer is clean, so it is
+  per-document, not per-publisher; the Federal Audit Clearinghouse carried an
+  identical FY2024 copy and is the better route where it has the year.
