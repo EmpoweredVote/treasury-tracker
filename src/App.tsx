@@ -13,6 +13,8 @@ import MethodologyPanel from './components/federal/MethodologyPanel';
 import ComparabilityNote from './components/federal/ComparabilityNote';
 import { comparability } from './data/comparability';
 import { cityBasisNotes } from './data/cityBasisNotes';
+import { figureFlagFor } from './data/figureFlags';
+import FigureFlagBanner from './components/FigureFlagBanner';
 import { financingInflow } from './data/fundScopeVocabulary';
 import { shortNameInCounty } from './data/entityListLabel';
 import ScaleToggle, { type FederalScale } from './components/federal/ScaleToggle';
@@ -1503,6 +1505,41 @@ function App() {
               county directory pages (their value is the Cities-in-County panel) */}
           {navigationPath.length === 0 && !isCountyDirectoryOnly && (
             <>
+              {/* ⚠⚠ FIGURE FLAG — the Milledgeville Rule, on the page.
+                  Shown when the figure currently on screen is one TT has
+                  CORROBORATED as inconsistent with the government's own other
+                  published accounts. The figure itself is displayed exactly as
+                  filed; this says why it looks wrong.
+
+                  Placed ABOVE the narrative summary deliberately. That card
+                  states the total as plain fact ("Fulton County spent $569
+                  million"), and on a flagged year that sentence is the thing
+                  being disputed - so the warning has to be read BEFORE it, not
+                  after. A basis note can sit lower because it qualifies a
+                  comparison; this qualifies the number itself. It is always visible — only the evidence is
+                  behind a toggle. Until this shipped, every flag TT had
+                  recorded lived in a repo file no UI code read.
+
+                  Keyed by entity|state|year|dataset. An absent key renders
+                  NOTHING, so every other entity, year and dataset is untouched
+                  — the additive pattern cityBasisNotes already uses. */}
+              {(() => {
+                const flag = figureFlagFor(
+                  selectedEntity?.name,
+                  selectedEntity?.state,
+                  parsePeriod(selectedYear).fiscalYear,
+                  activeDataset,
+                );
+                return flag ? (
+                  <div className="mb-6">
+                    <FigureFlagBanner
+                      flag={flag}
+                      label={`${selectedEntity?.name} ${parsePeriod(selectedYear).fiscalYear}`}
+                    />
+                  </div>
+                ) : null;
+              })()}
+
               {/* Federal landing: official first-split + deficit context replaces the
                   narrative summary (whose uncontextualized totals would mislead — 45-CONTEXT) */}
               {selectedEntity?.entity_type === 'federal' ? (

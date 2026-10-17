@@ -191,6 +191,116 @@ export const GA_FIGURE_FLAGS = Object.freeze([
       + 'order of magnitude independently. Chris\'s standing requirement.',
   },
   {
+    id: 'fulton-fy2021-confined-cluster-at-two-percent',
+    entity: 'Fulton County',
+    state: 'GA',
+    fiscalYear: 2021,
+    dataset: 'operating',
+    section: '5F/5E/5A/5C/5D/5G',
+    ucoa: '6500/6100/5400/1555/3100/4200/4250/7400/7500',
+    label: 'Libraries, Recreation, Welfare, Risk Management and five more',
+    amount: 568996679.77,
+    loaded: true,
+    severity: 'understated-confined-cluster',
+    what:
+      'Fulton County\'s FY2021 filing reports $622,851 of Culture and Recreation — '
+      + 'against $38.4M in 2020 and $34.7M in 2022 — essentially all of it Libraries, '
+      + 'with Recreation at exactly $0. The county\'s OWN budgetary schedule reports '
+      + 'LIBRARY DEPARTMENT ACTUALS OF $26,294,000 for the same year, in a flat series '
+      + '($27,365K / $28,128K / $26,294K / $26,827K / $27,824K, 2019-2023). '
+      + '⚠⚠ UNLIKE DEKALB FY2018 THIS IS CONFINED, NOT FILING-WIDE: Judicial is at '
+      + '95.9% of its neighbours and Public Safety at 83.6%. Nine lines are affected; '
+      + 'most of the filing is intact.',
+    magnitude: [
+      'THREE LINES SHARE A RATIO to the mean of their own 2020 and 2022 values, within '
+        + '0.24 of a percentage point: Risk Management $137,931 (2.012%), Welfare '
+        + '$384,820 (1.850%), Libraries $622,851 (2.090%). For scale, one week of a '
+        + 'year is 1.923%.',
+      'SIX FURTHER LINES ARE EXACTLY ZERO with non-trivial values on both sides: '
+        + 'Public Safety Administration (-$18.0M vs neighbour mean), Recreation '
+        + '(-$6.8M), Roads/Streets/Bridges (-$0.67M), Planning and Zoning (-$0.45M), '
+        + 'Storm Drainage (-$0.45M), Economic Development (-$0.24M).',
+      'Section 5F collapses to 1.70% of its neighbour mean. Part V as a whole is '
+        + '$568,996,680 = 78.3% of its neighbour mean, so roughly a fifth is missing.',
+      'Against the county\'s own library actuals, the filing reports 2.4% of what '
+        + 'Fulton spent on libraries that year ($622,851 vs $26,294,000).',
+    ],
+    verifiedBecause: [
+      '⚠⚠ THE EXTERNAL CONTROL IS FLAT AND UNCHANGED. Fulton\'s own General Fund '
+        + 'budgetary schedule reports library actuals of $27,365K (2019), $28,128K '
+        + '(2020), $26,294K (2021), $26,827K (2022), $27,824K (2023) — within 7% across '
+        + 'five years, with no discontinuity at 2021 whatsoever.',
+      '⚠⚠ THE LIBRARY\'S FINANCING DID NOT CHANGE. Verified against five successive '
+        + 'ACFRs: it is a General Fund DEPARTMENT, not a component unit (the auditor '
+        + 'names only the Fulton-DeKalb Hospital Authority and the Board of Health), '
+        + 'has no dedicated millage (Schedule 6 lists four direct levies, none for '
+        + 'libraries), and was never moved between funds. So the filing\'s near-zero is '
+        + 'NOT a reporting reorganisation.',
+      'THE MONEY DOES NOT REAPPEAR ANYWHERE IN THE FILING. Summing every Part V line\'s '
+        + 'FY2021 deviation from its own 2020/2022 mean: -$164,089,220 of negative gaps '
+        + 'against +$6,213,988 of positive, net -$157,875,232 unabsorbed. Part X '
+        + '(intergovernmental, 99.4% of neighbours) and Part VI were both checked as '
+        + 'alternative homes. ⚠ This test matters: the SAME sweep found Fulton\'s '
+        + 'FY2017/18 property tax swing IS a reappearance and therefore NOT a loss.',
+      'THE REVENUE SIDE OF THE SAME FILING IS NORMAL: Part I total 101.3% of its '
+        + 'neighbour mean, Own Source Revenues 99.3%, property taxes 101.9%. '
+        + 'Expenditure at 78.3% against revenue at ~100% is the same asymmetry DeKalb '
+        + 'FY2018 shows.',
+      'THE FILING OFFERS NO EXPLANATION: MosRptd = 12, MoChng = No, Audited = YES, '
+        + 'approved 2023-01-09. Every sheet of the workbook was read, including hidden '
+        + 'ranges; no note, footnote or attachment touches any affected line.',
+      'ENTITY- AND YEAR-SPECIFIC: DeKalb FY2021 is its HIGHEST Part V year in the '
+        + 'series, and Atlanta FY2021 shows only scattered unrelated items with no '
+        + 'shared ratio and no section collapse.',
+      'LOAD1 and the printed form agree on all 77 Part V codes, to the cent, in all '
+        + 'nine Fulton years — so this is content, not a parse or extract artifact.',
+    ],
+    // ⚠ NO ALLEGATION. A new preparer inheriting a complex form is the most
+    // ordinary circumstance there is, and this UNDERSTATES spending.
+    benignExplanations: [
+      'A FUND-SCOPE NARROWING — the leading explanation. Every affected function '
+        + '(libraries, recreation, risk management as an internal service fund, '
+        + 'welfare, planning, economic development, roads, storm drainage) is one '
+        + 'Fulton runs substantially OUTSIDE the General Fund. A Part V pulled from the '
+        + 'General Fund trial balance plus a few others yields exactly this shape: '
+        + 'normal GF-dominated functions, near-zero residuals for the rest, and an '
+        + 'untouched revenue side (a tax roll comes from somewhere else).',
+      '⭐ A PREPARER CHANGE, read from the form itself: _LOG1 names Sabrinna McTier for '
+        + 'FY2016-2020 and Kela Pryor from FY2021 on. FY2021 is the FIRST filing by a '
+        + 'new preparer — the most common benign cause of a one-year scope shift.',
+      '⚠ PANDEMIC-ADJACENT CIRCUMSTANCE, not a pandemic spending cut. Fulton\'s FY2021 '
+        + 'ACFR was the latest-filed of its five years — auditor\'s report dated '
+        + '2022-12-15, about 11.5 months after year end — and the county\'s second major '
+        + 'fund churned from a CARES Fund (2020) to an American Rescue Plan Fund '
+        + '(2021). A new preparer completing the form amid that churn, before the audit '
+        + 'was signed, fits.',
+      '⚠⚠ RULED OUT — GENUINE COVID CLOSURE. Libraries and recreation centres really '
+        + 'were shut, but the numbers refute it: FY2020 was the HARDER closure year and '
+        + 'reports $30.4M of libraries and $8.0M of recreation; FY2022 returns to '
+        + '$29.2M. A 98% single-year drop bracketed by two normal years is not a '
+        + 'closure profile, and buildings, payroll and debt do not stop. The county\'s '
+        + 'own library actuals are flat THROUGH 2021.',
+      '⚠ RULED OUT — a reclassification. No code in the FY2021 filing absorbs the '
+        + '$157.9M.',
+    ],
+    supportingContext:
+      '⚠ Fulton\'s ACFR does NOT use the DCA function set — it reports Administration, '
+      + 'Public safety, Legal, Infrastructure and facilities, Social services, Health '
+      + 'services and Other nonagency, with no "Culture and Recreation" or "Health and '
+      + 'Welfare" caption anywhere. So no ACFR line is a direct control total for '
+      + 'Section 5F; the library DEPARTMENT schedule is, and that is what was used. '
+      + '⚠ Part V columns (b) property and (d) intangibles are $0 in all nine Fulton '
+      + 'years, with capital outlay at 0.90% of Part V — treat Fulton\'s Part V as an '
+      + 'OPERATING measure, not total spend.',
+    corroboration:
+      '2 independent agents, neutral prompts, neither told the conclusion nor shown the '
+      + 'other\'s work, approached differently — one swept all nine filings from the raw '
+      + 'workbooks with no external data (blind sweep by ratio, not a hunt for a known '
+      + 'line), one read Fulton\'s five ACFRs with no sight of the filings. The first '
+      + 'established the pattern is real, confined and unabsorbed; the second supplied '
+      + 'the flat external control and ruled out a financing change.',
+  },
+  {
     id: 'dekalb-fy2017-utility-lines-omitted',
     entity: 'DeKalb County',
     state: 'GA',
@@ -526,15 +636,75 @@ export const GA_OUT_OF_SCOPE_FINDINGS = Object.freeze([
       + 'different things and the gap between them is where the discipline lives.',
   },
   {
-    what: '⚠ DeKalb reports $0 of Part VIII PERSONNEL in all eight filings, where Fulton '
-      + 'and Atlanta report $380M-$1,072M. Fulton reports $0 for FY2022 and FY2023 only. '
-      + 'Fulton FY2021 section 5F (Culture and Recreation) is $622,851 against $31M-$44M '
-      + 'in every other Fulton year — a one-section, one-year hole of the FY2017-DeKalb '
-      + 'shape.',
-    why: 'Part VIII is not a revenue or expenditure flow and is outside the loaded trees, '
-      + 'so the personnel gap changes no loaded figure. ⚠ The Fulton FY2021 5F hole IS '
-      + 'inside the loaded scope and is NOT YET CORROBORATED — noticed in passing by one '
-      + 'agent, never investigated. Treat it as an open observation, not a finding, and '
-      + 'corroborate before TT asserts anything about it.',
+    what: '✅ PROMOTED TO GA_FIGURE_FLAGS 2026-10-17 — the Fulton FY2021 observation was '
+      + 'corroborated and is now `fulton-fy2021-confined-cluster-at-two-percent`. ⚠ It '
+      + 'turned out NOT to be the "one-section hole" it was first described as: nine '
+      + 'lines across six sections are affected, three of them small-but-non-zero at a '
+      + 'shared ~2% and six at exact zero.',
+    why: '⭐ Recorded as a correction, not deleted. The first description came from a '
+      + 'passing mention and was wrong about the shape; the sweep that corroborated it '
+      + 'was a BLIND ratio scan of every line, not a look at the line already suspected. '
+      + 'An observation names something worth measuring — it does not describe it.',
+  },
+  {
+    what: '⚠ Part VIII PERSONNEL is unreliable across this corpus. DeKalb reports $0 in '
+      + 'all eight filings; Fulton reports $0 in FY2022 and FY2023 only (against ~$0.95bn '
+      + 'implied by its own surrounding years) and ~3x its neighbours in FY2016.',
+    why: 'Part VIII restates money already inside Part V, and is outside the loaded trees, '
+      + 'so no loaded figure moves. ⚠ The form requires "0 or higher, do NOT leave blank", '
+      + 'so a preparer without the payroll breakout satisfies validation by entering zero '
+      + '— a $0 here means NOTHING WAS REPORTED, never that payroll was zero.',
+  },
+  {
+    what: '⚠⚠ A ×1000 KEYING SLIP RECURS ACROSS THIS SOURCE, and it is NOT confined to one '
+      + 'government. Fulton Part VII (enterprise capital assets) is scaled by 1/1000 in '
+      + 'FY2023 and FY2024 — restoring the factor puts both years inside the 1.003-1.052 '
+      + 'growth band of the preceding six. Fulton Part XIII (fund equity) looks '
+      + 'thousands-denominated in FY2016. Atlanta FY2025 Part XIII reports GF unassigned '
+      + 'as $127,693 against $124,339,000 in FY2024 — the identical break.',
+    why: 'Parts VII and XIII are balance-sheet tables, outside the loaded trees. ⚠ Recorded '
+      + 'because the FY2009-2015 follow-up and the statewide sweep WILL meet this, and '
+      + 'because a ratio test against neighbouring years detects it cheaply.',
+  },
+  {
+    what: '⚠ NOT CORROBORATED — DO NOT PUBLISH AS A FLAG. Fulton FY2017/FY2018 property tax '
+      + 'looks like a TIMING SHIFT between two adjacent UCOA codes, not a loss: 31.1100 '
+      + '(current-year real property) is $296.2M in FY2017 against a $500.5M neighbour '
+      + 'mean, while 31.1200 (PRIOR-year) is $215.8M in FY2018 against a $32.9M mean. The '
+      + 'two-year total holds to within 1.4%. Read alone, FY2017 looks like a collapse and '
+      + 'FY2018 like a windfall; read as a pair, almost nothing moved. ⚠ BOTH YEARS ARE '
+      + 'INSIDE THE LOADED REVENUE SCOPE.',
+    why: '⭐⭐ THE REAPPEARANCE TEST IS WHY THIS IS NOT A FLAG. The same blind sweep that '
+      + 'corroborated FY2021 found this and checked whether the money turns up elsewhere '
+      + 'in the filing — it does. An omission and a reclassification look IDENTICAL from a '
+      + 'single line, and only one of them is a defect. ⚠ One reasoning chain has seen '
+      + 'this; it needs its own corroboration before TT says anything about it, and the '
+      + 'comparability point (these two years are not comparable to each other) may be '
+      + 'worth surfacing even if no figure is wrong.',
+  },
+  {
+    what: '⚠ NOT CORROBORATED. Further single-chain observations from the Fulton sweep, '
+      + 'all inside the loaded scope: FY2023 line 1595 "General Administration Fees" is '
+      + '$64,285,615 against $0 in the three prior years and $4.2M in FY2024, and is '
+      + 'ADDITIVE (no other line drops to offset it); FY2023 line 3200 Police Protection '
+      + 'is $1,333,171 against $9.7M and $12.8M either side; Section 1D licences/permits '
+      + 'is exactly $0 for FY2018-FY2021 then $19.7M in FY2022. Several revenue categories '
+      + 'were also re-coded mid-series (sewer into water charges; business taxes into '
+      + 'general business licences; court fees into fines and forfeitures), so revenue '
+      + 'CATEGORIES are not comparable year-over-year even where totals are.',
+    why: 'Recorded so a later session inherits them rather than rediscovering them. Each '
+      + 'needs the two-agent treatment before TT asserts anything. ⚠ The re-coding cases '
+      + 'in particular are probably NOT defects — they are comparability facts.',
+  },
+  {
+    what: '⚠ Fulton FY2021 Part VI column (f) reports $33,693 while the schedule the SAME '
+      + 'preparer attached to the SAME workbook sums to $11,090,369 (Wolf Creek $10,000 + '
+      + 'Board of Health $11,080,369) — 0.30% of its own attachment. The equivalent '
+      + 'schedules tie to the dollar in FY2018, FY2019 and FY2020.',
+    why: 'Part VI is enterprise system expense, excluded from the loaded trees by the '
+      + 'form\'s own scope statement. ⚠ Recorded because it is a SAME-FILING '
+      + 'CONTRADICTION needing no external source, and because it corroborates that '
+      + 'FY2021 is the year Fulton\'s return went wrong. The same filing also leaves '
+      + 'Part XIV\'s dependent-entities flag blank while its attachment lists three.',
   },
 ]);
