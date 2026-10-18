@@ -155,8 +155,16 @@ export function parseFilename(file) {
   return { cicoid: m[1], fiscalYear: Number(m[2]), label: m[3] };
 }
 
-/** Nested `{n, a, c}` shape that `treasury_sync_city_budget` expects. */
-function toTree(built) {
+/**
+ * Nested `{n, a, c}` shape that `treasury_sync_city_budget` expects.
+ *
+ * ⚠⚠ EXPORTED SO IT CAN BE TESTED. A blank Part comes back from here as SEVEN
+ * ROOTS OF ZERO, not as an empty array, because a root is kept when it has
+ * items whatever they are worth. A guard written against `tree.length === 0`
+ * therefore never fires, and three $0 rows reached production on the first
+ * statewide run. The caller must test for MONEY, not for length.
+ */
+export function toTree(built) {
   return built.roots
     .filter((r) => r.items.length > 0 || r.amount !== 0)
     .map((r) => {
@@ -513,11 +521,18 @@ async function main() {
       // ⚠ Not an exception to the Milledgeville Rule: that rule is about
       // FIGURES that look wrong, which load and are flagged. There is no figure
       // here. The other dataset in the same filing still loads.
-      if (tree.length === 0) {
+      // ⚠⚠ NOT `tree.length === 0`. `toTree()` KEEPS a root that has items,
+      // whatever they are worth, so a Part where every line is $0.00 comes back
+      // as seven roots of zero — a non-empty tree carrying no money. Testing the
+      // LENGTH let three $0 rows through on the first statewide run. The test
+      // has to be whether any node carries an amount.
+      const hasMoney = tree.some((r) => r.a !== 0 || (r.c || []).some((c) => c.a !== 0));
+      if (!hasMoney) {
         const rec = emptyDataset(f.cicoid, f.fiscalYear, datasetType);
         if (!rec) {
-          throw new Error(`${ent.name} FY${f.fiscalYear} ${datasetType}: the tree is EMPTY and no `
-            + 'GA_EMPTY_DATASETS entry records it. A new blank Part must be looked at, not skipped.');
+          throw new Error(`${ent.name} FY${f.fiscalYear} ${datasetType}: every line in this Part `
+            + 'is $0.00 and no GA_EMPTY_DATASETS entry records it. A new blank Part must be '
+            + 'looked at, not skipped.');
         }
         emptied.push(rec);
         console.log(`  SKIP ${ent.name} FY${f.fiscalYear} ${datasetType} — the publisher left this `

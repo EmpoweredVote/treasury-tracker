@@ -10,7 +10,7 @@ import {
 } from '../scripts/buildGaStatewideEntities.mjs';
 import { buildCensus } from '../scripts/lib/facFiscalYearCensus.mjs';
 import {
-  resolveMonth as loaderResolveMonth, unverifiableMatches,
+  resolveMonth as loaderResolveMonth, unverifiableMatches, toTree,
 } from '../scripts/loadGeorgiaRLGF.mjs';
 import {
   GA_FYE_MONTH_CHANGES, GA_FYE_MONTH_DEFECTS, fyeMonthChange, fyeMonthDefect,
@@ -469,5 +469,45 @@ describe('the statewide sweep findings reach readers', () => {
       // the REVENUE side of the same filing is not withheld
       expect(emptyDataset(e.cicoid, e.fiscalYear, 'revenue')).toBeNull();
     }
+  });
+});
+
+describe('⚠⚠ a blank Part is seven roots of zero, NOT an empty tree', () => {
+  const blank = {
+    total: 0,
+    roots: ['General Government', 'Judicial', 'Public Safety'].map((label) => ({
+      label, amount: 0, items: [{ id: '1100', label: 'x', amount: 0 }],
+    })),
+  };
+
+  it('keeps every root, because a root with items is kept whatever they are worth', () => {
+    // This is the exact shape that let three $0 rows into production: the guard
+    // tested LENGTH, and the length is not zero.
+    const tree = toTree(blank);
+    expect(tree.length).toBe(3);
+    expect(tree.length === 0).toBe(false);
+  });
+
+  it('carries no money, which is the test a guard must actually make', () => {
+    const tree = toTree(blank);
+    const hasMoney = tree.some((r) => r.a !== 0 || (r.c || []).some((c) => c.a !== 0));
+    expect(hasMoney).toBe(false);
+  });
+
+  it('a populated Part does carry money, so the guard does not swallow real data', () => {
+    const real = {
+      total: 100,
+      roots: [{ label: 'General Government', amount: 100, items: [{ id: '1100', label: 'x', amount: 100 }] }],
+    };
+    const tree = toTree(real);
+    expect(tree.some((r) => r.a !== 0 || (r.c || []).some((c) => c.a !== 0))).toBe(true);
+  });
+
+  it('⚠ a root whose CHILDREN alone carry money still counts as money', () => {
+    const odd = {
+      total: 0,
+      roots: [{ label: 'General Government', amount: 0, items: [{ id: '1100', label: 'x', amount: 50 }] }],
+    };
+    expect(toTree(odd).some((r) => r.a !== 0 || (r.c || []).some((c) => c.a !== 0))).toBe(true);
   });
 });
