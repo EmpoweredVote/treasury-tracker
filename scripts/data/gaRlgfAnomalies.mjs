@@ -36,142 +36,180 @@ export const GA_FIGURE_FLAGS = Object.freeze([
   // exactly. These are NOT read-fidelity failures, and the figure published is
   // the one the government filed: the Milledgeville Rule, four more times.
   {
-    id: 'monroe-fy2025-intergovernmental-is-four-hundred-times-audited',
+    id: 'monroe-fy2025-other-intergovernmental-line',
     entity: 'Monroe', state: 'GA', fiscalYear: 2025, dataset: 'revenue',
-    section: '2', ucoa: null, label: 'Intergovernmental Revenues',
-    amount: 1689565167.00, loaded: true, severity: 'extreme-outlier',
+    section: '2', ucoa: null, label: 'Other Intergovernmental Revenues — Attach List',
+    amount: 1686319022.00, loaded: true, severity: 'extreme-outlier',
     what:
-      'Monroe\'s FY2025 filing reports $1,689,565,167 of intergovernmental revenue — more '
-      + 'than Georgia\'s second-largest COUNTY reports in total, for a city of about 15,000 '
-      + 'people. The city\'s own audited statements for the same year report $4,232,497 of '
-      + 'intergovernmental revenue across all governmental funds. The filing is 399 times '
-      + 'that. It drags the filing\'s revenue total to $1,707,299,247 against $23,343,651 '
-      + 'the year before.',
+      '⚠ THE WHOLE EXCESS IS ONE LINE. Monroe\'s FY2025 Section 2 totals $1,689,565,167, '
+      + 'and $1,686,319,022 of that sits on the single free-text row "Other '
+      + 'Intergovernmental Revenues - Attach List". The section\'s other five lines are '
+      + 'entirely ordinary: payment in lieu of taxes $101,356 (against $69,107 the year '
+      + 'before), LMIG $206,713 (against $200,899), crime and corrections grants $42,310 '
+      + '(against $38,678), CDBG $5,580, SPLOST $2,890,186 (against $4,009,564). The same '
+      + '"Other" line was $2,670,179 in FY2024 and $2,496,501 in FY2023.',
     magnitude: [
-      'Section 2: $1,689,565,167 (FY2025) against $7,891,007 (FY2024) — 214x.',
-      'Revenue total $1,707,299,247 against a $23,343,651 FY2024 figure — 73x.',
-      '⚠⚠ Every OTHER section of the same filing is ordinary: property taxes $6,493,612 '
-        + 'against $5,957,239 the year before, and the expenditure side reports $22,417,266 '
-        + 'against $21,195,504. Only this one line moves.',
+      'The line: $1,686,319,022 (FY2025) against $2,670,179 (FY2024) — 632x.',
+      '⚠⚠ SCALE, PROPERLY STATED: Monroe\'s ENTIRE audited revenue for FY2025, including '
+        + 'its municipal electric utility, is $89,170,673 — $21,162,802 governmental and '
+        + '$68,007,871 business-type. The figure on this one line is NINETEEN TIMES '
+        + 'everything the city handles in a year.',
+      'Audited intergovernmental revenue across all governmental funds is $4,232,497 '
+        + '($555,205 of it in the General Fund).',
+      '⭐ Divided by 1,000 the line reads $1,686,319 — between its own FY2023 and FY2024 '
+        + 'values. Section 2 would then total $4,932,464 against the audited $4,232,497, '
+        + 'the same order of magnitude rather than 399 times it.',
     ],
     verifiedBecause: [
-      'The city\'s own audited statements, an INDEPENDENT document from a different '
-        + 'publisher: City of Monroe FY2025 Single Audit (Federal Audit Clearinghouse report '
-        + '2025-12-GSAFAC-0000422443) reports Intergovernmental revenue of $555,205 in the '
-        + 'General Fund and $4,232,497 across all governmental funds.',
-      'The filing ties 18/18, so the form\'s own Part II subtotal carries the same figure. '
-        + 'TT reproduces it exactly; this is not a misread cell.',
-      'Monroe\'s nine other filings run $9.9M-$26.7M of total revenue.',
+      'IDENTITY CONFIRMED FROM THE DOCUMENT, not from a name search: the audit used here is '
+        + 'titled "City of Monroe, Georgia — Annual Comprehensive Financial Report for the '
+        + 'Fiscal Year Ended December 31, 2025", which matches the filing\'s own December '
+        + 'year-end. It is the CITY, not Monroe County, which is a separate government '
+        + '(CICOID 1102102).',
+      'The city\'s own audited statements (Federal Audit Clearinghouse report '
+        + '2025-12-GSAFAC-0000422443) report intergovernmental revenue of $4,232,497 across '
+        + 'all governmental funds and total revenues of $89,170,673 including the utility.',
+      'The filing ties 18/18: the form\'s own Part II subtotal carries the figure, so the '
+        + 'preparer entered it and the form summed it. TT reproduces it exactly.',
+      'The expenditure side of the same filing reports $22,417,266 against $21,195,504 the '
+        + 'year before — so only this one revenue line moves.',
     ],
     benignExplanations: [
-      'A grant or loan drawdown entered in units other than dollars.',
-      'A cumulative or multi-year programme total entered in a single year\'s cell.',
-      'A spreadsheet reference picking up an unrelated total.',
+      '⭐ A UNIT ERROR. The ×1,000 relationship is exact to the digit and the "Attach List" '
+        + 'row is free text, which is where a figure copied from a schedule in thousands '
+        + 'would land. ⚠ OFFERED, NOT ASSERTED: no source states it, and the attachment '
+        + 'itself was not obtained.',
+      'A cumulative or multi-year grant total entered in a single year\'s cell.',
+      'A spreadsheet reference picking up an unrelated balance.',
     ],
     corroboration:
-      'Measured by the statewide sweep\'s outlier screen, then checked against an '
-      + 'INDEPENDENT source — the city\'s own audited ACFR via the Federal Audit '
-      + 'Clearinghouse, a different publisher and a different document from the DCA filing.',
+      'Checked against an INDEPENDENT document from a different publisher — the city\'s own '
+      + 'audited ACFR via the Federal Audit Clearinghouse — and the identity of that '
+      + 'document confirmed from its own title page rather than from a name match. The '
+      + 'driving line was then isolated against the city\'s own FY2023 and FY2024 filings.',
+    supportingContext:
+      '⭐⭐ ONE OF FIVE SCALE BREAKS FOUND IN LOADED REVENUE DATA ACROSS THE STATEWIDE SWEEP, '
+      + 'and THREE of them share this ×1,000 fingerprint: Monroe FY2025 here, Varnell FY2018 '
+      + 'real property tax, and Shellman FY2024 interest revenue. Lowndes FY2022 fits ×100 '
+      + 'instead, and Cornelia FY2017 fits neither. See GA-RLGF-RECON.md §10, which measured '
+      + 'the ×1,000 mechanism in BALANCE-SHEET Parts only and recorded a null for Parts '
+      + 'I-VI across seven governments while asking for a re-measure at scale. Re-measured '
+      + 'over 679 governments, that null does not hold.',
   },
   {
-    id: 'varnell-fy2018-property-tax-is-fifty-times-its-own-years',
+    id: 'varnell-fy2018-real-property-tax-line',
     entity: 'Varnell', state: 'GA', fiscalYear: 2018, dataset: 'revenue',
-    section: '1A', ucoa: null, label: 'General Property Taxes',
-    amount: 47936338.00, loaded: true, severity: 'extreme-outlier',
+    section: '1A', ucoa: null, label: 'Real Property Taxes, Current Year',
+    amount: 44107410.00, loaded: true, severity: 'extreme-outlier',
     what:
-      'Varnell\'s FY2018 filing reports $47,936,338 of general property taxes. The same line '
-      + 'is $96,586 the year before and $116,712 the year after, and the town\'s whole '
-      + 'revenue runs about $1 million in every other year it filed.',
+      'Varnell\'s FY2018 Section 1A totals $47,936,338, of which $44,107,410 is the single '
+      + 'line "Real Property Taxes, Current Year". That line was $67,370 in FY2017 — the '
+      + 'town has roughly 2,000 residents and about $1 million of revenue in every other '
+      + 'year it filed. ⚠ FY2018 also populates four property-tax lines that were empty in '
+      + 'FY2017 (public utility $889,219, personal property $2,189,457, motor vehicle '
+      + '$699,210, mobile home $51,042), so the return was filled in more fully that year '
+      + 'as well as carrying the outlier.',
     magnitude: [
-      'Section 1A: $47,936,338 (FY2018) against $96,586 (FY2017) — 496x.',
-      'Revenue total $48,653,429 against a $950,468 mean of FY2017 and FY2019 — 51x.',
-      'Every other section of the same filing is ordinary, and the expenditure side reports '
-        + '$783,695, in line with its neighbours.',
+      'The line: $44,107,410 (FY2018) against $67,370 (FY2017) — 655x.',
+      'Revenue total $48,653,429 against a $950,468 mean of FY2017 and FY2019.',
+      '⭐ Divided by 1,000 the line reads $44,107, against $67,370 the year before — the '
+        + 'same order of magnitude.',
+      'The expenditure side reports $783,695, in line with its neighbours, so the two sides '
+        + 'of the return do not move together.',
     ],
     verifiedBecause: [
       'The filing ties 18/18: the form\'s own Section 1A subtotal carries the figure.',
       'Varnell\'s eight other filings report $874,715-$1,879,709 of total revenue.',
       '⚠ NO INDEPENDENT SOURCE EXISTS. Varnell has no Federal Audit Clearinghouse record at '
         + 'all — it spends under the $750k federal threshold, so it files no Single Audit '
-        + 'and no audited statement is published anywhere this campaign can reach. The '
-        + 'finding rests on the town\'s own other filings, and that is stated rather than '
-        + 'dressed up.',
+        + 'and no audited statement is published. This rests on the town\'s own filings, '
+        + 'which is said plainly rather than dressed up.',
     ],
     benignExplanations: [
-      'A county-wide or district-wide digest figure entered in place of the town\'s own levy.',
-      'A misplaced decimal or a cell carrying a tax DIGEST rather than tax collected.',
+      '⭐ A unit error, the same ×1,000 shape as Monroe FY2025 and Shellman FY2024. ⚠ '
+        + 'Offered, not asserted.',
+      'A county-wide tax DIGEST figure entered in place of the town\'s own levy.',
     ],
     corroboration:
-      'Surfaced by the sweep\'s outlier screen and checked against the town\'s own eight '
-      + 'other filings. ⚠ Unlike the Monroe entry above, this one has NO independent '
-      + 'document behind it, because none exists for a government of this size.',
+      'Surfaced by the sweep\'s outlier screen, then isolated to a single line against the '
+      + 'town\'s own FY2017 filing. ⚠ Unlike Monroe, there is NO independent document behind '
+      + 'this one, because none exists for a government of this size.',
   },
   {
-    id: 'cornelia-fy2017-intergovernmental-is-fifty-seven-times-its-neighbours',
+    id: 'cornelia-fy2017-water-wastewater-grants-line',
     entity: 'Cornelia', state: 'GA', fiscalYear: 2017, dataset: 'revenue',
-    section: '2', ucoa: null, label: 'Intergovernmental Revenues',
-    amount: 63905171.00, loaded: true, severity: 'extreme-outlier',
+    section: '2', ucoa: null, label: 'Water/Wastewater Grants',
+    amount: 63781999.00, loaded: true, severity: 'extreme-outlier',
     what:
-      'Cornelia\'s FY2017 filing reports $63,905,171 of intergovernmental revenue against '
-      + '$1,123,893 the year before, for a city whose total revenue is $4-9 million in every '
-      + 'other year it filed.',
+      'Cornelia\'s FY2017 Section 2 totals $63,905,171, of which $63,781,999 is the single '
+      + 'line "Water/Wastewater Grants". That line was $1,012,024 in FY2016. The city has '
+      + 'about 4,500 residents and reports $4-9 million of total revenue in every other '
+      + 'year it filed.',
     magnitude: [
-      'Section 2: $63,905,171 (FY2017) against $1,123,893 (FY2016) — 57x.',
-      'Revenue total $67,623,932 against a $4,620,323 mean of FY2016 and FY2018 — 14.6x.',
-      'The expenditure side reports $4,493,669, in line with its neighbours, so only the '
-        + 'revenue side moves.',
+      'The line: $63,781,999 (FY2017) against $1,012,024 (FY2016) — 63x.',
+      'Revenue total $67,623,932 against a $4,620,323 mean of FY2016 and FY2018.',
+      '⚠ THE ×1,000 READING DOES NOT FIT THIS ONE. Divided by 1,000 the line reads $63,782, '
+        + 'which is SIXTEEN TIMES SMALLER than the $1,012,024 it ran the year before. So '
+        + 'whatever happened here, it is not the unit error that fits Monroe, Varnell and '
+        + 'Shellman — and it is recorded as unexplained rather than forced into the pattern.',
+      'The expenditure side reports $4,493,669, in line with its neighbours.',
     ],
     verifiedBecause: [
       'The filing ties 18/18: the form\'s own Part II subtotal carries the figure.',
       'Cornelia\'s eight other filings report $4.2M-$9.2M of total revenue.',
-      '⚠ Not corroborated against an audited statement. Cornelia files Single Audits in '
-        + 'other years, but the FY2017 report was not retrieved here — the Federal Audit '
-        + 'Clearinghouse API\'s DEMO_KEY is limited to 30 requests an hour and the budget '
-        + 'was spent on the larger Monroe figure. ⏭ This one is worth closing with the '
-        + 'FY2017 audit when the next session has the quota.',
+      '⚠ Not corroborated against an audited statement. Cornelia DOES file Single Audits '
+        + '(FAC holds 2016, 2022, 2024 and 2025) but the FY2017 report was not retrieved: '
+        + 'the Clearinghouse API\'s DEMO_KEY allows 30 requests an hour and the quota went '
+        + 'to Monroe. ⏭ An independent source EXISTS for this one and should close it.',
     ],
     benignExplanations: [
-      'A grant award entered at its full multi-year value rather than the year\'s receipts.',
-      'A utility or authority transfer entered on the intergovernmental line.',
+      'A genuine large capital grant for a water or wastewater project, recorded in the '
+        + 'year of award rather than of receipt. ⚠ $63.8M would still be implausibly large '
+        + 'for a city of this size, but this is the one entry where a real event has not '
+        + 'been ruled out.',
+      'A digit transposition or a figure carrying a project authorisation rather than cash.',
     ],
     corroboration:
-      'Surfaced by the sweep\'s outlier screen and checked against the city\'s own eight '
-      + 'other filings. ⚠ An independent audited source EXISTS for this city and simply was '
-      + 'not fetched; that is a gap in this session, not in the record.',
+      'Surfaced by the sweep\'s outlier screen and isolated to a single line against the '
+      + 'city\'s own FY2016 filing. ⚠ An independent audited source exists and was not '
+      + 'fetched; that is a gap in this session, not in the record.',
   },
   {
-    id: 'shellman-fy2024-other-revenues-is-two-hundred-times-its-own-years',
+    id: 'shellman-fy2024-interest-revenues-line',
     entity: 'Shellman', state: 'GA', fiscalYear: 2024, dataset: 'revenue',
-    section: '3B', ucoa: null, label: 'Other Revenues',
-    amount: 9101354.00, loaded: true, severity: 'extreme-outlier',
+    section: '3B', ucoa: null, label: 'Interest Revenues',
+    amount: 9049486.00, loaded: true, severity: 'extreme-outlier',
     what:
-      'Shellman\'s FY2024 filing reports $9,101,354 of other revenues against $34,286 the '
-      + 'year before, for a town whose total revenue is $0.5-1.0 million in every other year. '
-      + 'Its intergovernmental line moves at the same time, from $25,000 to $747,507.',
+      'Shellman\'s FY2024 Section 3B totals $9,101,354, of which $9,049,486 is the single '
+      + 'line "Interest Revenues". That line was $1,938 in FY2023. The town has about 1,000 '
+      + 'residents and reports $0.5-1.0 million of total revenue in every other year.',
     magnitude: [
-      'Section 3B: $9,101,354 (FY2024) against $34,286 (FY2023) — 265x.',
-      'Revenue total $10,419,293 against a $687,341 mean of FY2023 and FY2025 — 15x.',
+      'The line: $9,049,486 (FY2024) against $1,938 (FY2023).',
+      '⚠⚠ A PHYSICAL TEST FAILS IT. At the ~5% rates of 2024, interest of $9,049,486 '
+        + 'implies roughly $180 MILLION on deposit for a town whose annual revenue is under '
+        + '$1 million. There is no balance that could produce it.',
+      '⭐ Divided by 1,000 the line reads $9,049, which is an ordinary interest figure for a '
+        + 'town of this size and the same order as its $1,938 the year before.',
       'The expenditure side reports $1,502,090 against about $1 million in neighbouring '
-        + 'years, so the two sides do NOT move together — $9.1M of revenue is not matched by '
-        + 'any corresponding spending.',
+        + 'years — so $9.1M of revenue is matched by no corresponding spending.',
     ],
     verifiedBecause: [
       'The filing ties 18/18: the form\'s own Section 3B subtotal carries the figure.',
       'Shellman\'s nine other filings report $492,940-$1,034,473 of total revenue.',
-      '⚠ No independent source was obtained. The Federal Audit Clearinghouse lookup for this '
-        + 'town hit the DEMO_KEY rate limit and was not retried, so whether an audited '
-        + 'statement exists is UNKNOWN rather than known to be absent — which is a weaker '
-        + 'position than the Varnell entry, where absence is established.',
+      '⚠ No independent source was obtained. The Clearinghouse lookup for this town hit the '
+        + 'DEMO_KEY rate limit and was not retried, so whether an audited statement exists '
+        + 'is UNKNOWN — weaker than Varnell, where absence is established, and weaker than '
+        + 'Cornelia, where existence is established.',
     ],
     benignExplanations: [
-      'A one-off capital grant, settlement or asset sale genuinely received in that year.',
-      'A bond or loan proceed entered as revenue rather than as other financing.',
-      'A misplaced decimal.',
+      '⭐ A unit error, the same ×1,000 shape as Monroe FY2025 and Varnell FY2018. ⚠ '
+        + 'Offered, not asserted.',
+      'A bond or loan proceed, or a one-off settlement, entered on the interest line.',
     ],
     corroboration:
-      'Surfaced by the sweep\'s outlier screen and checked against the town\'s own nine other '
-      + 'filings. ⚠ No independent document; see the note above on what was and was not '
-      + 'established.',
+      'Surfaced by the sweep\'s outlier screen, isolated to a single line against the town\'s '
+      + 'own FY2023 filing, and tested against what an interest figure of that size would '
+      + 'require as a deposit balance. ⚠ No independent document; see the note above.',
   },
   {
     id: 'franklin-fy2023-filing-is-all-but-empty',
@@ -437,12 +475,16 @@ export const GA_FIGURE_FLAGS = Object.freeze([
       + 'found four scale breaks across seven governments and measured that NONE of them '
       + 'touched Parts I-VI — the revenue and expenditure flows TT actually loads — while '
       + 'explicitly warning that the null was measured on 7 governments and not 720, and '
-      + 'asking for it to be re-measured at scale. Re-measured across 151 counties and '
-      + '1,442 filings, a break DOES appear inside Part I. ⚠ It is NOT the x1000 slip that '
-      + 'register describes: that one is structural, arising because Georgia ACFRs print in '
-      + 'thousands while the form asks for dollars. This is a single cell at roughly x100, '
-      + 'in a different Part, with a different fingerprint. The null held for the mechanism '
-      + 'it described; it did not hold for scale breaks in loaded data generally.',
+      + 'asking for it to be re-measured at scale. Re-measured across the WHOLE STATE — 679 '
+      + 'governments, 6,236 filings — FIVE scale breaks appear in loaded revenue data: this '
+      + 'one, Monroe FY2025, Varnell FY2018, Cornelia FY2017 and Shellman FY2024. '
+      + '⭐⭐ THREE OF THEM FIT THE x1000 SHAPE EXACTLY — Monroe, Varnell and Shellman each '
+      + 'read as an ordinary figure for their government once divided by a thousand. That is '
+      + 'the mechanism §10 describes, arising because Georgia ACFRs print in thousands while '
+      + 'the form asks for dollars, and §10 measured it as ABSENT from Parts I-VI across '
+      + 'seven governments. ⚠ This Lowndes figure is NOT one of the three: it fits x100, not '
+      + 'x1000, and Cornelia fits neither. So the null did not hold, and the mechanism behind '
+      + 'it does reach the loaded Parts — but it is not the only thing that breaks scale there.',
   },
   {
     id: 'milledgeville-fy2025-rents-royalties',
