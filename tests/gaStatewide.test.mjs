@@ -9,6 +9,15 @@ import {
   ALREADY_LOADED, GA_FIRST_YEAR, GA_LAST_YEAR,
 } from '../scripts/buildGaStatewideEntities.mjs';
 import { buildCensus } from '../scripts/lib/facFiscalYearCensus.mjs';
+import {
+  resolveMonth as loaderResolveMonth, unverifiableMatches,
+} from '../scripts/loadGeorgiaRLGF.mjs';
+import {
+  GA_FYE_MONTH_CHANGES, GA_FYE_MONTH_DEFECTS, fyeMonthChange, fyeMonthDefect,
+  GA_UNVERIFIABLE_FILINGS, unverifiableFiling, formTotalDefect,
+  GA_FIGURE_FLAGS, GA_EMPTY_DATASETS, emptyDataset,
+} from '../scripts/data/gaRlgfAnomalies.mjs';
+import { figureFlags } from '../src/data/figureFlags.ts';
 
 const OPTIONS = `<select name="ctl00$bodyContent$ddlGovs" id="ctl00_bodyContent_ddlGovs">
   <option selected="selected" value="">-- Select a Local Government --</option>
@@ -216,5 +225,249 @@ describe('registry mechanics', () => {
     expect(GA_FIRST_YEAR).toBe(2016);
     expect(GA_LAST_YEAR).toBe(2025);
     expect(GA_LOAD_WINDOW).toEqual({ first: 2016, last: 2025 });
+  });
+});
+
+describe('a calendar change INSIDE the window — per-year months', () => {
+  const ENT = {
+    cicoid: '1130130', name: 'Talbot County', entityType: 'county',
+    fiscalYearStartMonth: 10, monthByYear: { 2016: 7, 2017: 7, 2018: 7, 2019: 7, 2020: 7, 2021: 7 },
+  };
+
+  it('writes the month the filing printed for THAT year, not the entity\'s current one', () => {
+    expect(loaderResolveMonth(ENT, { fyEndMonth: 7, fyEndMonthText: 'June 30' }, 2021).month).toBe(7);
+    expect(loaderResolveMonth(ENT, { fyEndMonth: 10, fyEndMonthText: 'September 30' }, 2022).month).toBe(10);
+  });
+
+  it('⚠ still REFUSES a filing whose month matches neither side of the change', () => {
+    const r = loaderResolveMonth(ENT, { fyEndMonth: 1, fyEndMonthText: 'December 31' }, 2022);
+    expect(r.ok).toBe(false);
+    expect(r.month).toBeNull();
+    expect(r.how).toMatch(/CONFLICT/);
+  });
+
+  it('falls back to the entity month for a year the map does not cover', () => {
+    expect(loaderResolveMonth(ENT, { fyEndMonth: 10, fyEndMonthText: 'September 30' }, 2025).month).toBe(10);
+  });
+
+  it('every recorded change reproduces the real filings it claims to describe', () => {
+    for (const c of GA_FYE_MONTH_CHANGES) {
+      expect(c.id, 'each change needs an id').toBeTruthy();
+      expect(c.corroboration, `${c.id} must say what corroborates it`).toBeTruthy();
+      expect(Object.keys(c.monthByYear).length, `${c.id} must name the years it moves`).toBeGreaterThan(0);
+      for (const [, m] of Object.entries(c.monthByYear)) expect(m).not.toBe(c.month);
+    }
+  });
+});
+
+describe('a one-year month slip — pinned, or refused', () => {
+  const BARTOW = { cicoid: '1008008', name: 'Bartow County', entityType: 'county', fiscalYearStartMonth: 1 };
+
+  it('accepts the slip ONLY where the registry pins both months', () => {
+    const r = loaderResolveMonth(BARTOW, { fyEndMonth: 7, fyEndMonthText: 'June 30' }, 2025);
+    expect(r.ok).toBe(true);
+    expect(r.month).toBe(1);
+    expect(r.defect.id).toBe('bartow-fy2025-june-for-december');
+    // ⚠⚠ A corrected month is NEVER a corroborated one.
+    expect(r.confirmed).toBe(false);
+  });
+
+  it('⚠⚠ REFUSES a slip of a different size in the same year', () => {
+    const r = loaderResolveMonth(BARTOW, { fyEndMonth: 10, fyEndMonthText: 'September 30' }, 2025);
+    expect(r.ok).toBe(false);
+  });
+
+  it('⚠⚠ REFUSES the same slip in a different year', () => {
+    const r = loaderResolveMonth(BARTOW, { fyEndMonth: 7, fyEndMonthText: 'June 30' }, 2024);
+    expect(r.ok).toBe(false);
+  });
+
+  it('⚠⚠ REFUSES the same slip on a different entity', () => {
+    const other = { ...BARTOW, cicoid: '1001001', name: 'Appling County' };
+    expect(loaderResolveMonth(other, { fyEndMonth: 7, fyEndMonthText: 'June 30' }, 2025).ok).toBe(false);
+  });
+
+  it('every recorded slip pins both months and says what corroborates it', () => {
+    for (const d of GA_FYE_MONTH_DEFECTS) {
+      expect(d.formMonth, `${d.id} must pin the month the form printed`).toBeGreaterThan(0);
+      expect(d.month, `${d.id} must pin the month written instead`).toBeGreaterThan(0);
+      expect(d.formMonth, `${d.id} pins the same month twice`).not.toBe(d.month);
+      expect(d.corroboration, `${d.id} must say what corroborates it`).toBeTruthy();
+    }
+  });
+});
+
+describe('the builder refuses a registry entry that does not match the filings', () => {
+  const months = (...ms) => ms.map(([fiscalYear, month]) => ({ fiscalYear, month, text: 'x' }));
+  const silent = () => ({ unknown: 'no row' });
+  const TALBOT = { cicoid: '1130130', name: 'Talbot County', entityType: 'county', censusName: null, censusKind: null };
+
+  it('accepts the change when it predicts every filing', () => {
+    const r = resolveMonth(TALBOT, months([2020, 7], [2021, 7], [2022, 10], [2023, 10]), silent);
+    expect(r.status).toBe('unverified'); // census silent here; the change itself resolved
+    expect(r.month).toBe(10);
+    expect(r.monthByYear[2021]).toBe(7);
+  });
+
+  it('⚠⚠ REFUSES when the entry mispredicts a year — it describes a different series', () => {
+    const r = resolveMonth(TALBOT, months([2020, 7], [2021, 1], [2022, 10]), silent);
+    expect(r.status).toBe('conflict');
+    expect(r.why).toMatch(/predicts month 7 for FY2021 but the filing prints 1/);
+  });
+
+  it('⚠ REFUSES an entity whose filings disagree with nothing recorded about it', () => {
+    const r = resolveMonth(
+      { cicoid: '1001001', name: 'Appling County', entityType: 'county', censusName: null, censusKind: null },
+      months([2016, 7], [2017, 1]), silent,
+    );
+    expect(r.status).toBe('conflict');
+    expect(r.why).toMatch(/not accounted for/);
+  });
+});
+
+describe('the two transition stubs reach readers', () => {
+  it('⚠⚠ flags a short year as NOT-COMPARABLE, never as understated', () => {
+    for (const k of ['Barrow County|GA|2017|operating', 'Barrow County|GA|2017|revenue',
+      'Talbot County|GA|2022|operating', 'Talbot County|GA|2022|revenue']) {
+      const f = figureFlags[k];
+      expect(f, `${k} has no reader-facing flag`).toBeTruthy();
+      // The figure is CORRECT; only the comparison breaks. Calling a correct
+      // figure understated tells the reader something false.
+      expect(f.severity, k).toBe('not-comparable');
+      expect(f.whatThisMeans, k).toBeTruthy();
+      expect(f.entries.length, k).toBeGreaterThan(0);
+      for (const e of f.entries) {
+        expect(e.source_name, k).toBeTruthy();
+        expect(e.source_url, k).toMatch(/^https:\/\//);
+        expect(e.source_date, k).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+      }
+    }
+  });
+
+  it('⚠ Jenkins needs no stub flag — its transition year is the unreadable file', () => {
+    expect(figureFlags['Jenkins County|GA|2020|operating']).toBeUndefined();
+    const jenkins = GA_FYE_MONTH_CHANGES.find((c) => c.cicoid === '1082082');
+    expect(jenkins.monthByYear[2020]).toBeUndefined();
+    expect(jenkins.corroboration).toMatch(/encrypted/);
+  });
+});
+
+describe('a filing whose oracle CANNOT RUN is excluded, not published', () => {
+  const chk = (tag, id) => ({ tag, id });
+
+  it('matches only when BOTH the skipped and failed sets are exactly right', () => {
+    const e = unverifiableFiling('1067067', 2018);
+    expect(e.id).toBe('gwinnett-fy2018-every-revenue-subtotal-is-ref');
+    const skipped = e.skipped.map((s) => chk(...s.split(' ')));
+    const bad = e.failed.map((s) => {
+      const [tag, ...rest] = s.split(' ');
+      return chk(tag, rest.join(' '));
+    });
+    expect(unverifiableMatches(e, skipped, bad)).toBe(true);
+  });
+
+  it('⚠⚠ REFUSES when the filing breaks one MORE way than the entry records', () => {
+    const e = unverifiableFiling('1067067', 2018);
+    const skipped = e.skipped.map((s) => chk(...s.split(' ')));
+    const bad = e.failed.map((s) => {
+      const [tag, ...rest] = s.split(' ');
+      return chk(tag, rest.join(' '));
+    });
+    expect(unverifiableMatches(e, [...skipped, chk('EXP', '5A')], bad)).toBe(false);
+    expect(unverifiableMatches(e, skipped, [...bad, chk('EXP', 'Part V grand')])).toBe(false);
+  });
+
+  it('⚠ REFUSES when the filing breaks one FEWER way — that is a different filing too', () => {
+    const e = unverifiableFiling('1067067', 2018);
+    const skipped = e.skipped.slice(1).map((s) => chk(...s.split(' ')));
+    const bad = e.failed.map((s) => {
+      const [tag, ...rest] = s.split(' ');
+      return chk(tag, rest.join(' '));
+    });
+    expect(unverifiableMatches(e, skipped, bad)).toBe(false);
+  });
+
+  it('matches nothing for an unrecorded filing', () => {
+    expect(unverifiableFiling('1067067', 2019)).toBeNull();
+    expect(unverifiableMatches(null, [], [])).toBe(false);
+  });
+
+  it('every excluded filing says what was checked and why it could not be', () => {
+    for (const u of GA_UNVERIFIABLE_FILINGS) {
+      expect(u.what, `${u.id} must say what broke`).toBeTruthy();
+      expect(u.verifiedBecause.length, `${u.id} must show its working`).toBeGreaterThan(0);
+      expect(Array.isArray(u.skipped) && Array.isArray(u.failed), u.id).toBe(true);
+      expect(u.skipped.length + u.failed.length, `${u.id} pins no checks at all`).toBeGreaterThan(0);
+    }
+  });
+});
+
+describe('Long County FY2022 — the DeKalb mechanism in a second government', () => {
+  it('pins all three figures, so a different shortfall still refuses', () => {
+    const d = formTotalDefect('1091091', 2022, '5A');
+    expect(d.id).toBe('long-fy2022-5a-total-omits-legislative');
+    expect(d.formTotal).toBe(2832877);
+    expect(d.itemsTotal).toBe(3228935);
+    expect(d.shortfall).toBe(396058);
+    expect(d.itemsTotal - d.formTotal).toBeCloseTo(d.shortfall, 2);
+    expect(d.loaded).toBe('items');
+  });
+
+  it('⚠ is MIRRORED from DeKalb\'s — the total starts late rather than ending early', () => {
+    const dekalb = formTotalDefect('1044044', 2020, '5B');
+    expect(dekalb.omittedCode).toBe('2800'); // DeKalb: the section's LAST line
+    const long = formTotalDefect('1091091', 2022, '5A');
+    expect(long.omittedCode).toBe('1100'); // Long: the section's FIRST line
+  });
+
+  it('matches nothing in the nine years that tie', () => {
+    for (const fy of [2016, 2017, 2018, 2019, 2020, 2021, 2023, 2024, 2025]) {
+      expect(formTotalDefect('1091091', fy, '5A'), `FY${fy}`).toBeNull();
+    }
+  });
+});
+
+describe('the statewide sweep findings reach readers', () => {
+  it('⚠⚠ a near-44x figure is an OUTLIER, not understated — it is larger, not smaller', () => {
+    const f = figureFlags['Lowndes County|GA|2022|revenue'];
+    expect(f.severity).toBe('outlier');
+    expect(f.headline).toMatch(/44 times/);
+  });
+
+  it('⚠ a quarter-sized expenditure side IS understated', () => {
+    const f = figureFlags['Lowndes County|GA|2018|operating'];
+    expect(f.severity).toBe('understated');
+  });
+
+  it('⚠⚠ the filed figure is published, never replaced by the audited one', () => {
+    const reg = GA_FIGURE_FLAGS.find((x) => x.id === 'lowndes-fy2018-expenditure-side-is-about-one-quarter');
+    expect(reg.loaded).toBe(true);
+    expect(reg.amount).toBe(23615257.69);
+    const out = GA_FIGURE_FLAGS.find((x) => x.id === 'lowndes-fy2022-sales-tax-is-forty-four-times-audited');
+    expect(out.loaded).toBe(true);
+    expect(out.amount).toBe(1673304896.05);
+  });
+
+  it('⚠ every new flag rests on a source that is NOT the filing it flags', () => {
+    for (const id of ['lowndes-fy2018-expenditure-side-is-about-one-quarter',
+      'lowndes-fy2022-sales-tax-is-forty-four-times-audited']) {
+      const reg = GA_FIGURE_FLAGS.find((x) => x.id === id);
+      expect(reg.corroboration).toMatch(/independent/i);
+      expect(reg.verifiedBecause.join(' ')).toMatch(/Federal Audit Clearinghouse/);
+      expect(reg.benignExplanations.length).toBeGreaterThanOrEqual(3);
+    }
+  });
+
+  it('⚠⚠ an EMPTY Part is withheld, which is not the Milledgeville Rule', () => {
+    // The rule governs figures that look wrong: they load and are flagged.
+    // There is no figure in a blank Part, so there is no row.
+    expect(GA_EMPTY_DATASETS).toHaveLength(3);
+    for (const e of GA_EMPTY_DATASETS) {
+      expect(e.dataset).toBe('operating');
+      expect(e.what).toBeTruthy();
+      expect(emptyDataset(e.cicoid, e.fiscalYear, 'operating')).toBe(e);
+      // the REVENUE side of the same filing is not withheld
+      expect(emptyDataset(e.cicoid, e.fiscalYear, 'revenue')).toBeNull();
+    }
   });
 });

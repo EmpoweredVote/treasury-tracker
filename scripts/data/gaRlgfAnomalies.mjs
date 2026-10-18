@@ -30,6 +30,277 @@
  */
 export const GA_FIGURE_FLAGS = Object.freeze([
   {
+    id: 'franklin-fy2023-filing-is-all-but-empty',
+    entity: 'Franklin County',
+    state: 'GA',
+    fiscalYear: 2023,
+    dataset: 'revenue',
+    section: 'Parts I-III (all seven sections)',
+    ucoa: null,
+    label: 'Total revenue',
+    amount: 192274.00,
+    loaded: true,
+    severity: 'understated-whole-dataset',
+    what:
+      'Franklin County\'s FY2023 return is all but blank. The revenue side reports $192,274 '
+      + 'in a SINGLE category against a $30,078,761 mean of FY2022 and FY2025 — 0.6%. The '
+      + 'expenditure side is $0.00 in all seven sections and is NOT loaded at all (see '
+      + 'GA_EMPTY_DATASETS): there is no figure there to publish. This revenue figure IS '
+      + 'loaded, because unlike the expenditure side it is a number the county filed.',
+    magnitude: [
+      'Revenue $192,274 in FY2023 against $25,852,333 (FY2022) and $34,305,189 (FY2025).',
+      'Franklin\'s revenue ran $17.8M-$25.9M in every filed year from FY2016 to FY2022.',
+      '⚠⚠ This is a MORE extreme understatement than DeKalb FY2018, which loaded at 12% '
+        + 'of its audited accounts. This one is under 1%.',
+      '⚠ DCA lists no FY2021 or FY2024 filing for Franklin at all, so FY2023\'s immediate '
+        + 'neighbours in the loaded series are FY2022 and FY2025.',
+    ],
+    verifiedBecause: [
+      'The county\'s own audited statements set the scale INDEPENDENTLY: Franklin County, '
+        + 'Georgia FY2024 Single Audit (Federal Audit Clearinghouse report '
+        + '2024-06-GSAFAC-0000350197) reports General Fund actual revenues of $22,561,941. '
+        + '⚠ That is the FY2024 audit, not FY2023 — DCA lists no FY2023 audit for this '
+        + 'county — so it establishes the county\'s scale, NOT the FY2023 figure itself.',
+      'Franklin\'s own seven other filings all report $17.8M-$34.3M of revenue, so FY2023 '
+        + 'is a departure from the entity\'s own practice rather than a smaller county.',
+      'The filing ties 18/18 — against its own near-zero printed subtotals. ⚠ That is the '
+        + 'point: an oracle comparing a blank tree to a blank total passes while measuring '
+        + 'nothing, which is why this was found by an outlier screen and not by the gate.',
+    ],
+    benignExplanations: [
+      'A return opened and submitted substantially unfilled, which DCA reconciles against '
+        + 'nothing and so does not reject.',
+      'A filing superseded by a later corrected submission that DCA never published.',
+      'A technical failure in the preparer\'s workbook that emptied the data entry sheet '
+        + 'before submission.',
+    ],
+    corroboration:
+      'Surfaced by the statewide sweep\'s outlier screen rather than by the oracle, then '
+      + 'checked against an INDEPENDENT document — the county\'s own federally filed '
+      + 'audited statements, obtained from the Federal Audit Clearinghouse rather than '
+      + 'from DCA — and separately against the county\'s own seven other filings.',
+  },
+  {
+    id: 'barrow-fy2017-nine-month-transition-year',
+    entity: 'Barrow County',
+    state: 'GA',
+    fiscalYear: 2017,
+    dataset: 'operating and revenue',
+    section: 'the whole filing',
+    ucoa: null,
+    label: 'A nine-month transition year',
+    amount: 35414129.00,
+    loaded: true,
+    severity: 'not-comparable',
+    // ⚠⚠ THE FIGURES ARE CORRECT. The period is genuinely shorter. Recording
+    // this as a defect would both mislead the reader and impute a fault to a
+    // county that declared the change on the form itself.
+    what:
+      'Barrow County moved its fiscal year end from 30 September to 30 June in FY2017, so '
+      + 'that year covers NINE MONTHS. The filing declares it: MosRptd = 9 and MoChng = '
+      + 'Yes. Operating comes to $35,414,129 against a $45,790,381 mean of FY2016 and '
+      + 'FY2018 — a ratio of 0.773 where nine twelfths is 0.750.',
+    magnitude: [
+      'Operating ratio 0.773 (shortfall $10,376,252 against the neighbour mean).',
+      'Revenue ratio 0.874 (shortfall $7,166,650) — higher than the expenditure ratio, '
+        + 'which is what a changeover does to a billing cycle that does not divide into '
+        + 'the stub.',
+      '⚠ This is the FIRST transition stub the Georgia campaign has loaded. Baldwin\'s '
+        + '2010 and Atlanta\'s 2006 stubs both sit BELOW the FY2016 floor.',
+    ],
+    verifiedBecause: [
+      'The filing states it itself — the FY2017 return reports MosRptd = 9 and MoChng = '
+        + 'Yes, the only one of the three mid-window Georgia calendar changes that does.',
+      'FAC, an INDEPENDENT federal source, reports Barrow County at month 10 for 1998-2016 '
+        + 'and at month 7 for 2019 and 2024 — both sides of the change, in the right order.',
+      'The FY2016 filing gives a year end of 30 September and every filing from FY2017 on '
+        + 'gives 30 June.',
+    ],
+    benignExplanations: [
+      'Nothing to explain: a government may change its fiscal calendar, and this one '
+        + 'reported the change on the form.',
+    ],
+    corroboration:
+      'Two independent sources agree before this was recorded: the filing\'s own declared '
+      + 'nine-month period, and the Federal Audit Clearinghouse\'s record of Barrow\'s '
+      + 'audited periods on both calendars.',
+  },
+  {
+    id: 'talbot-fy2022-three-month-transition-year',
+    entity: 'Talbot County',
+    state: 'GA',
+    fiscalYear: 2022,
+    dataset: 'operating and revenue',
+    section: 'the whole filing',
+    ucoa: null,
+    label: 'A three-month transition year',
+    amount: 2036818.00,
+    loaded: true,
+    severity: 'not-comparable',
+    what:
+      'Talbot County moved its fiscal year end from 30 June to 30 September in FY2022, so '
+      + 'that year covers about THREE MONTHS. ⚠⚠ UNLIKE BARROW, THE FORM DOES NOT SAY SO: '
+      + 'the FY2022 return reports MosRptd = 12 and MoChng = No while reporting a quarter '
+      + 'of a year\'s money. Operating is $2,036,818 against an $8,249,811 mean of FY2021 '
+      + 'and FY2023 — a ratio of 0.247 where three twelfths is 0.250.',
+    magnitude: [
+      'Operating ratio 0.247 — within 0.003 of an exact quarter.',
+      'Revenue ratio 0.186, lower than the expenditure ratio.',
+      '⚠⚠ READER DISTORTION: without the flag a reader sees county spending fall 73% from '
+        + 'FY2021 and then rise 345% into FY2023. Neither movement happened.',
+      '⚠ The form\'s own months-reported field is WRONG here. That field therefore cannot '
+        + 'be used to detect stubs at scale — only the figures reveal this one.',
+    ],
+    verifiedBecause: [
+      'The year end printed on the filings moves: 30 June for FY2016-2021, 30 September '
+        + 'for FY2022-2025. Four consecutive later filings carry the new date, so it is a '
+        + 'change of calendar and not a one-year slip.',
+      'The money independently confirms the period length: 0.247 of the neighbour mean on '
+        + 'the expenditure side, against 0.250 for an exact quarter.',
+      '⚠ FAC reports Talbot at month 7 for 1998-2014 and carries NO row on the later '
+        + 'calendar, so the federal record corroborates only the EARLIER side. That is '
+        + 'weaker than Barrow\'s two-sided confirmation and is recorded as such rather '
+        + 'than presented as settled.',
+    ],
+    benignExplanations: [
+      'A government may change its fiscal calendar; the figures for the stub are correct '
+        + 'for the period they cover.',
+      'The months-reported and month-changed fields were left at their defaults while the '
+        + 'year-end date was updated — ordinary form maintenance, and it understates '
+        + 'nothing: the money reported matches the period actually covered.',
+    ],
+    corroboration:
+      'The change rests on two independent lines: the year-end date printed across ten '
+      + 'filings, and the size of the figures, which lands within 0.003 of an exact '
+      + 'quarter without being fitted to it. ⚠ The federal audit record corroborates the '
+      + 'earlier calendar only.',
+  },
+  {
+    id: 'lowndes-fy2018-expenditure-side-is-about-one-quarter',
+    entity: 'Lowndes County',
+    state: 'GA',
+    fiscalYear: 2018,
+    dataset: 'operating',
+    section: 'Part V (all seven sections)',
+    ucoa: null,
+    label: 'Total government expenditures',
+    amount: 23615257.69,
+    loaded: true,
+    severity: 'understated-whole-dataset',
+    what:
+      'Lowndes County\'s FY2018 filing reports $23,615,258 of Part V expenditure against '
+      + '$89,367,784 of governmental-fund expenditure in the county\'s OWN AUDITED '
+      + 'STATEMENTS for the same year — 26.4%. The shortfall is spread across ALL SEVEN '
+      + 'sections rather than confined to one: 5A 0.358 of its neighbours, 5B 0.275, '
+      + '5C 0.211, 5D 0.177, 5E 0.200, 5F 0.370, 5G 0.256. ⚠ It is NOT a single scale '
+      + 'factor — the section ratios range from 0.18 to 0.37 — so this is not a decimal '
+      + 'slip; it reads as a partial return.',
+    magnitude: [
+      'Part V total $23,615,258 in FY2018 against $107,502,596 (FY2017) and $87,178,047 '
+        + '(FY2019) — a ratio of 0.243 to the mean of the two.',
+      'Against the audited figure the gap is $65,752,526, or 73.6% of the county\'s own '
+        + 'reported governmental-fund spending.',
+      '⚠ Lowndes\' REVENUE side for FY2018 is $79,919,812 and sits normally among its '
+        + 'neighbours, so only the expenditure side is affected.',
+    ],
+    verifiedBecause: [
+      'The county\'s own audited statements, a DIFFERENT document from a DIFFERENT '
+        + 'publisher: Lowndes County, Georgia FY2018 Single Audit (Federal Audit '
+        + 'Clearinghouse report 2018-06-CENSUS-0000136968) reports TOTAL EXPENDITURES of '
+        + '$55,812,164 (General Fund) + $18,725,238 + $14,830,382 = $89,367,784 across '
+        + 'governmental funds.',
+      'Lowndes\' own FY2017 and FY2019 filings report $107.5M and $87.2M, both near the '
+        + 'audited scale — so FY2018 is a departure from the entity\'s own practice, not a '
+        + 'different convention applied throughout.',
+      'The filing ties 18/18 against its own printed subtotals, so TT read it faithfully: '
+        + 'the form is internally consistent and simply reports less than the county did. '
+        + 'This is NOT a read-fidelity failure.',
+    ],
+    benignExplanations: [
+      'Only one fund, or part of the year, was entered on the expenditure side while the '
+        + 'revenue side was completed in full.',
+      'The preparer reported some functions in Parts VI or X (enterprise and '
+        + 'intergovernmental expenditure, both outside TT\'s loaded scope) and did not '
+        + 'carry them into Part V.',
+      'A partially completed return filed to meet the deadline and never revised — DCA '
+        + 'reconciles nothing, so nothing downstream would have caught it.',
+    ],
+    corroboration:
+      'The gap rests on an INDEPENDENT document — the county\'s own federally filed audited '
+      + 'statements, obtained from the Federal Audit Clearinghouse rather than from DCA — '
+      + 'and separately on the entity\'s own two neighbouring filings, which agree with the '
+      + 'audited scale. Two lines of evidence, neither of them this filing.',
+  },
+  {
+    id: 'lowndes-fy2022-sales-tax-is-forty-four-times-audited',
+    entity: 'Lowndes County',
+    state: 'GA',
+    fiscalYear: 2022,
+    dataset: 'revenue',
+    section: '1B',
+    ucoa: '31.3100',
+    label: 'General Sales and Use Taxes',
+    amount: 1673304896.05,
+    loaded: true,
+    severity: 'extreme-outlier',
+    what:
+      'Lowndes County\'s FY2022 filing reports $1,673,304,896.05 of General Sales and Use '
+      + 'Taxes — more than its own total revenue in every other year, and 44.5x the '
+      + '$37,590,000 of sales taxes the county\'s OWN AUDITED STATEMENTS report for FY2022. '
+      + 'It is 104.6x the same line in FY2021 ($15,999,448) and 64.4x FY2023 ($25,975,475). '
+      + 'It drags the filing\'s whole revenue total to $1,806,076,930 against a $177,440,992 '
+      + 'mean of the years either side.',
+    magnitude: [
+      'Section 1B: $1,673,304,896.05 (FY2022) against $15,999,447.52 (FY2021) and '
+        + '$25,975,475 (FY2023).',
+      'Part I revenue total $1,717,660,252 against $63,531,704 (FY2021) and $131,425,780 '
+        + '(FY2023).',
+      '⚠⚠ READER DISTORTION: an unflagged reader comparing FY2021 to FY2022 sees county '
+        + 'revenue rise by 779%, and comparing FY2022 to FY2023 sees it fall by 91.7%. '
+        + 'Neither movement happened.',
+      '⚠ Dividing by exactly 100 gives $16,733,049, which sits between the FY2021 and '
+        + 'FY2023 figures. That is OFFERED AS THE LIKELIEST READING AND NOT ASSERTED: no '
+        + 'source states it, and the stored value\'s trailing $0.05 does not divide into a '
+        + 'clean cent figure, so a two-place decimal slip fits well but not exactly.',
+    ],
+    verifiedBecause: [
+      'The county\'s own audited statements, an INDEPENDENT document from a different '
+        + 'publisher: the FY2023 ACFR (Federal Audit Clearinghouse report '
+        + '2023-06-GSAFAC-0000024739) reports governmental-activities sales taxes of '
+        + '$37.59 million for FY2022 and $36,756,343 for FY2023.',
+      'The filing ties 18/18: the form\'s own printed Section 1B subtotal carries the same '
+        + 'figure, so the preparer entered it and the form summed it. TT reproduces both '
+        + 'exactly — this is NOT a read-fidelity failure.',
+      'Every other section of the same filing is ordinary: property taxes $41,284,557 '
+        + 'against $40,544,026 the year before. Only 1B moves.',
+      '⚠ Lowndes\' FY2021 and FY2023 revenue ratios also fall outside the screen\'s '
+        + 'bounds, but ONLY because this year inflates the neighbour mean used to judge '
+        + 'them. They are artifacts of this one figure and are not separate findings.',
+    ],
+    benignExplanations: [
+      'A cents-as-dollars entry, or two misplaced decimal places, on a single cell.',
+      'A SPLOST or regional-authority gross collection figure entered in place of the '
+        + 'county\'s own distribution.',
+      'A spreadsheet reference picking up a cumulative or multi-jurisdiction total.',
+    ],
+    corroboration:
+      'Measured by the statewide county sweep\'s outlier screen, then checked against an '
+      + 'INDEPENDENT source — the county\'s own audited ACFR via the Federal Audit '
+      + 'Clearinghouse, which is a different publisher and a different document from the '
+      + 'DCA filing. The county\'s own neighbouring filings agree with the audited scale.',
+    supportingContext:
+      '⭐⭐ THIS RE-OPENS A NULL RESULT THE EARLIER WAVES RECORDED. `GA-RLGF-RECON.md` §10 '
+      + 'found four scale breaks across seven governments and measured that NONE of them '
+      + 'touched Parts I-VI — the revenue and expenditure flows TT actually loads — while '
+      + 'explicitly warning that the null was measured on 7 governments and not 720, and '
+      + 'asking for it to be re-measured at scale. Re-measured across 151 counties and '
+      + '1,442 filings, a break DOES appear inside Part I. ⚠ It is NOT the x1000 slip that '
+      + 'register describes: that one is structural, arising because Georgia ACFRs print in '
+      + 'thousands while the form asks for dollars. This is a single cell at roughly x100, '
+      + 'in a different Part, with a different fingerprint. The null held for the mechanism '
+      + 'it described; it did not hold for scale breaks in loaded data generally.',
+  },
+  {
     id: 'milledgeville-fy2025-rents-royalties',
     entity: 'Milledgeville',
     state: 'GA',
@@ -550,6 +821,95 @@ export const GA_EXTRACT_DEFECTS = Object.freeze([
  */
 export const GA_FORM_TOTAL_DEFECTS = Object.freeze([
   {
+    id: 'long-fy2022-5a-total-omits-legislative',
+    cicoid: '1091091',
+    entity: 'Long County',
+    state: 'GA',
+    fiscalYear: 2022,
+    dataset: 'operating',
+    section: '5A',
+    sectionLabel: 'General Administration',
+    // All three are pinned by the loader. A mismatch in any of them refuses.
+    formTotal: 2832877.00,
+    itemsTotal: 3228935.00,
+    shortfall: 396058.00,
+    omittedCode: '1100',
+    omittedLabel: 'Administration Support - Legislative',
+    loaded: 'items',
+    what:
+      'The DeKalb FY2020 mechanism in a second government, MIRRORED. Long County FY2022, '
+      + 'Part V Section A: the printed "Total Section 5A" reads $2,832,877 while its own '
+      + 'line rows sum to $3,228,935. The difference, $396,058, is exactly the FIRST line '
+      + 'of the section — Administration Support - Legislative (UCOA 1100). DeKalb\'s total '
+      + 'stopped one row EARLY; this one starts one row LATE. The Part V grand total sums '
+      + 'the section totals, so it inherits this shortfall and nothing more: $12,487,514 '
+      + 'printed against $12,883,572 of line rows.',
+    verifiedBecause: [
+      '⚠⚠ THE REAPPEARANCE TEST PASSES, AND IT IS THE WHOLE CASE. Section 5A ties to the '
+        + 'CENT in all nine of Long County\'s other filings — FY2016-2021 and FY2023-2025, '
+        + 'difference $0.00 every time. FY2022 is the sole year that does not tie.',
+      '⚠⚠ AND LINE 1100 IS $0.00 IN EVERY ONE OF THOSE NINE YEARS. A total whose range '
+        + 'omits row 1100 produces an IDENTICAL printed result in all nine, and breaks only '
+        + 'in the one year the county reported money on that line. That is the same reason '
+        + 'DeKalb\'s defect was invisible — there the sibling columns were all $0.00 — and '
+        + 'it is why this is a long-standing range error surfacing once, not a new mistake.',
+      'Reproduced to the cent by arithmetic on the printed page: the sixteen line rows '
+        + 'BELOW 1100 sum to 117,784 + 242,566 + 194,040 + 62,396 + 379,936 + 256,487 + '
+        + '120,567 + 84,431 + 1,374,670 = $2,832,877, which is the printed total exactly. '
+        + 'The total is not approximately short; it is precisely the section minus its '
+        + 'first row.',
+      '⚠ DCA\'s LOAD1 extract breaks a SECOND way in the same section, the same pairing '
+        + 'DeKalb showed: the 1100 key carries $117,784 — the value belonging to 1300 '
+        + '(Administration Support - Executive) — and the 1300 key is a #REF!. So the '
+        + 'extract is row-shifted exactly where the printed total is range-shifted, which '
+        + 'is one editing gesture leaving two fingerprints, not two coincidences.',
+      'TT reads the PRINTED PAGE, so its tree carries the correct $396,058 on 1100 and the '
+        + 'correct $117,784 on 1300. The cross-check against LOAD1 reports both '
+        + 'discrepancies rather than silently preferring one source.',
+      '⚠ Checked against the county\'s own audited statements, which are a DIFFERENT '
+        + 'document from a DIFFERENT publisher: three of this section\'s other RLGF line '
+        + 'values appear in them verbatim — 194,040 (financial administration), 379,936 '
+        + '(tax commissioner) and 256,487 (tax assessor) — so TT is reading these cells '
+        + 'faithfully. ⚠ Those three match the audited FINAL BUDGET column rather than the '
+        + 'ACTUAL column, while others (government buildings 1,374,670 against 1,407,377 '
+        + 'actual) sit nearer actual. That is recorded as an OBSERVATION and nothing is '
+        + 'concluded from it: three matches do not establish what the preparer did, and '
+        + 'this defect does not depend on the answer.',
+    ],
+    benignExplanations: [
+      'A line was inserted at the top of Section A on the form at some point and the '
+        + 'total\'s SUM range was never extended upwards to cover it. Nothing suggests '
+        + 'anything but ordinary spreadsheet maintenance, and it UNDERSTATES the county\'s '
+        + 'own reported spending rather than inflating it.',
+    ],
+    corroboration:
+      'Three independent lines of evidence, two of them outside this filing. (1) The '
+      + 'county\'s OWN AUDITED STATEMENTS, obtained from a different publisher by a '
+      + 'different route — Long County, Georgia FY2022 Single Audit, Federal Audit '
+      + 'Clearinghouse report 2022-06-CENSUS-0000212627 — carry a material General Fund '
+      + '"Legislative" line of $611,550 actual against a $612,011 final budget. The line '
+      + 'the printed total omits is REAL, published money, independently confirmed, not a '
+      + 'phantom cell. (2) Against that same audited statement the ITEMS reading is the '
+      + 'closer of the two: audited total general government is $3,871,520, which the '
+      + 'line items reach 83.4% of and the printed total only 73.2% of — so the reading '
+      + 'TT takes is the one better supported by an independent document, not merely the '
+      + 'larger one. (3) Long\'s own other nine filings tie to the cent with line 1100 at '
+      + '$0.00 throughout, which is a separate argument from either of the above.',
+    corroborationSources: [
+      {
+        source_name: 'Long County, Georgia — FY2022 Single Audit (General Fund statement of '
+          + 'revenues, expenditures and changes in fund balances — budget and actual, page 22)',
+        source_url: 'https://app.fac.gov/dissemination/report/pdf/2022-06-CENSUS-0000212627',
+        source_date: '2026-10-17',
+      },
+    ],
+    // ⚠ READING THAT PDF NEEDS `pdftotext -table`. Plain `-layout` returns the page
+    // with the label column shifted several rows against the number column, so
+    // "Risk management" lines up with Financial administration's figure and every
+    // reading off it is silently wrong — the WA SAO / Atlanta FY2025 defect class
+    // again. The misalignment is invisible unless a known value is checked.
+  },
+  {
     id: 'dekalb-fy2020-5b-total-omits-public-defender',
     cicoid: '1044044',
     entity: 'DeKalb County',
@@ -850,3 +1210,326 @@ export const GA_OUT_OF_SCOPE_FINDINGS = Object.freeze([
       + 'Part XIV\'s dependent-entities flag blank while its attachment lists three.',
   },
 ]);
+
+/**
+ * ── FLAG 5: the filing's own `FYEmonth` disagrees ACROSS an entity's series ──
+ *
+ * ⚠⚠ A CASE NEITHER EARLIER WAVE MET. Baldwin and Atlanta both changed their
+ * fiscal calendars, but each change sat ENTIRELY BEFORE the FY2016 load floor,
+ * so a single `fiscalYearStartMonth` per entity was always enough. Sweeping the
+ * 151 filing counties found 9 governments whose own filings disagree INSIDE the
+ * window — and the two causes need opposite handling.
+ *
+ * A REAL CALENDAR CHANGE is representable: `treasury_sync_city_budget` takes
+ * `p_fiscal_year_start_month` PER FILING, so TT's data can already hold a
+ * different month per year. Only the registry was single-valued. Those entities
+ * carry `monthByYear` for the years on the far side of the change.
+ *
+ * A ONE-YEAR OUTLIER inside an otherwise stable series is a keying slip in the
+ * form. It is handled the way the printed-total defects are: the document
+ * disagrees with itself, the consensus of its own series is the better reading,
+ * and BOTH months are recorded here so the choice stays visible and reversible.
+ *
+ * ⚠⚠ THE GATE IS NOT WEAKENED. `loadGeorgiaRLGF.resolveMonth()` still refuses
+ * any filing whose `FYEmonth` matches neither the registry's month nor a
+ * `monthByYear` entry, UNLESS an entry below pins BOTH the month the form
+ * printed AND the month TT writes instead. A slip of a different size, in a
+ * different year, or on a different entity matches nothing and still refuses.
+ *
+ * ⚠ THE MONTH MOVES NO DOLLAR, which is exactly why it needs this discipline:
+ * every tie test passes at $0 whatever is written here
+ * (`project_fysm_column_default_one_defect` is 18,700 rows of that lesson).
+ */
+
+export const GA_FYE_MONTH_CHANGES = Object.freeze([
+  {
+    id: 'barrow-fy2017-september-to-june',
+    cicoid: '1007007',
+    entity: 'Barrow County',
+    month: 7,
+    monthByYear: Object.freeze({ 2016: 10 }),
+    // ⭐ THE ONLY ONE OF THE THREE THE FORM DECLARES ITSELF.
+    declaredBy: 'the FY2017 filing reports MosRptd = 9 and MoChng = Yes — a 9-month '
+      + 'transition stub, the same shape as Baldwin\'s 2010 and Atlanta\'s 2006 stubs',
+    corroboration: 'FAC reports Barrow County at month 10 for 1998-2016 and at month 7 '
+      + 'for 2019 and 2024 — both sides of the change, in the right order.',
+  },
+  {
+    id: 'jenkins-fy2020-june-to-september',
+    cicoid: '1082082',
+    entity: 'Jenkins County',
+    month: 10,
+    monthByYear: Object.freeze({ 2016: 7, 2017: 7, 2018: 7, 2019: 7 }),
+    // ⚠⚠ THE TRANSITION YEAR IS THE ONE FILE THAT CANNOT BE READ. Jenkins FY2020
+    // is DCA's encrypted workbook (see xlsToXlsx.py), so the stub that would
+    // declare this change the way Barrow's does is unreadable. The change is
+    // taken from the two sustained runs either side of it, not from a guess
+    // about the missing year — and FY2020 itself is absent from the load.
+    declaredBy: null,
+    corroboration: 'FAC reports Jenkins County at month 7 for 2007, 2012 and 2015 and at '
+      + 'month 10 for 2023 — both months, ordered the same way the filings are. '
+      + '⚠ The FY2020 filing, which would carry the transition stub, is DCA\'s '
+      + 'encrypted workbook and cannot be read at all.',
+  },
+  {
+    id: 'talbot-fy2022-june-to-september',
+    cicoid: '1130130',
+    entity: 'Talbot County',
+    month: 10,
+    monthByYear: Object.freeze({ 2016: 7, 2017: 7, 2018: 7, 2019: 7, 2020: 7, 2021: 7 }),
+    declaredBy: null,
+    // ⚠ WEAKER THAN THE OTHER TWO, AND RECORDED AS SUCH. FAC has no month-10 row
+    // for Talbot at all, so only the EARLIER side is federally corroborated. It is
+    // accepted as a change rather than a slip because four consecutive filings
+    // print "September 30" — a keying slip does not repeat four times — but the
+    // later side rests on the filings alone.
+    corroboration: 'FAC reports Talbot County at month 7 for 1998-2014 and has NO row at '
+      + 'month 10. The later side is uncorroborated: it rests on four consecutive '
+      + 'filings printing "September 30" and on nothing else.',
+  },
+]);
+
+export const GA_FYE_MONTH_DEFECTS = Object.freeze([
+  {
+    id: 'bartow-fy2025-june-for-december',
+    cicoid: '1008008', entity: 'Bartow County', fiscalYear: 2025,
+    formMonth: 7, formText: 'June 30', month: 1,
+    corroboration: 'Bartow\'s other nine filings all print "December 31", and FAC reports '
+      + 'month 1 for 2001-2025 INCLUDING FY2025 itself — the federal audit record '
+      + 'contradicts this filing for its own year.',
+  },
+  {
+    id: 'dougherty-fy2025-december-for-june',
+    cicoid: '1047047', entity: 'Dougherty County', fiscalYear: 2025,
+    formMonth: 1, formText: 'December 31', month: 7,
+    corroboration: 'Dougherty\'s other nine filings all print "June 30", and FAC reports '
+      + 'month 7 for FY2025 itself — the federal audit record contradicts this '
+      + 'filing for its own year.',
+  },
+  {
+    id: 'dooly-fy2019-october-for-september',
+    cicoid: '1046046', entity: 'Dooly County', fiscalYear: 2019,
+    formMonth: 11, formText: 'October 31', month: 10,
+    corroboration: 'Dooly\'s other eight filings all print "September 30", and FAC reports '
+      + 'month 10 for FY2019 itself — the federal audit record contradicts this '
+      + 'filing for its own year. A one-month slip in the end-month name.',
+  },
+  {
+    id: 'montgomery-fy2016-june-for-december',
+    cicoid: '1103103', entity: 'Montgomery County', fiscalYear: 2016,
+    formMonth: 7, formText: 'June 30', month: 1,
+    corroboration: 'Montgomery\'s other eight filings all print "December 31", and FAC '
+      + 'reports month 1 both BEFORE this year (2001, 2002, 2004, 2006) and after '
+      + 'it (2022, 2023), with no month-7 row at any time. ⚠ FAC does not cover '
+      + 'FY2016 itself, so this rests on the surrounding years, not on that one.',
+  },
+  {
+    id: 'clinch-fy2021-june-for-july',
+    cicoid: '1032032', entity: 'Clinch County', fiscalYear: 2021,
+    formMonth: 7, formText: 'June 30', month: 8,
+    // ⚠ THE WEAKEST TWO ENTRIES IN THIS REGISTER, AND MARKED SO.
+    corroboration: 'Clinch\'s other nine filings all print "July 31" (an unusual month, '
+      + 'which makes the series itself distinctive). ⚠ FAC covers only FY2024 in '
+      + 'the window and agrees with the consensus there, but says NOTHING about '
+      + 'FY2021. This rests on the entity\'s own nine-year consistency alone.',
+  },
+  {
+    id: 'newton-fy2022-december-for-june',
+    cicoid: '1107107', entity: 'Newton County', fiscalYear: 2022,
+    formMonth: 1, formText: 'December 31', month: 7,
+    corroboration: 'Newton\'s other nine filings all print "June 30". ⚠ FAC\'s only Newton '
+      + 'rows are 2010-2012, all month 7, and none covers FY2022. This rests on '
+      + 'the entity\'s own nine-year consistency alone.',
+  },
+]);
+
+/** The recorded calendar change for one government, or null. */
+export function fyeMonthChange(cicoid) {
+  return GA_FYE_MONTH_CHANGES.find((c) => c.cicoid === String(cicoid)) || null;
+}
+
+/**
+ * The recorded one-year month slip for one filing, or null.
+ *
+ * ⚠ The caller must check `formMonth` against what the filing actually printed.
+ * An entry excuses only the exact slip it records.
+ */
+export function fyeMonthDefect(cicoid, fiscalYear) {
+  return GA_FYE_MONTH_DEFECTS.find(
+    (d) => d.cicoid === String(cicoid) && d.fiscalYear === Number(fiscalYear),
+  ) || null;
+}
+
+/**
+ * ── FLAG 6: filings whose ORACLE CANNOT RUN AT ALL ──────────────────────────
+ *
+ * ⚠⚠ NOT A DEFECT IN THE FIGURES — AN ABSENCE OF ANY WAY TO CHECK THEM.
+ *
+ * `checkSectionTotals` verifies TT's tree against the form's own printed
+ * subtotal. On these filings those subtotal cells are themselves Excel `#REF!`
+ * errors, so there is nothing to compare the tree to. The printed PAGES are
+ * intact and the tree TT builds from them looks entirely ordinary against the
+ * entity's neighbouring years — but "looks ordinary" is not a measurement.
+ *
+ * `loadGeorgiaRLGF.mjs` already refuses a run where any filing fails, and its
+ * own comment says why: a gate that can measure nothing must FAIL, not pass.
+ * Writing these rows would assert a verification that never happened, which is
+ * exactly the session-3 failure the whole oracle exists to prevent.
+ *
+ * So they are EXCLUDED FROM THE LOAD and recorded here. The government keeps
+ * every other year it filed; only the unverifiable years are absent.
+ *
+ * ⚠ EACH ENTRY PINS THE EXACT FAILURE — which checks were skipped and which
+ * failed. A filing that breaks differently matches nothing and still refuses
+ * the whole run, so this register cannot quietly absorb a new problem. It is
+ * the same discipline as GA_FORM_TOTAL_DEFECTS, applied to a different failure.
+ */
+
+export const GA_UNVERIFIABLE_FILINGS = Object.freeze([
+  {
+    id: 'gwinnett-fy2018-every-revenue-subtotal-is-ref',
+    cicoid: '1067067',
+    entity: 'Gwinnett County',
+    state: 'GA',
+    fiscalYear: 2018,
+    dataset: 'revenue',
+    skipped: Object.freeze(['REV 1A', 'REV 1B', 'REV 1C', 'REV 1D', 'REV 2', 'REV 3A', 'REV 3B']),
+    failed: Object.freeze(['REV Part I', 'REV Part III', 'REV Own Source (I+III)']),
+    what:
+      'Every one of the 13 revenue subtotal cells in the FY2018 LOAD1 extract is an Excel '
+      + '#REF! error — TTL_1A through TTL_1D, TTL_Part1, TTL_2A/2B/2C, TTL_3A/3B, TTL_Part3, '
+      + 'TTL_OSR and TTL_Part4. Not one is a number. 176 LOAD1 cells are errors in total. '
+      + 'The seven section checks are therefore SKIPPED for want of anything to compare '
+      + 'against, and the three Part-level checks fail as NaN for the same reason.',
+    verifiedBecause: [
+      'The errors are in DCA\'s published .xls itself, not in TT\'s conversion: '
+        + 'xlsToXlsx.py --check re-read every written cell against the source and all '
+        + '8,578,433 cells across the 1,442 converted county workbooks round-trip.',
+      'The printed pages are INTACT — they still carry 149 non-zero numeric values — and '
+        + 'Gwinnett\'s other nine filings all tie 18/18. This is one broken extract sheet, '
+        + 'not a broken government and not a broken parser.',
+      '⚠ The tree TT builds from the printed pages totals $901,714,723, which sits neatly '
+        + 'between FY2017 ($818,568,726) and FY2019 ($995,065,693). That is a reason to '
+        + 'believe the figure and NOT a reason to publish it: plausibility is not an oracle.',
+    ],
+  },
+  {
+    id: 'gwinnett-fy2023-every-expenditure-subtotal-is-ref',
+    cicoid: '1067067',
+    entity: 'Gwinnett County',
+    state: 'GA',
+    fiscalYear: 2023,
+    dataset: 'operating',
+    skipped: Object.freeze(['EXP 5A', 'EXP 5B', 'EXP 5C', 'EXP 5D', 'EXP 5E', 'EXP 5F', 'EXP 5G']),
+    failed: Object.freeze(['EXP Part V grand']),
+    what:
+      'The same failure on the expenditure side five years later: all 32 Part V subtotal '
+      + 'cells (TTL_5A_A through TTL_PART5_D) are #REF!, and 744 LOAD1 cells are errors in '
+      + 'total — the worst extract sheet found anywhere in the 1,442-workbook county sweep.',
+    verifiedBecause: [
+      'The printed pages carry 156 non-zero numeric values and the per-line cross-check '
+        + 'reports the page holding figures where LOAD1 holds #REF! — Community Services '
+        + '$55,814,741, Libraries $33,763,418, Recreation $19,840,517 and more.',
+      'Gwinnett\'s FY2024 filing, the very next year, ties 18/18 at $1,390,421,451.',
+      '⚠ Gwinnett is Georgia\'s second-largest county, so these two excluded years are the '
+        + 'most expensive omission in this load. Published anyway they would be the '
+        + 'largest UNVERIFIED figures in it, which is the worse trade.',
+    ],
+  },
+  {
+    id: 'upson-fy2021-part-two-subtotals-are-ref',
+    cicoid: '1145145',
+    entity: 'Upson County',
+    state: 'GA',
+    fiscalYear: 2021,
+    dataset: 'revenue',
+    skipped: Object.freeze(['REV 2']),
+    failed: Object.freeze([]),
+    what:
+      'A much smaller break than Gwinnett\'s, and recorded separately rather than lumped in '
+      + 'with it: only TTL_2A and TTL_2B are #REF! (4 error cells in the whole extract), so '
+      + '11 of the 13 revenue subtotals ARE numbers and verify. But Part II '
+      + '(intergovernmental revenue) cannot be checked, and because the revenue total sums '
+      + 'the Part subtotals it comes out NaN.',
+    verifiedBecause: [
+      'Upson\'s FY2022, FY2023 and FY2024 filings all tie 18/18.',
+      '⚠ Excluded under the same rule as the two Gwinnett years even though the break is '
+        + 'confined, because the rule is about whether a figure was CHECKED, not about how '
+        + 'much of it was. Loading eleven verified sections and one unverified one would '
+        + 'publish a revenue total no oracle ever confirmed.',
+    ],
+  },
+]);
+
+/** The recorded unverifiable filing, or null. */
+export function unverifiableFiling(cicoid, fiscalYear) {
+  return GA_UNVERIFIABLE_FILINGS.find(
+    (u) => u.cicoid === String(cicoid) && u.fiscalYear === Number(fiscalYear),
+  ) || null;
+}
+
+/**
+ * ── FLAG 7: a whole PART reported as zero ───────────────────────────────────
+ *
+ * ⚠⚠ THE ORACLE CANNOT CATCH THIS, BY CONSTRUCTION. Every Part V section in
+ * these filings is $0.00, and so is every one of the form's own printed section
+ * totals — so all eighteen checks tie, at zero, and the filing reports 18/18.
+ * That is precisely the session-3 failure the loader's own guard describes:
+ * counting checks that measured nothing and calling the result green.
+ *
+ * ⚠ A GOVERNMENT DID NOT SPEND $0. The preparer left the expenditure side of
+ * the form blank. TT therefore writes NO operating row for these filings rather
+ * than a $0 one — not as a judgement about the figures, but because there is no
+ * figure: `toTree()` yields an empty tree, and a budget row with no categories
+ * renders as an empty page while asserting to a reader that the county's
+ * spending was nothing.
+ *
+ * ⚠⚠ THIS IS NOT THE MILLEDGEVILLE RULE AND MUST NOT BE READ AS AN EXCEPTION
+ * TO IT. That rule governs FIGURES that look wrong — they load, and they are
+ * flagged (DeKalb FY2018 loads at $92,044,262 against $654,486,000 audited, and
+ * is flagged rather than corrected). Here there is no figure at all to load. An
+ * absent section is missing data, and TT's handling of missing data is to have
+ * no row, exactly as it does for a year a government never filed.
+ *
+ * ⚠ The REVENUE side of these same filings is populated and verifies normally,
+ * and it is loaded. Only the empty Part is withheld.
+ */
+
+export const GA_EMPTY_DATASETS = Object.freeze([
+  {
+    id: 'franklin-fy2023-whole-filing-is-near-empty',
+    cicoid: '1059059', entity: 'Franklin County', state: 'GA', fiscalYear: 2023,
+    dataset: 'operating',
+    what:
+      'All seven Part V sections are $0.00. ⚠ This filing is near-empty on BOTH sides: its '
+      + 'revenue comes to $192,274 against a $30,078,761 mean of FY2022 and FY2024, which '
+      + 'is 0.6%. Franklin\'s own neighbouring years report $25.9M and $25.6M of '
+      + 'expenditure, so the county plainly spent money in FY2023.',
+  },
+  {
+    id: 'sumter-fy2025-part-five-blank',
+    cicoid: '1129129', entity: 'Sumter County', state: 'GA', fiscalYear: 2025,
+    dataset: 'operating',
+    what:
+      'All seven Part V sections are $0.00 while the revenue side reports $22,219,885.53 '
+      + 'and verifies normally. The expenditure side of the form was not filled in.',
+  },
+  {
+    id: 'upson-fy2024-part-five-blank',
+    cicoid: '1145145', entity: 'Upson County', state: 'GA', fiscalYear: 2024,
+    dataset: 'operating',
+    what:
+      'All seven Part V sections are $0.00 while the revenue side reports $29,311,163 and '
+      + 'verifies normally. Upson\'s own FY2023 and FY2025 filings report $46.4M and '
+      + '$37.6M of expenditure.',
+  },
+]);
+
+/** Is this filing's empty dataset a RECORDED one? */
+export function emptyDataset(cicoid, fiscalYear, dataset) {
+  return GA_EMPTY_DATASETS.find(
+    (e) => e.cicoid === String(cicoid)
+      && e.fiscalYear === Number(fiscalYear)
+      && e.dataset === dataset,
+  ) || null;
+}

@@ -57,6 +57,7 @@ import path from 'node:path';
 import ExcelJS from 'exceljs';
 import { parseLoad1, readLog1 } from './lib/gaRlgf.mjs';
 import { buildCensus, censusMonthFor } from './lib/facFiscalYearCensus.mjs';
+import { fyeMonthChange, fyeMonthDefect } from './data/gaRlgfAnomalies.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const DEFAULT_DIR = join(ROOT, '_acfr-work/ga/sweep/xlsx');
@@ -144,13 +145,49 @@ export function resolveMonth(entity, formMonths, lookup = censusMonthFor) {
 
   // The entity's own filings must agree with each other before the census is
   // consulted at all. A government that printed two different months inside one
-  // load window is either a calendar change or a form error, and this registry
-  // cannot tell which from the form alone.
+  // load window is either a CALENDAR CHANGE or a FORM ERROR, and the form alone
+  // cannot tell which — so neither is inferred here. Each one is accounted for
+  // by a corroborated registry entry that must reproduce the observed months
+  // EXACTLY, or the entity is refused.
+  let monthByYear = null;
   if (distinct.length > 1) {
     const detail = distinct
       .map((m) => `month ${m} in ${stated.filter((f) => f.month === m).map((f) => f.fiscalYear).join('/')}`)
       .join('; ');
-    return { month: null, status: 'conflict', why: `its own filings disagree — ${detail}` };
+
+    const change = fyeMonthChange(entity.cicoid);
+    if (change) {
+      // ⚠ PINNED: the entry must predict every filing's printed month. An entry
+      // whose years or months have drifted from the filings accounts for a
+      // different series, not this one, and must not quietly stand in for it.
+      const mismatch = stated.find((f) => (change.monthByYear[f.fiscalYear] ?? change.month) !== f.month);
+      if (mismatch) {
+        return { month: null, status: 'conflict',
+          why: `${change.id} predicts month ${change.monthByYear[mismatch.fiscalYear] ?? change.month} for `
+            + `FY${mismatch.fiscalYear} but the filing prints ${mismatch.month} — ${detail}` };
+      }
+      monthByYear = change.monthByYear;
+      distinct.length = 0;
+      distinct.push(change.month);
+    } else {
+      // Otherwise every year that departs from the consensus must have its own
+      // corroborated one-year slip entry, pinning BOTH months.
+      const counts = new Map();
+      for (const f of stated) counts.set(f.month, (counts.get(f.month) ?? 0) + 1);
+      const [consensus] = [...counts].sort((a, b) => b[1] - a[1])[0];
+      const odd = stated.filter((f) => f.month !== consensus);
+      const unexplained = odd.filter((f) => {
+        const d = fyeMonthDefect(entity.cicoid, f.fiscalYear);
+        return !(d && d.formMonth === f.month && d.month === consensus);
+      });
+      if (unexplained.length) {
+        return { month: null, status: 'conflict',
+          why: `its own filings disagree and FY${unexplained.map((f) => f.fiscalYear).join('/')} `
+            + `${unexplained.length === 1 ? 'is' : 'are'} not accounted for — ${detail}` };
+      }
+      distinct.length = 0;
+      distinct.push(consensus);
+    }
   }
 
   const censusJoin = entity.censusName
@@ -176,28 +213,33 @@ export function resolveMonth(entity, formMonths, lookup = censusMonthFor) {
 
   const declared = distinct[0];
   if (censusJoin.why) {
-    return { month: declared, status: 'unverified', why: censusJoin.why,
+    return { month: declared, status: 'unverified', why: censusJoin.why, monthByYear,
       statedYears: stated.length, blankYears: blanks.length };
   }
 
   let confirmed = 0;
   const uncovered = [];
   for (const f of stated) {
+    // ⚠ Per YEAR, against the month TT will actually WRITE for that year — not
+    // against a single entity month. For a government that changed its calendar
+    // mid-window those differ, and comparing the wrong one would report a
+    // contradiction on every year of the far side.
+    const writing = monthByYear?.[f.fiscalYear] ?? declared;
     const seen = lookup(GA_STATE, censusJoin.censusName, f.fiscalYear);
     if (seen.unknown) { uncovered.push(f.fiscalYear); continue; }
-    if (Number(seen.month) !== Number(declared)) {
+    if (Number(seen.month) !== Number(writing)) {
       return { month: declared, status: 'conflict', censusName: censusJoin.censusName,
         why: `the federal audit record for ${JSON.stringify(censusJoin.censusName)} reports month `
-          + `${seen.month} in FY${f.fiscalYear}, but every filing prints month ${declared}` };
+          + `${seen.month} in FY${f.fiscalYear}, but TT would write month ${writing}` };
     }
     confirmed++;
   }
   if (!confirmed) {
-    return { month: declared, status: 'unverified', censusName: censusJoin.censusName,
+    return { month: declared, status: 'unverified', censusName: censusJoin.censusName, monthByYear,
       why: `the census has a row for ${JSON.stringify(censusJoin.censusName)} but covers none of `
         + `FY${GA_FIRST_YEAR}-${GA_LAST_YEAR}`, statedYears: stated.length, blankYears: blanks.length };
   }
-  return { month: declared, status: 'confirmed', censusName: censusJoin.censusName,
+  return { month: declared, status: 'confirmed', censusName: censusJoin.censusName, monthByYear,
     confirmedYears: confirmed, uncoveredYears: uncovered,
     statedYears: stated.length, blankYears: blanks.length };
 }
@@ -317,7 +359,7 @@ export async function buildEntities({
       continue;
     }
 
-    const stub = { name: g.name, entityType: 'county', censusName: null, censusKind: null };
+    const stub = { cicoid: g.cicoid, name: g.name, entityType: 'county', censusName: null, censusKind: null };
     const joined = joinCensusName(g.name, 'county', census);
     if (!joined.why) { stub.censusName = joined.censusName; stub.censusKind = joined.kind; }
     const r = resolveMonth(stub, months);
@@ -342,6 +384,7 @@ export async function buildEntities({
       censusName: r.censusName ?? null,
       censusKind: r.censusName ? 'county' : null,
       censusConfirms: r.status === 'confirmed',
+      monthByYear: r.monthByYear ?? null,
       monthStatus: r.status,
       monthWhy: r.why ?? null,
       parentCountyKey: null,
@@ -368,7 +411,10 @@ export function renderModule(entities, meta) {
     fiscalYearEndText: ${JSON.stringify(e.fiscalYearEndText)},
     censusName: ${JSON.stringify(e.censusName)},
     censusKind: ${JSON.stringify(e.censusKind)},
-    censusConfirms: ${e.censusConfirms},
+    censusConfirms: ${e.censusConfirms},${e.monthByYear ? `
+    // ⚠ CHANGED ITS FISCAL CALENDAR INSIDE THE WINDOW. These years are written
+    // with the month the filing printed for them, not the entity's current one.
+    monthByYear: Object.freeze(${JSON.stringify(e.monthByYear)}),` : ''}
     monthStatus: ${JSON.stringify(e.monthStatus)},
     monthWhy: ${JSON.stringify(e.monthWhy)},
     parentCountyKey: null,
@@ -395,9 +441,13 @@ export function renderModule(entities, meta) {
  *   confirmed    the form and the FAC census agree        (${meta.statuses.confirmed})
  *   unverified   the form states it; the census is silent (${meta.statuses.unverified})
  *   census-only  every form was blank; the census answered (${meta.statuses['census-only']})
- * Entities whose sources CONFLICT, or where neither source speaks, are refused
- * outright and are absent from this file — ${meta.refused} of them. They are
- * listed in the build log, never silently dropped.
+ * Absent from this file, each for a DIFFERENT reason — never one count:
+ *   ${String(meta.statuses.conflict).padStart(3)} month CONFLICT   the form and the census disagree, or the
+ *       entity's own filings disagree with each other
+ *   ${String(meta.byReason['no-filings'] ?? 0).padStart(3)} no filing      DCA lists nothing in the window; all 8 are
+ *       counties whose consolidated government files instead
+ *   ${String(meta.byReason['already-loaded'] ?? 0).padStart(3)} already loaded carried by georgiaRlgfEntities.mjs
+ * Every one is named in the build log. None is silently dropped.
  *
  * ⚠⚠ \`censusConfirms\` IS TRUE ONLY FOR \`confirmed\`. \`censusGuard()\` returns
  * \`{ok: true}\` when it cannot find an entity, so an unverified month would
@@ -450,7 +500,8 @@ export async function main(argv = process.argv.slice(2), log = console.log) {
   const meta = {
     builtAt: new Date().toISOString().slice(0, 10),
     read: r.read, targets: r.targets, kind: values.kind,
-    statuses: { confirmed: 0, unverified: 0, 'census-only': 0, ...r.statuses },
+    statuses: { confirmed: 0, unverified: 0, 'census-only': 0, conflict: 0, ...r.statuses },
+    byReason: r.refusals.reduce((a, x) => ({ ...a, [x.status]: (a[x.status] ?? 0) + 1 }), {}),
     refused: r.refusals.length, first: GA_FIRST_YEAR, last: GA_LAST_YEAR,
   };
   writeFileSync(values.out, renderModule(r.entities, meta));
