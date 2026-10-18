@@ -118,6 +118,135 @@ const DCA_NAME = 'Georgia DCA Report of Local Government Finances';
  * the additive pattern `cityBasisNotes` already uses.
  */
 export const figureFlags: Record<string, FigureFlag> = {
+  'Monroe|GA|2025|revenue': {
+    id: 'monroe-fy2025-intergovernmental-is-four-hundred-times-audited',
+    severity: 'outlier',
+    headline: 'The 2025 intergovernmental figure is about 400 times what Monroe’s audited accounts report',
+    summary:
+      'This year’s form reports $1.69 billion of money received from other governments — more '
+      + 'than most Georgia counties report in total, for a city of about 15,000 people. The '
+      + 'city’s own audited statements for the same year report $4.2 million. The city filed '
+      + 'the figure and the form adds it up correctly, so the page shows it as filed, but it '
+      + 'does not stand up against the city’s audited accounts or its own other years.',
+    whatThisMeans:
+      'Do not use 2025 revenue for Monroe, and do not compare it with 2024 — the rise is this '
+      + 'one line, not anything the city received.',
+    entries: [
+      {
+        title: 'What the city’s own audited statements report',
+        text:
+          'The City of Monroe’s audited financial statements for the year ended 31 December '
+          + '2025 report intergovernmental revenue of $555,205 in the general fund and '
+          + '$4,232,497 across all governmental funds. The state form’s $1,689,565,167 is 399 '
+          + 'times the audited total.',
+        source_name: 'City of Monroe, Georgia — FY2025 Single Audit, governmental funds statement of revenues, expenditures and changes in fund balances',
+        source_url: 'https://app.fac.gov/dissemination/report/pdf/2025-12-GSAFAC-0000422443',
+        source_date: '2026-10-18',
+      },
+      {
+        title: 'Only this one line moves',
+        text:
+          'Everything else in the same filing is ordinary. Property taxes are $6.49 million '
+          + 'against $5.96 million the year before, and spending is $22.4 million against $21.2 '
+          + 'million. Monroe’s nine other filings report total revenue between $9.9 million and '
+          + '$26.7 million. Only the intergovernmental line changes, from $7.9 million to $1.69 '
+          + 'billion.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Monroe FY2016–FY2025',
+        source_url: 'https://apps.dca.ga.gov/RLGF/Default.aspx',
+        source_date: '2026-10-18',
+      },
+    ],
+  },
+
+  'Varnell|GA|2018|revenue': {
+    id: 'varnell-fy2018-property-tax-is-fifty-times-its-own-years',
+    severity: 'outlier',
+    headline: 'The 2018 property tax figure is about 500 times what Varnell reports in any other year',
+    summary:
+      'This year’s form reports $47.9 million of property tax for a town whose entire revenue is '
+      + 'about $1 million in every other year it filed. The same line is $96,586 the year before '
+      + 'and $116,712 the year after. The figure is shown as filed, because it is what the town '
+      + 'reported to the state.',
+    whatThisMeans:
+      'Treat 2018 revenue as unusable for this town and read the surrounding years instead.',
+    entries: [
+      {
+        title: 'What the town reports in its other years',
+        text:
+          'Varnell’s eight other filings report total revenue between $874,715 and $1,879,709, '
+          + 'and property tax between $96,586 and about $300,000. Its spending in 2018 is '
+          + '$783,695 — entirely ordinary — so the two sides of the same return do not move '
+          + 'together.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Varnell FY2016–FY2025',
+        source_url: 'https://apps.dca.ga.gov/RLGF/Default.aspx',
+        source_date: '2026-10-18',
+      },
+      {
+        title: '⚠ Why there is no audited figure here',
+        text:
+          'Varnell files no federal Single Audit: it spends below the $750,000 federal threshold '
+          + 'that requires one, so no independently audited statement of its finances is '
+          + 'published anywhere. This flag therefore rests on the town’s own other filings alone, '
+          + 'which is weaker evidence than the audited comparisons shown for larger governments, '
+          + 'and is said plainly rather than glossed over.',
+        source_name: 'Federal Audit Clearinghouse — General data (no record for this government)',
+        source_url: 'https://app.fac.gov/dissemination/public-data/gsa/full/general.csv',
+        source_date: '2026-10-18',
+      },
+    ],
+  },
+
+  'Cornelia|GA|2017|revenue': {
+    id: 'cornelia-fy2017-intergovernmental-is-fifty-seven-times-its-neighbours',
+    severity: 'outlier',
+    headline: 'The 2017 intergovernmental figure is about 57 times the surrounding years',
+    summary:
+      'This year’s form reports $63.9 million received from other governments, against $1.1 '
+      + 'million the year before, for a city whose total revenue is $4–9 million in every other '
+      + 'year. The figure is shown as filed. The city’s spending for the same year is ordinary at '
+      + '$4.5 million, so the two sides of the return do not move together.',
+    whatThisMeans:
+      'Do not use 2017 revenue for Cornelia or compare it with 2016 or 2018.',
+    entries: [
+      {
+        title: 'What the city reports in its other years',
+        text:
+          'Cornelia’s eight other filings report total revenue between $4.2 million and $9.2 '
+          + 'million. The intergovernmental line runs about $1.1 million in 2016 and returns to '
+          + 'ordinary levels afterwards.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Cornelia FY2016–FY2025',
+        source_url: 'https://apps.dca.ga.gov/RLGF/Default.aspx',
+        source_date: '2026-10-18',
+      },
+    ],
+  },
+
+  'Shellman|GA|2024|revenue': {
+    id: 'shellman-fy2024-other-revenues-is-two-hundred-times-its-own-years',
+    severity: 'outlier',
+    headline: 'The 2024 “other revenues” figure is about 265 times the year before',
+    summary:
+      'This year’s form reports $9.1 million of other revenues against $34,286 the year before, '
+      + 'for a town whose total revenue is between $0.5 million and $1.0 million in every other '
+      + 'year. Spending for the same year is $1.5 million, so no matching outlay appears. The '
+      + 'figure is shown as filed.',
+    whatThisMeans:
+      'Treat 2024 revenue as unusable for this town; its 2023 and 2025 figures are the better '
+      + 'guide.',
+    entries: [
+      {
+        title: 'What the town reports in its other years',
+        text:
+          'Shellman’s nine other filings report total revenue between $492,940 and $1,034,473. '
+          + 'Alongside the other-revenues line, its intergovernmental line also moves in 2024, '
+          + 'from $25,000 to $747,507.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Shellman FY2016–FY2025',
+        source_url: 'https://apps.dca.ga.gov/RLGF/Default.aspx',
+        source_date: '2026-10-18',
+      },
+    ],
+  },
+
   'Franklin County|GA|2023|revenue': {
     id: 'franklin-fy2023-filing-is-all-but-empty',
     severity: 'understated',

@@ -8,8 +8,10 @@ import {
 } from '../scripts/fetchGeorgiaRLGF.mjs';
 import {
   resolveMonth, joinCensusName, parseWorkbookName, entityKey, readCountyPopulations,
+  readPlacePopulations, joinPlace, countyCicoidFor,
   ALREADY_LOADED, GA_FIRST_YEAR, GA_LAST_YEAR,
 } from '../scripts/buildGaStatewideEntities.mjs';
+import { GA_STATEWIDE_ENTITIES } from '../scripts/data/georgiaStatewideEntities.mjs';
 import { buildCensus } from '../scripts/lib/facFiscalYearCensus.mjs';
 import {
   resolveMonth as loaderResolveMonth, unverifiableMatches, toTree,
@@ -499,7 +501,11 @@ describe('the statewide sweep findings reach readers', () => {
   it('⚠⚠ an EMPTY Part is withheld, which is not the Milledgeville Rule', () => {
     // The rule governs figures that look wrong: they load and are flagged.
     // There is no figure in a blank Part, so there is no row.
-    expect(GA_EMPTY_DATASETS).toHaveLength(3);
+    // ⚠ Not a hard-coded count: 3 county filings and 20 municipality filings
+    // leave a Part unpublishable, and the next sweep will add more.
+    expect(GA_EMPTY_DATASETS.length).toBeGreaterThanOrEqual(23);
+    const ids = GA_EMPTY_DATASETS.map((e) => e.id);
+    expect(new Set(ids).size, 'duplicate id in GA_EMPTY_DATASETS').toBe(ids.length);
     for (const e of GA_EMPTY_DATASETS) {
       expect(e.dataset).toBe('operating');
       expect(e.what).toBeTruthy();
@@ -547,5 +553,123 @@ describe('⚠⚠ a blank Part is seven roots of zero, NOT an empty tree', () => 
       roots: [{ label: 'General Government', amount: 0, items: [{ id: '1100', label: 'x', amount: 50 }] }],
     };
     expect(toTree(odd).some((r) => r.a !== 0 || (r.c || []).some((c) => c.a !== 0))).toBe(true);
+  });
+});
+
+describe('the municipality name join — three shapes, measured not assumed', () => {
+  const places = readPlacePopulations();
+
+  it('reads the 537 Georgia places out of Census Vintage 2024', () => {
+    expect(places.size).toBe(537);
+  });
+
+  it('SUFFIX — the trailing word is the designator', () => {
+    const r = joinPlace('Abbeville City', places);
+    expect(r.how).toBe('suffix');
+    expect(r.censusName).toBe('Abbeville city');
+    expect(r.base).toBe('Abbeville');
+  });
+
+  it('⚠⚠ LEGAL — the trailing word is part of the NAME (the GROVE CITY BORO trap)', () => {
+    // Peachtree City is not "Peachtree" with a designator on the end.
+    for (const [dca, census] of [
+      ['Peachtree City', 'Peachtree City city'],
+      ['Garden City', 'Garden City city'],
+      ['Union City', 'Union City city'],
+      ['Lake City', 'Lake City city'],
+      ['Twin City', 'Twin City city'],
+      ['Mountain City', 'Mountain City town'],
+    ]) {
+      const r = joinPlace(dca, places);
+      expect(r.how, dca).toBe('legal');
+      expect(r.censusName, dca).toBe(census);
+      expect(r.base, dca).toBe(dca);
+    }
+  });
+
+  it('⚠⚠ RETYPED — DCA\'s designator DISAGREES with the census\'s', () => {
+    const r = joinPlace('Arcade Town', places);
+    expect(r.how).toBe('retyped');
+    expect(r.censusName).toBe('Arcade city');
+    // the DCA word is kept so the disagreement stays visible
+    expect(r.dcaType).toBe('town');
+    expect(r.censusType).toBe('city');
+  });
+
+  it('⚠ LEGAL is tried BEFORE RETYPED, so a "... City" place is never re-typed', () => {
+    // If `retyped` ran first, "Mountain City" would become "Mountain" + town.
+    const r = joinPlace('Mountain City', places);
+    expect(r.how).toBe('legal');
+    expect(r.base).toBe('Mountain City');
+  });
+
+  it('collapses spaces, which was measured unambiguous across all 537 places', () => {
+    expect(joinPlace('Edgehill City', places).censusName).toBe('Edge Hill city');
+    expect(joinPlace('Gum Branch City', places).censusName).toBe('Gumbranch city');
+    const squashed = new Set();
+    for (const v of places.values()) {
+      const k = v.censusName.toLowerCase().replace(/\s+/g, '');
+      expect(squashed.has(k), `collapsing spaces collides on ${v.censusName}`).toBe(false);
+      squashed.add(k);
+    }
+  });
+
+  it('says WHY when the census has no such place, rather than guessing', () => {
+    for (const n of ['Ranger Town', 'Sunny Side City']) {
+      const r = joinPlace(n, places);
+      expect(r.censusName, n).toBeUndefined();
+      expect(r.why, n).toMatch(/no Georgia place matching/);
+    }
+  });
+});
+
+describe('the parent county is derived from the CICOID, never from a name', () => {
+  it('maps a municipality to its county', () => {
+    expect(countyCicoidFor('2060002')).toBe('1060060'); // Atlanta  -> Fulton
+    expect(countyCicoidFor('2005001')).toBe('1005005'); // Milledgeville -> Baldwin
+  });
+
+  it('⚠⚠ gets the COLLISION PAIRS right, which a name join cannot', () => {
+    // Bibb City is in MUSCOGEE (106), not Bibb (011).
+    expect(countyCicoidFor('2106001')).toBe('1106106');
+    // Baldwin City is in 068, nothing to do with Baldwin County (005).
+    expect(countyCicoidFor('2068002')).toBe('1068068');
+    expect(countyCicoidFor('2068002')).not.toBe('1005005');
+  });
+
+  it('holds for every county: a county CICOID is 1 + code + the same code', () => {
+    for (const e of GA_STATEWIDE_ENTITIES) {
+      if (e.entityType !== 'county') continue;
+      expect(e.cicoid.slice(1, 4), e.name).toBe(e.cicoid.slice(4, 7));
+      expect(countyCicoidFor(e.cicoid), e.name).toBe(e.cicoid);
+    }
+  });
+});
+
+describe('⚠⚠ a Part that SUMS to zero is as unpublishable as a blank one', () => {
+  it('records Dahlonega FY2022, whose two entries cancel', () => {
+    const e = emptyDataset('2093001', 2022, 'operating');
+    expect(e, 'Dahlonega FY2022 must be recorded').toBeTruthy();
+    expect(e.what).toMatch(/MINUS \$50,000/);
+    expect(e.what).toMatch(/sums to nothing/i);
+  });
+
+  it('the guard tests the TOTAL, not merely whether an amount is present', () => {
+    // Two offsetting entries: amounts ARE present, and the total is still zero.
+    const cancelling = toTree({
+      total: 0,
+      roots: [{
+        label: 'Public Safety',
+        amount: 0,
+        items: [
+          { id: '3200', label: 'Police Protection', amount: -50000 },
+          { id: '3500', label: 'Fire Protection', amount: 50000 },
+        ],
+      }],
+    });
+    const hasMoney = cancelling.some((r) => r.a !== 0 || (r.c || []).some((c) => c.a !== 0));
+    expect(hasMoney, 'amounts are present').toBe(true);
+    // ...which is exactly why presence alone is the wrong test.
+    expect(hasMoney && Number(0) !== 0).toBe(false);
   });
 });

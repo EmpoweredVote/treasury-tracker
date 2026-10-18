@@ -13,6 +13,10 @@ Requires: xlrd (BIFF8 reader), openpyxl (xlsx writer).
 Usage:
     python scripts/tools/xlsToXlsx.py <src.xls|srcdir> <outdir> [--check] [--resume]
 
+--limit=N stops after N workbooks are actually processed, so a long batch can be
+run as the bounded batches .planning/GA-STATEWIDE-SWEEP.md asks for instead of
+one run that an out-of-memory kill can erase. Combine with --resume.
+
 --resume skips any workbook the ledger already recorded a verdict for AND whose
 .xlsx is still on disk. A long batch that is interrupted — the Georgia
 municipality run was killed by the OS at file 4,048 of 4,810 — then costs only
@@ -149,6 +153,10 @@ def main():
     args = [a for a in sys.argv[1:] if not a.startswith("--")]
     do_check = "--check" in sys.argv
     resume = "--resume" in sys.argv
+    limit = None
+    for a in sys.argv[1:]:
+        if a.startswith("--limit="):
+            limit = int(a.split("=", 1)[1])
     if len(args) != 2:
         print(__doc__)
         sys.exit(2)
@@ -185,6 +193,8 @@ def main():
         base = os.path.basename(f)
         dst = os.path.join(outdir, os.path.splitext(base)[0] + ".xlsx")
         prior = ledger.get(base)
+        if limit is not None and done >= limit:
+            break
         if resume and prior and os.path.exists(dst):
             if prior["status"] == "ok":
                 total_cells += prior.get("cells", 0)
@@ -218,6 +228,10 @@ def main():
         if done % 25 == 0:
             _save_ledger(outdir, ledger)
     _save_ledger(outdir, ledger)
+    remaining = len(srcs) - len(ledger)
+    if remaining > 0:
+        print(f"[BATCH] {remaining} workbook(s) still have no verdict - "
+              f"run again with --resume to continue")
     print(f"converted {done} of {len(srcs)} workbook(s)"
           + (f", {skipped} resumed from the ledger" if skipped else "")
           + f", {total_cells:,} cells -> {outdir}")
