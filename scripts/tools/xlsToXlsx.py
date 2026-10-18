@@ -11,7 +11,12 @@ Requires: xlrd (BIFF8 reader), openpyxl (xlsx writer).
     python -m pip install xlrd openpyxl
 
 Usage:
-    python scripts/tools/xlsToXlsx.py <src.xls|srcdir> <outdir> [--check]
+    python scripts/tools/xlsToXlsx.py <src.xls|srcdir> <outdir> [--check] [--resume]
+
+--resume skips any workbook the ledger already recorded a verdict for AND whose
+.xlsx is still on disk. A long batch that is interrupted — the Georgia
+municipality run was killed by the OS at file 4,048 of 4,810 — then costs only
+what it had not already done.
 
 --check re-reads each written .xlsx and diffs every cell against the .xls it came
 from, failing on any mismatch outside the documented tolerances below.
@@ -34,7 +39,7 @@ magic-byte gate — it is a real OLE2 file — and then fails in xlrd with
 converted and never silently skipped; the exit code stays non-zero so a batch
 containing one cannot read as clean. It costs one filing, not the run.
 """
-import sys, os, glob, re, warnings
+import sys, os, glob, re, json, warnings
 warnings.filterwarnings("ignore")
 import xlrd, openpyxl
 
@@ -122,9 +127,28 @@ def check(src, dst):
     return bad
 
 
+LEDGER = ".convert-ledger.json"
+
+
+def _load_ledger(outdir):
+    try:
+        with open(os.path.join(outdir, LEDGER), encoding="utf-8") as fh:
+            return json.load(fh)
+    except Exception:
+        return {}
+
+
+def _save_ledger(outdir, led):
+    tmp = os.path.join(outdir, LEDGER + ".tmp")
+    with open(tmp, "w", encoding="utf-8") as fh:
+        json.dump(led, fh)
+    os.replace(tmp, os.path.join(outdir, LEDGER))
+
+
 def main():
     args = [a for a in sys.argv[1:] if not a.startswith("--")]
     do_check = "--check" in sys.argv
+    resume = "--resume" in sys.argv
     if len(args) != 2:
         print(__doc__)
         sys.exit(2)
@@ -138,6 +162,19 @@ def main():
     problems = []
     unreadable = []
     done = 0
+    skipped = 0
+    # ── RESUME, BECAUSE A LONG BATCH DOES NOT ALWAYS GET TO FINISH ───────────
+    #
+    # The Georgia municipality batch (4,810 workbooks) was killed by the OS at
+    # file 4,048 when the machine ran out of memory. Everything was redone from
+    # scratch, because a verdict that is only ever printed at the END is lost
+    # with the process.
+    #
+    # The ledger records each file's verdict AS IT IS REACHED, and is flushed
+    # every 25 files, so a kill costs at most 25 workbooks of work rather than
+    # all of them. ⚠ --resume trusts a recorded `ok` ONLY when the .xlsx it
+    # refers to is still on disk; it never assumes a file it cannot see.
+    ledger = _load_ledger(outdir) if resume else {}
     # A WORKBOOK THIS CANNOT READ IS A REFUSAL, NOT A CRASH. The Georgia
     # statewide sweep hit `XLRDError: Workbook is encrypted` on file 743 of
     # 1,443 (Jenkins County FY2020) and the whole batch died, discarding the
@@ -145,18 +182,45 @@ def main():
     # must cost one filing, not the run — but it must also be impossible to
     # MISS, so every refusal is named below and the exit code is still non-zero.
     for f in srcs:
-        dst = os.path.join(outdir, os.path.splitext(os.path.basename(f))[0] + ".xlsx")
+        base = os.path.basename(f)
+        dst = os.path.join(outdir, os.path.splitext(base)[0] + ".xlsx")
+        prior = ledger.get(base)
+        if resume and prior and os.path.exists(dst):
+            if prior["status"] == "ok":
+                total_cells += prior.get("cells", 0)
+                skipped += 1
+                continue
+            if prior["status"] == "refused":
+                unreadable.append(f"{base}: {prior['reason']} (recorded earlier)")
+                skipped += 1
+                continue
         try:
-            total_cells += convert(f, dst)
+            cells = convert(f, dst)
+            total_cells += cells
             if do_check:
-                problems += check(f, dst)
+                bad = check(f, dst)
+                problems += bad
+                if bad:
+                    ledger[base] = {"status": "mismatch", "reason": bad[0]}
+                    _save_ledger(outdir, ledger)
+                    done += 1
+                    continue
+            ledger[base] = {"status": "ok", "cells": cells}
         except Exception as e:  # noqa: BLE001 - the reason is reported, not swallowed
-            unreadable.append(f"{os.path.basename(f)}: {type(e).__name__}: {e}")
+            reason = f"{type(e).__name__}: {e}"
+            unreadable.append(f"{base}: {reason}")
             if os.path.exists(dst):
                 os.remove(dst)  # never leave a half-written workbook to be loaded
+            ledger[base] = {"status": "refused", "reason": reason}
+            _save_ledger(outdir, ledger)
             continue
         done += 1
-    print(f"converted {done} of {len(srcs)} workbook(s), {total_cells:,} cells -> {outdir}")
+        if done % 25 == 0:
+            _save_ledger(outdir, ledger)
+    _save_ledger(outdir, ledger)
+    print(f"converted {done} of {len(srcs)} workbook(s)"
+          + (f", {skipped} resumed from the ledger" if skipped else "")
+          + f", {total_cells:,} cells -> {outdir}")
     if unreadable:
         # ASCII only: this console is cp1252.
         print(f"\n[REFUSED] {len(unreadable)} WORKBOOK(S) COULD NOT BE READ AT ALL:")
