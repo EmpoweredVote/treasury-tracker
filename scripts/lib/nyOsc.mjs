@@ -504,6 +504,27 @@ export function schoolSourceNameFor(datasetType, fiscalYear, scope) {
 }
 
 /**
+ * The never-overwrite guard, as a decision this time instead of an expression
+ * buried in a loader that cannot be imported.
+ *
+ * True when `key` already holds a row that THIS loader family did not write —
+ * i.e. another publisher's figure that must be preserved.
+ *
+ * @param {Map<string, string|null>} existing  key -> that row's `data_source`
+ */
+export function isForeignRow(existing, key, prefix) {
+  // ⚠⚠ PRESENCE, NOT TRUTHINESS. `existing` maps key -> that row's
+  // `data_source`, and a real row can carry NULL or ''. Testing `prior &&` made
+  // such a row look ABSENT, so the loader overwrote it and still reported
+  // "0 skipped by the never-overwrite guard" — a silent overwrite of another
+  // publisher's figure, reported as a clean run.
+  if (!existing.has(key)) return false;
+  // A row of unknown provenance is preserved, exactly as '' is by the
+  // `String(... || '')` form the other six loaders use.
+  return !String(existing.get(key) ?? '').startsWith(prefix);
+}
+
+/**
  * Pre-flight the roster before a seeder writes anything.
  *
  * ⚠⚠ THIS RUNS BEFORE THE FIRST WRITE, NOT INSIDE THE LOOP. The guard used to

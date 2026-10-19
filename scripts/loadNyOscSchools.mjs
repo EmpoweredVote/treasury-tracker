@@ -18,7 +18,7 @@ import { parseArgs } from 'node:util';
 
 import {
   SCHOOL_ARCHIVE_PATH, readYear, aggregateCityYear, schoolSourceNameFor, SOURCE_URL,
-  SCHOOL_SOURCE_PREFIX,
+  SCHOOL_SOURCE_PREFIX, isForeignRow,
 } from './lib/nyOsc.mjs';
 import {
   NY_SCHOOL_FUND_PREFIXES, SCHOOL_GOVERNMENTAL_TYPES,
@@ -134,9 +134,12 @@ for (let fy = FROM; fy <= TO; fy++) {
         }
         if (agg.tree.length === 0) continue;
 
-        const prior = existing.get(`${municipalityId}|${datasetType}|${scope}`);
-        if (prior && !String(prior).startsWith(SCHOOL_SOURCE_PREFIX)) {
+        const priorKey = `${municipalityId}|${datasetType}|${scope}`;
+        if (isForeignRow(existing, priorKey, SCHOOL_SOURCE_PREFIX)) {
           conflicts++;
+          // ⚠ A preserved row may carry NULL/'' — say so rather than printing
+          // `null`, because "unknown provenance" is the reason it was kept.
+          const prior = existing.get(priorKey) || '(no data_source)';
           console.log(`  SKIP ${code} FY${fy} ${datasetType} ${scope} — "${prior}" preserved`);
           continue;
         }

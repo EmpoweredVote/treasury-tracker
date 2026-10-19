@@ -3,6 +3,7 @@ import { existsSync } from 'node:fs';
 import {
   aggregateCityYear, classifyPrefix,
   SCHOOL_ARCHIVE_PATH, SCHOOL_ARCHIVE_URL, readYear,
+  isForeignRow, SCHOOL_SOURCE_PREFIX,
 } from '../scripts/lib/nyOsc.mjs';
 import { NY_SCHOOL_ENTITIES } from '../scripts/data/nyOscSchoolEntities.mjs';
 import {
@@ -14,6 +15,45 @@ const R = (fundPrefix, amt) => ({
   fundPrefix, section: 'EXPENDITURE',
   LEVEL_1_CATEGORY: 'Education', LEVEL_2_CATEGORY: 'Sub',
   OBJECT_OF_EXPENDITURE: `o${fundPrefix}`, AMOUNT: amt,
+});
+
+/**
+ * ⚠⚠ THE GUARD MUST KEY ON ROW PRESENCE, NEVER ON THE TRUTHINESS OF
+ * `data_source`. `existingForYear` returns Map<key, r.data_source>, so a row
+ * that EXISTS with a NULL or empty `data_source` yields a falsy value. Reading
+ * presence off that value lets the loader overwrite another publisher's row
+ * while printing "0 skipped by the never-overwrite guard" — a silent overwrite
+ * reported as a clean run.
+ *
+ * Every other loader coerces defensively: loadNyOscCities.mjs:131,
+ * loadGeorgiaRLGF.mjs:553, loadMichiganF65.mjs:296, loadPaDced.mjs:254,
+ * loadNYCAcfrs.mjs:204 and loadInCountyAcfrs.mjs:340 all test
+ * `existing?.[0] && !String(existing[0].data_source || '').startsWith(...)` —
+ * presence first, then the value.
+ */
+describe('the never-overwrite guard', () => {
+  const K = '42|operating|general_fund';
+  const OURS = `${SCHOOL_SOURCE_PREFIX} — Expenditures, General Fund (FY2021 actual, self-reported)`;
+
+  it('preserves another publisher\'s row', () => {
+    expect(isForeignRow(new Map([[K, 'Buffalo ACFR']]), K, SCHOOL_SOURCE_PREFIX)).toBe(true);
+  });
+
+  it('overwrites a row this loader family wrote', () => {
+    expect(isForeignRow(new Map([[K, OURS]]), K, SCHOOL_SOURCE_PREFIX)).toBe(false);
+  });
+
+  it('writes freely where no row exists', () => {
+    expect(isForeignRow(new Map(), K, SCHOOL_SOURCE_PREFIX)).toBe(false);
+  });
+
+  it('⚠ PRESERVES a row that exists with a NULL data_source', () => {
+    expect(isForeignRow(new Map([[K, null]]), K, SCHOOL_SOURCE_PREFIX)).toBe(true);
+  });
+
+  it('⚠ PRESERVES a row that exists with an EMPTY data_source', () => {
+    expect(isForeignRow(new Map([[K, '']]), K, SCHOOL_SOURCE_PREFIX)).toBe(true);
+  });
 });
 
 describe('classifyPrefix with an injected registry', () => {
