@@ -118,6 +118,378 @@ const DCA_NAME = 'Georgia DCA Report of Local Government Finances';
  * the additive pattern `cityBasisNotes` already uses.
  */
 export const figureFlags: Record<string, FigureFlag> = {
+  'Franklin County|GA|2023|revenue': {
+    id: 'franklin-fy2023-filing-is-all-but-empty',
+    severity: 'understated',
+    headline: 'Franklin County’s 2023 return is almost entirely blank — this is under 1% of a normal year',
+    summary:
+      'The county reported $192,274 of revenue for 2023, in a single category. In every other '
+      + 'year it filed, Franklin reported between $17.8 million and $34.3 million, and its own '
+      + 'audited accounts for 2024 show $22.6 million in the general fund alone. The spending side '
+      + 'of the same return is blank, so no spending figure is shown for 2023 at all. The amount '
+      + 'here is displayed exactly as filed.',
+    whatThisMeans:
+      'Treat 2023 as a year with no usable data for this county rather than as a collapse in '
+      + 'revenue. Franklin’s 2022 and 2025 figures are the better guide.',
+    entries: [
+      {
+        title: 'What the county reports in every other year',
+        text:
+          'Franklin County’s returns report revenue of $18.4m (2016), $17.8m (2017), $19.0m '
+          + '(2018), $20.9m (2019), $24.0m (2020), $25.9m (2022) and $34.3m (2025). The state '
+          + 'publishes no 2021 or 2024 return for this county. Against that series, 2023’s '
+          + '$192,274 is not a smaller year — it is an all but empty form.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Franklin County FY2016–FY2025',
+        source_url: 'https://apps.dca.ga.gov/RLGF/Default.aspx',
+        source_date: '2026-10-17',
+      },
+      {
+        title: 'What the county’s audited accounts show',
+        text:
+          'Franklin County’s audited financial statements for the year ended 30 June 2024 report '
+          + 'general fund revenues of $22,561,941. There is no audited report for 2023, so this '
+          + 'establishes the county’s scale rather than what 2023 itself should have been — but it '
+          + 'confirms that a county of this size does not take $192,274 in a year.',
+        source_name: 'Franklin County, Georgia — FY2024 Single Audit, general fund statement of revenues, expenditures and changes in fund balances — budget and actual',
+        source_url: 'https://app.fac.gov/dissemination/report/pdf/2024-06-GSAFAC-0000350197',
+        source_date: '2026-10-17',
+      },
+      {
+        title: 'Why this still appears at all',
+        text:
+          'Treasury Tracker shows what a government filed rather than deciding what it ought to '
+          + 'have filed, so the $192,274 is shown as filed and flagged instead of being removed or '
+          + 'replaced. The spending side is different: it is blank rather than small, so there is '
+          + 'no figure to show and no spending row exists for 2023.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Franklin County FY2023',
+        source_url: 'https://apps.dca.ga.gov/development/Research/programs/documents/RLGF/1059059_2023_RLGF_Franklin.xls',
+        source_date: '2026-10-17',
+      },
+    ],
+  },
+
+  'Lowndes County|GA|2018|operating': {
+    id: 'lowndes-fy2018-expenditure-side-is-about-one-quarter',
+    severity: 'understated',
+    headline: 'Lowndes’s own audited accounts report about four times this much spending for 2018',
+    summary:
+      'The state form shown here reports $23.6 million of spending for 2018. The county’s own '
+      + 'audited financial statements for the same year report $89.4 million across its '
+      + 'governmental funds. Every part of the form’s spending section is low by a similar '
+      + 'amount, so this looks like a return that was only partly filled in — not a year in which '
+      + 'the county spent less.',
+    whatThisMeans:
+      'Treat 2018 spending as incomplete. The county’s 2017 and 2019 figures ($107.5m and $87.2m) '
+      + 'are the better guide to its actual scale, and the revenue side of 2018 is unaffected.',
+    entries: [
+      {
+        title: 'What the county’s own audited statements report',
+        text:
+          'Lowndes County’s audited financial statements for the year ended 30 June 2018 report '
+          + 'total expenditures of $55,812,164 in the General Fund, $18,725,238 and $14,830,382 in '
+          + 'its other governmental funds — $89,367,784 in all. The state form reports $23,615,258, '
+          + 'which is 26.4% of that.',
+        source_name: 'Lowndes County, Georgia — FY2018 Single Audit, governmental funds statement of revenues, expenditures and changes in fund balances',
+        source_url: 'https://app.fac.gov/dissemination/report/pdf/2018-06-CENSUS-0000136968',
+        source_date: '2026-10-17',
+      },
+      {
+        title: 'The shortfall is spread across every category, not confined to one',
+        text:
+          'Compared with the average of 2017 and 2019, general administration comes to 36% of '
+          + 'normal, judicial 28%, public safety 21%, public works 18%, health and welfare 20%, '
+          + 'culture and recreation 37%, and housing and development 26%. Because the proportions '
+          + 'differ from one another this is not a decimal-point error — it reads as part of the '
+          + 'year, or part of the funds, being left out.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Lowndes County FY2017–FY2019',
+        source_url: 'https://apps.dca.ga.gov/RLGF/Default.aspx',
+        source_date: '2026-10-17',
+      },
+      {
+        title: 'The figure shown is the one the county filed',
+        text:
+          'Treasury Tracker shows $23,615,258 as filed, because that is what Lowndes County reported to the '
+          + 'state. It is not replaced with the audited figure: that would publish a number this '
+          + 'publisher never filed. The form is internally consistent — its own printed totals '
+          + 'match its line items exactly — so nothing was misread in producing this page.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Lowndes County FY2018',
+        source_url: 'https://apps.dca.ga.gov/development/Research/programs/documents/RLGF/1092092_2018_RLGF_Lowndes.xls',
+        source_date: '2026-10-17',
+      },
+    ],
+  },
+
+  'Lowndes County|GA|2022|revenue': {
+    id: 'lowndes-fy2022-sales-tax-is-forty-four-times-audited',
+    severity: 'outlier',
+    headline: 'The sales tax figure for 2022 is about 44 times what the county’s audited accounts report',
+    summary:
+      'This year’s form reports $1.67 billion of sales and use tax — more than Lowndes County’s '
+      + 'entire revenue in any other year. The county’s own audited statements report $37.6 million '
+      + 'of sales taxes for 2022. The county reported the figure and the form adds it up correctly, '
+      + 'so the page reproduces the filing faithfully, but the figure itself does not stand up '
+      + 'against the county’s audited accounts or against its own other years.',
+    whatThisMeans:
+      'Do not use 2022 revenue for this county, and do not compare it with 2021 or 2023 — the rise '
+      + 'and fall either side of it are this one figure, not anything the county did.',
+    entries: [
+      {
+        title: 'What the county’s own audited statements report',
+        text:
+          'Lowndes County’s 2023 annual financial report gives sales taxes of $37.59 million for '
+          + '2022 and $36,756,343 for 2023, and describes sales tax as “the major contributor to '
+          + 'general revenues… 41% of total general revenues”. The state form’s $1,673,304,896 for '
+          + '2022 is 44.5 times the audited figure.',
+        quote:
+          'Sales tax revenues are the major contributor to general revenues and account for '
+          + '$36,756,343 or 41% of total general revenues.',
+        source_name: 'Lowndes County, Georgia — FY2023 Annual Comprehensive Financial Report, management’s discussion and analysis',
+        source_url: 'https://app.fac.gov/dissemination/report/pdf/2023-06-GSAFAC-0000024739',
+        source_date: '2026-10-17',
+      },
+      {
+        title: 'Only this one line moves',
+        text:
+          'Every other part of the same filing is ordinary. Property taxes are $41.3 million against '
+          + '$40.5 million the year before; licences, service charges and the rest are all in line '
+          + 'with neighbouring years. Sales and use tax alone goes from $16.0 million in 2021 to '
+          + '$1.67 billion in 2022 and back to $26.0 million in 2023.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Lowndes County FY2021–FY2023',
+        source_url: 'https://apps.dca.ga.gov/RLGF/Default.aspx',
+        source_date: '2026-10-17',
+      },
+      {
+        title: 'What is not being claimed',
+        text:
+          'Dividing the figure by exactly 100 gives $16.7 million, which would sit neatly between '
+          + '2021 and 2023 — so a misplaced decimal point is the most likely explanation. That is '
+          + 'not stated as fact: no source says so, and the stored value does not divide into a '
+          + 'clean figure. Treasury Tracker shows the number as filed and leaves the cause '
+          + 'open rather than substituting a corrected figure of its own.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Lowndes County FY2022',
+        source_url: 'https://apps.dca.ga.gov/development/Research/programs/documents/RLGF/1092092_2022_RLGF_Lowndes.xls',
+        source_date: '2026-10-17',
+      },
+    ],
+  },
+
+  // ── TRANSITION STUBS: a short fiscal year sitting beside full ones ────────
+  //
+  // ⚠⚠ THE FIGURES ARE CORRECT. Each of these covers a REAL, SHORTER period —
+  // the government changed the month its financial year ends, and the year in
+  // between is a stub. Nothing is wrong with the number; what breaks is reading
+  // it beside its neighbours as though it were a full year. That is exactly
+  // what `not-comparable` is for, and it must not read as `understated`.
+  'Barrow County|GA|2017|operating': {
+    id: 'barrow-fy2017-nine-month-transition-year',
+    severity: 'not-comparable',
+    headline: 'This is a nine-month year, not a full one — Barrow moved its year-end in 2017',
+    summary:
+      'Barrow County used to close its books on 30 September. In 2017 it moved to 30 June, so the '
+      + 'year shown here runs nine months instead of twelve. The county says so on the form itself. '
+      + 'The figure is correct for the period it covers and is shown as filed — it is simply a '
+      + 'shorter period than the years either side of it, so comparing them is comparing nine '
+      + 'months with twelve.',
+    whatThisMeans:
+      'Expect roughly three quarters of a normal year here. Do not read the dip as a spending cut, '
+      + 'and do not compare 2017 directly with 2016 or 2018.',
+    entries: [
+      {
+        title: 'The county states the short period on the form itself',
+        text:
+          'Barrow County’s 2017 report records its months reported as 9, and answers “Yes” to the '
+          + 'form’s question about whether the fiscal year changed. Its 2016 report gives a year-end '
+          + 'of 30 September; every report from 2017 onwards gives 30 June. This is the only one of '
+          + 'the three Georgia counties that changed calendar mid-series where the form declares the '
+          + 'change itself.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Barrow County FY2017',
+        source_url: 'https://apps.dca.ga.gov/development/Research/programs/documents/RLGF/1007007_2017_RLGF_Barrow.xls',
+        source_date: '2026-10-17',
+      },
+      {
+        title: 'The money matches a nine-month period',
+        text:
+          'Spending in 2017 is $35.4 million against an average of $45.8 million in 2016 and 2018 — '
+          + 'a ratio of 0.77, where nine months of a twelve-month year would be 0.75. Revenue runs a '
+          + 'little higher at 0.87, which is what a changeover does to tax collection: a billing '
+          + 'cycle does not divide neatly into the stub. Both are shown exactly as filed.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Barrow County FY2016–FY2018',
+        source_url: 'https://apps.dca.ga.gov/RLGF/Default.aspx',
+        source_date: '2026-10-17',
+      },
+      {
+        title: 'The federal audit record agrees on both calendars',
+        text:
+          'Barrow County’s own federal Single Audit filings report a financial year starting in '
+          + 'October for 1998 through 2016, and starting in July for 2019 and 2024 — the same change, '
+          + 'in the same direction, recorded independently of the state form.',
+        source_name: 'Federal Audit Clearinghouse — General data, audited fiscal periods',
+        source_url: 'https://app.fac.gov/dissemination/public-data/gsa/full/general.csv',
+        source_date: '2026-10-17',
+      },
+    ],
+  },
+
+  'Talbot County|GA|2022|operating': {
+    id: 'talbot-fy2022-three-month-transition-year',
+    severity: 'not-comparable',
+    headline: 'This is a three-month year, not a full one — Talbot moved its year-end in 2022',
+    summary:
+      'Talbot County closed its books on 30 June through 2021 and on 30 September from 2022 onwards, '
+      + 'so the year shown here covers about three months rather than twelve. The figure is correct '
+      + 'for the period it covers and is shown as filed, but it is not comparable with the years '
+      + 'around it. ⚠ Unlike Barrow’s equivalent year, the form does not say the '
+      + 'period was short — it still reports twelve months — so the only way to see it is the size '
+      + 'of the figures and the county’s own change of year-end.',
+    whatThisMeans:
+      'Expect roughly a quarter of a normal year here. The drop from 2021 and the jump to 2023 are '
+      + 'the calendar changing, not the county’s finances.',
+    entries: [
+      {
+        title: 'The year-end moves, and the money moves with it',
+        text:
+          'Talbot’s reports give a year-end of 30 June for 2016 through 2021 and 30 September for '
+          + '2022 through 2025. Spending in 2022 is $2.04 million against an average of $8.25 million '
+          + 'in 2021 and 2023 — a ratio of 0.247, where three months of a twelve-month year would be '
+          + '0.25. Revenue shows the same break at 0.19. Four consecutive later reports give the new '
+          + 'date, so this is a change of calendar and not a one-year mistake on the form. The '
+          + 'figures are shown exactly as filed.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Talbot County FY2021–FY2023',
+        source_url: 'https://apps.dca.ga.gov/development/Research/programs/documents/RLGF/1130130_2022_RLGF_Talbot.xls',
+        source_date: '2026-10-17',
+      },
+      {
+        title: '⚠ What the form gets wrong, stated plainly',
+        text:
+          'The 2022 report answers “No” to the form’s question about whether the fiscal year changed, '
+          + 'and reports twelve months — while reporting about three months of money. The figures '
+          + 'themselves are consistent and reconcile to the report’s own printed totals; it is the '
+          + 'period description that is wrong. Treasury Tracker records the year-end the report gives '
+          + 'for each year, so this year is stored as a September year-end, matching the change.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Talbot County FY2022',
+        source_url: 'https://apps.dca.ga.gov/development/Research/programs/documents/RLGF/1130130_2022_RLGF_Talbot.xls',
+        source_date: '2026-10-17',
+      },
+      {
+        title: 'What the federal audit record can and cannot confirm',
+        text:
+          '⚠ Talbot County’s federal Single Audit filings report a financial year starting in July '
+          + 'for 1998 through 2014 — the earlier calendar — and carry no filing on the later one at '
+          + 'all. So the first half of this change is independently corroborated and the second half '
+          + 'rests on the county’s own reports. That is weaker evidence than Barrow’s, and is '
+          + 'recorded as such rather than presented as settled.',
+        source_name: 'Federal Audit Clearinghouse — General data, audited fiscal periods',
+        source_url: 'https://app.fac.gov/dissemination/public-data/gsa/full/general.csv',
+        source_date: '2026-10-17',
+      },
+    ],
+  },
+
+  'Barrow County|GA|2017|revenue': {
+    id: 'barrow-fy2017-nine-month-transition-year',
+    severity: 'not-comparable',
+    headline: 'This is a nine-month year, not a full one — Barrow moved its year-end in 2017',
+    summary:
+      'Barrow County used to close its books on 30 September. In 2017 it moved to 30 June, so the '
+      + 'year shown here runs nine months instead of twelve. The county says so on the form itself. '
+      + 'The figure is correct for the period it covers and is shown as filed — it is simply a '
+      + 'shorter period than the years either side of it, so comparing them is comparing nine '
+      + 'months with twelve.',
+    whatThisMeans:
+      'Expect roughly three quarters of a normal year here. Do not read the dip as revenue falling, '
+      + 'and do not compare 2017 directly with 2016 or 2018.',
+    entries: [
+      {
+        title: 'The county states the short period on the form itself',
+        text:
+          'Barrow County’s 2017 report records its months reported as 9, and answers “Yes” to the '
+          + 'form’s question about whether the fiscal year changed. Its 2016 report gives a year-end '
+          + 'of 30 September; every report from 2017 onwards gives 30 June. This is the only one of '
+          + 'the three Georgia counties that changed calendar mid-series where the form declares the '
+          + 'change itself.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Barrow County FY2017',
+        source_url: 'https://apps.dca.ga.gov/development/Research/programs/documents/RLGF/1007007_2017_RLGF_Barrow.xls',
+        source_date: '2026-10-17',
+      },
+      {
+        title: 'The money matches a nine-month period',
+        text:
+          'Spending in 2017 is $35.4 million against an average of $45.8 million in 2016 and 2018 — '
+          + 'a ratio of 0.77, where nine months of a twelve-month year would be 0.75. Revenue runs a '
+          + 'little higher at 0.87, which is what a changeover does to tax collection: a billing '
+          + 'cycle does not divide neatly into the stub. Both are shown exactly as filed.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Barrow County FY2016–FY2018',
+        source_url: 'https://apps.dca.ga.gov/RLGF/Default.aspx',
+        source_date: '2026-10-17',
+      },
+      {
+        title: 'The federal audit record agrees on both calendars',
+        text:
+          'Barrow County’s own federal Single Audit filings report a financial year starting in '
+          + 'October for 1998 through 2016, and starting in July for 2019 and 2024 — the same change, '
+          + 'in the same direction, recorded independently of the state form.',
+        source_name: 'Federal Audit Clearinghouse — General data, audited fiscal periods',
+        source_url: 'https://app.fac.gov/dissemination/public-data/gsa/full/general.csv',
+        source_date: '2026-10-17',
+      },
+    ],
+  },
+
+  'Talbot County|GA|2022|revenue': {
+    id: 'talbot-fy2022-three-month-transition-year',
+    severity: 'not-comparable',
+    headline: 'This is a three-month year, not a full one — Talbot moved its year-end in 2022',
+    summary:
+      'Talbot County closed its books on 30 June through 2021 and on 30 September from 2022 onwards, '
+      + 'so the year shown here covers about three months rather than twelve. The figure is correct '
+      + 'for the period it covers and is shown as filed, but it is not comparable with the years '
+      + 'around it. ⚠ Unlike Barrow’s equivalent year, the form does not say the '
+      + 'period was short — it still reports twelve months — so the only way to see it is the size '
+      + 'of the figures and the county’s own change of year-end.',
+    whatThisMeans:
+      'Expect roughly a quarter of a normal year here. The drop from 2021 and the jump to 2023 are '
+      + 'the calendar changing, not the county’s finances.',
+    entries: [
+      {
+        title: 'The year-end moves, and the money moves with it',
+        text:
+          'Talbot’s reports give a year-end of 30 June for 2016 through 2021 and 30 September for '
+          + '2022 through 2025. Spending in 2022 is $2.04 million against an average of $8.25 million '
+          + 'in 2021 and 2023 — a ratio of 0.247, where three months of a twelve-month year would be '
+          + '0.25. Revenue shows the same break at 0.19. Four consecutive later reports give the new '
+          + 'date, so this is a change of calendar and not a one-year mistake on the form. The '
+          + 'figures are shown exactly as filed.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Talbot County FY2021–FY2023',
+        source_url: 'https://apps.dca.ga.gov/development/Research/programs/documents/RLGF/1130130_2022_RLGF_Talbot.xls',
+        source_date: '2026-10-17',
+      },
+      {
+        title: '⚠ What the form gets wrong, stated plainly',
+        text:
+          'The 2022 report answers “No” to the form’s question about whether the fiscal year changed, '
+          + 'and reports twelve months — while reporting about three months of money. The figures '
+          + 'themselves are consistent and reconcile to the report’s own printed totals; it is the '
+          + 'period description that is wrong. Treasury Tracker records the year-end the report gives '
+          + 'for each year, so this year is stored as a September year-end, matching the change.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Talbot County FY2022',
+        source_url: 'https://apps.dca.ga.gov/development/Research/programs/documents/RLGF/1130130_2022_RLGF_Talbot.xls',
+        source_date: '2026-10-17',
+      },
+      {
+        title: 'What the federal audit record can and cannot confirm',
+        text:
+          '⚠ Talbot County’s federal Single Audit filings report a financial year starting in July '
+          + 'for 1998 through 2014 — the earlier calendar — and carry no filing on the later one at '
+          + 'all. So the first half of this change is independently corroborated and the second half '
+          + 'rests on the county’s own reports. That is weaker evidence than Barrow’s, and is '
+          + 'recorded as such rather than presented as settled.',
+        source_name: 'Federal Audit Clearinghouse — General data, audited fiscal periods',
+        source_url: 'https://app.fac.gov/dissemination/public-data/gsa/full/general.csv',
+        source_date: '2026-10-17',
+      },
+    ],
+  },
+
   'DeKalb County|GA|2018|operating': {
     id: 'dekalb-fy2018-expenditure-side-is-about-one-twelfth',
     severity: 'understated',
