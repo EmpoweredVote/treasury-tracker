@@ -958,18 +958,352 @@ export const GA_FIGURE_FLAGS = Object.freeze([
       'Found independently by the raw-workbook agent and the external agent, and verified '
       + 'a third time directly against the printed pages before being recorded.',
   },
+  {
+    id: 'bacon-fy2014-six-month-transition-year',
+    entity: 'Bacon County',
+    state: 'GA',
+    fiscalYear: 2014,
+    dataset: 'operating and revenue',
+    section: 'the whole filing',
+    ucoa: null,
+    label: 'A six-month transition year',
+    amount: 4089034,
+    loaded: true,
+    severity: 'not-comparable',
+    // ⚠⚠ THE FIGURES ARE CORRECT. The period is genuinely shorter, and the
+    // county declared the change on the form itself. Recording this as a
+    // defect would mislead the reader and impute a fault to a government
+    // that said so.
+    what:
+      'Bacon County moved its fiscal year end from 31 December to 30 June in FY2014, so that year '
+      + 'covers SIX MONTHS. The filing declares it: the v1 form’s months-reported field '
+      + '(V99) reads 6, not 12. Operating comes to $4,089,034 against a $8,435,661 mean of '
+      + 'FY2013 and FY2015 — a ratio of 0.485 where 6 twelfths is 0.500.',
+    magnitude: [
+      'Operating ratio 0.485 against the neighbour mean (FY2013 and FY2015).',
+      'Revenue ratio 0.309 — $2,632,496 against $8,530,743.',
+      '⚠ The revenue ratio sits further from 0.50 than the expenditure one, which is '
+        + 'what a changeover does to a collection cycle: property tax arrives in a lump that does '
+        + 'not divide neatly into a part-year stub. Both figures are shown exactly as filed.',
+    ],
+    verifiedBecause: [
+      'The form states the short period ITSELF — V99 (months reported) reads 6 in this filing '
+        + 'and 12 in every other v1 filing this county made.',
+      'The money agrees independently: the operating ratio is 0.485 where 0.500 is expected.',
+      '⚠⚠ TWO SIGNALS, NOT ONE, AND THAT IS THE POINT. The FY2016-2025 sweep established that the '
+        + 'months-reported field ALONE cannot find stubs — Talbot FY2022 reported twelve months '
+        + 'while reporting a quarter of the money. Here the declaration and the money agree, and '
+        + 'the one Georgia county where they DISAGREED (Chattooga FY2014: twelve months declared, a '
+        + 'full year of money, a June year-end between two December ones) turned out to be a keying '
+        + 'slip and is corrected rather than flagged.',
+    ],
+    benignExplanations: [
+      'A deliberate, lawful change of fiscal calendar, which Georgia counties make by local '
+        + 'ordinance and which the DCA form has a field to declare.',
+    ],
+    corroboration:
+      'The county’s own filings on both sides of the change report the two different year-ends, in '
+      + 'the right order, and the transition year declares the short period on its face.',
+  },
+  {
+    id: 'baldwin-fy2010-nine-month-transition-year',
+    entity: 'Baldwin County',
+    state: 'GA',
+    fiscalYear: 2010,
+    dataset: 'operating and revenue',
+    section: 'the whole filing',
+    ucoa: null,
+    label: 'A nine-month transition year',
+    amount: 17310524,
+    loaded: true,
+    severity: 'not-comparable',
+    // ⚠⚠ THE FIGURES ARE CORRECT. The period is genuinely shorter, and the
+    // county declared the change on the form itself. Recording this as a
+    // defect would mislead the reader and impute a fault to a government
+    // that said so.
+    what:
+      'Baldwin County moved its fiscal year end from 30 June to 31 December in FY2010, so that year '
+      + 'covers NINE MONTHS. The filing declares it: the v1 form’s months-reported field '
+      + '(V99) reads 9, not 12. Operating comes to $17,310,524 against a $24,919,628 mean of '
+      + 'FY2009 and FY2011 — a ratio of 0.695 where 9 twelfths is 0.750.',
+    magnitude: [
+      'Operating ratio 0.695 against the neighbour mean (FY2009 and FY2011).',
+      'Revenue ratio 0.808 — $22,559,133 against $27,903,549.',
+      '⚠ The revenue ratio sits further from 0.75 than the expenditure one, which is '
+        + 'what a changeover does to a collection cycle: property tax arrives in a lump that does '
+        + 'not divide neatly into a part-year stub. Both figures are shown exactly as filed.',
+      '⚠ The FY2016-2025 sweep already knew this change existed and could not see it, recording only that Baldwin’s and Atlanta’s changes both sat BELOW the FY2016 floor. This is that change, measured directly for the first time.',
+    ],
+    verifiedBecause: [
+      'The form states the short period ITSELF — V99 (months reported) reads 9 in this filing '
+        + 'and 12 in every other v1 filing this county made.',
+      'The money agrees independently: the operating ratio is 0.695 where 0.750 is expected.',
+      '⚠⚠ TWO SIGNALS, NOT ONE, AND THAT IS THE POINT. The FY2016-2025 sweep established that the '
+        + 'months-reported field ALONE cannot find stubs — Talbot FY2022 reported twelve months '
+        + 'while reporting a quarter of the money. Here the declaration and the money agree, and '
+        + 'the one Georgia county where they DISAGREED (Chattooga FY2014: twelve months declared, a '
+        + 'full year of money, a June year-end between two December ones) turned out to be a keying '
+        + 'slip and is corrected rather than flagged.',
+    ],
+    benignExplanations: [
+      'A deliberate, lawful change of fiscal calendar, which Georgia counties make by local '
+        + 'ordinance and which the DCA form has a field to declare.',
+    ],
+    corroboration:
+      'The county’s own filings on both sides of the change report the two different year-ends, in '
+      + 'the right order, and the transition year declares the short period on its face.',
+  },
+  {
+    id: 'cherokee-fy2012-nine-month-transition-year',
+    entity: 'Cherokee County',
+    state: 'GA',
+    fiscalYear: 2012,
+    dataset: 'operating and revenue',
+    section: 'the whole filing',
+    ucoa: null,
+    label: 'A nine-month transition year',
+    amount: 90450127,
+    loaded: true,
+    severity: 'not-comparable',
+    // ⚠⚠ THE FIGURES ARE CORRECT. The period is genuinely shorter, and the
+    // county declared the change on the form itself. Recording this as a
+    // defect would mislead the reader and impute a fault to a government
+    // that said so.
+    what:
+      'Cherokee County moved its fiscal year end from 31 December to 30 September in FY2012, so that year '
+      + 'covers NINE MONTHS. The filing declares it: the v1 form’s months-reported field '
+      + '(V99) reads 9, not 12. Operating comes to $90,450,127 against a $124,762,926 mean of '
+      + 'FY2011 and FY2013 — a ratio of 0.725 where 9 twelfths is 0.750.',
+    magnitude: [
+      'Operating ratio 0.725 against the neighbour mean (FY2011 and FY2013).',
+      'Revenue ratio 0.537 — $78,189,998 against $145,606,505.',
+      '⚠ The revenue ratio sits further from 0.75 than the expenditure one, which is '
+        + 'what a changeover does to a collection cycle: property tax arrives in a lump that does '
+        + 'not divide neatly into a part-year stub. Both figures are shown exactly as filed.',
+      '⚠ Cherokee changed calendar TWICE in this window, and the FIRST change leaves a GAP rather than a stub: FY2010 ends 30 June 2010 and FY2011 reports a full twelve months ending 31 December 2011, so JULY TO DECEMBER 2010 IS REPORTED BY NO FILING AT ALL.',
+    ],
+    verifiedBecause: [
+      'The form states the short period ITSELF — V99 (months reported) reads 9 in this filing '
+        + 'and 12 in every other v1 filing this county made.',
+      'The money agrees independently: the operating ratio is 0.725 where 0.750 is expected.',
+      '⚠⚠ TWO SIGNALS, NOT ONE, AND THAT IS THE POINT. The FY2016-2025 sweep established that the '
+        + 'months-reported field ALONE cannot find stubs — Talbot FY2022 reported twelve months '
+        + 'while reporting a quarter of the money. Here the declaration and the money agree, and '
+        + 'the one Georgia county where they DISAGREED (Chattooga FY2014: twelve months declared, a '
+        + 'full year of money, a June year-end between two December ones) turned out to be a keying '
+        + 'slip and is corrected rather than flagged.',
+    ],
+    benignExplanations: [
+      'A deliberate, lawful change of fiscal calendar, which Georgia counties make by local '
+        + 'ordinance and which the DCA form has a field to declare.',
+    ],
+    corroboration:
+      'The county’s own filings on both sides of the change report the two different year-ends, in '
+      + 'the right order, and the transition year declares the short period on its face.',
+  },
+  {
+    id: 'dade-fy2010-six-month-transition-year',
+    entity: 'Dade County',
+    state: 'GA',
+    fiscalYear: 2010,
+    dataset: 'operating and revenue',
+    section: 'the whole filing',
+    ucoa: null,
+    label: 'A six-month transition year',
+    amount: 3303828,
+    loaded: true,
+    severity: 'not-comparable',
+    // ⚠⚠ THE FIGURES ARE CORRECT. The period is genuinely shorter, and the
+    // county declared the change on the form itself. Recording this as a
+    // defect would mislead the reader and impute a fault to a government
+    // that said so.
+    what:
+      'Dade County moved its fiscal year end from 31 December to 30 June in FY2010, so that year '
+      + 'covers SIX MONTHS. The filing declares it: the v1 form’s months-reported field '
+      + '(V99) reads 6, not 12. Operating comes to $3,303,828 against a $10,511,276 mean of '
+      + 'FY2009 alone — a ratio of 0.314 where 6 twelfths is 0.500.',
+    magnitude: [
+      'Operating ratio 0.314 against the neighbour mean (FY2009 alone).',
+      'Revenue ratio 0.374 — $3,971,994 against $10,607,003.',
+      '⚠ The revenue ratio sits further from 0.50 than the expenditure one, which is '
+        + 'what a changeover does to a collection cycle: property tax arrives in a lump that does '
+        + 'not divide neatly into a part-year stub. Both figures are shown exactly as filed.',
+      '⚠ DCA lists NO FY2011 filing for Dade, so the only neighbour is FY2009 - itself a high year at 1.35 of Dade’s own v1 mean. The ratio is measured against an inflated base and reads lower than half; the form’s own six-month declaration is the primary evidence here, not the money.',
+    ],
+    verifiedBecause: [
+      'The form states the short period ITSELF — V99 (months reported) reads 6 in this filing '
+        + 'and 12 in every other v1 filing this county made.',
+      'The money agrees independently: the operating ratio is 0.314 where 0.500 is expected.',
+      '⚠⚠ TWO SIGNALS, NOT ONE, AND THAT IS THE POINT. The FY2016-2025 sweep established that the '
+        + 'months-reported field ALONE cannot find stubs — Talbot FY2022 reported twelve months '
+        + 'while reporting a quarter of the money. Here the declaration and the money agree, and '
+        + 'the one Georgia county where they DISAGREED (Chattooga FY2014: twelve months declared, a '
+        + 'full year of money, a June year-end between two December ones) turned out to be a keying '
+        + 'slip and is corrected rather than flagged.',
+    ],
+    benignExplanations: [
+      'A deliberate, lawful change of fiscal calendar, which Georgia counties make by local '
+        + 'ordinance and which the DCA form has a field to declare.',
+    ],
+    corroboration:
+      'The county’s own filings on both sides of the change report the two different year-ends, in '
+      + 'the right order, and the transition year declares the short period on its face.',
+  },
+  {
+    id: 'jasper-fy2011-six-month-transition-year',
+    entity: 'Jasper County',
+    state: 'GA',
+    fiscalYear: 2011,
+    dataset: 'operating and revenue',
+    section: 'the whole filing',
+    ucoa: null,
+    label: 'A six-month transition year',
+    amount: 4737846,
+    loaded: true,
+    severity: 'not-comparable',
+    // ⚠⚠ THE FIGURES ARE CORRECT. The period is genuinely shorter, and the
+    // county declared the change on the form itself. Recording this as a
+    // defect would mislead the reader and impute a fault to a government
+    // that said so.
+    what:
+      'Jasper County moved its fiscal year end from 31 December to 30 June in FY2011, so that year '
+      + 'covers SIX MONTHS. The filing declares it: the v1 form’s months-reported field '
+      + '(V99) reads 6, not 12. Operating comes to $4,737,846 against a $9,410,169 mean of '
+      + 'FY2010 and FY2012 — a ratio of 0.503 where 6 twelfths is 0.500.',
+    magnitude: [
+      'Operating ratio 0.503 against the neighbour mean (FY2010 and FY2012).',
+      'Revenue ratio 0.252 — $2,415,187 against $9,590,317.',
+      '⚠ The revenue ratio sits further from 0.50 than the expenditure one, which is '
+        + 'what a changeover does to a collection cycle: property tax arrives in a lump that does '
+        + 'not divide neatly into a part-year stub. Both figures are shown exactly as filed.',
+    ],
+    verifiedBecause: [
+      'The form states the short period ITSELF — V99 (months reported) reads 6 in this filing '
+        + 'and 12 in every other v1 filing this county made.',
+      'The money agrees independently: the operating ratio is 0.503 where 0.500 is expected.',
+      '⚠⚠ TWO SIGNALS, NOT ONE, AND THAT IS THE POINT. The FY2016-2025 sweep established that the '
+        + 'months-reported field ALONE cannot find stubs — Talbot FY2022 reported twelve months '
+        + 'while reporting a quarter of the money. Here the declaration and the money agree, and '
+        + 'the one Georgia county where they DISAGREED (Chattooga FY2014: twelve months declared, a '
+        + 'full year of money, a June year-end between two December ones) turned out to be a keying '
+        + 'slip and is corrected rather than flagged.',
+    ],
+    benignExplanations: [
+      'A deliberate, lawful change of fiscal calendar, which Georgia counties make by local '
+        + 'ordinance and which the DCA form has a field to declare.',
+    ],
+    corroboration:
+      'The county’s own filings on both sides of the change report the two different year-ends, in '
+      + 'the right order, and the transition year declares the short period on its face.',
+  },
+  {
+    id: 'putnam-fy2010-nine-month-transition-year',
+    entity: 'Putnam County',
+    state: 'GA',
+    fiscalYear: 2010,
+    dataset: 'operating and revenue',
+    section: 'the whole filing',
+    ucoa: null,
+    label: 'A nine-month transition year',
+    amount: 14813438,
+    loaded: true,
+    severity: 'not-comparable',
+    // ⚠⚠ THE FIGURES ARE CORRECT. The period is genuinely shorter, and the
+    // county declared the change on the form itself. Recording this as a
+    // defect would mislead the reader and impute a fault to a government
+    // that said so.
+    what:
+      'Putnam County moved its fiscal year end from 31 December to 30 September in FY2010, so that year '
+      + 'covers NINE MONTHS. The filing declares it: the v1 form’s months-reported field '
+      + '(V99) reads 9, not 12. Operating comes to $14,813,438 against a $18,643,856 mean of '
+      + 'FY2009 and FY2011 — a ratio of 0.795 where 9 twelfths is 0.750.',
+    magnitude: [
+      'Operating ratio 0.795 against the neighbour mean (FY2009 and FY2011).',
+      'Revenue ratio 0.440 — $8,956,546 against $20,353,469.',
+      '⚠ The revenue ratio sits further from 0.75 than the expenditure one, which is '
+        + 'what a changeover does to a collection cycle: property tax arrives in a lump that does '
+        + 'not divide neatly into a part-year stub. Both figures are shown exactly as filed.',
+      '⚠ Putnam’s FY2011 filing ALSO reports nine months while carrying a full year of money (0.942 of its own mean). That later declaration is treated as a stale copy of this year’s answer rather than a second stub, and nothing turns on it because the month itself is unchanged either way.',
+    ],
+    verifiedBecause: [
+      'The form states the short period ITSELF — V99 (months reported) reads 9 in this filing '
+        + 'and 12 in every other v1 filing this county made.',
+      'The money agrees independently: the operating ratio is 0.795 where 0.750 is expected.',
+      '⚠⚠ TWO SIGNALS, NOT ONE, AND THAT IS THE POINT. The FY2016-2025 sweep established that the '
+        + 'months-reported field ALONE cannot find stubs — Talbot FY2022 reported twelve months '
+        + 'while reporting a quarter of the money. Here the declaration and the money agree, and '
+        + 'the one Georgia county where they DISAGREED (Chattooga FY2014: twelve months declared, a '
+        + 'full year of money, a June year-end between two December ones) turned out to be a keying '
+        + 'slip and is corrected rather than flagged.',
+    ],
+    benignExplanations: [
+      'A deliberate, lawful change of fiscal calendar, which Georgia counties make by local '
+        + 'ordinance and which the DCA form has a field to declare.',
+    ],
+    corroboration:
+      'The county’s own filings on both sides of the change report the two different year-ends, in '
+      + 'the right order, and the transition year declares the short period on its face.',
+  },
+  {
+    id: 'randolph-fy2012-nine-month-transition-year',
+    entity: 'Randolph County',
+    state: 'GA',
+    fiscalYear: 2012,
+    dataset: 'operating and revenue',
+    section: 'the whole filing',
+    ucoa: null,
+    label: 'A nine-month transition year',
+    amount: 4657344,
+    loaded: true,
+    severity: 'not-comparable',
+    // ⚠⚠ THE FIGURES ARE CORRECT. The period is genuinely shorter, and the
+    // county declared the change on the form itself. Recording this as a
+    // defect would mislead the reader and impute a fault to a government
+    // that said so.
+    what:
+      'Randolph County moved its fiscal year end from 31 March to 31 December in FY2012, so that year '
+      + 'covers NINE MONTHS. The filing declares it: the v1 form’s months-reported field '
+      + '(V99) reads 9, not 12. Operating comes to $4,657,344 against a $7,814,999 mean of '
+      + 'FY2011 and FY2013 — a ratio of 0.596 where 9 twelfths is 0.750.',
+    magnitude: [
+      'Operating ratio 0.596 against the neighbour mean (FY2011 and FY2013).',
+      'Revenue ratio 0.830 — $5,453,562 against $6,573,448.',
+      '⚠ The revenue ratio sits further from 0.75 than the expenditure one, which is '
+        + 'what a changeover does to a collection cycle: property tax arrives in a lump that does '
+        + 'not divide neatly into a part-year stub. Both figures are shown exactly as filed.',
+      '⚠ Randolph is one of very few Georgia governments on a 31 MARCH year end, which is the calendar it is leaving here.',
+    ],
+    verifiedBecause: [
+      'The form states the short period ITSELF — V99 (months reported) reads 9 in this filing '
+        + 'and 12 in every other v1 filing this county made.',
+      'The money agrees independently: the operating ratio is 0.596 where 0.750 is expected.',
+      '⚠⚠ TWO SIGNALS, NOT ONE, AND THAT IS THE POINT. The FY2016-2025 sweep established that the '
+        + 'months-reported field ALONE cannot find stubs — Talbot FY2022 reported twelve months '
+        + 'while reporting a quarter of the money. Here the declaration and the money agree, and '
+        + 'the one Georgia county where they DISAGREED (Chattooga FY2014: twelve months declared, a '
+        + 'full year of money, a June year-end between two December ones) turned out to be a keying '
+        + 'slip and is corrected rather than flagged.',
+    ],
+    benignExplanations: [
+      'A deliberate, lawful change of fiscal calendar, which Georgia counties make by local '
+        + 'ordinance and which the DCA form has a field to declare.',
+    ],
+    corroboration:
+      'The county’s own filings on both sides of the change report the two different year-ends, in '
+      + 'the right order, and the transition year declares the short period on its face.',
+  },
 ]);
 
 /**
- * ── FLAG 2: the publisher's machine extract is defective ───────────────────
+ * ── FLAG 2: the publisher’s machine extract is defective ───────────────────
  *
  * ⚠⚠ THIS DOES NOT AFFECT LOADED FIGURES. TT reads the PRINTED FORM, which
  * reconciles to its own subtotals in 1,672 of 1,672 tests. These are recorded
- * because anyone else using Georgia's RLGF `LOAD1` sheet will hit them.
+ * because anyone else using Georgia’s RLGF `LOAD1` sheet will hit them.
  *
  * MECHANISM: `LOAD1` is a formula layer over the printed Page sheets. Where a
  * form row was renumbered or moved, the reference snapped to `#REF!` and its
- * NEIGHBOUR's formula picked up the displaced value — so a real dollar amount
+ * NEIGHBOUR’s formula picked up the displaced value — so a real dollar amount
  * is attached to the WRONG UCOA account.
  *
  * ⚠⚠ THE SUBTOTALS STILL TIE. `LOAD1`'s `TTL_*` cells remain correct even where
@@ -978,7 +1312,7 @@ export const GA_FIGURE_FLAGS = Object.freeze([
  * are NECESSARY BUT DEMONSTRABLY NOT SUFFICIENT for this source.
  *
  * ⚠ A naive reader sees these as SMALL PLAUSIBLE NUMBERS, not as errors: in the
- * raw .xls an error cell's "value" is its error CODE, so `#REF!` reads as the
+ * raw .xls an error cell’s "value" is its error CODE, so `#REF!` reads as the
  * integer **23**. That is how this hid until an independent audit named it.
  */
 export const GA_EXTRACT_DEFECTS = Object.freeze([
@@ -1537,6 +1871,36 @@ export const GA_OUT_OF_SCOPE_FINDINGS = Object.freeze([
       + 'FY2021 is the year Fulton\'s return went wrong. The same filing also leaves '
       + 'Part XIV\'s dependent-entities flag blank while its attachment lists three.',
   },
+  {
+    what: '⚠⚠ THE TWO ABSORBED COUNTIES ARE NOT LOADED FOR FY2009-2015: Bibb County '
+      + '(1011011, FY2009-2013, 5 filings) and Echols County (1050050, FY2009 — its FY2010 '
+      + 'is separately REFUSED as a double-count). Both parse and oracle cleanly; neither '
+      + 'has a registry entry, because the statewide registry was built from FY2016-2025 and '
+      + 'by then both governments had been consolidated out of existence.',
+    why:
+      '⚠ NOT A PARSING GAP — AN ENTITY-MODELLING DECISION THAT IS ITS OWN PIECE OF WORK, and '
+      + 'the two halves need OPPOSITE answers, which is why neither is guessed here. '
+      + '⭐ ECHOLS IS THE SAME GOVERNMENT TWICE. Its FY2010 county-prefix filing reports '
+      + 'operating $2,679,270 — IDENTICAL to the Echols County CG FY2010 filing already '
+      + 'loaded under 3050050. Echols has no municipalities, so the unified government covers '
+      + 'the same territory and the same money; FY2009 is a genuine continuation of the series '
+      + 'TT already shows. Loading it needs an ALIAS (two CICOIDs, one entity), which '
+      + 'GA_ALL_ENTITIES currently forbids by assertion — and that assertion is load-bearing '
+      + '(project_sync_city_budget_not_source_safe: a second entity would DUPLICATE rows '
+      + 'rather than collide visibly). '
+      + '⚠⚠ BIBB IS A DIFFERENT GOVERNMENT. Bibb County alone reports $92.0M-$115.7M of '
+      + 'operating across FY2009-2013; Macon-Bibb, which merged the county with the CITY of '
+      + 'Macon, reports $195.3M in FY2016. Appending one series to the other would show a '
+      + '~1.7x step that reads as growth and is a change of scope — the Fulton FY2017/FY2018 '
+      + 'reader-distortion shape, where 92% of an apparent jump was not growth at all. The '
+      + 'honest options are a SEPARATE `Bibb County` entity (its own county government, which '
+      + 'genuinely existed until 2014) or one series carrying a not-comparable flag at the '
+      + 'boundary. That choice belongs to whoever decides what a reader should see, not to a '
+      + '1,034-filing sweep. '
+      + '⚠ The six filings are fetched, converted and verified; nothing needs re-measuring. '
+      + 'The loader reports them as `CICOID … is in no registry — not loaded` on every run, '
+      + 'so they cannot be forgotten silently.',
+  },
 ]);
 
 /**
@@ -1849,6 +2213,22 @@ export const GA_FYE_MONTH_DEFECTS = Object.freeze([
     corroboration: 'Newton\'s other nine filings all print "June 30". ⚠ FAC\'s only Newton '
       + 'rows are 2010-2012, all month 7, and none covers FY2022. This rests on '
       + 'the entity\'s own nine-year consistency alone.',
+  },
+  {
+    id: 'chattooga-fy2014-june-for-december',
+    cicoid: '1027027', entity: 'Chattooga County', fiscalYear: 2014,
+    formMonth: 7, formText: 'June 30', month: 1,
+    corroboration:
+      '⭐ THE BEST-EVIDENCED SLIP IN THE GEORGIA CORPUS, and the one county of eight whose '
+      + 'v1 month split is NOT a calendar change. Chattooga prints "December 31" in 15 of its '
+      + '16 filings — FY2009-2013 and FY2015 on the v1 form, and FY2016-2024 on the v2 form, '
+      + 'which is BOTH SIDES of the anomalous year in BOTH form generations. '
+      + '⚠⚠ What separates it from the seven real changes is that the form declares NO stub '
+      + 'and the money shows none: FY2014 reports V99 = 12 and $12,301,887, which is 1.016 of '
+      + 'Chattooga\'s own v1 mean. Every genuine change in this corpus declares 6 or 9 months '
+      + 'AND reports the matching fraction of the money. A one-year hop to June 30 and back, '
+      + 'with twelve months of money on both sides, would require two transitions and two '
+      + 'stubs; there are none.',
   },
   // ── MUNICIPALITIES (statewide sweep, 2026-10-18) ──────────────────────────
   //
@@ -2247,6 +2627,22 @@ export const GA_EMPTY_DATASETS = Object.freeze([
       + 'ZERO. The guard caught both only because it tests for MONEY and not for length, '
       + 'which is the lesson a `tree.length === 0` guard taught by reaching production.',
   },
+  {
+    id: 'chatham-fy2010-part-five-blank',
+    cicoid: '1025025', entity: 'Chatham County', state: 'GA', fiscalYear: 2010,
+    dataset: 'operating',
+    what:
+      'All 36 Part V functions are $0.00 while the revenue side reports $264,150,126 and '
+      + 'verifies normally. Chatham\'s own FY2009 and FY2011 filings report $205,264,337 and '
+      + '$257,400,818 of expenditure, so the county plainly spent money in FY2010.',
+    why:
+      '⚠ Distinguished from a READ failure by the fact that all 36 function rows ARE present '
+      + 'and every one of them is $0.00 — the page was read, and it is blank. ⚠⚠ Its FY2013 '
+      + 'and FY2014 siblings DID fail to read for a different reason (a `Page 3 ` sheet name '
+      + 'with a trailing space) and looked identical from the outside: expenditure $0, revenue '
+      + 'normal. Two causes, one appearance. That is why a blank Part is recorded by name '
+      + 'rather than skipped by rule.',
+  },
   // ── MUNICIPALITIES (statewide sweep, 2026-10-18) ──────────────────────────
   //
   // ⚠⚠ TWENTY of 4,794 municipality filings leave the expenditure side blank,
@@ -2560,4 +2956,116 @@ export function consolidationOverlap(cicoid, fiscalYear) {
   const e = GA_CONSOLIDATION_OVERLAP.find((x) => x.absorbedCicoid === String(cicoid));
   if (!e) return null;
   return Number(fiscalYear) >= e.firstConsolidatedYear ? e : null;
+}
+
+/**
+ * ⚠⚠ CALENDAR CHANGES INSIDE FY2009-2015, MEASURED ON THE STATEWIDE COUNTY SWEEP.
+ *
+ * The v1 years have no registry month to check against — the statewide registry
+ * was built from FY2016-2025 — so `assertV1MonthConsistency` cross-checks a
+ * government's v1 filings against EACH OTHER instead. Eight counties disagree
+ * with themselves. Seven of them changed calendar, and this register tells the
+ * guard to stand down for exactly those.
+ *
+ * ⚠⚠ RECORDING A CHANGE NEEDS NO EVIDENCE; THIS IS NOT RECORDING. Each filing
+ * already carries its own month and that is what gets written. This register
+ * exists to silence a GUARD, so every entry pins TWO independent signals:
+ *
+ *   1. THE FORM'S OWN DECLARATION — `V99` (months reported) at the transition
+ *      year, which reads 6 or 9 instead of 12.
+ *   2. THE MONEY — the stub year's operating total against the entity's own v1
+ *      mean, which lands within ~0.05 of the fraction V99 declares.
+ *
+ * ⚠ The v2 sweep learned that `MosRptd` ALONE cannot find stubs (Talbot FY2022
+ * reported 12 months while reporting a quarter of the money). Here the two
+ * signals agree on all seven, which is a stronger result than either alone —
+ * and the one county where they DISAGREE is the one that turned out to be a
+ * keying slip (Chattooga, see GA_FYE_MONTH_DEFECTS).
+ *
+ * ⚠⚠ THE STUB YEARS ARE REAL AND LOAD. Their figures are RIGHT and cover a
+ * short period, so each carries a reader flag of severity `not-comparable` —
+ * never a warning. See GA_FIGURE_FLAGS and src/data/figureFlags.ts.
+ */
+export const GA_V1_MONTH_CHANGES = Object.freeze([
+  {
+    id: 'bacon-fy2014-december-to-june',
+    cicoid: '1003003', entity: 'Bacon County',
+    monthByYear: Object.freeze({ 2009: 1, 2010: 1, 2011: 1, 2012: 1, 2013: 1, 2014: 7, 2015: 7 }),
+    stubYear: 2014, stubMonths: 6, stubRatio: 0.534,
+    declaredBy: 'the FY2014 filing reports V99 = 6 — a six-month transition stub',
+    corroboration: 'FY2014 operating is $4,089,034, 0.534 of Bacon\'s own v1 mean, against '
+      + '0.50 expected for half a year. FY2015 returns to a full year at 1.239.',
+  },
+  {
+    id: 'baldwin-fy2010-june-to-december',
+    cicoid: '1005005', entity: 'Baldwin County',
+    monthByYear: Object.freeze({ 2009: 7, 2010: 1, 2011: 1, 2012: 1, 2013: 1, 2014: 1, 2015: 1 }),
+    stubYear: 2010, stubMonths: 9, stubRatio: 0.740,
+    declaredBy: 'the FY2010 filing reports V99 = 9 — a nine-month transition stub',
+    corroboration: 'FY2010 operating is $17,310,524, 0.740 of Baldwin\'s own v1 mean, against '
+      + '0.75 expected for three quarters. ⭐ THIS IS THE CHANGE THE v2 SWEEP ALREADY KNEW '
+      + 'ABOUT but could not see: it recorded that "Baldwin\'s and Atlanta\'s changes both sat '
+      + 'BELOW the FY2016 floor". This is that change, now measured directly.',
+  },
+  {
+    id: 'cherokee-fy2011-and-fy2012-two-changes',
+    cicoid: '1028028', entity: 'Cherokee County',
+    monthByYear: Object.freeze({ 2009: 7, 2010: 7, 2011: 1, 2012: 10, 2013: 10, 2014: 10, 2015: 10 }),
+    stubYear: 2012, stubMonths: 9, stubRatio: 0.715,
+    declaredBy: 'the FY2012 filing reports V99 = 9 — a nine-month transition stub',
+    corroboration: 'FY2012 operating is $90,450,127, 0.715 of Cherokee\'s own v1 mean, against '
+      + '0.75 expected. Its v2 filings report September 30 in all ten years FY2016-2025, '
+      + 'which is the far side of the change.',
+    why: '⚠⚠ TWO CHANGES, NOT ONE, and the first leaves a GAP rather than a stub. FY2010 ends '
+      + 'June 30 2010 and FY2011 reports a full twelve months ending December 31 2011, so '
+      + 'JULY-DECEMBER 2010 IS NEVER REPORTED BY ANY FILING. That is a six-month hole in the '
+      + 'series, not a short year, and no figure in the data is wrong because of it — which '
+      + 'is precisely why it needs a reader flag rather than a refusal.',
+  },
+  {
+    id: 'dade-fy2010-december-to-june',
+    cicoid: '1041041', entity: 'Dade County',
+    monthByYear: Object.freeze({ 2009: 1, 2010: 7, 2012: 7, 2013: 7, 2014: 7, 2015: 7 }),
+    stubYear: 2010, stubMonths: 6, stubRatio: 0.425,
+    declaredBy: 'the FY2010 filing reports V99 = 6 — a six-month transition stub',
+    corroboration: 'FY2010 operating is $3,303,828, 0.425 of Dade\'s own v1 mean, against 0.50 '
+      + 'expected. ⚠ DCA lists NO FY2011 filing for Dade, so the map skips that year rather '
+      + 'than inventing a month for it.',
+  },
+  {
+    id: 'jasper-fy2011-december-to-june',
+    cicoid: '1079079', entity: 'Jasper County',
+    monthByYear: Object.freeze({ 2009: 1, 2010: 1, 2011: 7, 2012: 7, 2013: 7, 2014: 7, 2015: 7 }),
+    stubYear: 2011, stubMonths: 6, stubRatio: 0.539,
+    declaredBy: 'the FY2011 filing reports V99 = 6 — a six-month transition stub',
+    corroboration: 'FY2011 operating is $4,737,846, 0.539 of Jasper\'s own v1 mean, against '
+      + '0.50 expected.',
+  },
+  {
+    id: 'putnam-fy2010-december-to-september',
+    cicoid: '1117117', entity: 'Putnam County',
+    monthByYear: Object.freeze({ 2009: 1, 2010: 10, 2011: 10, 2012: 10, 2013: 10, 2014: 10, 2015: 10 }),
+    stubYear: 2010, stubMonths: 9, stubRatio: 0.767,
+    declaredBy: 'the FY2010 filing reports V99 = 9 — a nine-month transition stub',
+    corroboration: 'FY2010 operating is $14,813,438, 0.767 of Putnam\'s own v1 mean, against '
+      + '0.75 expected. ⚠ FY2011 ALSO reports V99 = 9 while running 0.942 of the mean — a '
+      + 'full-looking year carrying a nine-month declaration. The declaration is treated as '
+      + 'the stale copy of the previous year\'s answer, because the money says twelve months; '
+      + 'the month itself (September 30) is unchanged either way, so nothing turns on it.',
+  },
+  {
+    id: 'randolph-fy2012-march-to-december',
+    cicoid: '1120120', entity: 'Randolph County',
+    monthByYear: Object.freeze({ 2009: 4, 2010: 4, 2011: 4, 2012: 1, 2013: 1, 2014: 1, 2015: 1 }),
+    stubYear: 2012, stubMonths: 9, stubRatio: 0.752,
+    declaredBy: 'the FY2012 filing reports V99 = 9 — a nine-month transition stub',
+    corroboration: 'FY2012 operating is $4,657,344, 0.752 of Randolph\'s own v1 mean, against '
+      + '0.75 expected. ⚠ Randolph is one of the few GA governments on a MARCH 31 year end, '
+      + 'which is why its FY2009-2011 ratios look low against a mean the change pulls upward.',
+  },
+]);
+
+/** The recorded v1 calendar change for a government, or null. */
+export function v1MonthChange(cicoid) {
+  return GA_V1_MONTH_CHANGES.find((c) => c.cicoid === String(cicoid)) || null;
 }

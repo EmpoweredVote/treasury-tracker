@@ -368,11 +368,36 @@ export function buildV1ExpenditureTree(pageRead, extract = {}, anomalies = []) {
  * the exact condition that excluded Gwinnett FY2018/FY2023 and Upson FY2021
  * from the FY2016-2025 sweep, and it keeps that meaning here.
  */
-export function checkV1ExpenditureTotal(tree, extract = {}) {
+export function checkV1ExpenditureTotal(tree, extract = {}, pageTotals = {}, anomalies = []) {
   let expected = 0;
   let found = 0;
   for (const key of V1_EXPENDITURE_TOTAL_KEYS) {
+    const onPage = pageTotals[key];
     const raw = extract[key];
+    // ⚠⚠ THE PRINTED TOTAL WINS HERE TOO — the same rule as the revenue
+    // sections, and for a sharper reason. Chatham FY2013/FY2014 and Tift FY2015
+    // carry a NON-STANDARD extract (blocks named `Blocks 101-125`,
+    // `Expenditures`, `Exp 708-771`) that has no V509/V510/V511 at all, while
+    // their pages print TOTAL PART V normally. An extract-only oracle skips all
+    // three, and a skipped check is a refusal.
+    const havePage = onPage !== null && onPage !== undefined && !isErrorValue(onPage);
+    if (havePage) {
+      found++;
+      expected += num(onPage);
+      if (raw !== null && raw !== undefined && !isErrorValue(raw)
+        && Math.abs(num(raw) - num(onPage)) > 0.005
+        && !V1_EXTRACT_SUBTOTAL_GAPS.has(key)) {
+        anomalies.push({
+          kind: 'extract_subtotal_disagrees_with_form', section: 'V', code: key,
+          label: 'Total Part V', form: num(onPage), extract: num(raw),
+          delta: num(raw) - num(onPage),
+        });
+      }
+      continue;
+    }
+    if (isErrorValue(onPage)) {
+      return { id: 'Part V', tag: 'exp', skipped: true, reason: `printed total ${key} is an Excel error cell` };
+    }
     if (isErrorValue(raw)) {
       return { id: 'Part V', tag: 'exp', skipped: true, reason: `total ${key} is an Excel error cell` };
     }
@@ -592,6 +617,9 @@ export const V1_TWIN_SHEET = 'Data';
  * @param {number}   [arg.fiscalYear] the year the FILENAME claims, for the guard
  */
 export function readV1Filing({ pages, exportable, data, fiscalYear = null }) {
+  // ⚠⚠ A DECLARED PAGE THAT IS ABSENT IS A READ FAILURE, NOT A BLANK PART.
+  // Without this the tree is simply empty and the filing can tie at zero.
+  const missingPages = Object.keys(V1_PAGE_GEOMETRY).filter((n) => !pages?.[n]);
   const live = parseExportable(exportable || []);
   const twin = parseExportable(data || []);
   const { merged, notes } = mergeTwins(live.flat, twin.flat);
@@ -606,7 +634,7 @@ export function readV1Filing({ pages, exportable, data, fiscalYear = null }) {
   const checks = [
     ...checkV1SectionTotals(rev, merged, pageRead.totals, anomalies),
     ...checkV1PartTotals(rev, merged),
-    checkV1ExpenditureTotal(exp, merged),
+    checkV1ExpenditureTotal(exp, merged, pageRead.totals, anomalies),
   ];
 
   // ⚠ THE FORM STATES ITS OWN FISCAL YEAR, so the filename is checkable rather
@@ -620,6 +648,27 @@ export function readV1Filing({ pages, exportable, data, fiscalYear = null }) {
 
   return {
     generation: 'v1', exp, rev, log1, checks, anomalies,
-    twinNotes: notes, yearConflict,
+    twinNotes: notes, yearConflict, missingPages,
   };
+}
+
+/**
+ * Resolve a declared sheet name against a workbook's actual sheet names.
+ *
+ * ⚠⚠ A TRAILING SPACE COST A WHOLE PART. Three of 1,175 workbooks name it
+ * `'Page 3 '`. An exact lookup misses, the page is never read, and the
+ * expenditure tree comes back EMPTY — a silent $0 for a county that plainly
+ * spent money. Chatham FY2013/FY2014 and Tift FY2015 were caught only because
+ * their extract ALSO lacked the Part V total keys, so the oracle had nothing to
+ * tie to and said so. Had the extract carried a $0 total instead, the filing
+ * would have tied AT ZERO having measured nothing, and read as a legitimately
+ * blank Part. That near-miss is the reason this is matched loosely.
+ *
+ * ⚠ Exact match wins over loose, and a near-miss is NOT a match: `Page 33` is a
+ * different sheet, not a typo to be helpful about.
+ */
+export function matchSheetName(names, want) {
+  if (names.includes(want)) return want;
+  const target = String(want).trim().toLowerCase();
+  return names.find((n) => String(n).trim().toLowerCase() === target) ?? null;
 }

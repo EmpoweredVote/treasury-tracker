@@ -1044,6 +1044,586 @@ export const figureFlags: Record<string, FigureFlag> = {
       },
     ],
   },
+
+  'Bacon County|GA|2014|operating': {
+    id: 'bacon-fy2014-six-month-transition-year',
+    severity: 'not-comparable',
+    headline:
+      'This is a six-month year, not a full one — Bacon moved its year-end in 2014',
+    summary:
+      'Bacon County used to close its books on 31 December. In 2014 it moved to 30 June, so the year shown '
+      + 'here runs six months instead of twelve. The county says so on the form itself. The figure is '
+      + 'correct for the period it covers and is shown as filed — it is simply a shorter period than the '
+      + 'years either side of it, so comparing them is comparing six months with twelve.',
+    whatThisMeans:
+      'Expect roughly half of a normal year here. Do not read the dip as a spending cut, and do not '
+      + 'compare 2014 directly with 2013 or 2015.',
+    entries: [
+      {
+        title: 'The county states the short period on the form itself',
+        text:
+          'Bacon County’s 2014 report records its months reported as 6 rather than 12. Its earlier reports '
+          + 'give a year-end of 31 December; every report from 2014 onwards gives 30 June. The change is '
+          + 'declared, not inferred.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Bacon County FY2014',
+        source_url: 'https://apps.dca.ga.gov/development/Research/programs/documents/RLGF/1003003_2014_RLGF_Bacon.xls',
+        source_date: '2026-10-19',
+      },
+      {
+        title: 'The money matches a six-month period',
+        text:
+          'Spending in 2014 is $4.1 million against an average of $8.4 million in 2013 and 2015 — a ratio of 0.49, where '
+          + 'six months of a twelve-month year would be 0.50. Revenue runs at 0.31 '
+          + '($2.6 million against $8.5 million), which is what a changeover does to tax collection: a billing cycle does '
+          + 'not divide neatly into the stub. Both are shown exactly as filed.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Bacon County FY2013–FY2015',
+        source_url: 'https://apps.dca.ga.gov/RLGF/Default.aspx',
+        source_date: '2026-10-19',
+      },
+    ],
+  },
+
+  'Bacon County|GA|2014|revenue': {
+    id: 'bacon-fy2014-six-month-transition-year',
+    severity: 'not-comparable',
+    headline:
+      'This is a six-month year, not a full one — Bacon moved its year-end in 2014',
+    summary:
+      'Bacon County used to close its books on 31 December. In 2014 it moved to 30 June, so the year shown '
+      + 'here runs six months instead of twelve. The county says so on the form itself. The figure is '
+      + 'correct for the period it covers and is shown as filed — it is simply a shorter period than the '
+      + 'years either side of it, so comparing them is comparing six months with twelve.',
+    whatThisMeans:
+      'Expect roughly half of a normal year here. Do not read the dip as a spending cut, and do not '
+      + 'compare 2014 directly with 2013 or 2015.',
+    entries: [
+      {
+        title: 'The county states the short period on the form itself',
+        text:
+          'Bacon County’s 2014 report records its months reported as 6 rather than 12. Its earlier reports '
+          + 'give a year-end of 31 December; every report from 2014 onwards gives 30 June. The change is '
+          + 'declared, not inferred.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Bacon County FY2014',
+        source_url: 'https://apps.dca.ga.gov/development/Research/programs/documents/RLGF/1003003_2014_RLGF_Bacon.xls',
+        source_date: '2026-10-19',
+      },
+      {
+        title: 'The money matches a six-month period',
+        text:
+          'Spending in 2014 is $4.1 million against an average of $8.4 million in 2013 and 2015 — a ratio of 0.49, where '
+          + 'six months of a twelve-month year would be 0.50. Revenue runs at 0.31 '
+          + '($2.6 million against $8.5 million), which is what a changeover does to tax collection: a billing cycle does '
+          + 'not divide neatly into the stub. Both are shown exactly as filed.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Bacon County FY2013–FY2015',
+        source_url: 'https://apps.dca.ga.gov/RLGF/Default.aspx',
+        source_date: '2026-10-19',
+      },
+    ],
+  },
+
+  'Baldwin County|GA|2010|operating': {
+    id: 'baldwin-fy2010-nine-month-transition-year',
+    severity: 'not-comparable',
+    headline:
+      'This is a nine-month year, not a full one — Baldwin moved its year-end in 2010',
+    summary:
+      'Baldwin County used to close its books on 30 June. In 2010 it moved to 31 December, so the year shown '
+      + 'here runs nine months instead of twelve. The county says so on the form itself. The figure is '
+      + 'correct for the period it covers and is shown as filed — it is simply a shorter period than the '
+      + 'years either side of it, so comparing them is comparing nine months with twelve.',
+    whatThisMeans:
+      'Expect roughly three quarters of a normal year here. Do not read the dip as a spending cut, and do not '
+      + 'compare 2010 directly with 2009 or 2011.',
+    entries: [
+      {
+        title: 'The county states the short period on the form itself',
+        text:
+          'Baldwin County’s 2010 report records its months reported as 9 rather than 12. Its earlier reports '
+          + 'give a year-end of 30 June; every report from 2010 onwards gives 31 December. The change is '
+          + 'declared, not inferred.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Baldwin County FY2010',
+        source_url: 'https://apps.dca.ga.gov/development/Research/programs/documents/RLGF/1005005_2010_RLGF_Baldwin.xls',
+        source_date: '2026-10-19',
+      },
+      {
+        title: 'The money matches a nine-month period',
+        text:
+          'Spending in 2010 is $17.3 million against an average of $24.9 million in 2009 and 2011 — a ratio of 0.70, where '
+          + 'nine months of a twelve-month year would be 0.75. Revenue runs at 0.81 '
+          + '($22.6 million against $27.9 million), which is what a changeover does to tax collection: a billing cycle does '
+          + 'not divide neatly into the stub. Both are shown exactly as filed.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Baldwin County FY2009–FY2011',
+        source_url: 'https://apps.dca.ga.gov/RLGF/Default.aspx',
+        source_date: '2026-10-19',
+      },
+    ],
+  },
+
+  'Baldwin County|GA|2010|revenue': {
+    id: 'baldwin-fy2010-nine-month-transition-year',
+    severity: 'not-comparable',
+    headline:
+      'This is a nine-month year, not a full one — Baldwin moved its year-end in 2010',
+    summary:
+      'Baldwin County used to close its books on 30 June. In 2010 it moved to 31 December, so the year shown '
+      + 'here runs nine months instead of twelve. The county says so on the form itself. The figure is '
+      + 'correct for the period it covers and is shown as filed — it is simply a shorter period than the '
+      + 'years either side of it, so comparing them is comparing nine months with twelve.',
+    whatThisMeans:
+      'Expect roughly three quarters of a normal year here. Do not read the dip as a spending cut, and do not '
+      + 'compare 2010 directly with 2009 or 2011.',
+    entries: [
+      {
+        title: 'The county states the short period on the form itself',
+        text:
+          'Baldwin County’s 2010 report records its months reported as 9 rather than 12. Its earlier reports '
+          + 'give a year-end of 30 June; every report from 2010 onwards gives 31 December. The change is '
+          + 'declared, not inferred.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Baldwin County FY2010',
+        source_url: 'https://apps.dca.ga.gov/development/Research/programs/documents/RLGF/1005005_2010_RLGF_Baldwin.xls',
+        source_date: '2026-10-19',
+      },
+      {
+        title: 'The money matches a nine-month period',
+        text:
+          'Spending in 2010 is $17.3 million against an average of $24.9 million in 2009 and 2011 — a ratio of 0.70, where '
+          + 'nine months of a twelve-month year would be 0.75. Revenue runs at 0.81 '
+          + '($22.6 million against $27.9 million), which is what a changeover does to tax collection: a billing cycle does '
+          + 'not divide neatly into the stub. Both are shown exactly as filed.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Baldwin County FY2009–FY2011',
+        source_url: 'https://apps.dca.ga.gov/RLGF/Default.aspx',
+        source_date: '2026-10-19',
+      },
+    ],
+  },
+
+  'Cherokee County|GA|2012|operating': {
+    id: 'cherokee-fy2012-nine-month-transition-year',
+    severity: 'not-comparable',
+    headline:
+      'This is a nine-month year, not a full one — Cherokee moved its year-end in 2012',
+    summary:
+      'Cherokee County used to close its books on 31 December. In 2012 it moved to 30 September, so the year shown '
+      + 'here runs nine months instead of twelve. The county says so on the form itself. The figure is '
+      + 'correct for the period it covers and is shown as filed — it is simply a shorter period than the '
+      + 'years either side of it, so comparing them is comparing nine months with twelve.',
+    whatThisMeans:
+      'Expect roughly three quarters of a normal year here. Do not read the dip as a spending cut, and do not '
+      + 'compare 2012 directly with 2011 or 2013.',
+    entries: [
+      {
+        title: 'The county states the short period on the form itself',
+        text:
+          'Cherokee County’s 2012 report records its months reported as 9 rather than 12. Its earlier reports '
+          + 'give a year-end of 31 December; every report from 2012 onwards gives 30 September. The change is '
+          + 'declared, not inferred.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Cherokee County FY2012',
+        source_url: 'https://apps.dca.ga.gov/development/Research/programs/documents/RLGF/1028028_2012_RLGF_Cherokee.xls',
+        source_date: '2026-10-19',
+      },
+      {
+        title: 'The money matches a nine-month period',
+        text:
+          'Spending in 2012 is $90.5 million against an average of $124.8 million in 2011 and 2013 — a ratio of 0.73, where '
+          + 'nine months of a twelve-month year would be 0.75. Revenue runs at 0.54 '
+          + '($78.2 million against $145.6 million), which is what a changeover does to tax collection: a billing cycle does '
+          + 'not divide neatly into the stub. Both are shown exactly as filed.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Cherokee County FY2011–FY2013',
+        source_url: 'https://apps.dca.ga.gov/RLGF/Default.aspx',
+        source_date: '2026-10-19',
+      },
+      {
+        title: 'One more thing worth knowing about this county’s years',
+        text:
+          'Cherokee changed its year-end twice in these years, and the earlier change left a gap rather than a short year: the six months from July to December 2010 are not covered by any report the county filed. Nothing shown here is wrong because of that, but the series has a hole just before this year.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Cherokee County FY2009–FY2015',
+        source_url: 'https://apps.dca.ga.gov/RLGF/Default.aspx',
+        source_date: '2026-10-19',
+      },
+    ],
+  },
+
+  'Cherokee County|GA|2012|revenue': {
+    id: 'cherokee-fy2012-nine-month-transition-year',
+    severity: 'not-comparable',
+    headline:
+      'This is a nine-month year, not a full one — Cherokee moved its year-end in 2012',
+    summary:
+      'Cherokee County used to close its books on 31 December. In 2012 it moved to 30 September, so the year shown '
+      + 'here runs nine months instead of twelve. The county says so on the form itself. The figure is '
+      + 'correct for the period it covers and is shown as filed — it is simply a shorter period than the '
+      + 'years either side of it, so comparing them is comparing nine months with twelve.',
+    whatThisMeans:
+      'Expect roughly three quarters of a normal year here. Do not read the dip as a spending cut, and do not '
+      + 'compare 2012 directly with 2011 or 2013.',
+    entries: [
+      {
+        title: 'The county states the short period on the form itself',
+        text:
+          'Cherokee County’s 2012 report records its months reported as 9 rather than 12. Its earlier reports '
+          + 'give a year-end of 31 December; every report from 2012 onwards gives 30 September. The change is '
+          + 'declared, not inferred.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Cherokee County FY2012',
+        source_url: 'https://apps.dca.ga.gov/development/Research/programs/documents/RLGF/1028028_2012_RLGF_Cherokee.xls',
+        source_date: '2026-10-19',
+      },
+      {
+        title: 'The money matches a nine-month period',
+        text:
+          'Spending in 2012 is $90.5 million against an average of $124.8 million in 2011 and 2013 — a ratio of 0.73, where '
+          + 'nine months of a twelve-month year would be 0.75. Revenue runs at 0.54 '
+          + '($78.2 million against $145.6 million), which is what a changeover does to tax collection: a billing cycle does '
+          + 'not divide neatly into the stub. Both are shown exactly as filed.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Cherokee County FY2011–FY2013',
+        source_url: 'https://apps.dca.ga.gov/RLGF/Default.aspx',
+        source_date: '2026-10-19',
+      },
+      {
+        title: 'One more thing worth knowing about this county’s years',
+        text:
+          'Cherokee changed its year-end twice in these years, and the earlier change left a gap rather than a short year: the six months from July to December 2010 are not covered by any report the county filed. Nothing shown here is wrong because of that, but the series has a hole just before this year.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Cherokee County FY2009–FY2015',
+        source_url: 'https://apps.dca.ga.gov/RLGF/Default.aspx',
+        source_date: '2026-10-19',
+      },
+    ],
+  },
+
+  'Dade County|GA|2010|operating': {
+    id: 'dade-fy2010-six-month-transition-year',
+    severity: 'not-comparable',
+    headline:
+      'This is a six-month year, not a full one — Dade moved its year-end in 2010',
+    summary:
+      'Dade County used to close its books on 31 December. In 2010 it moved to 30 June, so the year shown '
+      + 'here runs six months instead of twelve. The county says so on the form itself. The figure is '
+      + 'correct for the period it covers and is shown as filed — it is simply a shorter period than the '
+      + 'years either side of it, so comparing them is comparing six months with twelve.',
+    whatThisMeans:
+      'Expect roughly half of a normal year here. Do not read the dip as a spending cut, and do not '
+      + 'compare 2010 directly with 2009 or 2011.',
+    entries: [
+      {
+        title: 'The county states the short period on the form itself',
+        text:
+          'Dade County’s 2010 report records its months reported as 6 rather than 12. Its earlier reports '
+          + 'give a year-end of 31 December; every report from 2010 onwards gives 30 June. The change is '
+          + 'declared, not inferred.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Dade County FY2010',
+        source_url: 'https://apps.dca.ga.gov/development/Research/programs/documents/RLGF/1041041_2010_RLGF_Dade.xls',
+        source_date: '2026-10-19',
+      },
+      {
+        title: 'The money matches a six-month period',
+        text:
+          'Spending in 2010 is $3.3 million against an average of $10.5 million in 2009 alone — a ratio of 0.31, where '
+          + 'six months of a twelve-month year would be 0.50. Revenue runs at 0.37 '
+          + '($4.0 million against $10.6 million), which is what a changeover does to tax collection: a billing cycle does '
+          + 'not divide neatly into the stub. Both are shown exactly as filed.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Dade County FY2009–FY2011',
+        source_url: 'https://apps.dca.ga.gov/RLGF/Default.aspx',
+        source_date: '2026-10-19',
+      },
+      {
+        title: 'One more thing worth knowing about this county’s years',
+        text:
+          'There is no 2011 report for Dade, so the only year to compare against is 2009 — which was itself an unusually high year. The ratio therefore looks smaller than half. The county’s own statement that the period was six months is the firmer evidence here.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Dade County FY2009–FY2015',
+        source_url: 'https://apps.dca.ga.gov/RLGF/Default.aspx',
+        source_date: '2026-10-19',
+      },
+    ],
+  },
+
+  'Dade County|GA|2010|revenue': {
+    id: 'dade-fy2010-six-month-transition-year',
+    severity: 'not-comparable',
+    headline:
+      'This is a six-month year, not a full one — Dade moved its year-end in 2010',
+    summary:
+      'Dade County used to close its books on 31 December. In 2010 it moved to 30 June, so the year shown '
+      + 'here runs six months instead of twelve. The county says so on the form itself. The figure is '
+      + 'correct for the period it covers and is shown as filed — it is simply a shorter period than the '
+      + 'years either side of it, so comparing them is comparing six months with twelve.',
+    whatThisMeans:
+      'Expect roughly half of a normal year here. Do not read the dip as a spending cut, and do not '
+      + 'compare 2010 directly with 2009 or 2011.',
+    entries: [
+      {
+        title: 'The county states the short period on the form itself',
+        text:
+          'Dade County’s 2010 report records its months reported as 6 rather than 12. Its earlier reports '
+          + 'give a year-end of 31 December; every report from 2010 onwards gives 30 June. The change is '
+          + 'declared, not inferred.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Dade County FY2010',
+        source_url: 'https://apps.dca.ga.gov/development/Research/programs/documents/RLGF/1041041_2010_RLGF_Dade.xls',
+        source_date: '2026-10-19',
+      },
+      {
+        title: 'The money matches a six-month period',
+        text:
+          'Spending in 2010 is $3.3 million against an average of $10.5 million in 2009 alone — a ratio of 0.31, where '
+          + 'six months of a twelve-month year would be 0.50. Revenue runs at 0.37 '
+          + '($4.0 million against $10.6 million), which is what a changeover does to tax collection: a billing cycle does '
+          + 'not divide neatly into the stub. Both are shown exactly as filed.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Dade County FY2009–FY2011',
+        source_url: 'https://apps.dca.ga.gov/RLGF/Default.aspx',
+        source_date: '2026-10-19',
+      },
+      {
+        title: 'One more thing worth knowing about this county’s years',
+        text:
+          'There is no 2011 report for Dade, so the only year to compare against is 2009 — which was itself an unusually high year. The ratio therefore looks smaller than half. The county’s own statement that the period was six months is the firmer evidence here.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Dade County FY2009–FY2015',
+        source_url: 'https://apps.dca.ga.gov/RLGF/Default.aspx',
+        source_date: '2026-10-19',
+      },
+    ],
+  },
+
+  'Jasper County|GA|2011|operating': {
+    id: 'jasper-fy2011-six-month-transition-year',
+    severity: 'not-comparable',
+    headline:
+      'This is a six-month year, not a full one — Jasper moved its year-end in 2011',
+    summary:
+      'Jasper County used to close its books on 31 December. In 2011 it moved to 30 June, so the year shown '
+      + 'here runs six months instead of twelve. The county says so on the form itself. The figure is '
+      + 'correct for the period it covers and is shown as filed — it is simply a shorter period than the '
+      + 'years either side of it, so comparing them is comparing six months with twelve.',
+    whatThisMeans:
+      'Expect roughly half of a normal year here. Do not read the dip as a spending cut, and do not '
+      + 'compare 2011 directly with 2010 or 2012.',
+    entries: [
+      {
+        title: 'The county states the short period on the form itself',
+        text:
+          'Jasper County’s 2011 report records its months reported as 6 rather than 12. Its earlier reports '
+          + 'give a year-end of 31 December; every report from 2011 onwards gives 30 June. The change is '
+          + 'declared, not inferred.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Jasper County FY2011',
+        source_url: 'https://apps.dca.ga.gov/development/Research/programs/documents/RLGF/1079079_2011_RLGF_Jasper.xls',
+        source_date: '2026-10-19',
+      },
+      {
+        title: 'The money matches a six-month period',
+        text:
+          'Spending in 2011 is $4.7 million against an average of $9.4 million in 2010 and 2012 — a ratio of 0.50, where '
+          + 'six months of a twelve-month year would be 0.50. Revenue runs at 0.25 '
+          + '($2.4 million against $9.6 million), which is what a changeover does to tax collection: a billing cycle does '
+          + 'not divide neatly into the stub. Both are shown exactly as filed.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Jasper County FY2010–FY2012',
+        source_url: 'https://apps.dca.ga.gov/RLGF/Default.aspx',
+        source_date: '2026-10-19',
+      },
+    ],
+  },
+
+  'Jasper County|GA|2011|revenue': {
+    id: 'jasper-fy2011-six-month-transition-year',
+    severity: 'not-comparable',
+    headline:
+      'This is a six-month year, not a full one — Jasper moved its year-end in 2011',
+    summary:
+      'Jasper County used to close its books on 31 December. In 2011 it moved to 30 June, so the year shown '
+      + 'here runs six months instead of twelve. The county says so on the form itself. The figure is '
+      + 'correct for the period it covers and is shown as filed — it is simply a shorter period than the '
+      + 'years either side of it, so comparing them is comparing six months with twelve.',
+    whatThisMeans:
+      'Expect roughly half of a normal year here. Do not read the dip as a spending cut, and do not '
+      + 'compare 2011 directly with 2010 or 2012.',
+    entries: [
+      {
+        title: 'The county states the short period on the form itself',
+        text:
+          'Jasper County’s 2011 report records its months reported as 6 rather than 12. Its earlier reports '
+          + 'give a year-end of 31 December; every report from 2011 onwards gives 30 June. The change is '
+          + 'declared, not inferred.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Jasper County FY2011',
+        source_url: 'https://apps.dca.ga.gov/development/Research/programs/documents/RLGF/1079079_2011_RLGF_Jasper.xls',
+        source_date: '2026-10-19',
+      },
+      {
+        title: 'The money matches a six-month period',
+        text:
+          'Spending in 2011 is $4.7 million against an average of $9.4 million in 2010 and 2012 — a ratio of 0.50, where '
+          + 'six months of a twelve-month year would be 0.50. Revenue runs at 0.25 '
+          + '($2.4 million against $9.6 million), which is what a changeover does to tax collection: a billing cycle does '
+          + 'not divide neatly into the stub. Both are shown exactly as filed.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Jasper County FY2010–FY2012',
+        source_url: 'https://apps.dca.ga.gov/RLGF/Default.aspx',
+        source_date: '2026-10-19',
+      },
+    ],
+  },
+
+  'Putnam County|GA|2010|operating': {
+    id: 'putnam-fy2010-nine-month-transition-year',
+    severity: 'not-comparable',
+    headline:
+      'This is a nine-month year, not a full one — Putnam moved its year-end in 2010',
+    summary:
+      'Putnam County used to close its books on 31 December. In 2010 it moved to 30 September, so the year shown '
+      + 'here runs nine months instead of twelve. The county says so on the form itself. The figure is '
+      + 'correct for the period it covers and is shown as filed — it is simply a shorter period than the '
+      + 'years either side of it, so comparing them is comparing nine months with twelve.',
+    whatThisMeans:
+      'Expect roughly three quarters of a normal year here. Do not read the dip as a spending cut, and do not '
+      + 'compare 2010 directly with 2009 or 2011.',
+    entries: [
+      {
+        title: 'The county states the short period on the form itself',
+        text:
+          'Putnam County’s 2010 report records its months reported as 9 rather than 12. Its earlier reports '
+          + 'give a year-end of 31 December; every report from 2010 onwards gives 30 September. The change is '
+          + 'declared, not inferred.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Putnam County FY2010',
+        source_url: 'https://apps.dca.ga.gov/development/Research/programs/documents/RLGF/1117117_2010_RLGF_Putnam.xls',
+        source_date: '2026-10-19',
+      },
+      {
+        title: 'The money matches a nine-month period',
+        text:
+          'Spending in 2010 is $14.8 million against an average of $18.6 million in 2009 and 2011 — a ratio of 0.79, where '
+          + 'nine months of a twelve-month year would be 0.75. Revenue runs at 0.44 '
+          + '($9.0 million against $20.4 million), which is what a changeover does to tax collection: a billing cycle does '
+          + 'not divide neatly into the stub. Both are shown exactly as filed.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Putnam County FY2009–FY2011',
+        source_url: 'https://apps.dca.ga.gov/RLGF/Default.aspx',
+        source_date: '2026-10-19',
+      },
+    ],
+  },
+
+  'Putnam County|GA|2010|revenue': {
+    id: 'putnam-fy2010-nine-month-transition-year',
+    severity: 'not-comparable',
+    headline:
+      'This is a nine-month year, not a full one — Putnam moved its year-end in 2010',
+    summary:
+      'Putnam County used to close its books on 31 December. In 2010 it moved to 30 September, so the year shown '
+      + 'here runs nine months instead of twelve. The county says so on the form itself. The figure is '
+      + 'correct for the period it covers and is shown as filed — it is simply a shorter period than the '
+      + 'years either side of it, so comparing them is comparing nine months with twelve.',
+    whatThisMeans:
+      'Expect roughly three quarters of a normal year here. Do not read the dip as a spending cut, and do not '
+      + 'compare 2010 directly with 2009 or 2011.',
+    entries: [
+      {
+        title: 'The county states the short period on the form itself',
+        text:
+          'Putnam County’s 2010 report records its months reported as 9 rather than 12. Its earlier reports '
+          + 'give a year-end of 31 December; every report from 2010 onwards gives 30 September. The change is '
+          + 'declared, not inferred.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Putnam County FY2010',
+        source_url: 'https://apps.dca.ga.gov/development/Research/programs/documents/RLGF/1117117_2010_RLGF_Putnam.xls',
+        source_date: '2026-10-19',
+      },
+      {
+        title: 'The money matches a nine-month period',
+        text:
+          'Spending in 2010 is $14.8 million against an average of $18.6 million in 2009 and 2011 — a ratio of 0.79, where '
+          + 'nine months of a twelve-month year would be 0.75. Revenue runs at 0.44 '
+          + '($9.0 million against $20.4 million), which is what a changeover does to tax collection: a billing cycle does '
+          + 'not divide neatly into the stub. Both are shown exactly as filed.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Putnam County FY2009–FY2011',
+        source_url: 'https://apps.dca.ga.gov/RLGF/Default.aspx',
+        source_date: '2026-10-19',
+      },
+    ],
+  },
+
+  'Randolph County|GA|2012|operating': {
+    id: 'randolph-fy2012-nine-month-transition-year',
+    severity: 'not-comparable',
+    headline:
+      'This is a nine-month year, not a full one — Randolph moved its year-end in 2012',
+    summary:
+      'Randolph County used to close its books on 31 March. In 2012 it moved to 31 December, so the year shown '
+      + 'here runs nine months instead of twelve. The county says so on the form itself. The figure is '
+      + 'correct for the period it covers and is shown as filed — it is simply a shorter period than the '
+      + 'years either side of it, so comparing them is comparing nine months with twelve.',
+    whatThisMeans:
+      'Expect roughly three quarters of a normal year here. Do not read the dip as a spending cut, and do not '
+      + 'compare 2012 directly with 2011 or 2013.',
+    entries: [
+      {
+        title: 'The county states the short period on the form itself',
+        text:
+          'Randolph County’s 2012 report records its months reported as 9 rather than 12. Its earlier reports '
+          + 'give a year-end of 31 March; every report from 2012 onwards gives 31 December. The change is '
+          + 'declared, not inferred.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Randolph County FY2012',
+        source_url: 'https://apps.dca.ga.gov/development/Research/programs/documents/RLGF/1120120_2012_RLGF_Randolph.xls',
+        source_date: '2026-10-19',
+      },
+      {
+        title: 'The money matches a nine-month period',
+        text:
+          'Spending in 2012 is $4.7 million against an average of $7.8 million in 2011 and 2013 — a ratio of 0.60, where '
+          + 'nine months of a twelve-month year would be 0.75. Revenue runs at 0.83 '
+          + '($5.5 million against $6.6 million), which is what a changeover does to tax collection: a billing cycle does '
+          + 'not divide neatly into the stub. Both are shown exactly as filed.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Randolph County FY2011–FY2013',
+        source_url: 'https://apps.dca.ga.gov/RLGF/Default.aspx',
+        source_date: '2026-10-19',
+      },
+      {
+        title: 'One more thing worth knowing about this county’s years',
+        text:
+          'Randolph is one of very few Georgia governments that used to close its books on 31 March, which is the calendar it is leaving here.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Randolph County FY2009–FY2015',
+        source_url: 'https://apps.dca.ga.gov/RLGF/Default.aspx',
+        source_date: '2026-10-19',
+      },
+    ],
+  },
+
+  'Randolph County|GA|2012|revenue': {
+    id: 'randolph-fy2012-nine-month-transition-year',
+    severity: 'not-comparable',
+    headline:
+      'This is a nine-month year, not a full one — Randolph moved its year-end in 2012',
+    summary:
+      'Randolph County used to close its books on 31 March. In 2012 it moved to 31 December, so the year shown '
+      + 'here runs nine months instead of twelve. The county says so on the form itself. The figure is '
+      + 'correct for the period it covers and is shown as filed — it is simply a shorter period than the '
+      + 'years either side of it, so comparing them is comparing nine months with twelve.',
+    whatThisMeans:
+      'Expect roughly three quarters of a normal year here. Do not read the dip as a spending cut, and do not '
+      + 'compare 2012 directly with 2011 or 2013.',
+    entries: [
+      {
+        title: 'The county states the short period on the form itself',
+        text:
+          'Randolph County’s 2012 report records its months reported as 9 rather than 12. Its earlier reports '
+          + 'give a year-end of 31 March; every report from 2012 onwards gives 31 December. The change is '
+          + 'declared, not inferred.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Randolph County FY2012',
+        source_url: 'https://apps.dca.ga.gov/development/Research/programs/documents/RLGF/1120120_2012_RLGF_Randolph.xls',
+        source_date: '2026-10-19',
+      },
+      {
+        title: 'The money matches a nine-month period',
+        text:
+          'Spending in 2012 is $4.7 million against an average of $7.8 million in 2011 and 2013 — a ratio of 0.60, where '
+          + 'nine months of a twelve-month year would be 0.75. Revenue runs at 0.83 '
+          + '($5.5 million against $6.6 million), which is what a changeover does to tax collection: a billing cycle does '
+          + 'not divide neatly into the stub. Both are shown exactly as filed.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Randolph County FY2011–FY2013',
+        source_url: 'https://apps.dca.ga.gov/RLGF/Default.aspx',
+        source_date: '2026-10-19',
+      },
+      {
+        title: 'One more thing worth knowing about this county’s years',
+        text:
+          'Randolph is one of very few Georgia governments that used to close its books on 31 March, which is the calendar it is leaving here.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Randolph County FY2009–FY2015',
+        source_url: 'https://apps.dca.ga.gov/RLGF/Default.aspx',
+        source_date: '2026-10-19',
+      },
+    ],
+  },
 };
 
 /** Look up the flag for a rendered figure. Returns undefined when there is none. */

@@ -13,11 +13,15 @@ import {
   vkey, parseExportable, mergeTwins, readV1Pages,
   buildV1ExpenditureTree, checkV1ExpenditureTotal,
   buildV1RevenueTree, checkV1SectionTotals, checkV1PartTotals, V1_REVENUE_SECTIONS,
-  readV1Log, readV1Filing, V1_EXPENDITURE_TOTAL_KEYS,
+  readV1Log, readV1Filing, V1_EXPENDITURE_TOTAL_KEYS, matchSheetName,
 } from '../scripts/lib/gaRlgfV1.mjs';
 import { REVENUE_SECTIONS } from '../scripts/lib/gaRlgf.mjs';
-import { resolveMonth, assertV1MonthConsistency } from '../scripts/loadGeorgiaRLGF.mjs';
-import { consolidationOverlap, GA_CONSOLIDATION_OVERLAP } from '../scripts/data/gaRlgfAnomalies.mjs';
+import {
+  resolveMonth, assertV1MonthConsistency, unrecordedBlankParts,
+} from '../scripts/loadGeorgiaRLGF.mjs';
+import {
+  consolidationOverlap, GA_CONSOLIDATION_OVERLAP, GA_V1_MONTH_CHANGES, fyeMonthDefect,
+} from '../scripts/data/gaRlgfAnomalies.mjs';
 import { GA_FORM_GENERATIONS, GA_LOAD_WINDOW } from '../scripts/data/georgiaRlgfEntities.mjs';
 
 /** The shape of a V1 extract sheet: marker row, CICOID header row, one value row. */
@@ -814,5 +818,215 @@ describe('⚠ the no-claim rule is scoped to v1 years ONLY', () => {
     const r = resolveMonth(ENT, { fyEndMonth: 1, fyEndMonthText: 'December 31' }, 2012);
     expect(r.ok).toBe(true);
     expect(r.month).toBe(1);
+  });
+});
+
+describe('unrecordedBlankParts — found before the write, not during it', () => {
+  const filing = (cicoid, fiscalYear, expTotal, revTotal) => ({
+    cicoid,
+    fiscalYear,
+    exp: { roots: expTotal ? [{ id: 'V401', label: 'General administration', amount: expTotal, items: [] }] : [], total: expTotal },
+    rev: { roots: [{ id: '1A', label: 'General Property Taxes', amount: revTotal, items: [{ code: 'V101', label: 'x', amount: revTotal }] }], total: revTotal },
+  });
+
+  it('names a Part carrying no money that no register entry records', () => {
+    // Upson FY2010 is the shape: every Part V function $0.00, revenue intact.
+    const bad = unrecordedBlankParts([filing('1145145', 2011, 0, 17224904)]);
+    expect(bad).toEqual([{ cicoid: '1145145', fiscalYear: 2011, datasetType: 'operating' }]);
+  });
+
+  it('⚠ stays silent about a blank Part a register entry DOES record', () => {
+    // GA_EMPTY_DATASETS carries upson-fy2010-part-five-blank.
+    expect(unrecordedBlankParts([filing('1145145', 2010, 0, 17224904)])).toEqual([]);
+  });
+
+  it('⚠⚠ catches a Part whose lines SUM to zero, not just a blank one', () => {
+    // Dahlonega FY2022: Police -$50,000 and Fire +$50,000, which cancel.
+    // Presence-of-amount is the wrong test; the guard tests the TOTAL.
+    const offsetting = {
+      cicoid: '9999999',
+      fiscalYear: 2012,
+      exp: {
+        roots: [
+          { id: 'V437', label: 'Police department', amount: -50000, items: [] },
+          { id: 'V449', label: 'Fire department', amount: 50000, items: [] },
+        ],
+        total: 0,
+      },
+      rev: { roots: [], total: 100 },
+    };
+    expect(unrecordedBlankParts([offsetting])).toContainEqual(
+      expect.objectContaining({ cicoid: '9999999', datasetType: 'operating' }),
+    );
+  });
+
+  it('says nothing about a filing whose Parts both carry money', () => {
+    expect(unrecordedBlankParts([filing('1006006', 2012, 4052550, 1221006)])).toEqual([]);
+  });
+});
+
+describe('GA_V1_MONTH_CHANGES — a split the form itself declares', () => {
+  const f = (cicoid, fiscalYear, month) => ({ cicoid, fiscalYear, log1: { fyEndMonth: month } });
+  const bacon = [
+    f('1003003', 2009, 1), f('1003003', 2010, 1), f('1003003', 2011, 1),
+    f('1003003', 2012, 1), f('1003003', 2013, 1), f('1003003', 2014, 7), f('1003003', 2015, 7),
+  ];
+
+  it('accepts Bacon\'s 1→7 change, which its FY2014 filing declares as a 6-month stub', () => {
+    expect(assertV1MonthConsistency(bacon)).toEqual([]);
+  });
+
+  it('⚠⚠ still REFUSES a year that the recorded change does not account for', () => {
+    // The register explains a SHAPE, not the entity. A year carrying a month the
+    // recorded map does not give it is a new fact and must be looked at.
+    const wrong = [...bacon, f('1003003', 2012, 10)];
+    expect(assertV1MonthConsistency(wrong)).toHaveLength(1);
+  });
+
+  it('⚠ refuses a split for a government with no recorded change at all', () => {
+    const split = [f('1006006', 2009, 1), f('1006006', 2010, 7)];
+    expect(assertV1MonthConsistency(split)).toHaveLength(1);
+  });
+
+  it('every recorded change pins the transition year, its declared stub and the measured ratio', () => {
+    // ⚠⚠ RECORDING a change needs no evidence; this register is not recording,
+    // it is telling a GUARD to stand down — so each entry carries both the
+    // form's own declaration and an independent measurement of the money.
+    expect(GA_V1_MONTH_CHANGES.length).toBe(7);
+    for (const c of GA_V1_MONTH_CHANGES) {
+      expect(c.cicoid).toMatch(/^\d{7}$/);
+      expect(Object.keys(c.monthByYear).length).toBeGreaterThan(1);
+      expect(c.declaredBy).toBeTruthy();
+      expect(c.corroboration).toBeTruthy();
+    }
+  });
+
+  it('⚠ Chattooga is NOT in here — a full year of money is a slip, not a change', () => {
+    // FY2014 prints June 30 with V99 = 12 and 1.016x its own mean, between two
+    // December years, and Chattooga prints December 31 in 15 of its 16 filings
+    // across BOTH generations. That is a keying slip and belongs in
+    // GA_FYE_MONTH_DEFECTS, where it is overridden rather than recorded.
+    expect(GA_V1_MONTH_CHANGES.find((c) => c.cicoid === '1027027')).toBeUndefined();
+    expect(fyeMonthDefect('1027027', 2014)).toMatchObject({ formMonth: 7, month: 1 });
+  });
+});
+
+describe('resolveMonth consults the defect register for v1 years too', () => {
+  const CHATTOOGA = {
+    cicoid: '1027027', name: 'Chattooga County', fiscalYearStartMonth: 1,
+    fiscalYears: [2016, 2017, 2018], censusConfirms: false,
+  };
+
+  it('⚠⚠ OVERRIDES the v1 form month where a corroborated defect pins both sides', () => {
+    // Without this the no-claim rule records the slip as fact: a v1 keying slip
+    // could never be corrected, because the branch returned before the lookup.
+    const r = resolveMonth(CHATTOOGA, { fyEndMonth: 7, fyEndMonthText: 'June 30' }, 2014);
+    expect(r.ok).toBe(true);
+    expect(r.month).toBe(1);
+    expect(r.how).toMatch(/chattooga-fy2014/);
+  });
+
+  it('still records the form\'s own month in a v1 year with no defect entry', () => {
+    const r = resolveMonth(CHATTOOGA, { fyEndMonth: 1, fyEndMonthText: 'December 31' }, 2013);
+    expect(r.month).toBe(1);
+    expect(r.how).toMatch(/registry covers/);
+  });
+});
+
+describe('assertV1MonthConsistency honours a corroborated defect', () => {
+  const f = (fiscalYear, month) => ({ cicoid: '1027027', fiscalYear, log1: { fyEndMonth: month } });
+
+  it('⚠⚠ counts the CORRECTED month, so a recorded slip is not also an unexplained split', () => {
+    // Chattooga FY2014 prints June 30; `chattooga-fy2014-june-for-december` pins
+    // it to December, and resolveMonth writes December. A guard still reading
+    // the raw form month refuses a filing the loader would have written
+    // correctly — the register would be evidence the guard ignored.
+    const chattooga = [f(2009, 1), f(2010, 1), f(2011, 1), f(2012, 1), f(2013, 1), f(2014, 7), f(2015, 1)];
+    expect(assertV1MonthConsistency(chattooga)).toEqual([]);
+  });
+
+  it('⚠ a defect entry only excuses the year and month it PINS', () => {
+    // The entry pins formMonth 7 -> month 1 for FY2014 alone. A different year
+    // printing June 30 is a new fact and still splits.
+    const wrong = [f(2009, 1), f(2014, 7), f(2015, 7)];
+    expect(assertV1MonthConsistency(wrong)).toHaveLength(1);
+  });
+});
+
+describe('matchSheetName — a trailing space must not cost a whole Part', () => {
+  it('⚠⚠ finds a sheet whose name carries stray whitespace', () => {
+    // MEASURED: 3 of 1,175 workbooks name it `Page 3 `. An exact lookup misses,
+    // the page is never read, and the expenditure tree comes back EMPTY — a
+    // silent $0 for a county that spent money. Chatham FY2013/FY2014 and Tift
+    // FY2015 were caught only because their extract also lacked the total keys,
+    // so the oracle had nothing to tie to. Had the extract carried a $0 total,
+    // the filing would have tied AT ZERO and looked perfectly legitimate.
+    expect(matchSheetName(['Page 1', 'Page 3 ', 'Data'], 'Page 3')).toBe('Page 3 ');
+  });
+
+  it('prefers an exact match over a loose one', () => {
+    expect(matchSheetName(['Page 3 ', 'Page 3'], 'Page 3')).toBe('Page 3');
+  });
+
+  it('matches case-insensitively, since LOAD1 and Load1 both occur', () => {
+    expect(matchSheetName(['load1'], 'LOAD1')).toBe('load1');
+  });
+
+  it('returns null rather than guessing at a near-miss', () => {
+    expect(matchSheetName(['Page 33', 'Pages'], 'Page 3')).toBeNull();
+    expect(matchSheetName([], 'Page 3')).toBeNull();
+  });
+});
+
+describe('a v1 workbook missing a declared page is REFUSED, never read as $0', () => {
+  it('⚠⚠ names the absent page instead of returning an empty tree', () => {
+    // The failure mode this prevents: no Page 3 -> no Part V rows -> total $0 ->
+    // and if the extract's own total is $0 too, nine checks tie at zero having
+    // measured nothing. A missing page is a read failure, not a blank Part.
+    const f = readV1Filing({ pages: { 'Page 1': [], 'Page 2': [] }, exportable: [] });
+    expect(f.missingPages).toEqual(['Page 3']);
+  });
+
+  it('reports no missing pages when all three are present', () => {
+    const f = readV1Filing({ pages: { 'Page 1': [], 'Page 2': [], 'Page 3': [] }, exportable: [] });
+    expect(f.missingPages).toEqual([]);
+  });
+});
+
+describe('the Part V oracle reads the printed total too, not only the extract', () => {
+  const pages = partVPages({ total: [467021, 182499, 0] });
+
+  it('⚠⚠ ties Part V from the PAGE when the extract has no total keys at all', () => {
+    // MEASURED: Chatham FY2013/FY2014 and Tift FY2015 carry a non-standard
+    // extract (blocks named `Blocks 101-125`, `Expenditures`, `Exp 708-771`)
+    // with no V509/V510/V511. Their pages print TOTAL PART V normally. An
+    // extract-only expenditure oracle SKIPS all three — and a skip is a refusal.
+    const pageRead = readV1Pages(pages);
+    const tree = buildV1ExpenditureTree(pageRead, {});
+    const check = checkV1ExpenditureTotal(tree, {}, pageRead.totals);
+    expect(check.skipped).toBeUndefined();
+    expect(check).toMatchObject({ ok: true, expected: 649520 });
+  });
+
+  it('prefers the printed total over a disagreeing extract, and records the gap', () => {
+    const pageRead = readV1Pages(pages);
+    const tree = buildV1ExpenditureTree(pageRead, {});
+    const anomalies = [];
+    const check = checkV1ExpenditureTotal(
+      tree, { V509: 1, V510: 0, V511: 0 }, pageRead.totals, anomalies,
+    );
+    expect(check.ok).toBe(true);
+    expect(anomalies).toContainEqual(expect.objectContaining({
+      kind: 'extract_subtotal_disagrees_with_form', code: 'V509',
+    }));
+  });
+
+  it('⚠⚠ still SKIPS when neither the page nor the extract carries a total', () => {
+    const noTotal = {
+      'Page 3': pages['Page 3'].filter((r) => !/^TOTAL PART V/i.test(String(r[0] ?? ''))),
+    };
+    const pageRead = readV1Pages(noTotal);
+    const tree = buildV1ExpenditureTree(pageRead, {});
+    expect(checkV1ExpenditureTotal(tree, {}, pageRead.totals).skipped).toBe(true);
   });
 });

@@ -62,7 +62,7 @@ import {
   PAGE_GEOMETRY, num,
 } from './lib/gaRlgf.mjs';
 import {
-  readV1Filing, V1_PAGE_GEOMETRY, V1_EXTRACT_SHEET, V1_TWIN_SHEET,
+  readV1Filing, V1_PAGE_GEOMETRY, V1_EXTRACT_SHEET, V1_TWIN_SHEET, matchSheetName,
 } from './lib/gaRlgfV1.mjs';
 import { GA_RLGF_ENTITIES, GA_LOAD_WINDOW, GA_FORM_GENERATIONS } from './data/georgiaRlgfEntities.mjs';
 import { GA_STATEWIDE_ENTITIES } from './data/georgiaStatewideEntities.mjs';
@@ -70,6 +70,7 @@ import { GA_STATEWIDE_MUNICIPALITIES } from './data/georgiaStatewideMunicipaliti
 import { GA_STATEWIDE_CONSOLIDATED } from './data/georgiaStatewideConsolidated.mjs';
 import {
   formTotalDefect, fyeMonthDefect, unverifiableFiling, emptyDataset, consolidationOverlap,
+  v1MonthChange,
 } from './data/gaRlgfAnomalies.mjs';
 
 /**
@@ -222,6 +223,21 @@ export function resolveMonth(entity, meta, fiscalYear) {
   const belowV2 = Number(fiscalYear) < GA_FORM_GENERATIONS.v2.firstFiscalYear;
   const hasClaim = entity.monthByYear?.[fiscalYear] !== undefined;
   if (belowV2 && !hasClaim) {
+    // ⚠⚠ THE DEFECT REGISTER IS CONSULTED FIRST, OR A v1 SLIP CAN NEVER BE
+    // CORRECTED. Without this the no-claim rule below records the form's month
+    // as fact — so Chattooga FY2014's one-year hop to June 30, contradicted by
+    // fifteen of its own sixteen filings across both form generations, would be
+    // written as the truth. The entry must pin BOTH months, exactly as in v2.
+    const d = fyeMonthDefect(entity.cicoid, fiscalYear);
+    if (d && d.formMonth === fromForm) {
+      return {
+        month: d.month,
+        how: `form prints month ${fromForm} (${JSON.stringify(meta.fyEndMonthText)}); `
+          + `corroborated one-year slip, writing ${d.month} — ${d.id}`,
+        ok: true,
+        confirmed: false,
+      };
+    }
     const span = entity.fiscalYears?.length
       ? `FY${Math.min(...entity.fiscalYears)}-${Math.max(...entity.fiscalYears)}`
       : 'the v2 window';
@@ -285,6 +301,38 @@ export function resolveMonth(entity, meta, fiscalYear) {
 }
 
 /**
+ * Every Part carrying no money that no `GA_EMPTY_DATASETS` entry records.
+ *
+ * ⚠⚠ THIS EXISTS SO A DRY RUN FINDS THEM ALL AT ONCE. The write loop refuses an
+ * unrecorded blank Part — correctly — but it does so one filing at a time, and
+ * on the v1 pilot's first `--commit` that aborted the run mid-write at Upson
+ * FY2010. A 1,034-filing sweep cannot be driven by one refusal per attempt.
+ *
+ * ⚠⚠ TESTS THE TOTAL, NEVER THE PRESENCE OF AN AMOUNT. Dahlonega FY2022 reports
+ * Police Protection at MINUS $50,000 and Fire Protection at PLUS $50,000 and
+ * nothing else: amounts that are not zero, summing to a total that is. A row
+ * built from that tells a reader the same false thing a blank one would.
+ *
+ * ⚠ It also must not test `tree.length`: a blank v1 Part comes back as an EMPTY
+ * ARRAY (36 function roots, no items, no money, all filtered) while a blank v2
+ * Part comes back as SEVEN ROOTS OF ZERO. Testing for money catches both.
+ */
+export function unrecordedBlankParts(filings) {
+  const out = [];
+  for (const f of filings) {
+    for (const [datasetType, built] of [['operating', f.exp], ['revenue', f.rev]]) {
+      if (!built) continue;
+      const tree = toTree(built);
+      const hasMoney = tree.some((r) => r.a !== 0 || (r.c || []).some((c) => c.a !== 0));
+      if (hasMoney && Number(built.total) !== 0) continue;
+      if (emptyDataset(f.cicoid, f.fiscalYear, datasetType)) continue;
+      out.push({ cicoid: f.cicoid, fiscalYear: f.fiscalYear, datasetType });
+    }
+  }
+  return out;
+}
+
+/**
  * ⚠⚠ THE GUARD THAT REPLACES THE REGISTRY FOR v1 YEARS.
  *
  * `resolveMonth` records a v1 filing's own month where the registry has no
@@ -305,8 +353,15 @@ export function resolveMonth(entity, meta, fiscalYear) {
 export function assertV1MonthConsistency(filings) {
   const byGov = new Map();
   for (const f of filings) {
-    const month = f.log1?.fyEndMonth;
-    if (!month) continue;
+    const raw = f.log1?.fyEndMonth;
+    if (!raw) continue;
+    // ⚠⚠ THE CORRECTED MONTH, NOT THE PRINTED ONE. `resolveMonth` overrides a
+    // year a corroborated `GA_FYE_MONTH_DEFECTS` entry pins, so a guard reading
+    // the raw form month would refuse a filing the loader writes correctly —
+    // the register would be evidence the guard ignored. The entry only excuses
+    // the year AND the printed month it names.
+    const d = fyeMonthDefect(f.cicoid, f.fiscalYear);
+    const month = d && d.formMonth === raw ? d.month : raw;
     if (!byGov.has(f.cicoid)) byGov.set(f.cicoid, new Map());
     const months = byGov.get(f.cicoid);
     if (!months.has(month)) months.set(month, []);
@@ -315,9 +370,19 @@ export function assertV1MonthConsistency(filings) {
   const bad = [];
   for (const [cicoid, months] of byGov) {
     if (months.size <= 1) continue;
+    // ⚠⚠ A RECORDED CHANGE EXPLAINS A SHAPE, NOT AN ENTITY. The register gives
+    // a month PER YEAR, and every filed year must match it. A government that
+    // changed calendar once does not thereby get a licence for any month in any
+    // other year — that would turn one piece of evidence into blanket immunity.
+    const change = v1MonthChange(cicoid);
+    if (change) {
+      const explained = [...months].every(([m, ys]) => ys.every((y) => change.monthByYear[y] === m));
+      if (explained) continue;
+    }
     bad.push({
       cicoid,
       months: Object.fromEntries([...months].map(([m, ys]) => [m, ys.sort((a, b) => a - b)])),
+      recordedChange: change?.id ?? null,
     });
   }
   return bad;
@@ -394,8 +459,9 @@ export async function readFiling(path) {
   // `YEAR` placeholder in DCA's own listing proves those exist — would be read
   // by the wrong parser under a year rule, and silently, because both
   // generations produce plausible-looking trees.
-  const load1 = gridOf(wb, 'LOAD1');
-  const exportable = gridOf(wb, V1_EXTRACT_SHEET);
+  const sheetNames = wb.worksheets.map((w) => w.name);
+  const load1 = gridOf(wb, matchSheetName(sheetNames, 'LOAD1') ?? 'LOAD1');
+  const exportable = gridOf(wb, matchSheetName(sheetNames, V1_EXTRACT_SHEET) ?? V1_EXTRACT_SHEET);
   if (load1 && exportable) {
     // Never measured. Refuse rather than pick: the two generations disagree
     // about what a Part number means, so guessing is a silent mis-read.
@@ -404,18 +470,26 @@ export async function readFiling(path) {
   if (exportable) {
     const v1Pages = {};
     for (const n of Object.keys(V1_PAGE_GEOMETRY)) {
-      const g = gridOf(wb, n);
+      // ⚠⚠ LOOSE MATCH. Three workbooks name it `'Page 3 '`, and an exact
+      // lookup silently yields an EMPTY Part V rather than an error.
+      const actual = matchSheetName(sheetNames, n);
+      const g = actual ? gridOf(wb, actual) : null;
       if (g) v1Pages[n] = g;
     }
     const f = readV1Filing({
       pages: v1Pages,
       exportable,
-      data: gridOf(wb, V1_TWIN_SHEET),
+      data: gridOf(wb, matchSheetName(sheetNames, V1_TWIN_SHEET) ?? V1_TWIN_SHEET),
       fiscalYear: meta0.fiscalYear,
     });
     // ⚠ The v1 form states its own fiscal year, so the filename is checkable
     // rather than merely trusted. Neither side is obviously right, so this
     // refuses rather than choosing one and minting a row under it.
+    // ⚠⚠ A MISSING PAGE IS A READ FAILURE, NOT A BLANK PART — refuse by name
+    // rather than publish a Part that is empty because nothing read it.
+    if (f.missingPages.length) {
+      return { skipped: `workbook has no ${f.missingPages.join(', ')} sheet — cannot read that Part`, ...meta0, path };
+    }
     if (f.yearConflict) {
       return {
         skipped: `form declares FY${f.yearConflict.form} but the filename says FY${f.yearConflict.filename}`,
@@ -577,6 +651,19 @@ async function main() {
         + Object.entries(s.months).map(([m, ys]) => `month ${m} in FY${ys.join(',')}`).join(' vs '));
     }
     process.exit(1);
+  }
+
+  // ⚠ Reported in EVERY run, dry or committing, so a sweep learns about all of
+  // them at once instead of one aborted write at a time.
+  const blanks = unrecordedBlankParts(filings);
+  if (blanks.length) {
+    console.log(`\n⚠⚠ ${blanks.length} Part(s) carry NO MONEY and no GA_EMPTY_DATASETS entry records them.`);
+    console.log('   A blank Part is MISSING DATA, not a figure of zero, and gets no row — but each');
+    console.log('   one must be LOOKED AT and recorded by name before a load will write anything.');
+    for (const b of blanks) {
+      const ent = entityByCicoid(b.cicoid);
+      console.log(`   ${(ent?.name ?? b.cicoid).padEnd(26)} FY${b.fiscalYear} ${b.datasetType}`);
+    }
   }
 
   let failed = 0;
