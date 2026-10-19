@@ -57,13 +57,38 @@ import path from 'node:path';
 import ExcelJS from 'exceljs';
 import { parseLoad1, readLog1 } from './lib/gaRlgf.mjs';
 import { buildCensus, censusMonthFor } from './lib/facFiscalYearCensus.mjs';
+import { GA_RLGF_ENTITIES } from './data/georgiaRlgfEntities.mjs';
 import { fyeMonthChange, fyeMonthDefect } from './data/gaRlgfAnomalies.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const DEFAULT_DIR = join(ROOT, '_acfr-work/ga/sweep/xlsx');
 const DEFAULT_ENUM = join(ROOT, '_acfr-work/ga/sweep/enumeration.json');
-const DEFAULT_OUT = join(ROOT, 'scripts/data/georgiaStatewideEntities.mjs');
+const OUT_BY_KIND = Object.freeze({
+  county: join(ROOT, 'scripts/data/georgiaStatewideEntities.mjs'),
+  municipality: join(ROOT, 'scripts/data/georgiaStatewideMunicipalities.mjs'),
+});
+// ⚠⚠ ONE FILE PER KIND. A single default output would have the municipality run
+// OVERWRITE the 148 counties the previous run generated, silently deleting a
+// loaded registry.
+const DEFAULT_OUT = OUT_BY_KIND.county;
+
+/**
+ * The county registry, if it has been generated yet.
+ *
+ * ⚠ Loaded lazily and tolerantly: this module WRITES that file, so a static
+ * import would make the builder unable to run before its own first output
+ * exists. Municipalities need it to resolve a parent county; counties do not.
+ */
+async function countyRegistry() {
+  try {
+    const m = await import('./data/georgiaStatewideEntities.mjs');
+    return m.GA_STATEWIDE_ENTITIES;
+  } catch {
+    return [];
+  }
+}
 const COUNTY_POP = join(ROOT, 'cache/co-est2024-alldata.csv');
+const PLACE_POP = join(ROOT, 'cache/sub-est2024_13.csv');
 
 export const GA_STATE = 'GA';
 export const GA_FIRST_YEAR = 2016;
@@ -160,11 +185,23 @@ export function resolveMonth(entity, formMonths, lookup = censusMonthFor) {
       // ⚠ PINNED: the entry must predict every filing's printed month. An entry
       // whose years or months have drifted from the filings accounts for a
       // different series, not this one, and must not quietly stand in for it.
-      const mismatch = stated.find((f) => (change.monthByYear[f.fiscalYear] ?? change.month) !== f.month);
+      // ⚠ A government can BOTH change its calendar and miskey a single later
+      // year. Tucker changed from month 1 to month 7 in FY2017 (its own form
+      // declares MosRptd = 6, MoChng = Yes) and then printed December 31 again
+      // in FY2020 and FY2025 alone. So a year the change mispredicts is allowed
+      // ONLY where a defect entry pins both months for exactly that year;
+      // anything else still refuses the entity.
+      const predicted = (fy) => change.monthByYear[fy] ?? change.month;
+      const mismatch = stated.find((f) => {
+        if (predicted(f.fiscalYear) === f.month) return false;
+        const d = fyeMonthDefect(entity.cicoid, f.fiscalYear);
+        return !(d && d.formMonth === f.month && d.month === predicted(f.fiscalYear));
+      });
       if (mismatch) {
         return { month: null, status: 'conflict',
-          why: `${change.id} predicts month ${change.monthByYear[mismatch.fiscalYear] ?? change.month} for `
-            + `FY${mismatch.fiscalYear} but the filing prints ${mismatch.month} — ${detail}` };
+          why: `${change.id} predicts month ${predicted(mismatch.fiscalYear)} for `
+            + `FY${mismatch.fiscalYear} but the filing prints ${mismatch.month}, and no defect entry `
+            + `accounts for it — ${detail}` };
       }
       monthByYear = change.monthByYear;
       distinct.length = 0;
@@ -271,6 +308,94 @@ export function readCountyPopulations(file = COUNTY_POP) {
   return out;
 }
 
+/**
+ * Census Vintage 2024 PLACE populations (SUMLEV=162), keyed by the census NAME
+ * with spaces collapsed.
+ *
+ * ⚠ Collapsing spaces was MEASURED safe before it was relied on: across all 537
+ * Georgia places no two names collide once spaces are removed, and neither do
+ * their bases once the type token is stripped. It exists because DCA writes
+ * `Edgehill` and `Gum Branch` where the census writes `Edge Hill` and
+ * `Gumbranch`.
+ */
+export function readPlacePopulations(file = PLACE_POP) {
+  const text = readFileSync(file, 'latin1');
+  const [head, ...lines] = text.split(/\r?\n/).filter((l) => l.trim());
+  const cols = head.split(',');
+  const ix = (n) => cols.indexOf(n);
+  const out = new Map();
+  for (const line of lines) {
+    const f = line.split(',');
+    if (f[ix('SUMLEV')] !== '162' || f[ix('STATE')] !== '13') continue;
+    const name = f[ix('NAME')].trim();
+    const m = name.match(/^(.*) (city|town)$/);
+    out.set(squash(name), {
+      censusName: name,
+      base: m ? m[1] : name,
+      censusType: m ? m[2] : null,
+      placeFips: f[ix('PLACE')],
+      population: Number(f[ix('POPESTIMATE2024')]),
+    });
+  }
+  return out;
+}
+
+const squash = (s) => s.toLowerCase().replace(/\s+/g, '');
+
+/**
+ * Join a DCA municipality name to its census place, and say HOW.
+ *
+ * ⚠⚠ DCA's trailing word is NOT reliably a type designator. Three distinct
+ * shapes, all measured on the 530 in-window municipalities:
+ *
+ *   suffix    495  `Abbeville City`  -> `Abbeville city`. The word is the type.
+ *   legal      11  `Garden City`     -> `Garden City city`. The word is part of
+ *                  the NAME — the PA `GROVE CITY BORO` trap, live in Georgia.
+ *                  Peachtree City, Union City, Lake City, Twin City and the
+ *                  rest are not "Peachtree" with a designator.
+ *   retyped    20  `Arcade Town`     -> `Arcade city`. DCA's designator
+ *                  DISAGREES with the census's. ⚠ This is why entityType is
+ *                  taken from the census and not from the name DCA prints.
+ *
+ * Tried in that order. `legal` is tried BEFORE `retyped` so that a legally
+ * "... City" place can never be re-typed into something else.
+ */
+export function joinPlace(dcaName, places) {
+  const m = dcaName.match(/^(.*) (City|Town)$/);
+  const base = m ? m[1] : dcaName;
+  const typ = m ? m[2].toLowerCase() : null;
+
+  if (typ) {
+    const hit = places.get(squash(`${base} ${typ}`));
+    if (hit) return { ...hit, how: 'suffix', dcaType: typ };
+  }
+  for (const t of ['city', 'town']) {
+    const hit = places.get(squash(`${dcaName} ${t}`));
+    if (hit) return { ...hit, how: 'legal', dcaType: typ };
+  }
+  if (typ) {
+    const other = typ === 'city' ? 'town' : 'city';
+    const hit = places.get(squash(`${base} ${other}`));
+    if (hit) return { ...hit, how: 'retyped', dcaType: typ };
+  }
+  return { why: `Census Vintage 2024 has no Georgia place matching ${JSON.stringify(dcaName)}` };
+}
+
+/**
+ * The county CICOID a municipality belongs to, from the CICOID alone.
+ *
+ * ⭐ The middle three digits are DCA's OWN county number and a county's CICOID
+ * is `1` + that number TWICE — verified across all 159 counties, zero
+ * exceptions. So `2060002` (Atlanta) yields `1060060` (Fulton) with NO NAME
+ * MATCHING, which matters: name matching is what `Bibb City` (in MUSCOGEE),
+ * `Baldwin City` (not Baldwin County) and `Macon County` (not Macon-Bibb)
+ * punish.
+ */
+export function countyCicoidFor(cicoid) {
+  const code = String(cicoid).slice(1, 4);
+  return `1${code}${code}`;
+}
+
 /** `Appling County` -> `appling-county`. */
 export function entityKey(name) {
   return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
@@ -311,8 +436,19 @@ export async function buildEntities({
 } = {}) {
   if (!existsSync(dir)) throw new Error(`no converted workbooks at ${dir} — run fetchGeorgiaRLGF.mjs first`);
   const manifest = JSON.parse(readFileSync(enumeration, 'utf8'));
-  const pops = readCountyPopulations();
+  const isCounty = kind === 'county';
+  const pops = isCounty ? readCountyPopulations() : readPlacePopulations();
   const census = buildCensus(GA_STATE);
+  // ⚠ A municipality's parent county is derived from its CICOID, never from its
+  // name. The county must already EXIST as a TT entity; where the county
+  // government is consolidated there is no county entity at all, and the parent
+  // is recorded as null rather than left dangling.
+  const countyKeyByCicoid = new Map();
+  if (!isCounty) {
+    for (const e of [...GA_RLGF_ENTITIES, ...(await countyRegistry())]) {
+      if (e.entityType === 'county') countyKeyByCicoid.set(e.cicoid, e.key);
+    }
+  }
 
   // ⚠ buildCensus keys by NAME ALONE, so a name carrying two kinds would merge
   // two governments into one entry. Georgia has none; assert it rather than
@@ -344,10 +480,10 @@ export async function buildEntities({
         why: 'carried by georgiaRlgfEntities.mjs; excluded so two registries cannot claim one CICOID' });
       continue;
     }
-    const pop = pops.get(g.name.trim().toLowerCase());
-    if (!pop) {
+    const pop = isCounty ? pops.get(g.name.trim().toLowerCase()) : joinPlace(g.name, pops);
+    if (!pop || pop.why) {
       refusals.push({ cicoid: g.cicoid, name: g.name, status: 'no-population',
-        why: `Census Vintage 2024 has no GA county named ${JSON.stringify(g.name)}` });
+        why: pop?.why ?? `Census Vintage 2024 has no GA ${kind} named ${JSON.stringify(g.name)}` });
       continue;
     }
 
@@ -359,8 +495,20 @@ export async function buildEntities({
       continue;
     }
 
-    const stub = { cicoid: g.cicoid, name: g.name, entityType: 'county', censusName: null, censusKind: null };
-    const joined = joinCensusName(g.name, 'county', census);
+    // ⚠⚠ entityType comes from the CENSUS designation, not from the word DCA
+    // prints. They DISAGREE on 20 of the 530 in-window municipalities (DCA
+    // "Arcade Town" against the census's "Arcade city"), and the census is the
+    // source already supplying the population and the one comparable nationally.
+    // DCA's own word is kept on the row so the disagreement stays visible.
+    const entityType = isCounty ? 'county' : (pop.censusType ?? 'city');
+    const displayName = isCounty ? g.name : pop.base;
+    const stub = { cicoid: g.cicoid, name: displayName, entityType, censusName: null, censusKind: null };
+    // ⚠ FAC writes a municipality's BARE name (`Atlanta`), not the census's
+    // `Atlanta city`. Tried bare first, then the full DCA string, which is what
+    // a legally "... City" place needs.
+    const facKind = isCounty ? 'county' : 'municipality';
+    let joined = joinCensusName(displayName, facKind, census);
+    if (joined.why && !isCounty) joined = joinCensusName(g.name, facKind, census);
     if (!joined.why) { stub.censusName = joined.censusName; stub.censusKind = joined.kind; }
     const r = resolveMonth(stub, months);
     statuses[r.status] = (statuses[r.status] ?? 0) + 1;
@@ -371,23 +519,33 @@ export async function buildEntities({
     }
 
     const monthText = months.find((m) => m.month === r.month)?.text ?? null;
+    const parentCicoid = isCounty ? null : countyCicoidFor(g.cicoid);
     entities.push({
-      key: entityKey(g.name),
+      key: entityKey(displayName + (isCounty ? '' : ` ${entityType}`)),
       cicoid: g.cicoid,
-      name: g.name,
+      name: displayName,
       state: GA_STATE,
-      entityType: 'county',
+      entityType,
+      dcaName: isCounty ? undefined : g.name,
       population: pop.population,
-      populationSource: `co-est2024-alldata.csv SUMLEV=050 STATE=13 COUNTY=${pop.fips.slice(2)}`,
+      populationSource: isCounty
+        ? `co-est2024-alldata.csv SUMLEV=050 STATE=13 COUNTY=${pop.fips.slice(2)}`
+        : `sub-est2024_13.csv SUMLEV=162 PLACE=${pop.placeFips} (${pop.censusName}, joined by ${pop.how})`,
       fiscalYearStartMonth: r.month,
       fiscalYearEndText: monthText,
       censusName: r.censusName ?? null,
-      censusKind: r.censusName ? 'county' : null,
+      censusKind: r.censusName ? facKind : null,
       censusConfirms: r.status === 'confirmed',
       monthByYear: r.monthByYear ?? null,
       monthStatus: r.status,
       monthWhy: r.why ?? null,
-      parentCountyKey: null,
+      parentCountyKey: parentCicoid ? (countyKeyByCicoid.get(parentCicoid) ?? null) : null,
+      // ⚠ Recorded when the county has NO TT entity because its government is
+      // consolidated (Athens-Clarke, Augusta-Richmond). Null is the honest
+      // value; a dangling key would look like a join that worked.
+      parentCountyWhy: parentCicoid && !countyKeyByCicoid.has(parentCicoid)
+        ? `county ${parentCicoid} has no TT entity — its government is consolidated`
+        : undefined,
       fiscalYears: months.map((m) => m.fiscalYear).sort((a, b) => a - b),
       notes: notes.length ? notes : undefined,
     });
@@ -411,7 +569,9 @@ export function renderModule(entities, meta) {
     fiscalYearEndText: ${JSON.stringify(e.fiscalYearEndText)},
     censusName: ${JSON.stringify(e.censusName)},
     censusKind: ${JSON.stringify(e.censusKind)},
-    censusConfirms: ${e.censusConfirms},${e.monthByYear ? `
+    censusConfirms: ${e.censusConfirms},${e.dcaName && e.dcaName !== e.name ? `
+    // ⚠ DCA prints this name; the census designation above is what TT types on.
+    dcaName: ${JSON.stringify(e.dcaName)},` : ''}${e.monthByYear ? `
     // ⚠ CHANGED ITS FISCAL CALENDAR INSIDE THE WINDOW. These years are written
     // with the month the filing printed for them, not the entity's current one.
     monthByYear: Object.freeze(${JSON.stringify(e.monthByYear)}),` : ''}
@@ -428,7 +588,18 @@ export function renderModule(entities, meta) {
  *   node scripts/buildGaStatewideEntities.mjs --dir _acfr-work/ga/sweep/xlsx
  *
  * Built ${meta.builtAt} from ${meta.read} workbooks across ${meta.targets} ${meta.kind}
- * governments listed by DCA.
+ * governments listed by DCA.${meta.kind === 'municipality' ? `
+ *
+ * ⚠⚠ \`entityType\` IS THE CENSUS DESIGNATION, NOT THE WORD DCA PRINTS. They
+ * disagree on 20 of these governments — DCA writes "Arcade Town" where the
+ * census has "Arcade city" — so the name DCA prints cannot be used to type an
+ * entity. Where they differ, DCA's own string is kept as \`dcaName\`.
+ *
+ * ⚠ \`parentCountyKey\` is derived from the CICOID: its middle three digits are
+ * DCA's own county number, and a county's CICOID is \`1\` + that number twice.
+ * NO NAME MATCHING — \`Bibb City\` is in MUSCOGEE and \`Baldwin City\` is not in
+ * Baldwin County. It is null where the county government is consolidated and so
+ * has no county entity at all.` : ''}
  *
  * ── HOW \`fiscalYearStartMonth\` GOT HERE ─────────────────────────────────────
  *
@@ -460,9 +631,9 @@ export function renderModule(entities, meta) {
  * \`censusMonthFor()\` does an exact \`Map.get\`.
  */
 
-export const GA_STATEWIDE_WINDOW = Object.freeze({ first: ${meta.first}, last: ${meta.last} });
+export const ${meta.windowConst} = Object.freeze({ first: ${meta.first}, last: ${meta.last} });
 
-export const GA_STATEWIDE_ENTITIES = Object.freeze([
+export const ${meta.exportConst} = Object.freeze([
 ${body}
 ].map(Object.freeze));
 `;
@@ -474,11 +645,13 @@ export async function main(argv = process.argv.slice(2), log = console.log) {
     options: {
       dir: { type: 'string', default: DEFAULT_DIR },
       enumeration: { type: 'string', default: DEFAULT_ENUM },
-      out: { type: 'string', default: DEFAULT_OUT },
+      out: { type: 'string' },
       kind: { type: 'string', default: 'county' },
       'dry-run': { type: 'boolean', default: false },
     },
   });
+  const out = values.out ?? OUT_BY_KIND[values.kind];
+  if (!out) throw new Error(`no default output for kind ${JSON.stringify(values.kind)} — pass --out`);
   const r = await buildEntities({ dir: values.dir, enumeration: values.enumeration, kind: values.kind, log });
 
   log(`\nMONTH RESOLUTION (${r.read} workbooks read)`);
@@ -500,12 +673,14 @@ export async function main(argv = process.argv.slice(2), log = console.log) {
   const meta = {
     builtAt: new Date().toISOString().slice(0, 10),
     read: r.read, targets: r.targets, kind: values.kind,
+    windowConst: values.kind === 'municipality' ? 'GA_STATEWIDE_MUNI_WINDOW' : 'GA_STATEWIDE_WINDOW',
+    exportConst: values.kind === 'municipality' ? 'GA_STATEWIDE_MUNICIPALITIES' : 'GA_STATEWIDE_ENTITIES',
     statuses: { confirmed: 0, unverified: 0, 'census-only': 0, conflict: 0, ...r.statuses },
     byReason: r.refusals.reduce((a, x) => ({ ...a, [x.status]: (a[x.status] ?? 0) + 1 }), {}),
     refused: r.refusals.length, first: GA_FIRST_YEAR, last: GA_LAST_YEAR,
   };
-  writeFileSync(values.out, renderModule(r.entities, meta));
-  log(`\n  -> ${values.out}`);
+  writeFileSync(out, renderModule(r.entities, meta));
+  log(`\n  -> ${out}`);
   return r;
 }
 

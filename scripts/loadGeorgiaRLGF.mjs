@@ -63,6 +63,7 @@ import {
 } from './lib/gaRlgf.mjs';
 import { GA_RLGF_ENTITIES, GA_LOAD_WINDOW } from './data/georgiaRlgfEntities.mjs';
 import { GA_STATEWIDE_ENTITIES } from './data/georgiaStatewideEntities.mjs';
+import { GA_STATEWIDE_MUNICIPALITIES } from './data/georgiaStatewideMunicipalities.mjs';
 import {
   formTotalDefect, fyeMonthDefect, unverifiableFiling, emptyDataset,
 } from './data/gaRlgfAnomalies.mjs';
@@ -82,7 +83,9 @@ import {
  * excludes the hand-written seven; this proves it at import time rather than
  * trusting it.
  */
-export const GA_ALL_ENTITIES = Object.freeze([...GA_RLGF_ENTITIES, ...GA_STATEWIDE_ENTITIES]);
+export const GA_ALL_ENTITIES = Object.freeze([
+  ...GA_RLGF_ENTITIES, ...GA_STATEWIDE_ENTITIES, ...GA_STATEWIDE_MUNICIPALITIES,
+]);
 
 const seenCicoids = new Set();
 const seenKeys = new Set();
@@ -348,13 +351,31 @@ async function main() {
       fy: { type: 'string' },
       commit: { type: 'boolean' },
       'dry-run': { type: 'boolean' },
+      slice: { type: 'string' },
     },
     strict: false,
   });
   const dir = argv.dir || '_acfr-work/ga/xlsx';
   const commit = !!argv.commit && !argv['dry-run'];
 
-  const files = readdirSync(dir).filter((f) => f.toLowerCase().endsWith('.xlsx')).sort();
+  let files = readdirSync(dir).filter((f) => f.toLowerCase().endsWith('.xlsx')).sort();
+  // ⚠ `--slice M/N` takes the Mth of N contiguous slices of the file list, so a
+  // sweep too large for one run can be gated in bounded pieces. The slices
+  // partition the list exactly — every file is in exactly one — so N runs cover
+  // the same set a single run would. ⚠⚠ A SLICE IS NOT A GATE ON ITS OWN: the
+  // run is only verified when every slice has been run and every one was clean.
+  if (argv.slice) {
+    const [mRaw, nRaw] = String(argv.slice).split('/');
+    const m = Number(mRaw); const n = Number(nRaw);
+    if (!Number.isInteger(m) || !Number.isInteger(n) || n < 1 || m < 1 || m > n) {
+      console.error(`--slice must be M/N with 1 <= M <= N, got ${JSON.stringify(argv.slice)}`);
+      process.exit(2);
+    }
+    const size = Math.ceil(files.length / n);
+    const all = files.length;
+    files = files.slice((m - 1) * size, m * size);
+    console.log(`--slice ${m}/${n}: ${files.length} of ${all} workbook(s)`);
+  }
   const wanted = new Set(
     argv.entity
       ? GA_ALL_ENTITIES.filter((e) => e.key === argv.entity).map((e) => e.cicoid)
@@ -413,8 +434,14 @@ async function main() {
     if (unverifiableMatches(unver, skippedChecks, bad)) {
       f.excluded = unver;
       excluded.push(unver);
+      // ⚠ Two different reasons end up here and the log must not blur them:
+      // a filing with skipped checks had NOTHING to verify against, while one
+      // with none ran its oracle in full and FAILED it.
+      const why = unver.skipped.length
+        ? 'oracle cannot run'
+        : 'oracle RAN and FAILED, and no source settles it';
       console.log(`${ent.name.padEnd(20)} ${String(f.fiscalYear).padEnd(5)} `
-        + `EXCLUDED, NOT LOADED — oracle cannot run: ${unver.id}`);
+        + `EXCLUDED, NOT LOADED — ${why}: ${unver.id}`);
       continue;
     }
     if (bad.length || skippedChecks.length || !m.ok) failed++;
@@ -526,8 +553,15 @@ async function main() {
       // as seven roots of zero — a non-empty tree carrying no money. Testing the
       // LENGTH let three $0 rows through on the first statewide run. The test
       // has to be whether any node carries an amount.
+      // ⚠⚠ TWO WAYS A PART CARRIES NOTHING PUBLISHABLE, and the guard must catch
+      // BOTH. Most are simply blank. But Dahlonega FY2022 reports Police
+      // Protection at MINUS $50,000 and Fire Protection at PLUS $50,000 and
+      // nothing else — amounts that are not zero, summing to a total that is.
+      // Testing only for the presence of an amount would publish a $0 spending
+      // row carrying two offsetting entries, which tells a reader the same
+      // false thing a blank one would.
       const hasMoney = tree.some((r) => r.a !== 0 || (r.c || []).some((c) => c.a !== 0));
-      if (!hasMoney) {
+      if (!hasMoney || Number(built.total) === 0) {
         const rec = emptyDataset(f.cicoid, f.fiscalYear, datasetType);
         if (!rec) {
           throw new Error(`${ent.name} FY${f.fiscalYear} ${datasetType}: every line in this Part `

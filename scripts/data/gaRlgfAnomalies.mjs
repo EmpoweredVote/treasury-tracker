@@ -29,6 +29,188 @@
  * ⚠⚠ THIS IS LOADED AS PUBLISHED. It is not suppressed, capped, or corrected.
  */
 export const GA_FIGURE_FLAGS = Object.freeze([
+  // ── MUNICIPALITIES: four figures that dwarf their own entity ──────────────
+  //
+  // ⚠ All four TIE 18/18 — the form's own printed subtotal carries the figure,
+  // so the preparer entered it and the form summed it. TT reproduces both
+  // exactly. These are NOT read-fidelity failures, and the figure published is
+  // the one the government filed: the Milledgeville Rule, four more times.
+  {
+    id: 'monroe-fy2025-other-intergovernmental-line',
+    entity: 'Monroe', state: 'GA', fiscalYear: 2025, dataset: 'revenue',
+    section: '2', ucoa: null, label: 'Other Intergovernmental Revenues — Attach List',
+    amount: 1686319022.00, loaded: true, severity: 'extreme-outlier',
+    what:
+      '⚠ THE WHOLE EXCESS IS ONE LINE. Monroe\'s FY2025 Section 2 totals $1,689,565,167, '
+      + 'and $1,686,319,022 of that sits on the single free-text row "Other '
+      + 'Intergovernmental Revenues - Attach List". The section\'s other five lines are '
+      + 'entirely ordinary: payment in lieu of taxes $101,356 (against $69,107 the year '
+      + 'before), LMIG $206,713 (against $200,899), crime and corrections grants $42,310 '
+      + '(against $38,678), CDBG $5,580, SPLOST $2,890,186 (against $4,009,564). The same '
+      + '"Other" line was $2,670,179 in FY2024 and $2,496,501 in FY2023.',
+    magnitude: [
+      'The line: $1,686,319,022 (FY2025) against $2,670,179 (FY2024) — 632x.',
+      '⚠⚠ SCALE, PROPERLY STATED: Monroe\'s ENTIRE audited revenue for FY2025, including '
+        + 'its municipal electric utility, is $89,170,673 — $21,162,802 governmental and '
+        + '$68,007,871 business-type. The figure on this one line is NINETEEN TIMES '
+        + 'everything the city handles in a year.',
+      'Audited intergovernmental revenue across all governmental funds is $4,232,497 '
+        + '($555,205 of it in the General Fund).',
+      '⭐ Divided by 1,000 the line reads $1,686,319 — between its own FY2023 and FY2024 '
+        + 'values. Section 2 would then total $4,932,464 against the audited $4,232,497, '
+        + 'the same order of magnitude rather than 399 times it.',
+    ],
+    verifiedBecause: [
+      'IDENTITY CONFIRMED FROM THE DOCUMENT, not from a name search: the audit used here is '
+        + 'titled "City of Monroe, Georgia — Annual Comprehensive Financial Report for the '
+        + 'Fiscal Year Ended December 31, 2025", which matches the filing\'s own December '
+        + 'year-end. It is the CITY, not Monroe County, which is a separate government '
+        + '(CICOID 1102102).',
+      'The city\'s own audited statements (Federal Audit Clearinghouse report '
+        + '2025-12-GSAFAC-0000422443) report intergovernmental revenue of $4,232,497 across '
+        + 'all governmental funds and total revenues of $89,170,673 including the utility.',
+      'The filing ties 18/18: the form\'s own Part II subtotal carries the figure, so the '
+        + 'preparer entered it and the form summed it. TT reproduces it exactly.',
+      'The expenditure side of the same filing reports $22,417,266 against $21,195,504 the '
+        + 'year before — so only this one revenue line moves.',
+    ],
+    benignExplanations: [
+      '⭐ A UNIT ERROR. The ×1,000 relationship is exact to the digit and the "Attach List" '
+        + 'row is free text, which is where a figure copied from a schedule in thousands '
+        + 'would land. ⚠ OFFERED, NOT ASSERTED: no source states it, and the attachment '
+        + 'itself was not obtained.',
+      'A cumulative or multi-year grant total entered in a single year\'s cell.',
+      'A spreadsheet reference picking up an unrelated balance.',
+    ],
+    corroboration:
+      'Checked against an INDEPENDENT document from a different publisher — the city\'s own '
+      + 'audited ACFR via the Federal Audit Clearinghouse — and the identity of that '
+      + 'document confirmed from its own title page rather than from a name match. The '
+      + 'driving line was then isolated against the city\'s own FY2023 and FY2024 filings.',
+    supportingContext:
+      '⭐⭐ ONE OF FIVE SCALE BREAKS FOUND IN LOADED REVENUE DATA ACROSS THE STATEWIDE SWEEP, '
+      + 'and THREE of them share this ×1,000 fingerprint: Monroe FY2025 here, Varnell FY2018 '
+      + 'real property tax, and Shellman FY2024 interest revenue. Lowndes FY2022 fits ×100 '
+      + 'instead, and Cornelia FY2017 fits neither. See GA-RLGF-RECON.md §10, which measured '
+      + 'the ×1,000 mechanism in BALANCE-SHEET Parts only and recorded a null for Parts '
+      + 'I-VI across seven governments while asking for a re-measure at scale. Re-measured '
+      + 'over 679 governments, that null does not hold.',
+  },
+  {
+    id: 'varnell-fy2018-real-property-tax-line',
+    entity: 'Varnell', state: 'GA', fiscalYear: 2018, dataset: 'revenue',
+    section: '1A', ucoa: null, label: 'Real Property Taxes, Current Year',
+    amount: 44107410.00, loaded: true, severity: 'extreme-outlier',
+    what:
+      'Varnell\'s FY2018 Section 1A totals $47,936,338, of which $44,107,410 is the single '
+      + 'line "Real Property Taxes, Current Year". That line was $67,370 in FY2017 — the '
+      + 'town has roughly 2,000 residents and about $1 million of revenue in every other '
+      + 'year it filed. ⚠ FY2018 also populates four property-tax lines that were empty in '
+      + 'FY2017 (public utility $889,219, personal property $2,189,457, motor vehicle '
+      + '$699,210, mobile home $51,042), so the return was filled in more fully that year '
+      + 'as well as carrying the outlier.',
+    magnitude: [
+      'The line: $44,107,410 (FY2018) against $67,370 (FY2017) — 655x.',
+      'Revenue total $48,653,429 against a $950,468 mean of FY2017 and FY2019.',
+      '⭐ Divided by 1,000 the line reads $44,107, against $67,370 the year before — the '
+        + 'same order of magnitude.',
+      'The expenditure side reports $783,695, in line with its neighbours, so the two sides '
+        + 'of the return do not move together.',
+    ],
+    verifiedBecause: [
+      'The filing ties 18/18: the form\'s own Section 1A subtotal carries the figure.',
+      'Varnell\'s eight other filings report $874,715-$1,879,709 of total revenue.',
+      '⚠ NO INDEPENDENT SOURCE EXISTS. Varnell has no Federal Audit Clearinghouse record at '
+        + 'all — it spends under the $750k federal threshold, so it files no Single Audit '
+        + 'and no audited statement is published. This rests on the town\'s own filings, '
+        + 'which is said plainly rather than dressed up.',
+    ],
+    benignExplanations: [
+      '⭐ A unit error, the same ×1,000 shape as Monroe FY2025 and Shellman FY2024. ⚠ '
+        + 'Offered, not asserted.',
+      'A county-wide tax DIGEST figure entered in place of the town\'s own levy.',
+    ],
+    corroboration:
+      'Surfaced by the sweep\'s outlier screen, then isolated to a single line against the '
+      + 'town\'s own FY2017 filing. ⚠ Unlike Monroe, there is NO independent document behind '
+      + 'this one, because none exists for a government of this size.',
+  },
+  {
+    id: 'cornelia-fy2017-water-wastewater-grants-line',
+    entity: 'Cornelia', state: 'GA', fiscalYear: 2017, dataset: 'revenue',
+    section: '2', ucoa: null, label: 'Water/Wastewater Grants',
+    amount: 63781999.00, loaded: true, severity: 'extreme-outlier',
+    what:
+      'Cornelia\'s FY2017 Section 2 totals $63,905,171, of which $63,781,999 is the single '
+      + 'line "Water/Wastewater Grants". That line was $1,012,024 in FY2016. The city has '
+      + 'about 4,500 residents and reports $4-9 million of total revenue in every other '
+      + 'year it filed.',
+    magnitude: [
+      'The line: $63,781,999 (FY2017) against $1,012,024 (FY2016) — 63x.',
+      'Revenue total $67,623,932 against a $4,620,323 mean of FY2016 and FY2018.',
+      '⚠ THE ×1,000 READING DOES NOT FIT THIS ONE. Divided by 1,000 the line reads $63,782, '
+        + 'which is SIXTEEN TIMES SMALLER than the $1,012,024 it ran the year before. So '
+        + 'whatever happened here, it is not the unit error that fits Monroe, Varnell and '
+        + 'Shellman — and it is recorded as unexplained rather than forced into the pattern.',
+      'The expenditure side reports $4,493,669, in line with its neighbours.',
+    ],
+    verifiedBecause: [
+      'The filing ties 18/18: the form\'s own Part II subtotal carries the figure.',
+      'Cornelia\'s eight other filings report $4.2M-$9.2M of total revenue.',
+      '⚠ Not corroborated against an audited statement. Cornelia DOES file Single Audits '
+        + '(FAC holds 2016, 2022, 2024 and 2025) but the FY2017 report was not retrieved: '
+        + 'the Clearinghouse API\'s DEMO_KEY allows 30 requests an hour and the quota went '
+        + 'to Monroe. ⏭ An independent source EXISTS for this one and should close it.',
+    ],
+    benignExplanations: [
+      'A genuine large capital grant for a water or wastewater project, recorded in the '
+        + 'year of award rather than of receipt. ⚠ $63.8M would still be implausibly large '
+        + 'for a city of this size, but this is the one entry where a real event has not '
+        + 'been ruled out.',
+      'A digit transposition or a figure carrying a project authorisation rather than cash.',
+    ],
+    corroboration:
+      'Surfaced by the sweep\'s outlier screen and isolated to a single line against the '
+      + 'city\'s own FY2016 filing. ⚠ An independent audited source exists and was not '
+      + 'fetched; that is a gap in this session, not in the record.',
+  },
+  {
+    id: 'shellman-fy2024-interest-revenues-line',
+    entity: 'Shellman', state: 'GA', fiscalYear: 2024, dataset: 'revenue',
+    section: '3B', ucoa: null, label: 'Interest Revenues',
+    amount: 9049486.00, loaded: true, severity: 'extreme-outlier',
+    what:
+      'Shellman\'s FY2024 Section 3B totals $9,101,354, of which $9,049,486 is the single '
+      + 'line "Interest Revenues". That line was $1,938 in FY2023. The town has about 1,000 '
+      + 'residents and reports $0.5-1.0 million of total revenue in every other year.',
+    magnitude: [
+      'The line: $9,049,486 (FY2024) against $1,938 (FY2023).',
+      '⚠⚠ A PHYSICAL TEST FAILS IT. At the ~5% rates of 2024, interest of $9,049,486 '
+        + 'implies roughly $180 MILLION on deposit for a town whose annual revenue is under '
+        + '$1 million. There is no balance that could produce it.',
+      '⭐ Divided by 1,000 the line reads $9,049, which is an ordinary interest figure for a '
+        + 'town of this size and the same order as its $1,938 the year before.',
+      'The expenditure side reports $1,502,090 against about $1 million in neighbouring '
+        + 'years — so $9.1M of revenue is matched by no corresponding spending.',
+    ],
+    verifiedBecause: [
+      'The filing ties 18/18: the form\'s own Section 3B subtotal carries the figure.',
+      'Shellman\'s nine other filings report $492,940-$1,034,473 of total revenue.',
+      '⚠ No independent source was obtained. The Clearinghouse lookup for this town hit the '
+        + 'DEMO_KEY rate limit and was not retried, so whether an audited statement exists '
+        + 'is UNKNOWN — weaker than Varnell, where absence is established, and weaker than '
+        + 'Cornelia, where existence is established.',
+    ],
+    benignExplanations: [
+      '⭐ A unit error, the same ×1,000 shape as Monroe FY2025 and Varnell FY2018. ⚠ '
+        + 'Offered, not asserted.',
+      'A bond or loan proceed, or a one-off settlement, entered on the interest line.',
+    ],
+    corroboration:
+      'Surfaced by the sweep\'s outlier screen, isolated to a single line against the town\'s '
+      + 'own FY2023 filing, and tested against what an interest figure of that size would '
+      + 'require as a deposit balance. ⚠ No independent document; see the note above.',
+  },
   {
     id: 'franklin-fy2023-filing-is-all-but-empty',
     entity: 'Franklin County',
@@ -293,12 +475,16 @@ export const GA_FIGURE_FLAGS = Object.freeze([
       + 'found four scale breaks across seven governments and measured that NONE of them '
       + 'touched Parts I-VI — the revenue and expenditure flows TT actually loads — while '
       + 'explicitly warning that the null was measured on 7 governments and not 720, and '
-      + 'asking for it to be re-measured at scale. Re-measured across 151 counties and '
-      + '1,442 filings, a break DOES appear inside Part I. ⚠ It is NOT the x1000 slip that '
-      + 'register describes: that one is structural, arising because Georgia ACFRs print in '
-      + 'thousands while the form asks for dollars. This is a single cell at roughly x100, '
-      + 'in a different Part, with a different fingerprint. The null held for the mechanism '
-      + 'it described; it did not hold for scale breaks in loaded data generally.',
+      + 'asking for it to be re-measured at scale. Re-measured across the WHOLE STATE — 679 '
+      + 'governments, 6,236 filings — FIVE scale breaks appear in loaded revenue data: this '
+      + 'one, Monroe FY2025, Varnell FY2018, Cornelia FY2017 and Shellman FY2024. '
+      + '⭐⭐ THREE OF THEM FIT THE x1000 SHAPE EXACTLY — Monroe, Varnell and Shellman each '
+      + 'read as an ordinary figure for their government once divided by a thousand. That is '
+      + 'the mechanism §10 describes, arising because Georgia ACFRs print in thousands while '
+      + 'the form asks for dollars, and §10 measured it as ABSENT from Parts I-VI across '
+      + 'seven governments. ⚠ This Lowndes figure is NOT one of the three: it fits x100, not '
+      + 'x1000, and Cornelia fits neither. So the null did not hold, and the mechanism behind '
+      + 'it does reach the loaded Parts — but it is not the only thing that breaks scale there.',
   },
   {
     id: 'milledgeville-fy2025-rents-royalties',
@@ -1003,6 +1189,96 @@ export const GA_FORM_TOTAL_DEFECTS = Object.freeze([
       + 'published judicial figures from the county\'s CAFRs. They converged. '
       + 'Chris\'s standing requirement for any flag of this nature.',
   },
+  // ── MUNICIPALITIES (statewide sweep, 2026-10-18) ──────────────────────────
+  //
+  // ⚠ A THIRD SHAPE OF THE SAME MECHANISM. DeKalb's FY2020 total stopped one
+  // row EARLY; Long's FY2022 started one row LATE; these two print $0.00 for a
+  // whole section whose own line items carry money. In each case the printed
+  // total contradicts the printed detail, and in each case TT loads the detail.
+  {
+    id: 'hawkinsville-fy2020-5e-total-is-zero',
+    cicoid: '2116001',
+    entity: 'Hawkinsville',
+    state: 'GA',
+    fiscalYear: 2020,
+    dataset: 'operating',
+    section: '5E',
+    sectionLabel: 'Health and Welfare',
+    formTotal: 0,
+    itemsTotal: 5700,
+    shortfall: 5700,
+    omittedCode: null,
+    omittedLabel: 'the whole section',
+    loaded: 'items',
+    what:
+      'Hawkinsville FY2020, Part V Section E: the printed "Total Section 5E" reads $0.00 '
+      + 'while the section\'s own line rows carry $5,700. The same $5,700 appears in this '
+      + 'section in FY2017, FY2018, FY2019, FY2021 and FY2022 — and in every one of those '
+      + 'years the printed total carries it and the section ties. FY2020 is the only year '
+      + 'the printed total reads zero.',
+    verifiedBecause: [
+      '⚠⚠ THE REAPPEARANCE TEST PASSES. Nine of Hawkinsville\'s ten filings tie 18/18. '
+        + 'FY2020 is the sole year that does not, and it fails in two sections at once — '
+        + 'one editing pass, not two coincidences.',
+      'The identical $5,700 line is present and correctly totalled in five other years, so '
+        + 'the figure is the city\'s own recurring one and not an artefact of FY2020.',
+      'The Part V grand total is short by $266,273.89, which is exactly 5E\'s $5,700 plus '
+        + '5F\'s $260,573.89 — the grand total sums the SECTION totals and so inherits both '
+        + 'shortfalls and nothing else.',
+    ],
+    benignExplanations: [
+      'The section total\'s formula range was cleared or overwritten during one year\'s '
+        + 'form maintenance. It UNDERSTATES the city\'s own reported spending.',
+    ],
+    corroboration:
+      'Corroborated against an INDEPENDENT document from a different publisher — the city\'s '
+      + 'own federally filed audited statements (Federal Audit Clearinghouse report '
+      + '2020-06-CENSUS-0000218217) — together with the entity\'s own nine other filings. '
+      + 'See the FY2020 5F entry for the audited figure that settles the direction.',
+  },
+  {
+    id: 'hawkinsville-fy2020-5f-total-is-zero',
+    cicoid: '2116001',
+    entity: 'Hawkinsville',
+    state: 'GA',
+    fiscalYear: 2020,
+    dataset: 'operating',
+    section: '5F',
+    sectionLabel: 'Culture and Recreation',
+    formTotal: 0,
+    itemsTotal: 260573.89,
+    shortfall: 260573.89,
+    omittedCode: null,
+    omittedLabel: 'the whole section',
+    loaded: 'items',
+    what:
+      'The same failure in the same filing, one section along: the printed "Total Section '
+      + '5F" reads $0.00 while its own line rows carry $260,573.89. Hawkinsville reports '
+      + 'culture-and-recreation spending in every other year — $142,652 (FY2016), $102,250 '
+      + '(FY2017), $94,500 (FY2018), $108,750 (FY2019), $328,982 (FY2021) — and the printed '
+      + 'total carries it in all of them.',
+    verifiedBecause: [
+      '⚠⚠ THE CITY\'S OWN AUDITED STATEMENTS SAY IT IS NOT ZERO. Hawkinsville\'s FY2020 '
+        + 'Statement of Activities reports Culture and recreation expenses of $117,000 '
+        + 'against charges for services of $3,352 and grants of $108,567. A printed total '
+        + 'of $0.00 contradicts the city\'s own audited accounts. ⚠ The audited figure is '
+        + 'government-wide expense and the RLGF figure is all-funds expenditure, so the two '
+        + 'are NOT expected to match — what the audit establishes is that the function was '
+        + 'not zero, which is the whole question here.',
+      'Nine of ten filings tie 18/18, and this section carries money in all ten.',
+      'The Part V grand total\'s shortfall equals 5E + 5F exactly, so nothing else moved.',
+    ],
+    benignExplanations: [
+      'One year\'s form maintenance cleared two adjacent section totals. It understates the '
+        + 'city\'s own reported spending rather than inflating it.',
+    ],
+    corroboration:
+      'Two independent lines, one of them outside this publisher entirely: the city\'s own '
+      + 'federally filed audited statements (Federal Audit Clearinghouse report '
+      + '2020-06-CENSUS-0000218217, Statement of Activities) report $117,000 of culture and '
+      + 'recreation expense for FY2020; and Hawkinsville\'s own nine other filings all tie '
+      + 'with this section populated.',
+  },
 ]);
 
 /** Look up a form-total defect. All four coordinates must match. */
@@ -1287,6 +1563,163 @@ export const GA_FYE_MONTH_CHANGES = Object.freeze([
       + 'month 10. The later side is uncorroborated: it rests on four consecutive '
       + 'filings printing "September 30" and on nothing else.',
   },
+  // ── MUNICIPALITIES (statewide sweep, 2026-10-18) ──────────────────────────
+  //
+  // ⚠⚠ THIRTEEN of the 504 in-window municipalities print more than one month
+  // across their own filings — against three of 148 counties. A mid-window
+  // calendar change is ORDINARY at municipal scale, not exceptional.
+  //
+  // ⚠ Where the form DECLARES a boundary (MosRptd != 12, or MoChng = Yes), the
+  // years at or before it belong to the calendar being changed FROM and are
+  // recorded as filed. Tucker's FY2016 and Senoia's FY2025 are exactly that,
+  // and an earlier pass wrongly proposed overriding both.
+
+  {
+    id: "bloomingdale-month-varies",
+    cicoid: "2025901",
+    entity: "Bloomingdale",
+    month: 7,
+    monthByYear: Object.freeze({ 2016: 1 }),
+    declaredBy: null,
+    corroboration: "⚠⚠ NEITHER SOURCE EXPLAINS THIS. The form declares no change and FAC has "
+      + "no row for Bloomingdale at all. The per-year months below are simply "
+      + "WHAT EACH FILING PRINTS: recording a document needs no evidence, "
+      + "overriding one does, and there is none here. No defect is alleged.",
+  },
+  {
+    id: "doraville-month-varies",
+    cicoid: "2044005",
+    entity: "Doraville",
+    month: 7,
+    monthByYear: Object.freeze({ 2023: 10, 2024: 10 }),
+    declaredBy: null,
+    corroboration: "⚠ The form declares NOTHING — every year reports twelve months and no "
+      + "change. The month is taken from what each filing prints, corroborated "
+      + "against FAC, which reports Doraville at month 7: "
+      + "2007,2008,2009,2010,2011,2012,2021,2022; month 10: 2023,2024.",
+  },
+  {
+    id: "grovetown-month-varies",
+    cicoid: "2036002",
+    entity: "Grovetown",
+    month: 7,
+    monthByYear: Object.freeze({ 2016: 1, 2017: 1, 2018: 1, 2019: 1 }),
+    declaredBy: "FY2020 reports MosRptd = 6 and MoChng = Yes",
+    corroboration: "The form DECLARES the change itself — FY2020 reports MosRptd = 6 and "
+      + "MoChng = Yes. FAC reports Grovetown at month 1: 1998,2017,2018,2019; "
+      + "month 7: 2021,2022.",
+  },
+  {
+    id: "hapeville-month-varies",
+    cicoid: "2060006",
+    entity: "Hapeville",
+    month: 7,
+    monthByYear: Object.freeze({ 2024: 10, 2025: 10 }),
+    declaredBy: "FY2023 reports MosRptd = 6; FY2024 reports MosRptd = 15",
+    corroboration: "The form DECLARES the change itself — FY2023 reports MosRptd = 6; FY2024 "
+      + "reports MosRptd = 15. FAC reports Hapeville at month 7: "
+      + "1999,2000,2001,2011,2012,2013,2014,2015,2016,2018,2019,2021,2022.",
+  },
+  {
+    id: "lawrenceville-month-varies",
+    cicoid: "2067005",
+    entity: "Lawrenceville",
+    month: 7,
+    monthByYear: Object.freeze({ 2016: 9, 2017: 9, 2018: 9 }),
+    declaredBy: "FY2019 reports MosRptd = 10 and MoChng = Yes",
+    corroboration: "The form DECLARES the change itself — FY2019 reports MosRptd = 10 and "
+      + "MoChng = Yes. FAC reports Lawrenceville at month 7: "
+      + "2021,2022,2023,2024,2025; month 9: 2010,2013,2014,2015,2018.",
+  },
+  {
+    id: "lithonia-month-varies",
+    cicoid: "2044006",
+    entity: "Lithonia",
+    month: 1,
+    monthByYear: Object.freeze({ 2021: 7, 2022: 7 }),
+    declaredBy: "FY2021 reports MosRptd = 6 and MoChng = Yes; FY2022 reports MosRptd = 12 and MoChng = Yes",
+    corroboration: "The form DECLARES the change itself — FY2021 reports MosRptd = 6 and "
+      + "MoChng = Yes; FY2022 reports MosRptd = 12 and MoChng = Yes. ⚠ FAC has no "
+      + "row for this government, so the declaration stands alone.",
+  },
+  {
+    id: "meigs-month-varies",
+    cicoid: "2136004",
+    entity: "Meigs",
+    month: 7,
+    monthByYear: Object.freeze({ 2016: 1, 2017: 1 }),
+    declaredBy: "FY2018 reports MosRptd = 6 and MoChng = Yes",
+    corroboration: "The form DECLARES the change itself — FY2018 reports MosRptd = 6 and "
+      + "MoChng = Yes. FAC reports Meigs at month 7: 2025.",
+  },
+  {
+    id: "newborn-month-varies",
+    cicoid: "2107003",
+    entity: "Newborn",
+    month: 1,
+    monthByYear: Object.freeze({ 2021: 7, 2022: 7, 2023: 7 }),
+    declaredBy: null,
+    corroboration: "⚠⚠ NEITHER SOURCE EXPLAINS THIS. The form declares no change and FAC has "
+      + "no row for Newborn at all. The per-year months below are simply WHAT "
+      + "EACH FILING PRINTS: recording a document needs no evidence, overriding "
+      + "one does, and there is none here. No defect is alleged.",
+  },
+  {
+    id: "resaca-month-varies",
+    cicoid: "2064601",
+    entity: "Resaca",
+    month: 5,
+    monthByYear: Object.freeze({ 2018: 1 }),
+    declaredBy: null,
+    corroboration: "⚠⚠ NEITHER SOURCE EXPLAINS THIS. The form declares no change and FAC has "
+      + "no row for Resaca at all. The per-year months below are simply WHAT EACH "
+      + "FILING PRINTS: recording a document needs no evidence, overriding one "
+      + "does, and there is none here. No defect is alleged.",
+  },
+  {
+    id: "senoia-month-varies",
+    cicoid: "2038005",
+    entity: "Senoia",
+    month: 1,
+    monthByYear: Object.freeze({ 2025: 10 }),
+    declaredBy: "FY2025 reports MosRptd = 9",
+    corroboration: "The form DECLARES the change itself — FY2025 reports MosRptd = 9. FAC "
+      + "reports Senoia at month 1: 2000,2003,2004,2005,2020,2021,2022,2023,2024.",
+  },
+  {
+    id: "sparta-month-varies",
+    cicoid: "2070001",
+    entity: "Sparta",
+    month: 1,
+    monthByYear: Object.freeze({ 2016: 5, 2017: 5, 2018: 5, 2019: 5 }),
+    declaredBy: null,
+    corroboration: "⚠ The form declares NOTHING — every year reports twelve months and no "
+      + "change. The month is taken from what each filing prints, corroborated "
+      + "against FAC, which reports Sparta at month 5: 1999,2008,2009,2010.",
+  },
+  {
+    id: "tucker-month-varies",
+    cicoid: "2044012",
+    entity: "Tucker",
+    month: 7,
+    monthByYear: Object.freeze({ 2016: 1 }),
+    declaredBy: "FY2017 reports MosRptd = 6 and MoChng = Yes; FY2018 reports MosRptd = 12 and MoChng = Yes; FY2019 reports MosRptd = 12 and MoChng = Yes",
+    corroboration: "The form DECLARES the change itself — FY2017 reports MosRptd = 6 and "
+      + "MoChng = Yes; FY2018 reports MosRptd = 12 and MoChng = Yes; FY2019 "
+      + "reports MosRptd = 12 and MoChng = Yes. FAC reports Tucker at month 7: "
+      + "2021,2022,2023,2024.",
+  },
+  {
+    id: "villa-rica-month-varies",
+    cicoid: "2022006",
+    entity: "Villa Rica",
+    month: 10,
+    monthByYear: Object.freeze({ 2016: 1, 2017: 1 }),
+    declaredBy: "FY2018 reports MosRptd = 9 and MoChng = Yes",
+    corroboration: "The form DECLARES the change itself — FY2018 reports MosRptd = 9 and "
+      + "MoChng = Yes. FAC reports Villa Rica at month 4: 1999,2000,2002,2003; "
+      + "month 10: 2023.",
+  },
 ]);
 
 export const GA_FYE_MONTH_DEFECTS = Object.freeze([
@@ -1340,6 +1773,100 @@ export const GA_FYE_MONTH_DEFECTS = Object.freeze([
     corroboration: 'Newton\'s other nine filings all print "June 30". ⚠ FAC\'s only Newton '
       + 'rows are 2010-2012, all month 7, and none covers FY2022. This rests on '
       + 'the entity\'s own nine-year consistency alone.',
+  },
+  // ── MUNICIPALITIES (statewide sweep, 2026-10-18) ──────────────────────────
+  //
+  // ⚠ Each of these is an ISOLATED year inside an otherwise steady series, and
+  // NONE sits at or before a declared calendar boundary — that test is what
+  // separates a keying slip from the far side of a real change.
+
+  {
+    id: "bronwood-fy2019-month-7-for-1",
+    cicoid: "2135001", entity: "Bronwood", fiscalYear: 2019,
+    formMonth: 7, formText: "June 30", month: 1,
+    corroboration: "Bronwood's other 8 filings all print December 31 and this year is "
+      + "isolated between them. ⚠ FAC does not cover FY2019, so this rests on the "
+      + "entity's own 8-year consistency alone.",
+  },
+  {
+    id: "broxton-fy2022-month-7-for-1",
+    cicoid: "2034002", entity: "Broxton", fiscalYear: 2022,
+    formMonth: 7, formText: "June 30", month: 1,
+    corroboration: "Broxton's other 9 filings all print December 31 and this year is "
+      + "isolated between them. ⚠ FAC does not cover FY2022, so this rests on the "
+      + "entity's own 9-year consistency alone.",
+  },
+  {
+    id: "danville-fy2018-month-1-for-7",
+    cicoid: "2158002", entity: "Danville", fiscalYear: 2018,
+    formMonth: 1, formText: "December 31", month: 7,
+    corroboration: "Danville's other 9 filings all print June 30 and this year is isolated "
+      + "between them. ⚠ FAC does not cover FY2018, so this rests on the entity's "
+      + "own 9-year consistency alone.",
+  },
+  {
+    id: "greenville-fy2018-month-1-for-7",
+    cicoid: "2099002", entity: "Greenville", fiscalYear: 2018,
+    formMonth: 1, formText: "December 31", month: 7,
+    corroboration: "Greenville's other 7 filings all print June 30 and this year is isolated "
+      + "between them. ⚠ FAC does not cover FY2018, so this rests on the entity's "
+      + "own 7-year consistency alone.",
+  },
+  {
+    id: "morven-fy2020-month-1-for-7",
+    cicoid: "2014001", entity: "Morven", fiscalYear: 2020,
+    formMonth: 1, formText: "December 31", month: 7,
+    corroboration: "Morven's other 8 filings all print June 30 and this year is isolated "
+      + "between them. ⚠ FAC does not cover FY2020, so this rests on the entity's "
+      + "own 8-year consistency alone.",
+  },
+  {
+    id: "roswell-fy2025-month-1-for-7",
+    cicoid: "2060009", entity: "Roswell", fiscalYear: 2025,
+    formMonth: 1, formText: "December 31", month: 7,
+    corroboration: "Roswell's other 9 filings all print June 30 and this year is isolated "
+      + "between them. ⚠ FAC does not cover FY2025, so this rests on the entity's "
+      + "own 9-year consistency alone.",
+  },
+  {
+    id: "sandersville-fy2016-month-7-for-1",
+    cicoid: "2150004", entity: "Sandersville", fiscalYear: 2016,
+    formMonth: 7, formText: "June 30", month: 1,
+    corroboration: "Sandersville's other 8 filings all print December 31 and this year is "
+      + "isolated between them. ⚠ FAC does not cover FY2016, so this rests on the "
+      + "entity's own 8-year consistency alone.",
+  },
+  {
+    id: "sugar-hill-fy2023-month-7-for-1",
+    cicoid: "2067010", entity: "Sugar Hill", fiscalYear: 2023,
+    formMonth: 7, formText: "June 30", month: 1,
+    corroboration: "Sugar Hill's other 8 filings all print December 31 and this year is "
+      + "isolated between them. ⚠ FAC does not cover FY2023, so this rests on the "
+      + "entity's own 8-year consistency alone.",
+  },
+  {
+    id: "talmo-fy2025-month-1-for-7",
+    cicoid: "2078007", entity: "Talmo", fiscalYear: 2025,
+    formMonth: 1, formText: "December 31", month: 7,
+    corroboration: "Talmo's other 9 filings all print June 30 and this year is isolated "
+      + "between them. ⚠ FAC does not cover FY2025, so this rests on the entity's "
+      + "own 9-year consistency alone.",
+  },
+  {
+    id: "tucker-fy2020-month-1-for-7",
+    cicoid: "2044012", entity: "Tucker", fiscalYear: 2020,
+    formMonth: 1, formText: "December 31", month: 7,
+    corroboration: "Tucker's other 7 filings all print June 30 and this year is isolated "
+      + "between them. ⚠ FAC does not cover FY2020, so this rests on the entity's "
+      + "own 7-year consistency alone.",
+  },
+  {
+    id: "tucker-fy2025-month-1-for-7",
+    cicoid: "2044012", entity: "Tucker", fiscalYear: 2025,
+    formMonth: 1, formText: "December 31", month: 7,
+    corroboration: "Tucker's other 7 filings all print June 30 and this year is isolated "
+      + "between them. ⚠ FAC does not cover FY2025, so this rests on the entity's "
+      + "own 7-year consistency alone.",
   },
 ]);
 
@@ -1459,6 +1986,106 @@ export const GA_UNVERIFIABLE_FILINGS = Object.freeze([
         + 'publish a revenue total no oracle ever confirmed.',
     ],
   },
+  // ── MUNICIPALITIES (statewide sweep, 2026-10-18) ──────────────────────────
+  //
+  // ⚠ THE LAST ENTRY WIDENS WHAT THIS REGISTER IS FOR. The four above it are
+  // the original shape: a subtotal cell is #REF!, so there is NOTHING to check
+  // the tree against. Walthourville's oracle runs perfectly well and FAILS, and
+  // no independent source exists to settle which of the filing's two readings
+  // is right. Both are "TT cannot verify this filing", for different reasons,
+  // and both end the same way: the filing is excluded and the reason recorded.
+  {
+    id: 'jackson-fy2020-every-revenue-subtotal-is-ref',
+    cicoid: '2018002', entity: 'Jackson', state: 'GA', fiscalYear: 2020, dataset: 'revenue',
+    skipped: Object.freeze(['REV 1A', 'REV 1B', 'REV 1C', 'REV 1D', 'REV 2', 'REV 3A', 'REV 3B']),
+    failed: Object.freeze(['REV Part I', 'REV Part III', 'REV Own Source (I+III)']),
+    what:
+      'All seven revenue subtotals are Excel #REF! errors, so every revenue section check '
+      + 'is skipped for want of anything to compare against and the three Part-level checks '
+      + 'come out NaN. The Gwinnett FY2018 shape in a small city. The expenditure side of '
+      + 'the same filing ties and reports $5,126,664.34.',
+    verifiedBecause: [
+      'The errors are in DCA\'s published .xls, not in TT\'s conversion: all 27,683,924 '
+        + 'cells across the 4,808 converted municipality workbooks round-trip under --check.',
+      'Jackson\'s other filings tie 18/18, so this is one broken extract, not a broken '
+        + 'government and not a broken parser.',
+    ],
+  },
+  {
+    id: 'chester-fy2018-part-three-subtotal-is-ref',
+    cicoid: '2045002', entity: 'Chester', state: 'GA', fiscalYear: 2018, dataset: 'revenue',
+    skipped: Object.freeze(['REV 3B']),
+    failed: Object.freeze(['REV Part III', 'REV Own Source (I+III)']),
+    what:
+      'A single broken subtotal — TTL_3B — but the revenue total sums the Part subtotals, '
+      + 'so it comes out NaN and the revenue side cannot be verified at all. Excluded under '
+      + 'the same rule as the larger breaks: the rule is about whether a figure was '
+      + 'CHECKED, not about how much of it was.',
+    verifiedBecause: [
+      'Six of the seven revenue sections ARE numbers and do verify; only Section 3B does '
+        + 'not. The expenditure side ties and reports $273,745.',
+      'Chester\'s other filings tie 18/18.',
+    ],
+  },
+  {
+    id: 'zebulon-fy2025-expenditure-and-revenue-subtotals-are-ref',
+    cicoid: '2114005', entity: 'Zebulon', state: 'GA', fiscalYear: 2025, dataset: 'operating',
+    skipped: Object.freeze(['EXP 5F', 'EXP 5G', 'REV 2']),
+    failed: Object.freeze(['EXP Part V grand']),
+    what:
+      '⚠ The only filing in the county OR municipality sweep where BOTH sides are '
+      + 'unverifiable at once: Sections 5F and 5G and revenue Part II all carry #REF! '
+      + 'subtotals, so the Part V grand total and the revenue total are both NaN.',
+    verifiedBecause: [
+      'Zebulon\'s other filings tie 18/18.',
+      'Three separate subtotal cells are errors in one workbook, which is the same '
+        + 'single-editing-pass signature seen in Gwinnett and Hawkinsville.',
+    ],
+  },
+  {
+    id: 'danville-fy2018-public-safety-subtotal-is-ref',
+    cicoid: '2158002', entity: 'Danville', state: 'GA', fiscalYear: 2018, dataset: 'operating',
+    skipped: Object.freeze(['EXP 5C']),
+    failed: Object.freeze(['EXP Part V grand']),
+    what:
+      'TTL_5C_* is #REF!, so Section 5C cannot be checked and the Part V grand total is '
+      + 'NaN. ⚠ This is the SAME FILING whose FYEmonth prints December 31 against nine '
+      + 'other years of June 30 — recorded separately in GA_FYE_MONTH_DEFECTS. One year of '
+      + 'this town\'s return went wrong in two unrelated ways.',
+    verifiedBecause: [
+      'The revenue side of the same filing ties and reports $98,798.',
+      'Danville\'s other nine filings tie 18/18.',
+    ],
+  },
+  {
+    id: 'walthourville-fy2024-1b-total-cannot-be-settled',
+    cicoid: '2089901', entity: 'Walthourville', state: 'GA', fiscalYear: 2024, dataset: 'revenue',
+    skipped: Object.freeze([]),
+    failed: Object.freeze(['REV 1B', 'REV Part I', 'REV Own Source (I+III)']),
+    what:
+      '⚠ NOT A #REF! CASE — the oracle runs and FAILS. The printed "Total Section 1B" reads '
+      + '$244,012, which is exactly the SPLOST line alone; the section\'s own rows also '
+      + 'carry a Local Option Sales Tax line of $673.794, and the tree therefore comes to '
+      + '$244,685.794. The same $673.794 propagates to Part I and to Own Source.',
+    verifiedBecause: [
+      'Walthourville\'s other seven filings tie 18/18, so FY2024 is the sole departure — '
+        + 'the reappearance test that settled Long County FY2022 passes here too.',
+      'The printed page and the LOAD1 extract AGREE on the $673.794: the cross-check '
+        + 'reports no discrepancy, so this is not a parse error and not a displaced cell.',
+      '⚠⚠ BUT IT CANNOT BE SETTLED. $673.794 carries THREE decimal places, where every '
+        + 'other money figure in this corpus carries two. So the document supports two '
+        + 'readings — a printed total that omits a real line (the Long County mechanism), '
+        + 'or a corrupt cell the printed total correctly ignores — and nothing available '
+        + 'distinguishes them. ⚠ Walthourville has NO Federal Audit Clearinghouse row at '
+        + 'all: it spends under the $750k federal threshold, so no audited statement exists '
+        + 'to break the tie. Guessing would be asserting one of the city\'s two numbers '
+        + 'over the other on no evidence, so the filing is excluded instead.',
+      '⏭ TED (ted.cviog.uga.edu/FileExport) is a genuinely independent pipeline for the '
+        + 'same RLGF data and is the route a future session should use for the 216 '
+        + 'municipalities with no FAC coverage. It was not pursued here for one $673.79 '
+        + 'discrepancy.',
+    ],
+  },
 ]);
 
 /** The recorded unverifiable filing, or null. */
@@ -1522,6 +2149,219 @@ export const GA_EMPTY_DATASETS = Object.freeze([
       'All seven Part V sections are $0.00 while the revenue side reports $29,311,163 and '
       + 'verifies normally. Upson\'s own FY2023 and FY2025 filings report $46.4M and '
       + '$37.6M of expenditure.',
+  },
+  // ── MUNICIPALITIES (statewide sweep, 2026-10-18) ──────────────────────────
+  //
+  // ⚠⚠ TWENTY of 4,794 municipality filings leave the expenditure side blank,
+  // against three of 1,442 county filings. A government filing revenue and no
+  // expenditure is ORDINARY at municipal scale — White alone does it in six of
+  // its years — so the guard that catches it is load-bearing, not a safety net.
+  {
+    id: "canon-city-fy2024-part-five-blank",
+    cicoid: "2059001", entity: "Canon", state: 'GA', fiscalYear: 2024,
+    dataset: "operating",
+    what:
+      'All seven Part V sections are $0.00, so the form\'s own section totals are $0.00 too '
+      + 'and all eighteen checks tie AT ZERO. Canon reports $655,313 of '
+      + 'expenditure on average across its 7 other filed years, and the revenue side of '
+      + 'this same filing reports $339,989 and verifies normally.',
+  },
+  {
+    id: "dahlonega-city-fy2022-part-five-sums-to-zero",
+    cicoid: "2093001", entity: "Dahlonega", state: 'GA', fiscalYear: 2022,
+    dataset: "operating",
+    // ⚠⚠ THE ONE THAT IS NOT BLANK, AND THE REASON THE GUARD TESTS THE TOTAL.
+    // An earlier guard asked only whether the Part carried any amount. This one
+    // does — and they cancel.
+    what:
+      'NOT blank: it sums to nothing. Part V carries Police Protection at MINUS $50,000 and '
+      + 'Fire Protection at PLUS $50,000 and no other entry at all, so every section total '
+      + 'is $0.00, the eighteen checks tie at zero, and the Part totals $0.00 while its line '
+      + 'items are not zero. Dahlonega reports $5,602,977 of expenditure on average across '
+      + 'its 8 other filed years, and the revenue side of this same filing reports $480,067 '
+      + 'and verifies normally. A $0 total is no more publishable for summing to zero than '
+      + 'for being left empty, so no row is written either way. ⚠ The ±$50,000 pair reads as '
+      + 'a reclassification keyed on its own; nothing is concluded from it here.',
+  },
+  {
+    id: "danielsville-city-fy2021-part-five-blank",
+    cicoid: "2097004", entity: "Danielsville", state: 'GA', fiscalYear: 2021,
+    dataset: "operating",
+    what:
+      'All seven Part V sections are $0.00, so the form\'s own section totals are $0.00 too '
+      + 'and all eighteen checks tie AT ZERO. Danielsville reports $732,670 of '
+      + 'expenditure on average across its 9 other filed years, and the revenue side of '
+      + 'this same filing reports $598,665 and verifies normally.',
+  },
+  {
+    id: "fort-valley-city-fy2018-part-five-blank",
+    cicoid: "2111002", entity: "Fort Valley", state: 'GA', fiscalYear: 2018,
+    dataset: "operating",
+    what:
+      'All seven Part V sections are $0.00, so the form\'s own section totals are $0.00 too '
+      + 'and all eighteen checks tie AT ZERO. Fort Valley reports $4,627,514 of '
+      + 'expenditure on average across its 8 other filed years, and the revenue side of '
+      + 'this same filing reports $4,252,291 and verifies normally.',
+  },
+  {
+    id: "good-hope-city-fy2021-part-five-blank",
+    cicoid: "2147001", entity: "Good Hope", state: 'GA', fiscalYear: 2021,
+    dataset: "operating",
+    what:
+      'All seven Part V sections are $0.00, so the form\'s own section totals are $0.00 too '
+      + 'and all eighteen checks tie AT ZERO. Good Hope reports $92,717 of '
+      + 'expenditure on average across its 9 other filed years, and the revenue side of '
+      + 'this same filing reports $111,926 and verifies normally.',
+  },
+  {
+    id: "ideal-city-fy2016-part-five-blank",
+    cicoid: "2096001", entity: "Ideal", state: 'GA', fiscalYear: 2016,
+    dataset: "operating",
+    what:
+      'All seven Part V sections are $0.00, so the form\'s own section totals are $0.00 too '
+      + 'and all eighteen checks tie AT ZERO. Ideal reports $100,747 of '
+      + 'expenditure on average across its 2 other filed years, and the revenue side of '
+      + 'this same filing reports $125,026 and verifies normally.',
+  },
+  {
+    id: "jersey-city-fy2025-part-five-blank",
+    cicoid: "2147002", entity: "Jersey", state: 'GA', fiscalYear: 2025,
+    dataset: "operating",
+    what:
+      'All seven Part V sections are $0.00, so the form\'s own section totals are $0.00 too '
+      + 'and all eighteen checks tie AT ZERO. Jersey reports $79,866 of '
+      + 'expenditure on average across its 9 other filed years, and the revenue side of '
+      + 'this same filing reports $47,248 and verifies normally.',
+  },
+  {
+    id: "lavonia-city-fy2022-part-five-blank",
+    cicoid: "2059004", entity: "Lavonia", state: 'GA', fiscalYear: 2022,
+    dataset: "operating",
+    what:
+      'All seven Part V sections are $0.00, so the form\'s own section totals are $0.00 too '
+      + 'and all eighteen checks tie AT ZERO. Lavonia reports $4,052,665 of '
+      + 'expenditure on average across its 8 other filed years, and the revenue side of '
+      + 'this same filing reports $704,382 and verifies normally.',
+  },
+  {
+    id: "lone-oak-town-fy2019-part-five-blank",
+    cicoid: "2099003", entity: "Lone Oak", state: 'GA', fiscalYear: 2019,
+    dataset: "operating",
+    what:
+      'All seven Part V sections are $0.00, so the form\'s own section totals are $0.00 too '
+      + 'and all eighteen checks tie AT ZERO. Lone Oak reports $88,569 of '
+      + 'expenditure on average across its 7 other filed years, and the revenue side of '
+      + 'this same filing reports $29,023 and verifies normally.',
+  },
+  {
+    id: "lone-oak-town-fy2023-part-five-blank",
+    cicoid: "2099003", entity: "Lone Oak", state: 'GA', fiscalYear: 2023,
+    dataset: "operating",
+    what:
+      'All seven Part V sections are $0.00, so the form\'s own section totals are $0.00 too '
+      + 'and all eighteen checks tie AT ZERO. Lone Oak reports $88,569 of '
+      + 'expenditure on average across its 7 other filed years, and the revenue side of '
+      + 'this same filing reports $77,945 and verifies normally.',
+  },
+  {
+    id: "lumber-city-city-fy2023-part-five-blank",
+    cicoid: "2134003", entity: "Lumber City", state: 'GA', fiscalYear: 2023,
+    dataset: "operating",
+    what:
+      'All seven Part V sections are $0.00, so the form\'s own section totals are $0.00 too '
+      + 'and all eighteen checks tie AT ZERO. Lumber City reports $869,973 of '
+      + 'expenditure on average across its 8 other filed years, and the revenue side of '
+      + 'this same filing reports $947,402 and verifies normally.',
+  },
+  {
+    id: "orchard-hill-town-fy2025-part-five-blank",
+    cicoid: "2126901", entity: "Orchard Hill", state: 'GA', fiscalYear: 2025,
+    dataset: "operating",
+    what:
+      'All seven Part V sections are $0.00, so the form\'s own section totals are $0.00 too '
+      + 'and all eighteen checks tie AT ZERO. Orchard Hill reports $179,115 of '
+      + 'expenditure on average across its 8 other filed years, and the revenue side of '
+      + 'this same filing reports $173,200 and verifies normally.',
+  },
+  {
+    id: "stonecrest-city-fy2018-part-five-blank",
+    cicoid: "2044013", entity: "Stonecrest", state: 'GA', fiscalYear: 2018,
+    dataset: "operating",
+    what:
+      'All seven Part V sections are $0.00, so the form\'s own section totals are $0.00 too '
+      + 'and all eighteen checks tie AT ZERO. Stonecrest reports $22,426,356 of '
+      + 'expenditure on average across its 5 other filed years, and the revenue side of '
+      + 'this same filing reports $10,107,849 and verifies normally.',
+  },
+  {
+    id: "varnell-city-fy2023-part-five-blank",
+    cicoid: "2155803", entity: "Varnell", state: 'GA', fiscalYear: 2023,
+    dataset: "operating",
+    what:
+      'All seven Part V sections are $0.00, so the form\'s own section totals are $0.00 too '
+      + 'and all eighteen checks tie AT ZERO. Varnell reports $1,287,268 of '
+      + 'expenditure on average across its 8 other filed years, and the revenue side of '
+      + 'this same filing reports $1,358,585 and verifies normally.',
+  },
+  {
+    id: "white-city-fy2017-part-five-blank",
+    cicoid: "2008006", entity: "White", state: 'GA', fiscalYear: 2017,
+    dataset: "operating",
+    what:
+      'All seven Part V sections are $0.00, so the form\'s own section totals are $0.00 too '
+      + 'and all eighteen checks tie AT ZERO. White reports $547,322 of '
+      + 'expenditure on average across its 2 other filed years, and the revenue side of '
+      + 'this same filing reports $322,497 and verifies normally.',
+  },
+  {
+    id: "white-city-fy2020-part-five-blank",
+    cicoid: "2008006", entity: "White", state: 'GA', fiscalYear: 2020,
+    dataset: "operating",
+    what:
+      'All seven Part V sections are $0.00, so the form\'s own section totals are $0.00 too '
+      + 'and all eighteen checks tie AT ZERO. White reports $547,322 of '
+      + 'expenditure on average across its 2 other filed years, and the revenue side of '
+      + 'this same filing reports $485,667 and verifies normally.',
+  },
+  {
+    id: "white-city-fy2021-part-five-blank",
+    cicoid: "2008006", entity: "White", state: 'GA', fiscalYear: 2021,
+    dataset: "operating",
+    what:
+      'All seven Part V sections are $0.00, so the form\'s own section totals are $0.00 too '
+      + 'and all eighteen checks tie AT ZERO. White reports $547,322 of '
+      + 'expenditure on average across its 2 other filed years, and the revenue side of '
+      + 'this same filing reports $663,980 and verifies normally.',
+  },
+  {
+    id: "white-city-fy2022-part-five-blank",
+    cicoid: "2008006", entity: "White", state: 'GA', fiscalYear: 2022,
+    dataset: "operating",
+    what:
+      'All seven Part V sections are $0.00, so the form\'s own section totals are $0.00 too '
+      + 'and all eighteen checks tie AT ZERO. White reports $547,322 of '
+      + 'expenditure on average across its 2 other filed years, and the revenue side of '
+      + 'this same filing reports $679,509 and verifies normally.',
+  },
+  {
+    id: "white-city-fy2023-part-five-blank",
+    cicoid: "2008006", entity: "White", state: 'GA', fiscalYear: 2023,
+    dataset: "operating",
+    what:
+      'All seven Part V sections are $0.00, so the form\'s own section totals are $0.00 too '
+      + 'and all eighteen checks tie AT ZERO. White reports $547,322 of '
+      + 'expenditure on average across its 2 other filed years, and the revenue side of '
+      + 'this same filing reports $711,193 and verifies normally.',
+  },
+  {
+    id: "white-city-fy2024-part-five-blank",
+    cicoid: "2008006", entity: "White", state: 'GA', fiscalYear: 2024,
+    dataset: "operating",
+    what:
+      'All seven Part V sections are $0.00, so the form\'s own section totals are $0.00 too '
+      + 'and all eighteen checks tie AT ZERO. White reports $547,322 of '
+      + 'expenditure on average across its 2 other filed years, and the revenue side of '
+      + 'this same filing reports $715,738 and verifies normally.',
   },
 ]);
 

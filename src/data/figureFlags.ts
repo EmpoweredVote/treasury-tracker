@@ -118,6 +118,154 @@ const DCA_NAME = 'Georgia DCA Report of Local Government Finances';
  * the additive pattern `cityBasisNotes` already uses.
  */
 export const figureFlags: Record<string, FigureFlag> = {
+  'Monroe|GA|2025|revenue': {
+    id: 'monroe-fy2025-other-intergovernmental-line',
+    severity: 'outlier',
+    headline: 'One line of the 2025 return carries $1.69 billion — nineteen times everything the city handles',
+    summary:
+      'Almost all of this year’s revenue comes from a single free-text row of the form, “Other '
+      + 'Intergovernmental Revenues — attach list”, which reads $1,686,319,022. Every other '
+      + 'line on the same page is normal, and so is the city’s spending. Monroe’s own audited '
+      + 'accounts for the same year report $89.2 million of total revenue including its '
+      + 'electric utility, and $4.2 million of money received from other governments. The '
+      + 'figure is shown as filed.',
+    whatThisMeans:
+      'Do not use 2025 revenue for Monroe, and do not compare it with 2024 — the rise is this '
+      + 'one row, not anything the city received. The rest of the 2025 return is usable.',
+    entries: [
+      {
+        title: 'Where the money actually is on the form',
+        text:
+          'The intergovernmental section lists six lines. Five are ordinary: payment in lieu of '
+          + 'taxes $101,356, road maintenance grants $206,713, crime and corrections grants '
+          + '$42,310, community development grants $5,580, and the city’s share of the local '
+          + 'sales tax $2,890,186. The sixth — a free-text “other, attach list” row — reads '
+          + '$1,686,319,022. The same row was $2,670,179 in 2024 and $2,496,501 in 2023.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Monroe FY2023–FY2025',
+        source_url: 'https://apps.dca.ga.gov/RLGF/Default.aspx',
+        source_date: '2026-10-18',
+      },
+      {
+        title: 'What the city’s own audited accounts report',
+        text:
+          'The City of Monroe’s annual comprehensive financial report for the year ended 31 '
+          + 'December 2025 reports $4,232,497 of intergovernmental revenue across all '
+          + 'governmental funds, and total revenues of $89,170,673 — $21.2 million from '
+          + 'government activities and $68.0 million from the city’s utilities. The single form '
+          + 'line is roughly nineteen times the city’s entire annual revenue.',
+        source_name: 'City of Monroe, Georgia — 2025 Annual Comprehensive Financial Report, statement of activities and governmental funds statements',
+        source_url: 'https://app.fac.gov/dissemination/report/pdf/2025-12-GSAFAC-0000422443',
+        source_date: '2026-10-18',
+      },
+      {
+        title: 'What is likely, and what is not being claimed',
+        text:
+          'Divided by a thousand the line reads $1,686,319, which sits between what the same '
+          + 'row reported in 2023 and 2024, and would bring the section to $4.9 million against '
+          + 'the audited $4.2 million. A figure entered in thousands on a form that asks for '
+          + 'dollars is therefore the most likely explanation — but no source states it, the '
+          + 'attachment the row refers to was not obtained, and Treasury Tracker shows the '
+          + 'number as filed rather than substituting a corrected one.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Monroe FY2025',
+        source_url: 'https://apps.dca.ga.gov/development/Research/programs/documents/RLGF/2147003_2025_RLGF_Monroe.xls',
+        source_date: '2026-10-18',
+      },
+    ],
+  },
+
+  'Varnell|GA|2018|revenue': {
+    id: 'varnell-fy2018-real-property-tax-line',
+    severity: 'outlier',
+    headline: 'One line of the 2018 return reports $44.1 million of property tax for a town of about 2,000',
+    summary:
+      'The “real property taxes, current year” line reads $44,107,410. The same line was $67,370 '
+      + 'the year before, and Varnell’s entire revenue is about $1 million in every other year '
+      + 'it filed. Its spending for 2018 is $783,695 — completely ordinary — so only the revenue '
+      + 'side moves. The figure is shown as filed.',
+    whatThisMeans:
+      'Treat 2018 revenue as unusable for this town and read the surrounding years instead. The '
+      + 'spending side of the same return is unaffected.',
+    entries: [
+      {
+        title: 'What the town reports in its other years',
+        text:
+          'Varnell’s eight other filings report total revenue between $874,715 and $1,879,709. '
+          + 'Divided by a thousand the 2018 line reads $44,107, which is the same order as the '
+          + '$67,370 reported the year before — so a figure entered in the wrong units is the '
+          + 'most likely explanation, though nothing states it.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Varnell FY2016–FY2025',
+        source_url: 'https://apps.dca.ga.gov/RLGF/Default.aspx',
+        source_date: '2026-10-18',
+      },
+      {
+        title: '⚠ Why there is no audited figure to compare',
+        text:
+          'Varnell files no federal Single Audit: it spends below the $750,000 threshold that '
+          + 'requires one, so no independently audited statement of its finances exists. This '
+          + 'flag rests on the town’s own other filings alone, which is weaker evidence than the '
+          + 'audited comparisons shown for larger governments, and is said plainly rather than '
+          + 'glossed over.',
+        source_name: 'Federal Audit Clearinghouse — General data (no record for this government)',
+        source_url: 'https://app.fac.gov/dissemination/public-data/gsa/full/general.csv',
+        source_date: '2026-10-18',
+      },
+    ],
+  },
+
+  'Cornelia|GA|2017|revenue': {
+    id: 'cornelia-fy2017-water-wastewater-grants-line',
+    severity: 'outlier',
+    headline: 'One line of the 2017 return reports $63.8 million of water and wastewater grants',
+    summary:
+      'The “water/wastewater grants” line reads $63,781,999, against $1,012,024 the year before, '
+      + 'for a city of about 4,500 people whose total revenue is $4–9 million in every other '
+      + 'year. The city’s spending for the same year is an ordinary $4.5 million, so no matching '
+      + 'outlay appears. The figure is shown as filed.',
+    whatThisMeans:
+      'Do not use 2017 revenue for Cornelia or compare it with 2016 or 2018.',
+    entries: [
+      {
+        title: 'What the city reports in its other years',
+        text:
+          'Cornelia’s eight other filings report total revenue between $4.2 million and $9.2 '
+          + 'million, and the same grant line runs about $1.0 million in 2016. Unlike the '
+          + 'similar figures flagged for Monroe, Varnell and Shellman, this one does not fit a '
+          + 'simple unit error: divided by a thousand it would read $63,782, which is sixteen '
+          + 'times SMALLER than the year before. What happened here is not established.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Cornelia FY2016–FY2025',
+        source_url: 'https://apps.dca.ga.gov/RLGF/Default.aspx',
+        source_date: '2026-10-18',
+      },
+    ],
+  },
+
+  'Shellman|GA|2024|revenue': {
+    id: 'shellman-fy2024-interest-revenues-line',
+    severity: 'outlier',
+    headline: 'One line of the 2024 return reports $9.0 million of interest for a town of about 1,000',
+    summary:
+      'The “interest revenues” line reads $9,049,486, against $1,938 the year before. At 2024 '
+      + 'interest rates that would require roughly $180 million on deposit, for a town whose '
+      + 'whole annual revenue is under $1 million. Spending for the same year is $1.5 million, '
+      + 'so no matching outlay appears. The figure is shown as filed.',
+    whatThisMeans:
+      'Treat 2024 revenue as unusable for this town; its 2023 and 2025 figures are the better '
+      + 'guide.',
+    entries: [
+      {
+        title: 'Why the figure cannot be what it says',
+        text:
+          'Shellman’s nine other filings report total revenue between $492,940 and $1,034,473. '
+          + 'Interest of $9.0 million at the rates prevailing in 2024 implies a balance of '
+          + 'roughly $180 million — about two hundred times the town’s annual revenue. Divided by '
+          + 'a thousand the line reads $9,049, which is an ordinary figure for a town this size.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Shellman FY2016–FY2025',
+        source_url: 'https://apps.dca.ga.gov/RLGF/Default.aspx',
+        source_date: '2026-10-18',
+      },
+    ],
+  },
+
   'Franklin County|GA|2023|revenue': {
     id: 'franklin-fy2023-filing-is-all-but-empty',
     severity: 'understated',
