@@ -45,13 +45,21 @@ export const FILE_HOST = 'https://apps.dca.ga.gov';
 export const GOV_SELECT = 'ctl00$bodyContent$ddlGovs';
 
 /**
- * The FY window this fetcher takes.
+ * The FY window this fetcher takes BY DEFAULT.
  *
- * ⚠⚠ FY2016 IS A HARD FLOOR, NOT A CONVENIENCE. The pre-2016 edition has NO
- * `LOAD1` sheet at all — it is the `Exportable Data` generation, a different key
- * vocabulary carrying 1,393 `#REF!` cells. Measured on the workbooks already
- * cached: 20 of 58 wave-1 files have no LOAD1. Extending backwards is a separate
- * extraction milestone, not a wider loop.
+ * ⚠ FY2016 is the v2 (`LOAD1`) generation's floor, and it is a DEFAULT here, not
+ * a floor on what Treasury Tracker can read. The pre-2016 edition is the
+ * `Exportable Data` generation, read by `scripts/lib/gaRlgfV1.mjs`; fetch it with
+ * `--first 2009 --last 2015`.
+ *
+ * ⚠⚠ THE "1,393 `#REF!` CELLS" THAT ONCE JUSTIFIED A HARD FLOOR HERE WERE
+ * MEASURED AND DISSOLVED (2026-10-19). That count is a 34-cell template artifact
+ * repeated once per workbook — exactly 34 in all 222 sampled filings, in blocks
+ * outside the loaded flows — plus one badly damaged workbook. Across the sample,
+ * 222 of 222 filings survive the `#REF!` refusal rule. See
+ * `.planning/GA-RLGF-V1-DESIGN.md`.
+ *
+ * ⚠ DCA also lists FY2008 (3 filings) and FY2026 (6). Neither is in any window.
  */
 export const GA_LOAD_WINDOW = Object.freeze({ first: 2016, last: 2025 });
 

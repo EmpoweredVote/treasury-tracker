@@ -12,6 +12,7 @@ import {
   ALREADY_LOADED, GA_FIRST_YEAR, GA_LAST_YEAR,
 } from '../scripts/buildGaStatewideEntities.mjs';
 import { GA_STATEWIDE_ENTITIES } from '../scripts/data/georgiaStatewideEntities.mjs';
+import { GA_FORM_GENERATIONS } from '../scripts/data/georgiaRlgfEntities.mjs';
 import { buildCensus } from '../scripts/lib/facFiscalYearCensus.mjs';
 import {
   resolveMonth as loaderResolveMonth, unverifiableMatches, toTree,
@@ -263,9 +264,13 @@ describe('registry mechanics', () => {
     expect(missing).toEqual([]);
   });
 
-  it('pins the load window to the LOAD1 form generation', () => {
-    expect(GA_FIRST_YEAR).toBe(2016);
-    expect(GA_LAST_YEAR).toBe(2025);
+  it('pins the registry build and the fetch default to the LOAD1 generation', () => {
+    // ⚠ These two are the v2 (`LOAD1`) generation's window specifically, NOT a
+    // floor on what the loader can read: `gaRlgfV1.mjs` reads FY2009-2015 from
+    // the `Exportable Data` generation. `GA_LOAD_WINDOW` in
+    // `georgiaRlgfEntities.mjs` is the union and is pinned in gaRlgfV1.test.mjs.
+    expect(GA_FIRST_YEAR).toBe(GA_FORM_GENERATIONS.v2.firstFiscalYear);
+    expect(GA_LAST_YEAR).toBe(GA_FORM_GENERATIONS.v2.lastFiscalYear);
     expect(GA_LOAD_WINDOW).toEqual({ first: 2016, last: 2025 });
   });
 });
@@ -509,11 +514,22 @@ describe('the statewide sweep findings reach readers', () => {
     const ids = GA_EMPTY_DATASETS.map((e) => e.id);
     expect(new Set(ids).size, 'duplicate id in GA_EMPTY_DATASETS').toBe(ids.length);
     for (const e of GA_EMPTY_DATASETS) {
-      expect(e.dataset).toBe('operating');
+      expect(['operating', 'revenue']).toContain(e.dataset);
       expect(e.what).toBeTruthy();
-      expect(emptyDataset(e.cicoid, e.fiscalYear, 'operating')).toBe(e);
-      // the REVENUE side of the same filing is not withheld
-      expect(emptyDataset(e.cicoid, e.fiscalYear, 'revenue')).toBeNull();
+      expect(emptyDataset(e.cicoid, e.fiscalYear, e.dataset)).toBe(e);
+    }
+    // ⚠⚠ THE REVENUE SIDE IS WITHHELD ONLY WHERE IT IS ITSELF BLANK, and only
+    // with its own named entry. This read `expect(...'revenue')).toBeNull()`
+    // for every entry, because in three earlier waves a blank Part was always
+    // the EXPENDITURE side of a filing whose revenue was fine. Mountain City
+    // FY2010 is the first filing where BOTH sides are blank, so that filing
+    // publishes nothing at all — which is a different and louder fact than a
+    // government that reported revenue and left its spending blank.
+    const withheld = GA_EMPTY_DATASETS.filter((e) => e.dataset === 'revenue');
+    expect(withheld.map((e) => `${e.entity} FY${e.fiscalYear}`)).toEqual(['Mountain City FY2010']);
+    for (const e of withheld) {
+      expect(emptyDataset(e.cicoid, e.fiscalYear, 'operating'), 'a filing with a blank revenue '
+        + 'side must have its expenditure side recorded too').toBeTruthy();
     }
   });
 });
