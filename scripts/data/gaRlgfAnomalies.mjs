@@ -198,10 +198,19 @@ export const GA_FIGURE_FLAGS = Object.freeze([
     verifiedBecause: [
       'The filing ties 18/18: the form\'s own Part II subtotal carries the figure.',
       'Cornelia\'s eight other filings report $4.2M-$9.2M of total revenue.',
-      '⚠ Not corroborated against an audited statement. Cornelia DOES file Single Audits '
-        + '(FAC holds 2016, 2022, 2024 and 2025) but the FY2017 report was not retrieved: '
-        + 'the Clearinghouse API\'s DEMO_KEY allows 30 requests an hour and the quota went '
-        + 'to Monroe. ⏭ An independent source EXISTS for this one and should close it.',
+      '⭐ THE PRIOR YEAR IS AUDITED, AND IT MATCHES THIS FILING TO THE DIGIT. Cornelia\'s '
+        + 'FY2016 Single Audit (Federal Audit Clearinghouse report 2016-12-CENSUS-0000216732) '
+        + 'reports CAPITAL GRANTS of $1,012,024 in its proprietary funds — the same figure, '
+        + 'exactly, that the FY2016 RLGF filing carries on this very line. So TT reads this '
+        + 'line faithfully, AND the $1,012,024 baseline the FY2017 figure departs from is an '
+        + 'AUDITED one rather than merely self-reported. The departure is 63x an audited '
+        + 'number.',
+      '⚠⚠ CORRECTION TO AN EARLIER NOTE IN THIS REGISTER: it said Cornelia\'s FY2017 audit '
+        + 'EXISTED and had simply not been fetched. It does not exist. The complete '
+        + 'Clearinghouse list for this city is 2016, 2022, 2024 and 2025 — the city evidently '
+        + 'spent under the $750k federal threshold in the intervening years, so no FY2017 '
+        + 'Single Audit was ever required or filed. The earlier claim was inferred from a '
+        + 'truncated descending query and was wrong.',
     ],
     benignExplanations: [
       'A genuine large capital grant for a water or wastewater project, recorded in the '
@@ -211,9 +220,11 @@ export const GA_FIGURE_FLAGS = Object.freeze([
       'A digit transposition or a figure carrying a project authorisation rather than cash.',
     ],
     corroboration:
-      'Surfaced by the sweep\'s outlier screen and isolated to a single line against the '
-      + 'city\'s own FY2016 filing. ⚠ An independent audited source exists and was not '
-      + 'fetched; that is a gap in this session, not in the record.',
+      'Corroborated against an INDEPENDENT document from a different publisher: the city\'s '
+      + 'own FY2016 Single Audit reports capital grants of $1,012,024, matching this line\'s '
+      + 'FY2016 value to the dollar. ⚠ No FY2017 audit exists to settle the CAUSE — the city '
+      + 'filed none that year — so what is established is that the baseline is AUDITED and '
+      + 'the FY2017 figure departs from it by 63x, not what produced the departure.',
   },
   {
     id: 'shellman-fy2024-interest-revenues-line',

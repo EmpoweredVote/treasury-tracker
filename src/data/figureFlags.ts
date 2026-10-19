@@ -314,12 +314,28 @@ export const figureFlags: Record<string, FigureFlag> = {
         title: 'What the city reports in its other years',
         text:
           'Cornelia’s eight other filings report total revenue between $4.2 million and $9.2 '
-          + 'million, and the same grant line runs about $1.0 million in 2016. Unlike the '
-          + 'similar figures flagged for Monroe, Varnell and Shellman, this one does not fit a '
-          + 'simple unit error: divided by a thousand it would read $63,782, which is sixteen '
-          + 'times SMALLER than the year before. What happened here is not established.',
+          + 'million. The same grant line reads $1,012,024 in 2016 — and the city’s audited '
+          + 'accounts for 2016 report capital grants of exactly $1,012,024, so the figure this '
+          + 'year departs from is an audited one. Unlike the similar figures flagged for Monroe, '
+          + 'Varnell and Shellman, this one does not fit a simple unit error: divided by a '
+          + 'thousand it would read $63,782, sixteen times SMALLER than the audited year before. '
+          + 'What produced it is not established, and the city filed no audit for 2017 that '
+          + 'could settle it.',
         source_name: 'Georgia DCA Report of Local Government Finances — Cornelia FY2016–FY2025',
         source_url: 'https://apps.dca.ga.gov/RLGF/Default.aspx',
+        source_date: '2026-10-18',
+      },
+      {
+        title: 'What the city’s audited accounts show for the year before',
+        text:
+          'The City of Cornelia’s audited financial statements for 2016 report capital grants of '
+          + '$1,012,024 in its water and sewer funds — the same figure, to the dollar, that the '
+          + 'state form reports on this line for 2016. That confirms the line is being read '
+          + 'correctly and that the $1.0 million it normally carries is an audited number. The '
+          + 'city filed no federal Single Audit for 2017, so there is no audited figure for the '
+          + 'year in question itself.',
+        source_name: 'City of Cornelia, Georgia — FY2016 Single Audit, statement of revenues, expenses and changes in fund net position (proprietary funds)',
+        source_url: 'https://app.fac.gov/dissemination/report/pdf/2016-12-CENSUS-0000216732',
         source_date: '2026-10-18',
       },
     ],
