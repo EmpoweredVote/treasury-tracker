@@ -1901,6 +1901,30 @@ export const GA_OUT_OF_SCOPE_FINDINGS = Object.freeze([
       + 'The loader reports them as `CICOID … is in no registry — not loaded` on every run, '
       + 'so they cannot be forgotten silently.',
   },
+  {
+    what: '⚠⚠ SEVEN MUNICIPALITIES WITH FY2009-2015 FILINGS HAVE NO REGISTRY ENTRY, so 37 '
+      + 'filings are not loaded: Helena (2134001, FY2009-2014), McRae (2134004, FY2009-2014), '
+      + 'Macon City (2011001, FY2009-2013), Payne City (2011002, FY2009-2013), Riverside Town '
+      + '(2035008, FY2009-2015), Sunny Side City (2126003, FY2009-2015) and Ranger Town '
+      + '(2064902, FY2009).',
+    why:
+      'ONE CAUSE, read out of buildGaStatewideEntities.mjs rather than inferred: the builder '
+      + 'refuses a government with status `no-population` when "Census Vintage 2024 has no GA '
+      + 'municipality named X". TT types an entity from the census — entityType AND population '
+      + 'both — and a 2024 vintage cannot name a government that stopped existing before 2024. '
+      + '⭐ FOUR OF THE SEVEN DISSOLVED INTO SUCCESSORS THAT TT ALREADY CARRIES, and none of '
+      + 'them overlaps its successor by even one year: McRae and Helena both stop at FY2014 and '
+      + 'McRae-Helena City (2134007) starts at FY2015; Macon City and Payne City both stop at '
+      + 'FY2013 and Macon-Bibb County (3011011) starts at FY2014. So there is no double-count '
+      + 'to refuse here — only a government TT has no way to TYPE. '
+      + '⚠ The other three still exist: Ranger and Sunny Side file again in FY2017+ and FY2016+ '
+      + 'and were refused by the FY2016-2025 municipal sweep for this same census reason '
+      + '(recorded there as "Ranger and Sunny Side have NO census row — refused, not guessed"), '
+      + 'and Riverside Town files only FY2009-2015. Loading them now would mean typing a '
+      + 'government the census does not describe, which is the one thing that sweep refused to '
+      + 'do. ⚠ Doing it consistently is a single coherent follow-up — a way to type a '
+      + 'government the current census vintage cannot name — and NOT a Georgia-only problem.',
+  },
 ]);
 
 /**
