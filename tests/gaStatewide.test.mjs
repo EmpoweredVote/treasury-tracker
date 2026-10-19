@@ -1,3 +1,5 @@
+import { readFileSync, existsSync } from 'node:fs';
+
 import { describe, it, expect } from 'vitest';
 
 import {
@@ -18,6 +20,12 @@ import {
   GA_FIGURE_FLAGS, GA_EMPTY_DATASETS, emptyDataset,
 } from '../scripts/data/gaRlgfAnomalies.mjs';
 import { figureFlags } from '../src/data/figureFlags.ts';
+
+// ⚠ `cache/` is gitignored IN FULL (.gitignore:121), so nothing under it can be
+// read by a test that has to pass in CI. The fixture is a byte extract of the
+// source, pinned to LF by .gitattributes:73.
+const CENSUS_FIXTURE = 'tests/fixtures/census/co-est2024-ga-slice.csv';
+const CENSUS_SOURCE = 'cache/co-est2024-alldata.csv';
 
 const OPTIONS = `<select name="ctl00$bodyContent$ddlGovs" id="ctl00_bodyContent_ddlGovs">
   <option selected="selected" value="">-- Select a Local Government --</option>
@@ -215,10 +223,40 @@ describe('registry mechanics', () => {
   });
 
   it('reads exactly 159 Georgia counties out of Census Vintage 2024', () => {
-    const pops = readCountyPopulations();
+    // ⚠ Reads the committed FIXTURE, never `cache/` — `cache/` is gitignored in
+    // full (.gitignore:121), so a bare `readCountyPopulations()` here passed on
+    // the author's disk and was an ENOENT in CI, where the file cannot exist.
+    const pops = readCountyPopulations(CENSUS_FIXTURE);
     expect(pops.size).toBe(159);
     expect(pops.get('baldwin county').fips).toBe('13009');
     expect(pops.get('dekalb county').population).toBeGreaterThan(700_000);
+    // ⚠ The fixture carries 3 NORTH CAROLINA counties, so the STATE filter is
+    // exercised rather than assumed. A reader that dropped the `!== '13'` test
+    // would return 162 here, not 159.
+    expect(pops.get('alamance county')).toBeUndefined();
+  });
+
+  /**
+   * ⚠⚠ A FIXTURE CAN DRIFT INTO AGREEING WITH A WRONG REGISTRY. This is the only
+   * check that cannot run in CI, because it needs the 1.8 MB source file. It
+   * SKIPS LOUDLY rather than passing vacuously — silence would mean the fixture
+   * is trusted forever on the strength of one extraction.
+   *
+   * Mirrors `tests/scStatewideEntities.test.mjs`, including its CRLF lesson:
+   * both sides split on /\r?\n/ so a CRLF checkout cannot fake total drift.
+   */
+  it('keeps the census fixture honest against its source, where the source is present', () => {
+    if (!existsSync(CENSUS_SOURCE)) {
+      console.log(`  SKIPPED: ${CENSUS_SOURCE} absent (gitignored). `
+        + 'Fixture-vs-source parity was NOT checked in this run.');
+      return;
+    }
+    const split = (t) => t.split(/\r?\n/).filter(Boolean);
+    const source = new Set(split(readFileSync(CENSUS_SOURCE, 'latin1')));
+    const fixture = split(readFileSync(CENSUS_FIXTURE, 'latin1'));
+    expect(fixture).toHaveLength(164); // header + GA state row + 159 counties + 3 NC
+    const missing = fixture.filter((l) => !source.has(l));
+    expect(missing).toEqual([]);
   });
 
   it('pins the load window to the LOAD1 form generation', () => {
