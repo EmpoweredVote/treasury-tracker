@@ -2226,6 +2226,27 @@ export const GA_EMPTY_DATASETS = Object.freeze([
       + 'verifies normally. Upson\'s own FY2023 and FY2025 filings report $46.4M and '
       + '$37.6M of expenditure.',
   },
+  {
+    id: 'upson-fy2010-part-five-blank',
+    cicoid: '1145145', entity: 'Upson County', state: 'GA', fiscalYear: 2010,
+    dataset: 'operating',
+    what:
+      'All 36 Part V functions are $0.00 and the printed TOTAL PART V is $0.00 too, so the '
+      + 'single v1 expenditure oracle ties AT ZERO having measured nothing. The revenue '
+      + 'side of the same filing reports $17,224,904 and verifies normally. Upson\'s own '
+      + 'FY2009 and FY2011 filings report $16,059,616 and $13,934,361 of expenditure, so '
+      + 'the county plainly spent money in FY2010.',
+    why:
+      '⚠ THE SECOND BLANK PART V THIS COUNTY HAS FILED — `upson-fy2024-part-five-blank` is '
+      + 'the other, fourteen years later. Recorded as its own entry rather than generalised '
+      + 'to the entity: a register entry names a FILING, and an entity-level rule would '
+      + 'excuse a year nobody has looked at. '
+      + '⚠⚠ THE v1 TREE SHAPE DIFFERS FROM v2 HERE. A blank v1 Part V comes back from '
+      + 'toTree() as an EMPTY ARRAY — its 36 function roots carry no items and no money, so '
+      + 'every one is filtered out — where a blank v2 Part V comes back as SEVEN ROOTS OF '
+      + 'ZERO. The guard caught both only because it tests for MONEY and not for length, '
+      + 'which is the lesson a `tree.length === 0` guard taught by reaching production.',
+  },
   // ── MUNICIPALITIES (statewide sweep, 2026-10-18) ──────────────────────────
   //
   // ⚠⚠ TWENTY of 4,794 municipality filings leave the expenditure side blank,
