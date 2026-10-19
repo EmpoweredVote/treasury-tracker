@@ -61,12 +61,15 @@ import {
   readLog1, EXPENDITURE_SECTIONS, REVENUE_SECTIONS, OBJECT_COLUMNS,
   PAGE_GEOMETRY, num,
 } from './lib/gaRlgf.mjs';
+import {
+  readV1Filing, V1_PAGE_GEOMETRY, V1_EXTRACT_SHEET, V1_TWIN_SHEET,
+} from './lib/gaRlgfV1.mjs';
 import { GA_RLGF_ENTITIES, GA_LOAD_WINDOW } from './data/georgiaRlgfEntities.mjs';
 import { GA_STATEWIDE_ENTITIES } from './data/georgiaStatewideEntities.mjs';
 import { GA_STATEWIDE_MUNICIPALITIES } from './data/georgiaStatewideMunicipalities.mjs';
 import { GA_STATEWIDE_CONSOLIDATED } from './data/georgiaStatewideConsolidated.mjs';
 import {
-  formTotalDefect, fyeMonthDefect, unverifiableFiling, emptyDataset,
+  formTotalDefect, fyeMonthDefect, unverifiableFiling, emptyDataset, consolidationOverlap,
 } from './data/gaRlgfAnomalies.mjs';
 
 /**
@@ -193,6 +196,49 @@ export function toTree(built) {
  */
 export function resolveMonth(entity, meta, fiscalYear) {
   const fromForm = meta.fyEndMonth;
+  // ── ⚠⚠ A YEAR THE REGISTRY NEVER SAW IS NOT A CONFLICT ───────────────────
+  //
+  // The statewide registry was BUILT from the FY2016-2025 (v2) filings, and its
+  // entity-level `fiscalYearStartMonth` is that government's CURRENT month —
+  // not an assertion about 2012. `monthByYear` carries the years it does have an
+  // opinion about, and `fiscalYears` says which years it saw at all.
+  //
+  // Comparing a v1 filing against a month derived from years a decade later
+  // refused all seven of Georgetown-Quitman's v1 filings, whose own forms state
+  // `December 31` consistently — and whose FY2016-2022 registry entries say the
+  // same thing. There was no disagreement to find; the registry simply had
+  // nothing to say about 2009-2015.
+  //
+  // ⚠ The filing's own `FYEmonth` is the source — the shape signed off
+  // 2026-10-17 — so where the registry has no claim, the form is RECORDED. That
+  // is recording, which needs no evidence, not overriding, which does.
+  // ⚠ The guard this gives up is restored by `assertV1MonthConsistency`, which
+  // checks each government's v1 filings against EACH OTHER.
+  const covered = entity.monthByYear?.[fiscalYear] !== undefined
+    || entity.fiscalYears?.includes?.(fiscalYear) !== false;
+  if (!covered) {
+    const span = entity.fiscalYears?.length
+      ? `FY${Math.min(...entity.fiscalYears)}-${Math.max(...entity.fiscalYears)}`
+      : 'the v2 window';
+    // ⚠⚠ NEITHER SIDE HAS A MONTH FOR THIS YEAR, so there is nothing to record.
+    // Falling through would hand back the entity's CURRENT month for a filing a
+    // decade older — the exact defaulting that
+    // `project_fysm_column_default_one_defect` is the story of.
+    if (!fromForm) {
+      return {
+        month: null,
+        how: `form states no month (${JSON.stringify(meta.fyEndMonthText)}) and the `
+          + `registry covers ${span} only — nothing claims a month for FY${fiscalYear}`,
+        ok: false,
+      };
+    }
+    return {
+      month: fromForm,
+      how: `form only — the registry covers ${span} and has no entry for FY${fiscalYear}`,
+      ok: true,
+      confirmed: false,
+    };
+  }
   // ⚠ A government that CHANGED its calendar inside the window carries the far
   // side's months per year. `treasury_sync_city_budget` already takes the month
   // per filing, so a change is representable in the data; only the registry was
@@ -231,6 +277,45 @@ export function resolveMonth(entity, meta, fiscalYear) {
     ok: true,
     confirmed: entity.censusConfirms,
   };
+}
+
+/**
+ * ⚠⚠ THE GUARD THAT REPLACES THE REGISTRY FOR v1 YEARS.
+ *
+ * `resolveMonth` records a v1 filing's own month where the registry has no
+ * claim about that year. That removes a cross-check, so this restores one from
+ * a source the registry cannot provide: the government's OWN other v1 filings.
+ *
+ * A one-year keying slip — the `GA_FYE_MONTH_DEFECTS` shape, six of which were
+ * found in the v2 sweep — shows up here as a single year disagreeing with its
+ * siblings. Measured across the 222-filing pilot, 0 of 34 governments disagree
+ * with themselves inside FY2009-2015, so this is a guard that currently passes
+ * and will fail loudly if a later slice meets one.
+ *
+ * ⚠ A filing whose form stated NO month contributes nothing: silence is not
+ * disagreement. It is handled by `resolveMonth` refusing on its own.
+ *
+ * @returns {Array} one entry per government whose v1 filings disagree
+ */
+export function assertV1MonthConsistency(filings) {
+  const byGov = new Map();
+  for (const f of filings) {
+    const month = f.log1?.fyEndMonth;
+    if (!month) continue;
+    if (!byGov.has(f.cicoid)) byGov.set(f.cicoid, new Map());
+    const months = byGov.get(f.cicoid);
+    if (!months.has(month)) months.set(month, []);
+    months.get(month).push(f.fiscalYear);
+  }
+  const bad = [];
+  for (const [cicoid, months] of byGov) {
+    if (months.size <= 1) continue;
+    bad.push({
+      cicoid,
+      months: Object.fromEntries([...months].map(([m, ys]) => [m, ys.sort((a, b) => a - b)])),
+    });
+  }
+  return bad;
 }
 
 /**
@@ -297,10 +382,45 @@ export async function readFiling(path) {
   if (!meta0) return { skipped: 'filename', path };
   const wb = new ExcelJS.Workbook();
   await wb.xlsx.readFile(path);
+  // ── ⚠⚠ THE READER IS CHOSEN BY THE SHEET, NEVER BY THE FISCAL YEAR ───────
+  //
+  // The sheet is a fact about the file in hand; the year is an inference about
+  // what DCA did that year. A filing misfiled under the wrong year — and the
+  // `YEAR` placeholder in DCA's own listing proves those exist — would be read
+  // by the wrong parser under a year rule, and silently, because both
+  // generations produce plausible-looking trees.
   const load1 = gridOf(wb, 'LOAD1');
-  // FY2009-2015 uses `Exportable Data` instead; a different key set, filed as a
-  // follow-up. Reported as skipped, never counted as a pass.
-  if (!load1) return { skipped: 'no LOAD1 (pre-FY2016 form)', ...meta0, path };
+  const exportable = gridOf(wb, V1_EXTRACT_SHEET);
+  if (load1 && exportable) {
+    // Never measured. Refuse rather than pick: the two generations disagree
+    // about what a Part number means, so guessing is a silent mis-read.
+    return { skipped: `carries BOTH LOAD1 and ${V1_EXTRACT_SHEET} — generation ambiguous`, ...meta0, path };
+  }
+  if (exportable) {
+    const v1Pages = {};
+    for (const n of Object.keys(V1_PAGE_GEOMETRY)) {
+      const g = gridOf(wb, n);
+      if (g) v1Pages[n] = g;
+    }
+    const f = readV1Filing({
+      pages: v1Pages,
+      exportable,
+      data: gridOf(wb, V1_TWIN_SHEET),
+      fiscalYear: meta0.fiscalYear,
+    });
+    // ⚠ The v1 form states its own fiscal year, so the filename is checkable
+    // rather than merely trusted. Neither side is obviously right, so this
+    // refuses rather than choosing one and minting a row under it.
+    if (f.yearConflict) {
+      return {
+        skipped: `form declares FY${f.yearConflict.form} but the filename says FY${f.yearConflict.filename}`,
+        ...meta0, path,
+      };
+    }
+    explainChecks(f.checks, meta0.cicoid, meta0.fiscalYear);
+    return { ...meta0, path, ...f };
+  }
+  if (!load1) return { skipped: `neither LOAD1 nor ${V1_EXTRACT_SHEET} — unknown form generation`, ...meta0, path };
 
   const { blocks } = parseLoad1(load1);
   const pages = {};
@@ -393,7 +513,28 @@ async function main() {
   for (const f of files) {
     const parsed = parseFilename(f);
     if (!parsed) { skipped.push(`${f}: unparseable filename`); continue; }
-    if (!wanted.has(parsed.cicoid)) continue;
+    // ⚠⚠ A COUNTY ABSORBED BY A CONSOLIDATED GOVERNMENT. Below FY2016 both
+    // halves can have filed for the same year, and loading both counts one
+    // government against itself twice. Refused BY NAME — never dropped.
+    const overlap = consolidationOverlap(parsed.cicoid, parsed.fiscalYear);
+    if (overlap) {
+      skipped.push(`${f}: REFUSED — ${overlap.name} (${overlap.consolidatedCicoid}) is the `
+        + `reporting government from FY${overlap.firstConsolidatedYear}; loading `
+        + `${parsed.cicoid} as well would double-count`);
+      continue;
+    }
+    if (!wanted.has(parsed.cicoid)) {
+      // ⚠⚠ REPORTED, NEVER SILENTLY DROPPED. This used to `continue` without a
+      // word, so 7 pre-FY2016 filings for governments the registry does not
+      // carry vanished from a run that reported itself complete. A silent drop
+      // and a refusal look identical in a count, and only one is honest.
+      // ⚠ A government the registry DOES carry, filtered out by --entity, is
+      // not reported: that is the operator's own narrowing, not a gap.
+      if (!entityByCicoid(parsed.cicoid)) {
+        skipped.push(`${f}: CICOID ${parsed.cicoid} is in no registry — not loaded`);
+      }
+      continue;
+    }
     if (argv.fy && parsed.fiscalYear !== Number(argv.fy)) continue;
     if (parsed.fiscalYear < GA_LOAD_WINDOW.firstFiscalYear
       || parsed.fiscalYear > GA_LOAD_WINDOW.lastFiscalYear) {
@@ -410,6 +551,26 @@ async function main() {
   // green". Refuse an empty run outright.
   if (filings.length === 0) {
     console.error('REFUSING: no filings parsed. Nothing was measured, so nothing is verified.');
+    process.exit(1);
+  }
+
+  // ⚠⚠ THE GUARD THAT REPLACES THE REGISTRY FOR v1 YEARS. `resolveMonth`
+  // records a v1 filing's own month where the registry has no claim about that
+  // year, so the cross-check has to come from the government's OWN other v1
+  // filings. A one-year keying slip shows up here and nowhere else.
+  const v1 = filings.filter((f) => f.generation === 'v1');
+  const monthSplits = assertV1MonthConsistency(v1);
+  if (monthSplits.length) {
+    console.error(`\nREFUSING: ${monthSplits.length} government(s) disagree with THEMSELVES about `
+      + 'the fiscal month inside FY2009-2015.');
+    console.error('A government\'s own filings are the only cross-check these years have, so a');
+    console.error('split is either a keying slip or an unrecorded calendar change. Record it in');
+    console.error('GA_FYE_MONTH_CHANGES or GA_FYE_MONTH_DEFECTS with evidence; never guess.');
+    for (const s of monthSplits) {
+      const ent = entityByCicoid(s.cicoid);
+      console.error(`   ${ent?.name ?? s.cicoid} (${s.cicoid}): `
+        + Object.entries(s.months).map(([m, ys]) => `month ${m} in FY${ys.join(',')}`).join(' vs '));
+    }
     process.exit(1);
   }
 

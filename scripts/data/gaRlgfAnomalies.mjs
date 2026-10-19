@@ -2449,3 +2449,94 @@ export function emptyDataset(cicoid, fiscalYear, dataset) {
       && e.dataset === dataset,
   ) || null;
 }
+
+/**
+ * ⚠⚠ CONSOLIDATED GOVERNMENTS AND THE COUNTY GOVERNMENTS THEY ABSORBED.
+ *
+ * The FY2016-2025 sweep recorded that 8 counties file nothing in-window —
+ * exactly the 8 with a consolidated counterpart — and that "Bibb's county-prefix
+ * filings stop at FY2013 and Echols' at FY2010, BOTH BELOW THE FY2016 FLOOR, so
+ * nothing double-counts."
+ *
+ * ⚠⚠ THAT PROTECTION WAS A SIDE EFFECT OF THE FLOOR, AND READING FY2009-2015
+ * REMOVES IT. Below FY2016 a county-prefix CICOID and its consolidated successor
+ * can both have filed for the same fiscal year, and loading both would count one
+ * government against itself twice.
+ *
+ * Measured from DCA's own enumeration, 2026-10-19, across all 8:
+ *
+ *   Echols      1050050 FY2009,2010      3050050 FY2010-2015   ** OVERLAP 2010 **
+ *   Macon-Bibb  1011011 FY2009-2013      3011011 FY2014,2015   clean handoff
+ *   the other 6: the county-prefix CICOID has NO FY2009-2015 filing at all.
+ *
+ * ⚠ All 8 are registered, not just the two with filings. The six quiet ones are
+ * the reason this is a register rather than two special cases: a filing
+ * published later must refuse, not silently double-count.
+ *
+ * `firstConsolidatedYear` is the first fiscal year the CONSOLIDATED government
+ * is the reporting entity. A county-prefix filing at or after it is refused.
+ */
+export const GA_CONSOLIDATION_OVERLAP = Object.freeze([
+  {
+    consolidatedCicoid: '3011011', absorbedCicoid: '1011011', name: 'Macon-Bibb County',
+    firstConsolidatedYear: 2014,
+    why: 'Bibb County filed FY2009-2013 under 1011011; Macon-Bibb filed FY2014-2015 under '
+      + '3011011. No year is claimed by both, so nothing is refused today — the entry exists '
+      + 'so that a later-published Bibb County filing for FY2014+ cannot create an overlap '
+      + 'silently.',
+  },
+  {
+    consolidatedCicoid: '3050050', absorbedCicoid: '1050050', name: 'Echols County CG',
+    firstConsolidatedYear: 2010,
+    why: '⚠⚠ THE ONE MEASURED OVERLAP IN THE STATE. Echols County filed FY2009 AND FY2010 '
+      + 'under 1050050 while Echols County CG filed FY2010-2015 under 3050050. FY2009 loads '
+      + 'from the county (the CG had not begun reporting); FY2010 is refused on the county '
+      + 'side, because the consolidated filing is the one that continues into FY2016+ and is '
+      + 'already loaded there.',
+  },
+  {
+    consolidatedCicoid: '3029029', absorbedCicoid: '1029029', name: 'Athens-Clarke CG',
+    firstConsolidatedYear: 2009,
+    why: 'Clarke County has NO FY2009-2015 filing. Athens-Clarke filed every year.',
+  },
+  {
+    consolidatedCicoid: '3121121', absorbedCicoid: '1121121', name: 'Augusta/Richmond CG',
+    firstConsolidatedYear: 2009,
+    why: 'Richmond County has NO FY2009-2015 filing. Augusta-Richmond filed FY2011-2015.',
+  },
+  {
+    consolidatedCicoid: '3106002', absorbedCicoid: '1106002', name: 'Columbus/Muscogee CG',
+    firstConsolidatedYear: 2009,
+    why: '⚠ 1106002 is not even in DCA\'s dropdown — Columbus-Muscogee\'s CICOID does not '
+      + 'follow the county-number-twice pattern (its middle digits are 106, a municipal '
+      + 'sequence). Registered for completeness; no county-prefix filing can exist.',
+  },
+  {
+    consolidatedCicoid: '3026026', absorbedCicoid: '1026026', name: 'Cusseta-Chattahoochee CG',
+    firstConsolidatedYear: 2009,
+    why: 'Chattahoochee County has NO FY2009-2015 filing.',
+  },
+  {
+    consolidatedCicoid: '3118118', absorbedCicoid: '1118118', name: 'Georgetown-Quitman CG',
+    firstConsolidatedYear: 2009,
+    why: 'Quitman County has NO FY2009-2015 filing. Georgetown-Quitman filed every year.',
+  },
+  {
+    consolidatedCicoid: '3152152', absorbedCicoid: '1152152', name: 'Webster County Unified',
+    firstConsolidatedYear: 2009,
+    why: 'Webster County has NO county-prefix FY2009-2015 filing; the unified government '
+      + 'filed every year under 3152152.',
+  },
+]);
+
+/**
+ * The overlap entry that refuses this county-prefix filing, or null.
+ *
+ * ⚠ Returns null for a year BEFORE the consolidated government began reporting:
+ * those are the absorbed county's own years and are the only record of them.
+ */
+export function consolidationOverlap(cicoid, fiscalYear) {
+  const e = GA_CONSOLIDATION_OVERLAP.find((x) => x.absorbedCicoid === String(cicoid));
+  if (!e) return null;
+  return Number(fiscalYear) >= e.firstConsolidatedYear ? e : null;
+}

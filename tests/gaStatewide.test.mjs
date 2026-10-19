@@ -12,6 +12,7 @@ import {
   ALREADY_LOADED, GA_FIRST_YEAR, GA_LAST_YEAR,
 } from '../scripts/buildGaStatewideEntities.mjs';
 import { GA_STATEWIDE_ENTITIES } from '../scripts/data/georgiaStatewideEntities.mjs';
+import { GA_FORM_GENERATIONS } from '../scripts/data/georgiaRlgfEntities.mjs';
 import { buildCensus } from '../scripts/lib/facFiscalYearCensus.mjs';
 import {
   resolveMonth as loaderResolveMonth, unverifiableMatches, toTree,
@@ -263,9 +264,13 @@ describe('registry mechanics', () => {
     expect(missing).toEqual([]);
   });
 
-  it('pins the load window to the LOAD1 form generation', () => {
-    expect(GA_FIRST_YEAR).toBe(2016);
-    expect(GA_LAST_YEAR).toBe(2025);
+  it('pins the registry build and the fetch default to the LOAD1 generation', () => {
+    // ⚠ These two are the v2 (`LOAD1`) generation's window specifically, NOT a
+    // floor on what the loader can read: `gaRlgfV1.mjs` reads FY2009-2015 from
+    // the `Exportable Data` generation. `GA_LOAD_WINDOW` in
+    // `georgiaRlgfEntities.mjs` is the union and is pinned in gaRlgfV1.test.mjs.
+    expect(GA_FIRST_YEAR).toBe(GA_FORM_GENERATIONS.v2.firstFiscalYear);
+    expect(GA_LAST_YEAR).toBe(GA_FORM_GENERATIONS.v2.lastFiscalYear);
     expect(GA_LOAD_WINDOW).toEqual({ first: 2016, last: 2025 });
   });
 });

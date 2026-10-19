@@ -1,0 +1,306 @@
+{
+ "what": "The canonical FY2009-2015 (v1) Part V page shape, measured across every workbook in the pilot corpus.",
+ "measuredOver": 229,
+ "measuredAt": "2026-10-19",
+ "source": "DCA RLGF .xls -> xlsToXlsx.py; Page 3, label col 0, money cols 7/9/11, V-code cols 8/10/12",
+ "objectColumns": [
+  "current operations",
+  "purchase of equipment, land and structures",
+  "construction"
+ ],
+ "totalCodes": [
+  "V509",
+  "V510",
+  "V511"
+ ],
+ "functions": [
+  {
+   "label": "General administration and support services",
+   "codes": [
+    "V401",
+    "V402",
+    "V403"
+   ]
+  },
+  {
+   "label": "Financial administration",
+   "codes": [
+    "V404",
+    "V405",
+    "V406"
+   ]
+  },
+  {
+   "label": "Tax commissioner",
+   "codes": [
+    "V407",
+    "V408",
+    "V409"
+   ]
+  },
+  {
+   "label": "Tax assessor/appraiser",
+   "codes": [
+    "V410",
+    "V411",
+    "V412"
+   ]
+  },
+  {
+   "label": "General government buildings",
+   "codes": [
+    "V413",
+    "V414",
+    "V415"
+   ]
+  },
+  {
+   "label": "Building inspection and regulation",
+   "codes": [
+    "V416",
+    "V417",
+    "V418"
+   ]
+  },
+  {
+   "label": "Superior court",
+   "codes": [
+    "V419",
+    "V420",
+    "V421"
+   ]
+  },
+  {
+   "label": "State court",
+   "codes": [
+    "V422",
+    "V423",
+    "V424"
+   ]
+  },
+  {
+   "label": "Juvenile and magistrate court",
+   "codes": [
+    "V425",
+    "V426",
+    "V427"
+   ]
+  },
+  {
+   "label": "Probate court",
+   "codes": [
+    "V428",
+    "V429",
+    "V430"
+   ]
+  },
+  {
+   "label": "Clerk of courts",
+   "codes": [
+    "V431",
+    "V432",
+    "V433"
+   ]
+  },
+  {
+   "label": "Municipal court",
+   "codes": [
+    "V434",
+    "V435",
+    "V436"
+   ]
+  },
+  {
+   "label": "Sheriff's department",
+   "codes": [
+    "V437",
+    "V438",
+    "V439"
+   ]
+  },
+  {
+   "label": "Police department",
+   "codes": [
+    "V440",
+    "V441",
+    "V442"
+   ]
+  },
+  {
+   "label": "Correctional institute",
+   "codes": [
+    "V443",
+    "V444",
+    "V445"
+   ]
+  },
+  {
+   "label": "Jail",
+   "codes": [
+    "V446",
+    "V447",
+    "V448"
+   ]
+  },
+  {
+   "label": "Fire department",
+   "codes": [
+    "V449",
+    "V450",
+    "V451"
+   ]
+  },
+  {
+   "label": "Ambulance service",
+   "codes": [
+    "V452",
+    "V453",
+    "V454"
+   ]
+  },
+  {
+   "label": "Highways and streets",
+   "codes": [
+    "V455",
+    "V456",
+    "V457"
+   ]
+  },
+  {
+   "label": "Parking facilities and meters",
+   "codes": [
+    "V458",
+    "V459",
+    "V460"
+   ]
+  },
+  {
+   "label": "County or municipal hospital",
+   "codes": [
+    "V461",
+    "V462",
+    "V463"
+   ]
+  },
+  {
+   "label": "Payments to other hospitals",
+   "codes": [
+    "V464",
+    "V465",
+    "V466"
+   ]
+  },
+  {
+   "label": "Public health",
+   "codes": [
+    "V467",
+    "V468",
+    "V469"
+   ]
+  },
+  {
+   "label": "Public welfare and social services",
+   "codes": [
+    "V470",
+    "V471",
+    "V472"
+   ]
+  },
+  {
+   "label": "Parks and recreation",
+   "codes": [
+    "V473",
+    "V474",
+    "V475"
+   ]
+  },
+  {
+   "label": "Education (expended by gen. govt.)",
+   "codes": [
+    "V476",
+    "V477",
+    "V478"
+   ]
+  },
+  {
+   "label": "Community development",
+   "codes": [
+    "V479",
+    "V480",
+    "V481"
+   ]
+  },
+  {
+   "label": "Natural resources",
+   "codes": [
+    "V482",
+    "V483",
+    "V484"
+   ]
+  },
+  {
+   "label": "Garbage and trash collection",
+   "codes": [
+    "V485",
+    "V486",
+    "V487"
+   ]
+  },
+  {
+   "label": "Garbage and trash disposal (landfill)",
+   "codes": [
+    "V488",
+    "V489",
+    "V490"
+   ]
+  },
+  {
+   "label": "Libraries",
+   "codes": [
+    "V491",
+    "V492",
+    "V493"
+   ]
+  },
+  {
+   "label": "General insurance",
+   "codes": [
+    "V494",
+    "V495",
+    "V496"
+   ]
+  },
+  {
+   "label": "Drainage",
+   "codes": [
+    "V497",
+    "V498",
+    "V499"
+   ]
+  },
+  {
+   "label": "Public utility systems",
+   "codes": [
+    "V500",
+    "V501",
+    "V502"
+   ]
+  },
+  {
+   "label": "Legal fees",
+   "codes": [
+    "V503",
+    "V504",
+    "V505"
+   ]
+  },
+  {
+   "label": "Other expenditures - Attach list",
+   "codes": [
+    "V506",
+    "V507",
+    "V508"
+   ]
+  }
+ ]
+}

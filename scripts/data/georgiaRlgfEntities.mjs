@@ -321,4 +321,32 @@ export function entityByCicoid(cicoid) {
  * filing is OLE2/BIFF8 `d0cf11e0`, the error page is `3c21444f` ("<!DO").
  * Probe the BYTES, and let the converter's `--check` be the second gate.
  */
-export const GA_LOAD_WINDOW = Object.freeze({ firstFiscalYear: 2016, lastFiscalYear: 2025 });
+/**
+ * The two DCA form generations, and the fiscal years each one covers.
+ *
+ * ⚠⚠ THE WINDOW NOW SELECTS A READER, NOT JUST A LOOP BOUND. DCA changed the
+ * workbook between FY2015 and FY2016: `v2` carries a `LOAD1` sheet keyed by UCOA
+ * code, `v1` carries `Exportable Data` plus a redundant `Data` twin keyed by the
+ * form's own line numbers. `scripts/lib/gaRlgf.mjs` reads v2 and
+ * `scripts/lib/gaRlgfV1.mjs` reads v1.
+ *
+ * ⚠ These years are the BOUNDS of each generation, and are NOT how a reader is
+ * chosen. `readFiling` dispatches on the sheets the workbook actually carries,
+ * because the sheet is a fact about the file in hand while the year is only an
+ * inference about what DCA did that year.
+ *
+ * ⚠ DCA also lists FY2008 (3 filings, 3 governments) and FY2026 (6 filings).
+ * Neither is admitted: FY2008 has never been probed for which generation it
+ * belongs to, and FY2026 is a question about the v2 ceiling.
+ * Full measured design: `.planning/GA-RLGF-V1-DESIGN.md`.
+ */
+export const GA_FORM_GENERATIONS = Object.freeze({
+  v1: Object.freeze({ firstFiscalYear: 2009, lastFiscalYear: 2015 }),
+  v2: Object.freeze({ firstFiscalYear: 2016, lastFiscalYear: 2025 }),
+});
+
+/** The union of both generations — what the loader will accept at all. */
+export const GA_LOAD_WINDOW = Object.freeze({
+  firstFiscalYear: GA_FORM_GENERATIONS.v1.firstFiscalYear,
+  lastFiscalYear: GA_FORM_GENERATIONS.v2.lastFiscalYear,
+});
