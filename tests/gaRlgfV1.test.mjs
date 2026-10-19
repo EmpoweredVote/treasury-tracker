@@ -795,3 +795,24 @@ describe('the v1 Part V shape is ONE shape, and a form change must fail loudly',
     expect(SHAPE.measuredOver).toBeGreaterThanOrEqual(222);
   });
 });
+
+describe('⚠ the no-claim rule is scoped to v1 years ONLY', () => {
+  const ENT = {
+    cicoid: '1006006', name: 'Banks County', fiscalYearStartMonth: 7,
+    fiscalYears: [2016, 2017, 2018], censusConfirms: false,
+  };
+
+  it('does NOT loosen v2 at all: a v2 year missing from the registry still refuses', () => {
+    // If DCA publishes FY2019 after the registry was generated, `fiscalYears`
+    // lags. That is a stale registry, not "the registry has no claim" — and the
+    // conflict guard must keep working for every year the v2 sweep covers.
+    const r = resolveMonth(ENT, { fyEndMonth: 1, fyEndMonthText: 'December 31' }, 2019);
+    expect(r.ok).toBe(false);
+  });
+
+  it('applies the no-claim rule below the v2 floor, where it is justified', () => {
+    const r = resolveMonth(ENT, { fyEndMonth: 1, fyEndMonthText: 'December 31' }, 2012);
+    expect(r.ok).toBe(true);
+    expect(r.month).toBe(1);
+  });
+});

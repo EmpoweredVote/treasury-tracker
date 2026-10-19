@@ -64,7 +64,7 @@ import {
 import {
   readV1Filing, V1_PAGE_GEOMETRY, V1_EXTRACT_SHEET, V1_TWIN_SHEET,
 } from './lib/gaRlgfV1.mjs';
-import { GA_RLGF_ENTITIES, GA_LOAD_WINDOW } from './data/georgiaRlgfEntities.mjs';
+import { GA_RLGF_ENTITIES, GA_LOAD_WINDOW, GA_FORM_GENERATIONS } from './data/georgiaRlgfEntities.mjs';
 import { GA_STATEWIDE_ENTITIES } from './data/georgiaStatewideEntities.mjs';
 import { GA_STATEWIDE_MUNICIPALITIES } from './data/georgiaStatewideMunicipalities.mjs';
 import { GA_STATEWIDE_CONSOLIDATED } from './data/georgiaStatewideConsolidated.mjs';
@@ -214,9 +214,14 @@ export function resolveMonth(entity, meta, fiscalYear) {
   // is recording, which needs no evidence, not overriding, which does.
   // ⚠ The guard this gives up is restored by `assertV1MonthConsistency`, which
   // checks each government's v1 filings against EACH OTHER.
-  const covered = entity.monthByYear?.[fiscalYear] !== undefined
-    || entity.fiscalYears?.includes?.(fiscalYear) !== false;
-  if (!covered) {
+  // ⚠⚠ SCOPED TO v1 YEARS, DELIBERATELY. "The registry has no claim" is only
+  // true below the v2 floor, because the registry was BUILT from FY2016-2025.
+  // A v2 year missing from `fiscalYears` means the registry is STALE — DCA
+  // published a year after it was generated — and that must still refuse. Left
+  // ungated, this rule quietly disabled the month guard for v2 as well.
+  const belowV2 = Number(fiscalYear) < GA_FORM_GENERATIONS.v2.firstFiscalYear;
+  const hasClaim = entity.monthByYear?.[fiscalYear] !== undefined;
+  if (belowV2 && !hasClaim) {
     const span = entity.fiscalYears?.length
       ? `FY${Math.min(...entity.fiscalYears)}-${Math.max(...entity.fiscalYears)}`
       : 'the v2 window';
