@@ -197,6 +197,11 @@ export function toTree(built) {
  */
 export function resolveMonth(entity, meta, fiscalYear) {
   const fromForm = meta.fyEndMonth;
+  // ⚠ A government that CHANGED its calendar inside the window carries the far
+  // side's months per year. Declared BEFORE the v1 branch below, which also
+  // needs it — it used to sit further down and reading it early was a temporal
+  // dead zone, not a value.
+  const declared = entity.monthByYear?.[fiscalYear] ?? entity.fiscalYearStartMonth;
   // ── ⚠⚠ A YEAR THE REGISTRY NEVER SAW IS NOT A CONFLICT ───────────────────
   //
   // The statewide registry was BUILT from the FY2016-2025 (v2) filings, and its
@@ -246,10 +251,37 @@ export function resolveMonth(entity, meta, fiscalYear) {
     // decade older — the exact defaulting that
     // `project_fysm_column_default_one_defect` is the story of.
     if (!fromForm) {
+      // ⚠ A GOVERNMENT THAT CHANGED CALENDAR GETS NO FALLBACK. Its entity-level
+      // month describes one side of the change, and a year its recorded map
+      // does not cover could be on either — which is the defaulting this whole
+      // branch exists to avoid.
+      // ⚠⚠ ANY recorded month variation disqualifies the fallback, from EITHER
+      // register. Keying this on `v1MonthChange` alone was wrong and an older
+      // test caught it: Georgetown-Quitman's change lives in the REGISTRY's
+      // `monthByYear` (its v1 years are December, its entity-level month is
+      // June), so the fallback would have written the wrong side of a change.
+      const changed = v1MonthChange(entity.cicoid)
+        || (entity.monthByYear && Object.keys(entity.monthByYear).length ? { id: 'registry monthByYear' } : null);
+      if (!changed && declared) {
+        // ⚠ The v2 loader already does exactly this for an unfilled `FYEmonth`
+        // placeholder (Baldwin FY2020). Winterville FY2013 prints "MONTH" and
+        // Doerun FY2010 prints the Excel date serial "40908"; each prints a
+        // real month in its SIXTEEN other filings across both generations, so
+        // the registry's month is the government's settled calendar rather than
+        // a guess about the year. Never `confirmed` — the form said nothing.
+        return {
+          month: declared,
+          how: `registry only — the form states no month (${JSON.stringify(meta.fyEndMonthText)}) `
+            + `and the registry covers ${span}`,
+          ok: true,
+          confirmed: false,
+        };
+      }
       return {
         month: null,
         how: `form states no month (${JSON.stringify(meta.fyEndMonthText)}) and the `
-          + `registry covers ${span} only — nothing claims a month for FY${fiscalYear}`,
+          + `registry covers ${span} only — nothing claims a month for FY${fiscalYear}`
+          + `${changed ? ` (and ${changed.id} shows this government changed calendar)` : ''}`,
         ok: false,
       };
     }
@@ -264,7 +296,6 @@ export function resolveMonth(entity, meta, fiscalYear) {
   // side's months per year. `treasury_sync_city_budget` already takes the month
   // per filing, so a change is representable in the data; only the registry was
   // single-valued. See GA_FYE_MONTH_CHANGES for the evidence behind each one.
-  const declared = entity.monthByYear?.[fiscalYear] ?? entity.fiscalYearStartMonth;
   if (fromForm && fromForm !== declared) {
     // ⚠⚠ THE ONE WAY A DISAGREEING MONTH MAY STAND. A corroborated one-year
     // keying slip in the form, and ONLY where the registry pins BOTH the month
@@ -320,6 +351,11 @@ export function resolveMonth(entity, meta, fiscalYear) {
 export function unrecordedBlankParts(filings) {
   const out = [];
   for (const f of filings) {
+    // ⚠ A filing the oracle CANNOT CHECK is already excluded by name and writes
+    // nothing, so a blank Part inside it needs no second register entry.
+    // Baldwin city FY2010 is both at once — all eight subtotals #REF! AND both
+    // trees $0.00 — and would otherwise be reported twice for one fault.
+    if (unverifiableFiling(f.cicoid, f.fiscalYear)) continue;
     for (const [datasetType, built] of [['operating', f.exp], ['revenue', f.rev]]) {
       if (!built) continue;
       const tree = toTree(built);
@@ -402,9 +438,21 @@ export function assertV1MonthConsistency(filings) {
 export function explainChecks(checks, cicoid, fiscalYear) {
   const explained = [];
   for (const c of checks) {
-    if (c.ok || c.skipped || c.tag !== 'EXP') continue;
+    // ⚠⚠ BOTH SIDES OF THE FORM. This read `c.tag !== 'EXP'` until Braselton
+    // FY2013/FY2014 turned up the first broken printed total on the REVENUE
+    // side — its "Total Section A" sums Section A AND Section B, to the cent.
+    // The gate could not account for it and refused the whole filing, for a
+    // fault in DCA's spreadsheet rather than in the read.
+    //
+    // ⚠⚠ BUT THE DATASET STILL HAS TO MATCH. Dropping the tag check outright
+    // let an EXPENDITURE defect explain a REVENUE check that happened to carry
+    // the same section id — which an existing test caught, and which is exactly
+    // the "exception absorbing something it was not built for" failure the
+    // register exists to prevent.
+    if (c.ok || c.skipped) continue;
+    const wantDataset = /^exp$/i.test(c.tag) ? 'operating' : 'revenue';
     const d = formTotalDefect(cicoid, fiscalYear, c.id);
-    if (!d) continue;
+    if (!d || d.dataset !== wantDataset) continue;
     if (Math.abs(Number(c.expected) - d.formTotal) > 0.005) continue;
     if (Math.abs(Number(c.actual) - d.itemsTotal) > 0.005) continue;
     if (Math.abs(Number(c.actual) - Number(c.expected) - d.shortfall) > 0.005) continue;

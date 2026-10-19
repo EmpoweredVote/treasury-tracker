@@ -1624,6 +1624,662 @@ export const figureFlags: Record<string, FigureFlag> = {
       },
     ],
   },
+
+  'Metter|GA|2015|operating': {
+    id: 'metter-fy2015-nine-month-transition-year',
+    severity: 'not-comparable',
+    headline:
+      'This is a nine-month year, not a full one — Metter’s books changed date in 2015',
+    summary:
+      'Metter used to close its books on 30 September. In 2015 it moved to 30 June, so the year shown here runs nine months instead of twelve. '
+      + 'The figure is correct for the period it covers and is shown as filed — it is simply a '
+      + 'shorter period than the years either side of it, so comparing them is comparing '
+      + 'nine months with twelve.',
+    whatThisMeans:
+      'Expect roughly three quarters of a normal year here. Do not read the dip as a spending cut, and '
+      + 'do not compare 2015 directly with 2014 or 2016.',
+    entries: [
+      {
+        title: 'The government states the short period on the form itself',
+        text:
+          'Metter’s 2015 report records its months reported as 9 rather than 12, and every other year it filed records 12. '
+          + 'Reports from 2015 onwards give 30 June.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Metter FY2015',
+        source_url: 'https://apps.dca.ga.gov/RLGF/Default.aspx',
+        source_date: '2026-10-19',
+      },
+      {
+        title: 'The money matches a nine-month period',
+        text:
+          'Spending in 2015 is $2,496,119 against an average of $3,338,548 in FY2014 — a ratio of '
+          + '0.748, where nine months of a twelve-month year would be 0.75. Revenue runs at '
+          + '0.707. A billing cycle does not divide neatly into a part-year, so the two need not '
+          + 'agree. Both are shown exactly as filed.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Metter FY2014–FY2016',
+        source_url: 'https://apps.dca.ga.gov/RLGF/Default.aspx',
+        source_date: '2026-10-19',
+      },
+    ],
+  },
+
+  'Metter|GA|2015|revenue': {
+    id: 'metter-fy2015-nine-month-transition-year',
+    severity: 'not-comparable',
+    headline:
+      'This is a nine-month year, not a full one — Metter’s books changed date in 2015',
+    summary:
+      'Metter used to close its books on 30 September. In 2015 it moved to 30 June, so the year shown here runs nine months instead of twelve. '
+      + 'The figure is correct for the period it covers and is shown as filed — it is simply a '
+      + 'shorter period than the years either side of it, so comparing them is comparing '
+      + 'nine months with twelve.',
+    whatThisMeans:
+      'Expect roughly three quarters of a normal year here. Do not read the dip as a spending cut, and '
+      + 'do not compare 2015 directly with 2014 or 2016.',
+    entries: [
+      {
+        title: 'The government states the short period on the form itself',
+        text:
+          'Metter’s 2015 report records its months reported as 9 rather than 12, and every other year it filed records 12. '
+          + 'Reports from 2015 onwards give 30 June.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Metter FY2015',
+        source_url: 'https://apps.dca.ga.gov/RLGF/Default.aspx',
+        source_date: '2026-10-19',
+      },
+      {
+        title: 'The money matches a nine-month period',
+        text:
+          'Spending in 2015 is $2,496,119 against an average of $3,338,548 in FY2014 — a ratio of '
+          + '0.748, where nine months of a twelve-month year would be 0.75. Revenue runs at '
+          + '0.707. A billing cycle does not divide neatly into a part-year, so the two need not '
+          + 'agree. Both are shown exactly as filed.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Metter FY2014–FY2016',
+        source_url: 'https://apps.dca.ga.gov/RLGF/Default.aspx',
+        source_date: '2026-10-19',
+      },
+    ],
+  },
+
+  'Villa Rica|GA|2013|operating': {
+    id: 'villa-rica-fy2013-nine-month-transition-year',
+    severity: 'not-comparable',
+    headline:
+      'This is a nine-month year, not a full one — Villa Rica’s books changed date in 2013',
+    summary:
+      'Villa Rica used to close its books on 31 March. In 2013 it moved to 31 December, so the year shown here runs nine months instead of twelve. '
+      + 'The figure is correct for the period it covers and is shown as filed — it is simply a '
+      + 'shorter period than the years either side of it, so comparing them is comparing '
+      + 'nine months with twelve.',
+    whatThisMeans:
+      'Expect roughly three quarters of a normal year here. Do not read the dip as a spending cut, and '
+      + 'do not compare 2013 directly with 2012 or 2014.',
+    entries: [
+      {
+        title: 'The government states the short period on the form itself',
+        text:
+          'Villa Rica’s 2013 report records its months reported as 9 rather than 12, and every other year it filed records 12. '
+          + 'Reports from 2013 onwards give 31 December.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Villa Rica FY2013',
+        source_url: 'https://apps.dca.ga.gov/RLGF/Default.aspx',
+        source_date: '2026-10-19',
+      },
+      {
+        title: 'The money matches a nine-month period',
+        text:
+          'Spending in 2013 is $7,705,044 against an average of $9,101,175 in FY2012 and FY2014 — a ratio of '
+          + '0.847, where nine months of a twelve-month year would be 0.75. Revenue runs at '
+          + '0.586. A billing cycle does not divide neatly into a part-year, so the two need not '
+          + 'agree. Both are shown exactly as filed.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Villa Rica FY2012–FY2014',
+        source_url: 'https://apps.dca.ga.gov/RLGF/Default.aspx',
+        source_date: '2026-10-19',
+      },
+      {
+        title: 'One more thing worth knowing about this government’s years',
+        text:
+          'Villa Rica changed calendar AGAIN at FY2018, to 30 September; that later change is outside this window and is carried by the FY2016-2025 registry.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Villa Rica FY2009–FY2025',
+        source_url: 'https://apps.dca.ga.gov/RLGF/Default.aspx',
+        source_date: '2026-10-19',
+      },
+    ],
+  },
+
+  'Villa Rica|GA|2013|revenue': {
+    id: 'villa-rica-fy2013-nine-month-transition-year',
+    severity: 'not-comparable',
+    headline:
+      'This is a nine-month year, not a full one — Villa Rica’s books changed date in 2013',
+    summary:
+      'Villa Rica used to close its books on 31 March. In 2013 it moved to 31 December, so the year shown here runs nine months instead of twelve. '
+      + 'The figure is correct for the period it covers and is shown as filed — it is simply a '
+      + 'shorter period than the years either side of it, so comparing them is comparing '
+      + 'nine months with twelve.',
+    whatThisMeans:
+      'Expect roughly three quarters of a normal year here. Do not read the dip as a spending cut, and '
+      + 'do not compare 2013 directly with 2012 or 2014.',
+    entries: [
+      {
+        title: 'The government states the short period on the form itself',
+        text:
+          'Villa Rica’s 2013 report records its months reported as 9 rather than 12, and every other year it filed records 12. '
+          + 'Reports from 2013 onwards give 31 December.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Villa Rica FY2013',
+        source_url: 'https://apps.dca.ga.gov/RLGF/Default.aspx',
+        source_date: '2026-10-19',
+      },
+      {
+        title: 'The money matches a nine-month period',
+        text:
+          'Spending in 2013 is $7,705,044 against an average of $9,101,175 in FY2012 and FY2014 — a ratio of '
+          + '0.847, where nine months of a twelve-month year would be 0.75. Revenue runs at '
+          + '0.586. A billing cycle does not divide neatly into a part-year, so the two need not '
+          + 'agree. Both are shown exactly as filed.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Villa Rica FY2012–FY2014',
+        source_url: 'https://apps.dca.ga.gov/RLGF/Default.aspx',
+        source_date: '2026-10-19',
+      },
+      {
+        title: 'One more thing worth knowing about this government’s years',
+        text:
+          'Villa Rica changed calendar AGAIN at FY2018, to 30 September; that later change is outside this window and is carried by the FY2016-2025 registry.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Villa Rica FY2009–FY2025',
+        source_url: 'https://apps.dca.ga.gov/RLGF/Default.aspx',
+        source_date: '2026-10-19',
+      },
+    ],
+  },
+
+  'Mountain Park|GA|2012|operating': {
+    id: 'mountain-park-fy2012-six-month-transition-year',
+    severity: 'not-comparable',
+    headline:
+      'This is a six-month year, not a full one — Mountain Park’s books changed date in 2012',
+    summary:
+      'Mountain Park used to close its books on 31 December. In 2012 it moved to 30 June, so the year shown here runs six months instead of twelve. '
+      + 'The figure is correct for the period it covers and is shown as filed — it is simply a '
+      + 'shorter period than the years either side of it, so comparing them is comparing '
+      + 'six months with twelve.',
+    whatThisMeans:
+      'Expect roughly half of a normal year here. Do not read the dip as a spending cut, and '
+      + 'do not compare 2012 directly with 2011 or 2013.',
+    entries: [
+      {
+        title: 'The government states the short period on the form itself',
+        text:
+          'Mountain Park’s 2012 report records its months reported as 6 rather than 12, and every other year it filed records 12. '
+          + 'Reports from 2012 onwards give 30 June.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Mountain Park FY2012',
+        source_url: 'https://apps.dca.ga.gov/RLGF/Default.aspx',
+        source_date: '2026-10-19',
+      },
+      {
+        title: 'The money matches a six-month period',
+        text:
+          'Spending in 2012 is $331,449 against an average of $488,584 in FY2011 and FY2013 — a ratio of '
+          + '0.678, where six months of a twelve-month year would be 0.50. Revenue runs at '
+          + '0.490. A billing cycle does not divide neatly into a part-year, so the two need not '
+          + 'agree. Both are shown exactly as filed.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Mountain Park FY2011–FY2013',
+        source_url: 'https://apps.dca.ga.gov/RLGF/Default.aspx',
+        source_date: '2026-10-19',
+      },
+    ],
+  },
+
+  'Mountain Park|GA|2012|revenue': {
+    id: 'mountain-park-fy2012-six-month-transition-year',
+    severity: 'not-comparable',
+    headline:
+      'This is a six-month year, not a full one — Mountain Park’s books changed date in 2012',
+    summary:
+      'Mountain Park used to close its books on 31 December. In 2012 it moved to 30 June, so the year shown here runs six months instead of twelve. '
+      + 'The figure is correct for the period it covers and is shown as filed — it is simply a '
+      + 'shorter period than the years either side of it, so comparing them is comparing '
+      + 'six months with twelve.',
+    whatThisMeans:
+      'Expect roughly half of a normal year here. Do not read the dip as a spending cut, and '
+      + 'do not compare 2012 directly with 2011 or 2013.',
+    entries: [
+      {
+        title: 'The government states the short period on the form itself',
+        text:
+          'Mountain Park’s 2012 report records its months reported as 6 rather than 12, and every other year it filed records 12. '
+          + 'Reports from 2012 onwards give 30 June.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Mountain Park FY2012',
+        source_url: 'https://apps.dca.ga.gov/RLGF/Default.aspx',
+        source_date: '2026-10-19',
+      },
+      {
+        title: 'The money matches a six-month period',
+        text:
+          'Spending in 2012 is $331,449 against an average of $488,584 in FY2011 and FY2013 — a ratio of '
+          + '0.678, where six months of a twelve-month year would be 0.50. Revenue runs at '
+          + '0.490. A billing cycle does not divide neatly into a part-year, so the two need not '
+          + 'agree. Both are shown exactly as filed.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Mountain Park FY2011–FY2013',
+        source_url: 'https://apps.dca.ga.gov/RLGF/Default.aspx',
+        source_date: '2026-10-19',
+      },
+    ],
+  },
+
+  'McDonough|GA|2011|operating': {
+    id: 'mcdonough-fy2011-six-month-transition-year',
+    severity: 'not-comparable',
+    headline:
+      'This is a six-month year, not a full one — McDonough’s books changed date in 2011',
+    summary:
+      'McDonough used to close its books on 31 December. In 2011 it moved to 30 June, so the year shown here runs six months instead of twelve. '
+      + 'The figure is correct for the period it covers and is shown as filed — it is simply a '
+      + 'shorter period than the years either side of it, so comparing them is comparing '
+      + 'six months with twelve.',
+    whatThisMeans:
+      'Expect roughly half of a normal year here. Do not read the dip as a spending cut, and '
+      + 'do not compare 2011 directly with 2010 or 2012.',
+    entries: [
+      {
+        title: 'The money shows a part-year, even though the form does not say so',
+        text:
+          'McDonough’s 2011 report still records twelve months, but it carries 0.450 of what the surrounding years carry — close to the 0.50 a six-month period would give. The year-end moves in the same year. '
+          + 'Reports from 2011 onwards give 30 June.',
+        source_name: 'Georgia DCA Report of Local Government Finances — McDonough FY2011',
+        source_url: 'https://apps.dca.ga.gov/RLGF/Default.aspx',
+        source_date: '2026-10-19',
+      },
+      {
+        title: 'The money matches a six-month period',
+        text:
+          'Spending in 2011 is $5,248,125 against an average of $11,669,355 in FY2010 and FY2012 — a ratio of '
+          + '0.450, where six months of a twelve-month year would be 0.50. Revenue runs at '
+          + '0.379. A billing cycle does not divide neatly into a part-year, so the two need not '
+          + 'agree. Both are shown exactly as filed.',
+        source_name: 'Georgia DCA Report of Local Government Finances — McDonough FY2010–FY2012',
+        source_url: 'https://apps.dca.ga.gov/RLGF/Default.aspx',
+        source_date: '2026-10-19',
+      },
+    ],
+  },
+
+  'McDonough|GA|2011|revenue': {
+    id: 'mcdonough-fy2011-six-month-transition-year',
+    severity: 'not-comparable',
+    headline:
+      'This is a six-month year, not a full one — McDonough’s books changed date in 2011',
+    summary:
+      'McDonough used to close its books on 31 December. In 2011 it moved to 30 June, so the year shown here runs six months instead of twelve. '
+      + 'The figure is correct for the period it covers and is shown as filed — it is simply a '
+      + 'shorter period than the years either side of it, so comparing them is comparing '
+      + 'six months with twelve.',
+    whatThisMeans:
+      'Expect roughly half of a normal year here. Do not read the dip as a spending cut, and '
+      + 'do not compare 2011 directly with 2010 or 2012.',
+    entries: [
+      {
+        title: 'The money shows a part-year, even though the form does not say so',
+        text:
+          'McDonough’s 2011 report still records twelve months, but it carries 0.450 of what the surrounding years carry — close to the 0.50 a six-month period would give. The year-end moves in the same year. '
+          + 'Reports from 2011 onwards give 30 June.',
+        source_name: 'Georgia DCA Report of Local Government Finances — McDonough FY2011',
+        source_url: 'https://apps.dca.ga.gov/RLGF/Default.aspx',
+        source_date: '2026-10-19',
+      },
+      {
+        title: 'The money matches a six-month period',
+        text:
+          'Spending in 2011 is $5,248,125 against an average of $11,669,355 in FY2010 and FY2012 — a ratio of '
+          + '0.450, where six months of a twelve-month year would be 0.50. Revenue runs at '
+          + '0.379. A billing cycle does not divide neatly into a part-year, so the two need not '
+          + 'agree. Both are shown exactly as filed.',
+        source_name: 'Georgia DCA Report of Local Government Finances — McDonough FY2010–FY2012',
+        source_url: 'https://apps.dca.ga.gov/RLGF/Default.aspx',
+        source_date: '2026-10-19',
+      },
+    ],
+  },
+
+  'Oxford|GA|2011|operating': {
+    id: 'oxford-fy2011-six-month-transition-year',
+    severity: 'not-comparable',
+    headline:
+      'This is a six-month year, not a full one — Oxford’s books changed date in 2011',
+    summary:
+      'Oxford used to close its books on 31 December. In 2011 it moved to 30 June, so the year shown here runs six months instead of twelve. '
+      + 'The figure is correct for the period it covers and is shown as filed — it is simply a '
+      + 'shorter period than the years either side of it, so comparing them is comparing '
+      + 'six months with twelve.',
+    whatThisMeans:
+      'Expect roughly half of a normal year here. Do not read the dip as a spending cut, and '
+      + 'do not compare 2011 directly with 2010 or 2012.',
+    entries: [
+      {
+        title: 'The government states the short period on the form itself',
+        text:
+          'Oxford’s 2011 report records its months reported as 6 rather than 12, and every other year it filed records 12. '
+          + 'Reports from 2011 onwards give 30 June.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Oxford FY2011',
+        source_url: 'https://apps.dca.ga.gov/RLGF/Default.aspx',
+        source_date: '2026-10-19',
+      },
+      {
+        title: 'The money matches a six-month period',
+        text:
+          'Spending in 2011 is $540,624 against an average of $1,841,973 in FY2010 and FY2012 — a ratio of '
+          + '0.294, where six months of a twelve-month year would be 0.50. Revenue runs at '
+          + '0.242. A billing cycle does not divide neatly into a part-year, so the two need not '
+          + 'agree. Both are shown exactly as filed.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Oxford FY2010–FY2012',
+        source_url: 'https://apps.dca.ga.gov/RLGF/Default.aspx',
+        source_date: '2026-10-19',
+      },
+      {
+        title: 'One more thing worth knowing about this government’s years',
+        text:
+          'The ratio reads lower than half because FY2010 is itself an unusually high year for Oxford, at more than twice its own average, which pulls the comparison upward.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Oxford FY2009–FY2025',
+        source_url: 'https://apps.dca.ga.gov/RLGF/Default.aspx',
+        source_date: '2026-10-19',
+      },
+    ],
+  },
+
+  'Oxford|GA|2011|revenue': {
+    id: 'oxford-fy2011-six-month-transition-year',
+    severity: 'not-comparable',
+    headline:
+      'This is a six-month year, not a full one — Oxford’s books changed date in 2011',
+    summary:
+      'Oxford used to close its books on 31 December. In 2011 it moved to 30 June, so the year shown here runs six months instead of twelve. '
+      + 'The figure is correct for the period it covers and is shown as filed — it is simply a '
+      + 'shorter period than the years either side of it, so comparing them is comparing '
+      + 'six months with twelve.',
+    whatThisMeans:
+      'Expect roughly half of a normal year here. Do not read the dip as a spending cut, and '
+      + 'do not compare 2011 directly with 2010 or 2012.',
+    entries: [
+      {
+        title: 'The government states the short period on the form itself',
+        text:
+          'Oxford’s 2011 report records its months reported as 6 rather than 12, and every other year it filed records 12. '
+          + 'Reports from 2011 onwards give 30 June.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Oxford FY2011',
+        source_url: 'https://apps.dca.ga.gov/RLGF/Default.aspx',
+        source_date: '2026-10-19',
+      },
+      {
+        title: 'The money matches a six-month period',
+        text:
+          'Spending in 2011 is $540,624 against an average of $1,841,973 in FY2010 and FY2012 — a ratio of '
+          + '0.294, where six months of a twelve-month year would be 0.50. Revenue runs at '
+          + '0.242. A billing cycle does not divide neatly into a part-year, so the two need not '
+          + 'agree. Both are shown exactly as filed.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Oxford FY2010–FY2012',
+        source_url: 'https://apps.dca.ga.gov/RLGF/Default.aspx',
+        source_date: '2026-10-19',
+      },
+      {
+        title: 'One more thing worth knowing about this government’s years',
+        text:
+          'The ratio reads lower than half because FY2010 is itself an unusually high year for Oxford, at more than twice its own average, which pulls the comparison upward.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Oxford FY2009–FY2025',
+        source_url: 'https://apps.dca.ga.gov/RLGF/Default.aspx',
+        source_date: '2026-10-19',
+      },
+    ],
+  },
+
+  'Bishop|GA|2010|operating': {
+    id: 'bishop-fy2010-six-month-transition-year',
+    severity: 'not-comparable',
+    headline:
+      'This is a six-month year, not a full one — Bishop’s books changed date in 2010',
+    summary:
+      'Bishop used to close its books on 31 December. In 2010 it moved to 30 June, so the year shown here runs six months instead of twelve. '
+      + 'The figure is correct for the period it covers and is shown as filed — it is simply a '
+      + 'shorter period than the years either side of it, so comparing them is comparing '
+      + 'six months with twelve.',
+    whatThisMeans:
+      'Expect roughly half of a normal year here. Do not read the dip as a spending cut, and '
+      + 'do not compare 2010 directly with 2009 or 2011.',
+    entries: [
+      {
+        title: 'The money shows a part-year, even though the form does not say so',
+        text:
+          'Bishop’s 2010 report still records twelve months, but it carries 0.441 of what the surrounding years carry — close to the 0.50 a six-month period would give. The year-end moves in the same year. '
+          + 'Reports from 2010 onwards give 30 June.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Bishop FY2010',
+        source_url: 'https://apps.dca.ga.gov/RLGF/Default.aspx',
+        source_date: '2026-10-19',
+      },
+      {
+        title: 'The money matches a six-month period',
+        text:
+          'Spending in 2010 is $11,814 against an average of $26,767 in FY2009 and FY2011 — a ratio of '
+          + '0.441, where six months of a twelve-month year would be 0.50. Revenue runs at '
+          + '0.553. A billing cycle does not divide neatly into a part-year, so the two need not '
+          + 'agree. Both are shown exactly as filed.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Bishop FY2009–FY2011',
+        source_url: 'https://apps.dca.ga.gov/RLGF/Default.aspx',
+        source_date: '2026-10-19',
+      },
+      {
+        title: 'One more thing worth knowing about this government’s years',
+        text:
+          'Bishop is a town whose entire annual spending is under $100,000, so single purchases move these ratios and none of them should be read closely.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Bishop FY2009–FY2025',
+        source_url: 'https://apps.dca.ga.gov/RLGF/Default.aspx',
+        source_date: '2026-10-19',
+      },
+    ],
+  },
+
+  'Bishop|GA|2010|revenue': {
+    id: 'bishop-fy2010-six-month-transition-year',
+    severity: 'not-comparable',
+    headline:
+      'This is a six-month year, not a full one — Bishop’s books changed date in 2010',
+    summary:
+      'Bishop used to close its books on 31 December. In 2010 it moved to 30 June, so the year shown here runs six months instead of twelve. '
+      + 'The figure is correct for the period it covers and is shown as filed — it is simply a '
+      + 'shorter period than the years either side of it, so comparing them is comparing '
+      + 'six months with twelve.',
+    whatThisMeans:
+      'Expect roughly half of a normal year here. Do not read the dip as a spending cut, and '
+      + 'do not compare 2010 directly with 2009 or 2011.',
+    entries: [
+      {
+        title: 'The money shows a part-year, even though the form does not say so',
+        text:
+          'Bishop’s 2010 report still records twelve months, but it carries 0.441 of what the surrounding years carry — close to the 0.50 a six-month period would give. The year-end moves in the same year. '
+          + 'Reports from 2010 onwards give 30 June.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Bishop FY2010',
+        source_url: 'https://apps.dca.ga.gov/RLGF/Default.aspx',
+        source_date: '2026-10-19',
+      },
+      {
+        title: 'The money matches a six-month period',
+        text:
+          'Spending in 2010 is $11,814 against an average of $26,767 in FY2009 and FY2011 — a ratio of '
+          + '0.441, where six months of a twelve-month year would be 0.50. Revenue runs at '
+          + '0.553. A billing cycle does not divide neatly into a part-year, so the two need not '
+          + 'agree. Both are shown exactly as filed.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Bishop FY2009–FY2011',
+        source_url: 'https://apps.dca.ga.gov/RLGF/Default.aspx',
+        source_date: '2026-10-19',
+      },
+      {
+        title: 'One more thing worth knowing about this government’s years',
+        text:
+          'Bishop is a town whose entire annual spending is under $100,000, so single purchases move these ratios and none of them should be read closely.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Bishop FY2009–FY2025',
+        source_url: 'https://apps.dca.ga.gov/RLGF/Default.aspx',
+        source_date: '2026-10-19',
+      },
+    ],
+  },
+
+  'Talbotton|GA|2014|operating': {
+    id: 'talbotton-fy2014-six-month-transition-year',
+    severity: 'not-comparable',
+    headline:
+      'This is a six-month year, not a full one — Talbotton’s books changed date in 2014',
+    summary:
+      'Talbotton used to close its books on 31 December. In 2014 it moved to 30 June, so the year shown here runs six months instead of twelve. '
+      + 'The figure is correct for the period it covers and is shown as filed — it is simply a '
+      + 'shorter period than the years either side of it, so comparing them is comparing '
+      + 'six months with twelve.',
+    whatThisMeans:
+      'Expect roughly half of a normal year here. Do not read the dip as a spending cut, and '
+      + 'do not compare 2014 directly with 2013 or 2015.',
+    entries: [
+      {
+        title: 'The government states the short period on the form itself',
+        text:
+          'Talbotton’s 2014 report records its months reported as 6 rather than 12, and every other year it filed records 12. '
+          + 'Reports from 2014 onwards give 30 June.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Talbotton FY2014',
+        source_url: 'https://apps.dca.ga.gov/RLGF/Default.aspx',
+        source_date: '2026-10-19',
+      },
+      {
+        title: 'The money matches a six-month period',
+        text:
+          'Spending in 2014 is $121,613 against an average of $366,042 in FY2013 and FY2015 — a ratio of '
+          + '0.332, where six months of a twelve-month year would be 0.50. Revenue runs at '
+          + '0.325. A billing cycle does not divide neatly into a part-year, so the two need not '
+          + 'agree. Both are shown exactly as filed.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Talbotton FY2013–FY2015',
+        source_url: 'https://apps.dca.ga.gov/RLGF/Default.aspx',
+        source_date: '2026-10-19',
+      },
+    ],
+  },
+
+  'Talbotton|GA|2014|revenue': {
+    id: 'talbotton-fy2014-six-month-transition-year',
+    severity: 'not-comparable',
+    headline:
+      'This is a six-month year, not a full one — Talbotton’s books changed date in 2014',
+    summary:
+      'Talbotton used to close its books on 31 December. In 2014 it moved to 30 June, so the year shown here runs six months instead of twelve. '
+      + 'The figure is correct for the period it covers and is shown as filed — it is simply a '
+      + 'shorter period than the years either side of it, so comparing them is comparing '
+      + 'six months with twelve.',
+    whatThisMeans:
+      'Expect roughly half of a normal year here. Do not read the dip as a spending cut, and '
+      + 'do not compare 2014 directly with 2013 or 2015.',
+    entries: [
+      {
+        title: 'The government states the short period on the form itself',
+        text:
+          'Talbotton’s 2014 report records its months reported as 6 rather than 12, and every other year it filed records 12. '
+          + 'Reports from 2014 onwards give 30 June.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Talbotton FY2014',
+        source_url: 'https://apps.dca.ga.gov/RLGF/Default.aspx',
+        source_date: '2026-10-19',
+      },
+      {
+        title: 'The money matches a six-month period',
+        text:
+          'Spending in 2014 is $121,613 against an average of $366,042 in FY2013 and FY2015 — a ratio of '
+          + '0.332, where six months of a twelve-month year would be 0.50. Revenue runs at '
+          + '0.325. A billing cycle does not divide neatly into a part-year, so the two need not '
+          + 'agree. Both are shown exactly as filed.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Talbotton FY2013–FY2015',
+        source_url: 'https://apps.dca.ga.gov/RLGF/Default.aspx',
+        source_date: '2026-10-19',
+      },
+    ],
+  },
+
+  'Nicholson|GA|2009|operating': {
+    id: 'nicholson-fy2009-six-month-transition-year',
+    severity: 'not-comparable',
+    headline:
+      'This is a six-month year, not a full one — Nicholson’s books changed date in 2009',
+    summary:
+      'Nicholson’s 2009 report covers six months rather than twelve, and says so on its face. '
+      + 'The figure is correct for the period it covers and is shown as filed — it is simply a '
+      + 'shorter period than the years either side of it, so comparing them is comparing '
+      + 'six months with twelve.',
+    whatThisMeans:
+      'Expect roughly half of a normal year here. Do not read the dip as a spending cut, and '
+      + 'do not compare 2009 directly with 2008 or 2010.',
+    entries: [
+      {
+        title: 'The government states the short period on the form itself',
+        text:
+          'Nicholson’s 2009 report records its months reported as 6 rather than 12, and every other year it filed records 12. '
+          + 'Reports from 2009 onwards give the same year-end throughout, so the short period is the tail of a change made earlier than the records DCA publishes.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Nicholson FY2009',
+        source_url: 'https://apps.dca.ga.gov/RLGF/Default.aspx',
+        source_date: '2026-10-19',
+      },
+      {
+        title: 'The money matches a six-month period',
+        text:
+          'Spending in 2009 is $232,781 against an average of $556,175 in FY2010 — a ratio of '
+          + '0.419, where six months of a twelve-month year would be 0.50. Revenue runs at '
+          + '0.526. A billing cycle does not divide neatly into a part-year, so the two need not '
+          + 'agree. Both are shown exactly as filed.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Nicholson FY2008–FY2010',
+        source_url: 'https://apps.dca.ga.gov/RLGF/Default.aspx',
+        source_date: '2026-10-19',
+      },
+      {
+        title: 'One more thing worth knowing about this government’s years',
+        text:
+          'Unlike the others here, Nicholson’s year-END does not change inside this window: it reports 31 December in this year and in every later one. The short period is the tail of a change made BEFORE FY2009, which DCA does not publish, so only the declared six months and the money show it at all.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Nicholson FY2009–FY2025',
+        source_url: 'https://apps.dca.ga.gov/RLGF/Default.aspx',
+        source_date: '2026-10-19',
+      },
+    ],
+  },
+
+  'Nicholson|GA|2009|revenue': {
+    id: 'nicholson-fy2009-six-month-transition-year',
+    severity: 'not-comparable',
+    headline:
+      'This is a six-month year, not a full one — Nicholson’s books changed date in 2009',
+    summary:
+      'Nicholson’s 2009 report covers six months rather than twelve, and says so on its face. '
+      + 'The figure is correct for the period it covers and is shown as filed — it is simply a '
+      + 'shorter period than the years either side of it, so comparing them is comparing '
+      + 'six months with twelve.',
+    whatThisMeans:
+      'Expect roughly half of a normal year here. Do not read the dip as a spending cut, and '
+      + 'do not compare 2009 directly with 2008 or 2010.',
+    entries: [
+      {
+        title: 'The government states the short period on the form itself',
+        text:
+          'Nicholson’s 2009 report records its months reported as 6 rather than 12, and every other year it filed records 12. '
+          + 'Reports from 2009 onwards give the same year-end throughout, so the short period is the tail of a change made earlier than the records DCA publishes.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Nicholson FY2009',
+        source_url: 'https://apps.dca.ga.gov/RLGF/Default.aspx',
+        source_date: '2026-10-19',
+      },
+      {
+        title: 'The money matches a six-month period',
+        text:
+          'Spending in 2009 is $232,781 against an average of $556,175 in FY2010 — a ratio of '
+          + '0.419, where six months of a twelve-month year would be 0.50. Revenue runs at '
+          + '0.526. A billing cycle does not divide neatly into a part-year, so the two need not '
+          + 'agree. Both are shown exactly as filed.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Nicholson FY2008–FY2010',
+        source_url: 'https://apps.dca.ga.gov/RLGF/Default.aspx',
+        source_date: '2026-10-19',
+      },
+      {
+        title: 'One more thing worth knowing about this government’s years',
+        text:
+          'Unlike the others here, Nicholson’s year-END does not change inside this window: it reports 31 December in this year and in every later one. The short period is the tail of a change made BEFORE FY2009, which DCA does not publish, so only the declared six months and the money show it at all.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Nicholson FY2009–FY2025',
+        source_url: 'https://apps.dca.ga.gov/RLGF/Default.aspx',
+        source_date: '2026-10-19',
+      },
+    ],
+  },
 };
 
 /** Look up the flag for a rendered figure. Returns undefined when there is none. */

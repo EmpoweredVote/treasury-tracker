@@ -1292,6 +1292,370 @@ export const GA_FIGURE_FLAGS = Object.freeze([
       'The county’s own filings on both sides of the change report the two different year-ends, in '
       + 'the right order, and the transition year declares the short period on its face.',
   },
+  {
+    id: 'metter-fy2015-nine-month-transition-year',
+    entity: 'Metter',
+    state: 'GA',
+    fiscalYear: 2015,
+    dataset: 'operating and revenue',
+    section: 'the whole filing',
+    ucoa: null,
+    label: 'A nine-month transition year',
+    amount: 2496119,
+    loaded: true,
+    severity: 'not-comparable',
+    // ⚠⚠ THE FIGURES ARE CORRECT. The period is genuinely shorter.
+    what:
+      'Metter moved its fiscal year end from 30 September to 30 June in FY2015, so that '
+      + 'year covers NINE MONTHS. The filing declares it: the v1 form’s months-reported field '
+      + '(V99) reads 9, not 12. Operating comes to $2,496,119 against a $3,338,548 mean of '
+      + 'FY2014 — a ratio of 0.748 where 9 twelfths is 0.750.',
+    magnitude: [
+      'Operating ratio 0.748 against the neighbour mean (FY2014).',
+      'Revenue ratio 0.707 — $2,782,269 against $3,937,377.',
+      '⚠ A collection cycle does not divide neatly into a part-year stub, so the revenue '
+      + 'ratio and the expenditure ratio need not agree. Both figures are shown exactly as '
+      + 'filed.',
+    ],
+    verifiedBecause: [
+      'The form states the short period ITSELF — V99 reads 9 in this filing and 12 in every '
+      + 'other v1 filing this government made.',
+      'Its FY2016-2025 filings report 30 June — the far side of the change, recorded '
+      + 'independently of the v1 form.',
+      '⚠⚠ TWO SIGNALS, NOT ONE. The FY2016-2025 sweep established that the months-reported '
+      + 'field ALONE cannot find stubs, and the statewide county sweep established that an '
+      + 'isolated year carrying FULL-year money is a keying slip rather than a change. Both '
+      + 'tests were applied here.',
+    ],
+    benignExplanations: [
+      'A deliberate, lawful change of fiscal calendar, which Georgia governments make by '
+      + 'local ordinance and which the DCA form has a field to declare.',
+    ],
+    corroboration:
+      'The government’s own filings on both sides report the two different year-ends in the '
+      + 'right order, and the short year is visible in the declared months, the money, or '
+      + 'both.',
+  },
+  {
+    id: 'villa-rica-fy2013-nine-month-transition-year',
+    entity: 'Villa Rica',
+    state: 'GA',
+    fiscalYear: 2013,
+    dataset: 'operating and revenue',
+    section: 'the whole filing',
+    ucoa: null,
+    label: 'A nine-month transition year',
+    amount: 7705044,
+    loaded: true,
+    severity: 'not-comparable',
+    // ⚠⚠ THE FIGURES ARE CORRECT. The period is genuinely shorter.
+    what:
+      'Villa Rica moved its fiscal year end from 31 March to 31 December in FY2013, so that '
+      + 'year covers NINE MONTHS. The filing declares it: the v1 form’s months-reported field '
+      + '(V99) reads 9, not 12. Operating comes to $7,705,044 against a $9,101,175 mean of '
+      + 'FY2012 and FY2014 — a ratio of 0.847 where 9 twelfths is 0.750.',
+    magnitude: [
+      'Operating ratio 0.847 against the neighbour mean (FY2012 and FY2014).',
+      'Revenue ratio 0.586 — $7,975,761 against $13,611,667.',
+      '⚠ A collection cycle does not divide neatly into a part-year stub, so the revenue '
+      + 'ratio and the expenditure ratio need not agree. Both figures are shown exactly as '
+      + 'filed.',
+      '⚠ Villa Rica changed calendar AGAIN at FY2018, to 30 September; that later change is '
+      + 'outside this window and is carried by the FY2016-2025 registry.',
+    ],
+    verifiedBecause: [
+      'The form states the short period ITSELF — V99 reads 9 in this filing and 12 in every '
+      + 'other v1 filing this government made.',
+      'Its FY2016-2025 filings report 31 December — the far side of the change, recorded '
+      + 'independently of the v1 form.',
+      '⚠⚠ TWO SIGNALS, NOT ONE. The FY2016-2025 sweep established that the months-reported '
+      + 'field ALONE cannot find stubs, and the statewide county sweep established that an '
+      + 'isolated year carrying FULL-year money is a keying slip rather than a change. Both '
+      + 'tests were applied here.',
+    ],
+    benignExplanations: [
+      'A deliberate, lawful change of fiscal calendar, which Georgia governments make by '
+      + 'local ordinance and which the DCA form has a field to declare.',
+    ],
+    corroboration:
+      'The government’s own filings on both sides report the two different year-ends in the '
+      + 'right order, and the short year is visible in the declared months, the money, or '
+      + 'both.',
+  },
+  {
+    id: 'mountain-park-fy2012-six-month-transition-year',
+    entity: 'Mountain Park',
+    state: 'GA',
+    fiscalYear: 2012,
+    dataset: 'operating and revenue',
+    section: 'the whole filing',
+    ucoa: null,
+    label: 'A six-month transition year',
+    amount: 331449,
+    loaded: true,
+    severity: 'not-comparable',
+    // ⚠⚠ THE FIGURES ARE CORRECT. The period is genuinely shorter.
+    what:
+      'Mountain Park moved its fiscal year end from 31 December to 30 June in FY2012, so '
+      + 'that year covers SIX MONTHS. The filing declares it: the v1 form’s months-reported '
+      + 'field (V99) reads 6, not 12. Operating comes to $331,449 against a $488,584 mean of '
+      + 'FY2011 and FY2013 — a ratio of 0.678 where 6 twelfths is 0.500.',
+    magnitude: [
+      'Operating ratio 0.678 against the neighbour mean (FY2011 and FY2013).',
+      'Revenue ratio 0.490 — $267,676 against $546,112.',
+      '⚠ A collection cycle does not divide neatly into a part-year stub, so the revenue '
+      + 'ratio and the expenditure ratio need not agree. Both figures are shown exactly as '
+      + 'filed.',
+    ],
+    verifiedBecause: [
+      'The form states the short period ITSELF — V99 reads 6 in this filing and 12 in every '
+      + 'other v1 filing this government made.',
+      'Its FY2016-2025 filings report 30 June — the far side of the change, recorded '
+      + 'independently of the v1 form.',
+      '⚠⚠ TWO SIGNALS, NOT ONE. The FY2016-2025 sweep established that the months-reported '
+      + 'field ALONE cannot find stubs, and the statewide county sweep established that an '
+      + 'isolated year carrying FULL-year money is a keying slip rather than a change. Both '
+      + 'tests were applied here.',
+    ],
+    benignExplanations: [
+      'A deliberate, lawful change of fiscal calendar, which Georgia governments make by '
+      + 'local ordinance and which the DCA form has a field to declare.',
+    ],
+    corroboration:
+      'The government’s own filings on both sides report the two different year-ends in the '
+      + 'right order, and the short year is visible in the declared months, the money, or '
+      + 'both.',
+  },
+  {
+    id: 'mcdonough-fy2011-six-month-transition-year',
+    entity: 'McDonough',
+    state: 'GA',
+    fiscalYear: 2011,
+    dataset: 'operating and revenue',
+    section: 'the whole filing',
+    ucoa: null,
+    label: 'A six-month transition year',
+    amount: 5248125,
+    loaded: true,
+    severity: 'not-comparable',
+    // ⚠⚠ THE FIGURES ARE CORRECT. The period is genuinely shorter.
+    what:
+      'McDonough moved its fiscal year end from 31 December to 30 June in FY2011, so that '
+      + 'year covers SIX MONTHS. ⚠ THE FORM DECLARES NOTHING — it reports V99 = 12 — and only '
+      + 'the money shows the stub, which is the Talbot FY2022 shape. Operating comes to '
+      + '$5,248,125 against a $11,669,355 mean of FY2010 and FY2012 — a ratio of 0.450 where '
+      + '6 twelfths is 0.500.',
+    magnitude: [
+      'Operating ratio 0.450 against the neighbour mean (FY2010 and FY2012).',
+      'Revenue ratio 0.379 — $4,517,425 against $11,933,089.',
+      '⚠ A collection cycle does not divide neatly into a part-year stub, so the revenue '
+      + 'ratio and the expenditure ratio need not agree. Both figures are shown exactly as '
+      + 'filed.',
+    ],
+    verifiedBecause: [
+      'The money carries it: 0.450 of the neighbour mean where 0.500 is expected, with the '
+      + 'year-end moving in the same year.',
+      'Its FY2016-2025 filings report 30 June — the far side of the change, recorded '
+      + 'independently of the v1 form.',
+      '⚠⚠ TWO SIGNALS, NOT ONE. The FY2016-2025 sweep established that the months-reported '
+      + 'field ALONE cannot find stubs, and the statewide county sweep established that an '
+      + 'isolated year carrying FULL-year money is a keying slip rather than a change. Both '
+      + 'tests were applied here.',
+    ],
+    benignExplanations: [
+      'A deliberate, lawful change of fiscal calendar, which Georgia governments make by '
+      + 'local ordinance and which the DCA form has a field to declare.',
+    ],
+    corroboration:
+      'The government’s own filings on both sides report the two different year-ends in the '
+      + 'right order, and the short year is visible in the declared months, the money, or '
+      + 'both.',
+  },
+  {
+    id: 'oxford-fy2011-six-month-transition-year',
+    entity: 'Oxford',
+    state: 'GA',
+    fiscalYear: 2011,
+    dataset: 'operating and revenue',
+    section: 'the whole filing',
+    ucoa: null,
+    label: 'A six-month transition year',
+    amount: 540624,
+    loaded: true,
+    severity: 'not-comparable',
+    // ⚠⚠ THE FIGURES ARE CORRECT. The period is genuinely shorter.
+    what:
+      'Oxford moved its fiscal year end from 31 December to 30 June in FY2011, so that year '
+      + 'covers SIX MONTHS. The filing declares it: the v1 form’s months-reported field (V99) '
+      + 'reads 6, not 12. Operating comes to $540,624 against a $1,841,973 mean of FY2010 and '
+      + 'FY2012 — a ratio of 0.294 where 6 twelfths is 0.500.',
+    magnitude: [
+      'Operating ratio 0.294 against the neighbour mean (FY2010 and FY2012).',
+      'Revenue ratio 0.242 — $289,385 against $1,194,677.',
+      '⚠ A collection cycle does not divide neatly into a part-year stub, so the revenue '
+      + 'ratio and the expenditure ratio need not agree. Both figures are shown exactly as '
+      + 'filed.',
+      '⚠ The ratio reads lower than half because FY2010 is itself an unusually high year '
+      + 'for Oxford, at more than twice its own average, which pulls the comparison upward.',
+    ],
+    verifiedBecause: [
+      'The form states the short period ITSELF — V99 reads 6 in this filing and 12 in every '
+      + 'other v1 filing this government made.',
+      'Its FY2016-2025 filings report 30 June — the far side of the change, recorded '
+      + 'independently of the v1 form.',
+      '⚠⚠ TWO SIGNALS, NOT ONE. The FY2016-2025 sweep established that the months-reported '
+      + 'field ALONE cannot find stubs, and the statewide county sweep established that an '
+      + 'isolated year carrying FULL-year money is a keying slip rather than a change. Both '
+      + 'tests were applied here.',
+    ],
+    benignExplanations: [
+      'A deliberate, lawful change of fiscal calendar, which Georgia governments make by '
+      + 'local ordinance and which the DCA form has a field to declare.',
+    ],
+    corroboration:
+      'The government’s own filings on both sides report the two different year-ends in the '
+      + 'right order, and the short year is visible in the declared months, the money, or '
+      + 'both.',
+  },
+  {
+    id: 'bishop-fy2010-six-month-transition-year',
+    entity: 'Bishop',
+    state: 'GA',
+    fiscalYear: 2010,
+    dataset: 'operating and revenue',
+    section: 'the whole filing',
+    ucoa: null,
+    label: 'A six-month transition year',
+    amount: 11814,
+    loaded: true,
+    severity: 'not-comparable',
+    // ⚠⚠ THE FIGURES ARE CORRECT. The period is genuinely shorter.
+    what:
+      'Bishop moved its fiscal year end from 31 December to 30 June in FY2010, so that year '
+      + 'covers SIX MONTHS. ⚠ THE FORM DECLARES NOTHING — it reports V99 = 12 — and only the '
+      + 'money shows the stub, which is the Talbot FY2022 shape. Operating comes to $11,814 '
+      + 'against a $26,767 mean of FY2009 and FY2011 — a ratio of 0.441 where 6 twelfths is '
+      + '0.500.',
+    magnitude: [
+      'Operating ratio 0.441 against the neighbour mean (FY2009 and FY2011).',
+      'Revenue ratio 0.553 — $28,066 against $50,752.',
+      '⚠ A collection cycle does not divide neatly into a part-year stub, so the revenue '
+      + 'ratio and the expenditure ratio need not agree. Both figures are shown exactly as '
+      + 'filed.',
+      '⚠ Bishop is a town whose entire annual spending is under $100,000, so single '
+      + 'purchases move these ratios and none of them should be read closely.',
+    ],
+    verifiedBecause: [
+      'The money carries it: 0.441 of the neighbour mean where 0.500 is expected, with the '
+      + 'year-end moving in the same year.',
+      'Its FY2016-2025 filings report 30 June — the far side of the change, recorded '
+      + 'independently of the v1 form.',
+      '⚠⚠ TWO SIGNALS, NOT ONE. The FY2016-2025 sweep established that the months-reported '
+      + 'field ALONE cannot find stubs, and the statewide county sweep established that an '
+      + 'isolated year carrying FULL-year money is a keying slip rather than a change. Both '
+      + 'tests were applied here.',
+    ],
+    benignExplanations: [
+      'A deliberate, lawful change of fiscal calendar, which Georgia governments make by '
+      + 'local ordinance and which the DCA form has a field to declare.',
+    ],
+    corroboration:
+      'The government’s own filings on both sides report the two different year-ends in the '
+      + 'right order, and the short year is visible in the declared months, the money, or '
+      + 'both.',
+  },
+  {
+    id: 'talbotton-fy2014-six-month-transition-year',
+    entity: 'Talbotton',
+    state: 'GA',
+    fiscalYear: 2014,
+    dataset: 'operating and revenue',
+    section: 'the whole filing',
+    ucoa: null,
+    label: 'A six-month transition year',
+    amount: 121613,
+    loaded: true,
+    severity: 'not-comparable',
+    // ⚠⚠ THE FIGURES ARE CORRECT. The period is genuinely shorter.
+    what:
+      'Talbotton moved its fiscal year end from 31 December to 30 June in FY2014, so that '
+      + 'year covers SIX MONTHS. The filing declares it: the v1 form’s months-reported field '
+      + '(V99) reads 6, not 12. Operating comes to $121,613 against a $366,042 mean of FY2013 '
+      + 'and FY2015 — a ratio of 0.332 where 6 twelfths is 0.500.',
+    magnitude: [
+      'Operating ratio 0.332 against the neighbour mean (FY2013 and FY2015).',
+      'Revenue ratio 0.325 — $118,143 against $364,022.',
+      '⚠ A collection cycle does not divide neatly into a part-year stub, so the revenue '
+      + 'ratio and the expenditure ratio need not agree. Both figures are shown exactly as '
+      + 'filed.',
+    ],
+    verifiedBecause: [
+      'The form states the short period ITSELF — V99 reads 6 in this filing and 12 in every '
+      + 'other v1 filing this government made.',
+      'Its FY2016-2025 filings report 30 June — the far side of the change, recorded '
+      + 'independently of the v1 form.',
+      '⚠⚠ TWO SIGNALS, NOT ONE. The FY2016-2025 sweep established that the months-reported '
+      + 'field ALONE cannot find stubs, and the statewide county sweep established that an '
+      + 'isolated year carrying FULL-year money is a keying slip rather than a change. Both '
+      + 'tests were applied here.',
+    ],
+    benignExplanations: [
+      'A deliberate, lawful change of fiscal calendar, which Georgia governments make by '
+      + 'local ordinance and which the DCA form has a field to declare.',
+    ],
+    corroboration:
+      'The government’s own filings on both sides report the two different year-ends in the '
+      + 'right order, and the short year is visible in the declared months, the money, or '
+      + 'both.',
+  },
+  {
+    id: 'nicholson-fy2009-six-month-transition-year',
+    entity: 'Nicholson',
+    state: 'GA',
+    fiscalYear: 2009,
+    dataset: 'operating and revenue',
+    section: 'the whole filing',
+    ucoa: null,
+    label: 'A six-month transition year',
+    amount: 232781,
+    loaded: true,
+    severity: 'not-comparable',
+    // ⚠⚠ THE FIGURES ARE CORRECT. The period is genuinely shorter.
+    what:
+      'Nicholson reports a SHORT PERIOD in FY2009 without changing its year-end inside this '
+      + 'window, so that year covers SIX MONTHS. The filing declares it: the v1 form’s '
+      + 'months-reported field (V99) reads 6, not 12. Operating comes to $232,781 against a '
+      + '$556,175 mean of FY2010 — a ratio of 0.419 where 6 twelfths is 0.500.',
+    magnitude: [
+      'Operating ratio 0.419 against the neighbour mean (FY2010).',
+      'Revenue ratio 0.526 — $336,405 against $639,198.',
+      '⚠ A collection cycle does not divide neatly into a part-year stub, so the revenue '
+      + 'ratio and the expenditure ratio need not agree. Both figures are shown exactly as '
+      + 'filed.',
+      '⚠ Unlike the others here, Nicholson’s year-END does not change inside this window: '
+      + 'it reports 31 December in this year and in every later one. The short period is the '
+      + 'tail of a change made BEFORE FY2009, which DCA does not publish, so only the '
+      + 'declared six months and the money show it at all.',
+    ],
+    verifiedBecause: [
+      'The form states the short period ITSELF — V99 reads 6 in this filing and 12 in every '
+      + 'other v1 filing this government made.',
+      'Its own later filings report the same year-end throughout, so this is the tail of a '
+      + 'change made before the window rather than a disagreement to resolve.',
+      '⚠⚠ TWO SIGNALS, NOT ONE. The FY2016-2025 sweep established that the months-reported '
+      + 'field ALONE cannot find stubs, and the statewide county sweep established that an '
+      + 'isolated year carrying FULL-year money is a keying slip rather than a change. Both '
+      + 'tests were applied here.',
+    ],
+    benignExplanations: [
+      'A deliberate, lawful change of fiscal calendar, which Georgia governments make by '
+      + 'local ordinance and which the DCA form has a field to declare.',
+    ],
+    corroboration:
+      'The government’s own filings on both sides report the two different year-ends in the '
+      + 'right order, and the short year is visible in the declared months, the money, or '
+      + 'both.',
+  },
 ]);
 
 /**
@@ -1664,6 +2028,104 @@ export const GA_FORM_TOTAL_DEFECTS = Object.freeze([
       + '2020-06-CENSUS-0000218217, Statement of Activities) report $117,000 of culture and '
       + 'recreation expense for FY2020; and Hawkinsville\'s own nine other filings all tie '
       + 'with this section populated.',
+  },
+  {
+    id: 'braselton-fy2013-3a-total-includes-section-b',
+    cicoid: '2078002',
+    entity: 'Braselton',
+    state: 'GA',
+    fiscalYear: 2013,
+    dataset: 'revenue',
+    section: '3A',
+    sectionLabel: 'Service Charges',
+    // All three are pinned by the loader. A mismatch in any of them refuses.
+    formTotal: 1116404.00,
+    itemsTotal: 65810.00,
+    shortfall: -1050594.00,
+    loaded: 'items',
+    what:
+      'Braselton FY2013, Part III Section A: the printed "Total Section A" reads '
+      + '$1,116,404 while its own line rows sum to $65,810. The difference is '
+      + 'EXACTLY the printed "Total Section B" of $1,050,594 — the Section A total cell '
+      + 'is summing BOTH sections. Verified to the cent in FY2013 and FY2014, the only two '
+      + 'years Braselton does it.',
+    why:
+      '⚠⚠ THE FIRST MEASURED CASE OF A BROKEN PRINTED TOTAL ON THE REVENUE SIDE. Every '
+      + 'earlier GA_FORM_TOTAL_DEFECTS entry is an expenditure section, and `explainChecks` '
+      + 'only ever examined checks tagged EXP — so this defect could not be accounted for at '
+      + 'all and refused the whole filing, for a fault in DCA’s spreadsheet rather than in '
+      + 'the read. The gate now covers both sides. '
+      + '⚠ TT loads the LINE ITEMS and never the broken total, as it does for the '
+      + 'expenditure cases. Loading the printed figure would overstate Braselton’s service '
+      + 'charges 17-fold and double-count its other revenues.',
+    verifiedBecause: [
+      'The gap is an ARITHMETIC IDENTITY on the page itself: Section A’s nine printed line '
+        + 'rows sum to $65,810, the printed Total Section B is $1,050,594, and those two '
+        + 'add to $1,116,404 exactly — the printed Total Section A. Checked on the page, '
+        + 'independent of how TT parses it.',
+      'It happens in TWO separate filings with the same fingerprint and in no other year '
+        + 'Braselton filed, so it is a property of those two workbooks rather than of the '
+        + 'reader or of the form generation.',
+      'Braselton’s other five v1 filings tie 9/9 with no exception, as do all ten of its '
+        + 'FY2016-2025 filings.',
+    ],
+    benignExplanations: [
+      'A spreadsheet total whose range was dragged one section too far when the preparer '
+        + 'filled the form — the commonest way a printed subtotal goes wrong in this corpus.',
+    ],
+    corroboration:
+      'Verified against an INDEPENDENT arithmetic identity on the printed page (items + Total '
+      + 'Section B == the printed Total Section A, to the cent) and reproduced in a second '
+      + 'fiscal year, rather than resting on a single reading of one workbook.',
+  },
+  {
+    id: 'braselton-fy2014-3a-total-includes-section-b',
+    cicoid: '2078002',
+    entity: 'Braselton',
+    state: 'GA',
+    fiscalYear: 2014,
+    dataset: 'revenue',
+    section: '3A',
+    sectionLabel: 'Service Charges',
+    // All three are pinned by the loader. A mismatch in any of them refuses.
+    formTotal: 1377765.00,
+    itemsTotal: 67164.00,
+    shortfall: -1310601.00,
+    loaded: 'items',
+    what:
+      'Braselton FY2014, Part III Section A: the printed "Total Section A" reads '
+      + '$1,377,765 while its own line rows sum to $67,164. The difference is '
+      + 'EXACTLY the printed "Total Section B" of $1,310,601 — the Section A total cell '
+      + 'is summing BOTH sections. Verified to the cent in FY2013 and FY2014, the only two '
+      + 'years Braselton does it.',
+    why:
+      '⚠⚠ THE FIRST MEASURED CASE OF A BROKEN PRINTED TOTAL ON THE REVENUE SIDE. Every '
+      + 'earlier GA_FORM_TOTAL_DEFECTS entry is an expenditure section, and `explainChecks` '
+      + 'only ever examined checks tagged EXP — so this defect could not be accounted for at '
+      + 'all and refused the whole filing, for a fault in DCA’s spreadsheet rather than in '
+      + 'the read. The gate now covers both sides. '
+      + '⚠ TT loads the LINE ITEMS and never the broken total, as it does for the '
+      + 'expenditure cases. Loading the printed figure would overstate Braselton’s service '
+      + 'charges 17-fold and double-count its other revenues.',
+    verifiedBecause: [
+      'The gap is an ARITHMETIC IDENTITY on the page itself: Section A’s nine printed line '
+        + 'rows sum to $67,164, the printed Total Section B is $1,310,601, and those two '
+        + 'add to $1,377,765 exactly — the printed Total Section A. Checked on the page, '
+        + 'independent of how TT parses it.',
+      'It happens in TWO separate filings with the same fingerprint and in no other year '
+        + 'Braselton filed, so it is a property of those two workbooks rather than of the '
+        + 'reader or of the form generation.',
+      'Braselton’s other five v1 filings tie 9/9 with no exception, as do all ten of its '
+        + 'FY2016-2025 filings.',
+    ],
+    benignExplanations: [
+      'A spreadsheet total whose range was dragged one section too far when the preparer '
+        + 'filled the form — the commonest way a printed subtotal goes wrong in this corpus.',
+    ],
+    corroboration:
+      'Verified against an INDEPENDENT arithmetic identity on the printed page (items + Total '
+      + 'Section B == the printed Total Section A, to the cent) and reproduced in a second '
+      + 'fiscal year, rather than resting on a single reading of one workbook.',
   },
 ]);
 
@@ -2348,6 +2810,96 @@ export const GA_FYE_MONTH_DEFECTS = Object.freeze([
       + "between them. ⚠ FAC does not cover FY2025, so this rests on the entity's "
       + "own 7-year consistency alone.",
   },
+  {
+    id: 'alapaha-fy2011-december-for-october',
+    cicoid: '2010001', entity: 'Alapaha', fiscalYear: 2011,
+    formMonth: 1, formText: 'December 31', month: 11,
+    corroboration:
+      'An ISOLATED year carrying a FULL year of money (0.984 of the entity’s own v1 mean), '
+      + 'which is the keying-slip fingerprint: its other four v1 filings all print "October '
+      + '31", as do all nine v2 filings FY2016-2024. A real calendar change in this corpus is a '
+      + 'SUSTAINED run on both sides, and usually declares a stub in V99 or shows one in the '
+      + 'money. This does neither.',
+  },
+  {
+    id: 'morgan-fy2012-december-for-june',
+    cicoid: '2019003', entity: 'Morgan', fiscalYear: 2012,
+    formMonth: 1, formText: 'December 31', month: 7,
+    corroboration:
+      'An ISOLATED year carrying a FULL year of money (1.141 of the entity’s own v1 mean), '
+      + 'which is the keying-slip fingerprint: its other six v1 filings all print "June 30", as '
+      + 'do all eight v2 filings. A real calendar change in this corpus is a SUSTAINED run on '
+      + 'both sides, and usually declares a stub in V99 or shows one in the money. This does '
+      + 'neither.',
+  },
+  {
+    id: 'carrollton-fy2011-december-for-june',
+    cicoid: '2022002', entity: 'Carrollton', fiscalYear: 2011,
+    formMonth: 1, formText: 'December 31', month: 7,
+    corroboration:
+      'An ISOLATED year carrying a FULL year of money (1.041 of the entity’s own v1 mean), '
+      + 'which is the keying-slip fingerprint: its other five v1 filings all print "June 30", '
+      + 'as do all ten v2 filings FY2016-2025. A real calendar change in this corpus is a '
+      + 'SUSTAINED run on both sides, and usually declares a stub in V99 or shows one in the '
+      + 'money. This does neither.',
+  },
+  {
+    id: 'lavonia-fy2013-june-for-december',
+    cicoid: '2059004', entity: 'Lavonia', fiscalYear: 2013,
+    formMonth: 7, formText: 'June 30', month: 1,
+    corroboration:
+      'An ISOLATED year carrying a FULL year of money (1.019 of the entity’s own v1 mean), '
+      + 'which is the keying-slip fingerprint: its other six v1 filings all print "December '
+      + '31", as do all nine v2 filings. A real calendar change in this corpus is a SUSTAINED '
+      + 'run on both sides, and usually declares a stub in V99 or shows one in the money. This '
+      + 'does neither.',
+  },
+  {
+    id: 'nicholson-fy2010-june-for-december',
+    cicoid: '2078502', entity: 'Nicholson', fiscalYear: 2010,
+    formMonth: 7, formText: 'June 30', month: 1,
+    corroboration:
+      'An ISOLATED year carrying a FULL year of money (1.071 of the entity’s own v1 mean), '
+      + 'which is the keying-slip fingerprint: its other six v1 filings all print "December '
+      + '31", as do all ten v2 filings FY2016-2025. A real calendar change in this corpus is a '
+      + 'SUSTAINED run on both sides, and usually declares a stub in V99 or shows one in the '
+      + 'money. This does neither.',
+  },
+  {
+    id: 'tiger-fy2010-june-for-december',
+    cicoid: '2119005', entity: 'Tiger', fiscalYear: 2010,
+    formMonth: 7, formText: 'June 30', month: 1,
+    corroboration:
+      'An ISOLATED year carrying a FULL year of money (2.180 of the entity’s own v1 mean), '
+      + 'which is the keying-slip fingerprint: its other six v1 filings all print "December '
+      + '31", as do all eight v2 filings. The 2.180 ratio is itself odd and is NOT explained '
+      + 'here — it is recorded as an open observation on a town whose whole budget is under '
+      + '$250,000. A real calendar change in this corpus is a SUSTAINED run on both sides, and '
+      + 'usually declares a stub in V99 or shows one in the money. This does neither.',
+  },
+  {
+    id: 'stockbridge-fy2015-may-for-december',
+    cicoid: '2075004', entity: 'Stockbridge', fiscalYear: 2015,
+    formMonth: 6, formText: 'May 31', month: 1,
+    corroboration:
+      'An ISOLATED year carrying a FULL year of money (0.734 of the entity’s own v1 mean), '
+      + 'which is the keying-slip fingerprint: its other six v1 filings all print "December '
+      + '31", AND ALL TEN v2 FILINGS FY2016-2025 DO TOO — so this is not the first year of a '
+      + 'change, which is the reading a last-year anomaly would otherwise invite. A real '
+      + 'calendar change in this corpus is a SUSTAINED run on both sides, and usually declares '
+      + 'a stub in V99 or shows one in the money. This does neither.',
+  },
+  {
+    id: 'blackshear-fy2015-december-for-june',
+    cicoid: '2113001', entity: 'Blackshear', fiscalYear: 2015,
+    formMonth: 1, formText: 'December 31', month: 7,
+    corroboration:
+      'An ISOLATED year carrying a FULL year of money (1.076 of the entity’s own v1 mean), '
+      + 'which is the keying-slip fingerprint: its other six v1 filings all print "June 30", '
+      + 'AND ALL TEN v2 FILINGS FY2016-2025 DO TOO — so this is not the first year of a change. '
+      + 'A real calendar change in this corpus is a SUSTAINED run on both sides, and usually '
+      + 'declares a stub in V99 or shows one in the money. This does neither.',
+  },
 ]);
 
 /** The recorded calendar change for one government, or null. */
@@ -2565,6 +3117,211 @@ export const GA_UNVERIFIABLE_FILINGS = Object.freeze([
         + 'municipalities with no FAC coverage. It was not pursued here for one $673.79 '
         + 'discrepancy.',
     ],
+  },
+  {
+    id: 'albany-fy2010-part-five-total-is-ref',
+    cicoid: '2047001',
+    entity: 'Albany',
+    state: 'GA',
+    fiscalYear: 2010,
+    dataset: 'operating',
+    skipped: Object.freeze(["exp Part V"]),
+    failed: Object.freeze([]),
+    what:
+      'the printed TOTAL PART V cell V509 is an Excel #REF! error, so that check is SKIPPED '
+      + 'for want of anything to compare the tree against. Its revenue side verifies in full '
+      + '(8 of 8 checks) at $145,918,753, and the expenditure tree reads $57,821,820 — but '
+      + 'nothing the publisher printed can confirm that figure.',
+    verifiedBecause: [
+      'The errors are in DCA’s published .xls itself, not in TT’s conversion: xlsToXlsx.py '
+      + '--check re-read every written cell against the source and all 26,357,000 cells '
+      + 'across the 4,551 converted v1 workbooks round-trip.',
+      'The printed pages are intact and the tree reads ordinary figures. ⚠⚠ BUT '
+      + 'PLAUSIBILITY IS NOT A MEASUREMENT. The filing is excluded rather than published '
+      + 'unverified, which is the same rule the FY2016-2025 sweep applied to Gwinnett '
+      + 'FY2018/FY2023 and Upson FY2021.',
+    ],
+    benignExplanations: [
+      'A formula whose reference collapsed when a row was inserted or deleted in the '
+      + 'preparer’s copy of the workbook, which DCA reconciles against nothing and so does '
+      + 'not reject.',
+    ],
+    corroboration:
+      'The skipped checks are pinned individually in this entry, so a filing failing a '
+      + 'DIFFERENT check, or a different number of them, matches nothing and still refuses '
+      + 'the load.',
+  },
+  {
+    id: 'baldwin-city-fy2010-every-subtotal-is-ref',
+    cicoid: '2068002',
+    entity: 'Baldwin',
+    state: 'GA',
+    fiscalYear: 2010,
+    dataset: 'operating and revenue',
+    skipped: Object.freeze(["rev 1A","rev 1B","rev 1C","rev 1D","rev 2","rev 3A","rev 3B","exp Part V"]),
+    failed: Object.freeze([]),
+    what:
+      'EVERY ONE of the eight subtotal cells the oracle reads is an Excel #REF! error, so '
+      + 'those checks are SKIPPED for want of anything to compare the tree against. Both '
+      + 'trees also come to $0.00, so there is nothing to publish and nothing to check it '
+      + 'against — the two failure modes at once. ⚠ Not to be confused with BALDWIN COUNTY '
+      + '(1005005), a different government whose FY2010 is a declared nine-month transition '
+      + 'stub and loads normally.',
+    verifiedBecause: [
+      'The errors are in DCA’s published .xls itself, not in TT’s conversion: xlsToXlsx.py '
+      + '--check re-read every written cell against the source and all 26,357,000 cells '
+      + 'across the 4,551 converted v1 workbooks round-trip.',
+      'The printed pages are intact and the tree reads ordinary figures. ⚠⚠ BUT '
+      + 'PLAUSIBILITY IS NOT A MEASUREMENT. The filing is excluded rather than published '
+      + 'unverified, which is the same rule the FY2016-2025 sweep applied to Gwinnett '
+      + 'FY2018/FY2023 and Upson FY2021.',
+    ],
+    benignExplanations: [
+      'A formula whose reference collapsed when a row was inserted or deleted in the '
+      + 'preparer’s copy of the workbook, which DCA reconciles against nothing and so does '
+      + 'not reject.',
+    ],
+    corroboration:
+      'The skipped checks are pinned individually in this entry, so a filing failing a '
+      + 'DIFFERENT check, or a different number of them, matches nothing and still refuses '
+      + 'the load.',
+  },
+  {
+    id: 'hoschton-fy2012-three-tax-subtotals-are-ref',
+    cicoid: '2078004',
+    entity: 'Hoschton',
+    state: 'GA',
+    fiscalYear: 2012,
+    dataset: 'revenue',
+    skipped: Object.freeze(["rev 1B","rev 1C","rev 1D"]),
+    failed: Object.freeze([]),
+    what:
+      'the printed Part I section totals V113, V119 and V124 is an Excel #REF! error, so '
+      + 'those checks are SKIPPED for want of anything to compare the tree against. Section '
+      + '1A and all of Parts II and III verify normally, so five of the eight checks run and '
+      + 'pass. ⚠ THREE OF EIGHT IS STILL A REFUSAL: the sections that cannot be checked carry '
+      + 'a government’s sales, excise and licence taxes, and "the other five tied" is not '
+      + 'evidence about them.',
+    verifiedBecause: [
+      'The errors are in DCA’s published .xls itself, not in TT’s conversion: xlsToXlsx.py '
+      + '--check re-read every written cell against the source and all 26,357,000 cells '
+      + 'across the 4,551 converted v1 workbooks round-trip.',
+      'The printed pages are intact and the tree reads ordinary figures. ⚠⚠ BUT '
+      + 'PLAUSIBILITY IS NOT A MEASUREMENT. The filing is excluded rather than published '
+      + 'unverified, which is the same rule the FY2016-2025 sweep applied to Gwinnett '
+      + 'FY2018/FY2023 and Upson FY2021.',
+    ],
+    benignExplanations: [
+      'A formula whose reference collapsed when a row was inserted or deleted in the '
+      + 'preparer’s copy of the workbook, which DCA reconciles against nothing and so does '
+      + 'not reject.',
+    ],
+    corroboration:
+      'The skipped checks are pinned individually in this entry, so a filing failing a '
+      + 'DIFFERENT check, or a different number of them, matches nothing and still refuses '
+      + 'the load.',
+  },
+  {
+    id: 'pendergrass-fy2012-three-tax-subtotals-are-ref',
+    cicoid: '2078006',
+    entity: 'Pendergrass',
+    state: 'GA',
+    fiscalYear: 2012,
+    dataset: 'revenue',
+    skipped: Object.freeze(["rev 1B","rev 1C","rev 1D"]),
+    failed: Object.freeze([]),
+    what:
+      'the printed Part I section totals V113, V119 and V124 is an Excel #REF! error, so '
+      + 'those checks are SKIPPED for want of anything to compare the tree against. ⭐ THE '
+      + 'SAME THREE CELLS AS HOSCHTON FY2012, and both are towns in JACKSON COUNTY (CICOIDs '
+      + '2078004 and 2078006) filing for the same year. Two neighbouring preparers hitting '
+      + 'the identical three cells points at a shared workbook or a shared source rather than '
+      + 'at two independent accidents — recorded because it is the kind of pattern that '
+      + 'predicts where the next one will be.',
+    verifiedBecause: [
+      'The errors are in DCA’s published .xls itself, not in TT’s conversion: xlsToXlsx.py '
+      + '--check re-read every written cell against the source and all 26,357,000 cells '
+      + 'across the 4,551 converted v1 workbooks round-trip.',
+      'The printed pages are intact and the tree reads ordinary figures. ⚠⚠ BUT '
+      + 'PLAUSIBILITY IS NOT A MEASUREMENT. The filing is excluded rather than published '
+      + 'unverified, which is the same rule the FY2016-2025 sweep applied to Gwinnett '
+      + 'FY2018/FY2023 and Upson FY2021.',
+    ],
+    benignExplanations: [
+      'A formula whose reference collapsed when a row was inserted or deleted in the '
+      + 'preparer’s copy of the workbook, which DCA reconciles against nothing and so does '
+      + 'not reject.',
+    ],
+    corroboration:
+      'The skipped checks are pinned individually in this entry, so a filing failing a '
+      + 'DIFFERENT check, or a different number of them, matches nothing and still refuses '
+      + 'the load.',
+  },
+  {
+    id: 'comer-fy2010-part-five-second-column-total-is-ref',
+    cicoid: '2097003',
+    entity: 'Comer',
+    state: 'GA',
+    fiscalYear: 2010,
+    dataset: 'operating',
+    skipped: Object.freeze(["exp Part V"]),
+    failed: Object.freeze([]),
+    what:
+      'the printed TOTAL PART V cell V510, the equipment column is an Excel #REF! error, so '
+      + 'that check is SKIPPED for want of anything to compare the tree against. V509 and '
+      + 'V511 are intact; only the middle object column’s total is broken. The oracle sums '
+      + 'all three, so one error disables the whole check — deliberately, because a partial '
+      + 'total is not a control total.',
+    verifiedBecause: [
+      'The errors are in DCA’s published .xls itself, not in TT’s conversion: xlsToXlsx.py '
+      + '--check re-read every written cell against the source and all 26,357,000 cells '
+      + 'across the 4,551 converted v1 workbooks round-trip.',
+      'The printed pages are intact and the tree reads ordinary figures. ⚠⚠ BUT '
+      + 'PLAUSIBILITY IS NOT A MEASUREMENT. The filing is excluded rather than published '
+      + 'unverified, which is the same rule the FY2016-2025 sweep applied to Gwinnett '
+      + 'FY2018/FY2023 and Upson FY2021.',
+    ],
+    benignExplanations: [
+      'A formula whose reference collapsed when a row was inserted or deleted in the '
+      + 'preparer’s copy of the workbook, which DCA reconciles against nothing and so does '
+      + 'not reject.',
+    ],
+    corroboration:
+      'The skipped checks are pinned individually in this entry, so a filing failing a '
+      + 'DIFFERENT check, or a different number of them, matches nothing and still refuses '
+      + 'the load.',
+  },
+  {
+    id: 'crawfordville-fy2012-part-five-total-is-ref',
+    cicoid: '2131001',
+    entity: 'Crawfordville',
+    state: 'GA',
+    fiscalYear: 2012,
+    dataset: 'operating',
+    skipped: Object.freeze(["exp Part V"]),
+    failed: Object.freeze([]),
+    what:
+      'the printed TOTAL PART V cell V509 is an Excel #REF! error, so that check is SKIPPED '
+      + 'for want of anything to compare the tree against. Its revenue side verifies in full '
+      + 'at $808,531.',
+    verifiedBecause: [
+      'The errors are in DCA’s published .xls itself, not in TT’s conversion: xlsToXlsx.py '
+      + '--check re-read every written cell against the source and all 26,357,000 cells '
+      + 'across the 4,551 converted v1 workbooks round-trip.',
+      'The printed pages are intact and the tree reads ordinary figures. ⚠⚠ BUT '
+      + 'PLAUSIBILITY IS NOT A MEASUREMENT. The filing is excluded rather than published '
+      + 'unverified, which is the same rule the FY2016-2025 sweep applied to Gwinnett '
+      + 'FY2018/FY2023 and Upson FY2021.',
+    ],
+    benignExplanations: [
+      'A formula whose reference collapsed when a row was inserted or deleted in the '
+      + 'preparer’s copy of the workbook, which DCA reconciles against nothing and so does '
+      + 'not reject.',
+    ],
+    corroboration:
+      'The skipped checks are pinned individually in this entry, so a filing failing a '
+      + 'DIFFERENT check, or a different number of them, matches nothing and still refuses '
+      + 'the load.',
   },
 ]);
 
@@ -2880,6 +3637,92 @@ export const GA_EMPTY_DATASETS = Object.freeze([
       + 'expenditure on average across its 2 other filed years, and the revenue side of '
       + 'this same filing reports $715,738 and verifies normally.',
   },
+  {
+    id: 'graham-fy2011-part-five-blank',
+    cicoid: '2001501', entity: 'Graham', state: 'GA', fiscalYear: 2011,
+    dataset: 'operating',
+    what:
+      'All 36 Part V functions are $0.00 and the printed TOTAL PART V is $0.00 too, so the '
+      + 'oracle ties AT ZERO having measured nothing. The revenue side of the same filing '
+      + 'reports $74,651 and verifies normally. Graham’s own neighbouring years show it '
+      + 'plainly spent money: FY2012 reports $96,743 and FY2013 $161,778.',
+    why:
+      '⚠ This is also the year whose month makes Graham’s calendar change unprovable from '
+      + 'the money — see `graham-fy2012-june-to-september`. A blank Part V removes the one '
+      + 'signal that separates a change from a slip, which is why that entry RECORDS what the '
+      + 'form says rather than overriding it.',
+  },
+  {
+    id: 'bethlehem-fy2013-part-five-blank',
+    cicoid: '2007002', entity: 'Bethlehem', state: 'GA', fiscalYear: 2013,
+    dataset: 'operating',
+    what:
+      'All 36 Part V functions are $0.00 and the printed TOTAL PART V is $0.00 too, so the '
+      + 'oracle ties AT ZERO having measured nothing. The revenue side of the same filing '
+      + 'reports $246,064 and verifies normally. Bethlehem’s own neighbouring years show it '
+      + 'plainly spent money: FY2012 reports $636,293 and FY2014 $270,931.',
+  },
+  {
+    id: 'twin-city-fy2015-part-five-blank',
+    cicoid: '2053006', entity: 'Twin City', state: 'GA', fiscalYear: 2015,
+    dataset: 'operating',
+    what:
+      'All 36 Part V functions are $0.00 and the printed TOTAL PART V is $0.00 too, so the '
+      + 'oracle ties AT ZERO having measured nothing. The revenue side of the same filing '
+      + 'reports $1,077,653 and verifies normally. Twin City’s own neighbouring years show it '
+      + 'plainly spent money: FY2014 reports $992,129 and FY2013 $1,117,270.',
+    why:
+      '⚠ Twin City is one of the ELEVEN Georgia places LEGALLY named "... City"; its entity '
+      + 'is not "Twin".',
+  },
+  {
+    id: 'gray-fy2009-part-five-blank',
+    cicoid: '2084001', entity: 'Gray', state: 'GA', fiscalYear: 2009,
+    dataset: 'operating',
+    what:
+      'All 36 Part V functions are $0.00 and the printed TOTAL PART V is $0.00 too, so the '
+      + 'oracle ties AT ZERO having measured nothing. The revenue side of the same filing '
+      + 'reports $1,632,920 and verifies normally. Gray’s own neighbouring years show it '
+      + 'plainly spent money: FY2011 reports $1,913,979 (DCA lists no FY2010 for Gray).',
+  },
+  {
+    id: 'williamson-fy2014-part-five-blank',
+    cicoid: '2114004', entity: 'Williamson', state: 'GA', fiscalYear: 2014,
+    dataset: 'operating',
+    what:
+      'All 36 Part V functions are $0.00 and the printed TOTAL PART V is $0.00 too, so the '
+      + 'oracle ties AT ZERO having measured nothing. The revenue side of the same filing '
+      + 'reports $123,719 and verifies normally. Williamson’s own neighbouring years show it '
+      + 'plainly spent money: FY2013 reports $147,172 and FY2015 $129,025.',
+  },
+  {
+    id: 'mountain-city-fy2010-whole-filing-blank',
+    cicoid: '2119003', entity: 'Mountain City', state: 'GA', fiscalYear: 2010,
+    dataset: 'operating',
+    what:
+      'All 36 Part V functions are $0.00 and the printed TOTAL PART V is $0.00 too, so the '
+      + 'oracle ties AT ZERO having measured nothing. Mountain City’s own neighbouring years '
+      + 'show it plainly spent money: FY2009 reports $220,967 of expenditure and $245,184 of '
+      + 'revenue, FY2011 $335,741 and $321,998.',
+    why:
+      '⚠⚠ BOTH SIDES ARE BLANK, so this filing publishes nothing at all — unlike the other '
+      + 'blank Parts here, whose revenue loads normally. Its subtotals are NOT broken: the '
+      + 'oracle runs in full and ties AT ZERO, which is exactly the shape that makes a blank '
+      + 'filing look verified.',
+  },
+  {
+    id: 'mountain-city-fy2010-whole-filing-blank-revenue',
+    cicoid: '2119003', entity: 'Mountain City', state: 'GA', fiscalYear: 2010,
+    dataset: 'revenue',
+    what:
+      'All 36 Part V functions are $0.00 and the printed TOTAL PART V is $0.00 too, so the '
+      + 'oracle ties AT ZERO having measured nothing. Mountain City’s own neighbouring years '
+      + 'show it plainly spent money: FY2009 reports $245,184 of revenue and FY2011 $321,998.',
+    why:
+      '⚠ The revenue half of `mountain-city-fy2010-whole-filing-blank`. Recorded separately '
+      + 'because the register keys on (government, year, DATASET) and a reader of one half '
+      + 'should not have to find the other.',
+  },
 ]);
 
 /** Is this filing's empty dataset a RECORDED one? */
@@ -3086,6 +3929,128 @@ export const GA_V1_MONTH_CHANGES = Object.freeze([
     corroboration: 'FY2012 operating is $4,657,344, 0.752 of Randolph\'s own v1 mean, against '
       + '0.75 expected. ⚠ Randolph is one of the few GA governments on a MARCH 31 year end, '
       + 'which is why its FY2009-2011 ratios look low against a mean the change pulls upward.',
+  },
+  {
+    id: 'graham-fy2012-june-to-september',
+    cicoid: '2001501', entity: 'Graham',
+    monthByYear: Object.freeze({"2011":7,"2012":10,"2013":10,"2014":10,"2015":10}),
+    declaredBy: null,
+    corroboration:
+      'Its FY2012-2025 filings all report September 30 — four on the v1 form and ten on the '
+      + 'v2 form. **RECORDED, NOT OVERRIDDEN**: FY2011 is the only June year and its Part V is '
+      + 'BLANK, so the money signal that separates a change from a slip does not exist for it. '
+      + 'Writing what each form says needs no evidence; declaring FY2011 a slip would.',
+  },
+  {
+    id: 'metter-fy2011-and-fy2015-two-changes',
+    cicoid: '2021001', entity: 'Metter',
+    monthByYear: Object.freeze({"2009":1,"2010":1,"2011":10,"2012":10,"2013":10,"2014":10,"2015":7}),
+    declaredBy:
+      'the FY2015 filing reports V99 = 9 — a nine-month transition stub',
+    corroboration:
+      'TWO changes: December 31 to September 30 at FY2011, then September 30 to June 30 at '
+      + 'FY2015, which the form declares. Its v2 filings report June 30 in all ten years '
+      + 'FY2016-2025.',
+  },
+  {
+    id: 'mount-zion-fy2013-september-to-december',
+    cicoid: '2022003', entity: 'Mount Zion',
+    monthByYear: Object.freeze({"2009":10,"2010":10,"2011":10,"2012":10,"2013":1,"2014":1,"2015":1}),
+    declaredBy: null,
+    corroboration:
+      'Four sustained September years then three sustained December years, and its v2 filings '
+      + 'report December 31 in all ten years FY2016-2025. No stub is visible: FY2013 runs 1.225 '
+      + 'of its own mean. A town this size books lumpily and the transition quarter is not '
+      + 'separable in the money, so the sustained runs and the v2 confirmation carry it.',
+  },
+  {
+    id: 'villa-rica-fy2013-march-to-december',
+    cicoid: '2022006', entity: 'Villa Rica',
+    monthByYear: Object.freeze({"2009":4,"2010":4,"2011":4,"2012":4,"2013":1,"2014":1,"2015":1}),
+    declaredBy:
+      'the FY2013 filing reports V99 = 9 — a nine-month transition stub',
+    corroboration:
+      'Its v2 filings report December 31 for FY2016-2017 and then September 30 from FY2018, '
+      + 'where the FY2018 filing declares MosRptd = 9 and MoChng = Yes — a THIRD change, '
+      + 'outside this window and already carried by the v2 registry.',
+  },
+  {
+    id: 'mountain-park-fy2012-december-to-june',
+    cicoid: '2060007', entity: 'Mountain Park',
+    monthByYear: Object.freeze({"2010":1,"2011":1,"2012":7,"2013":7,"2014":7,"2015":7}),
+    declaredBy:
+      'the FY2012 filing reports V99 = 6 — a six-month transition stub',
+    corroboration:
+      'Its v2 filings report June 30 in all nine years FY2016-2024.',
+  },
+  {
+    id: 'norcross-fy2015-december-to-august',
+    cicoid: '2067007', entity: 'Norcross',
+    monthByYear: Object.freeze({"2009":1,"2011":1,"2012":1,"2013":1,"2014":1,"2015":9}),
+    declaredBy: null,
+    corroboration:
+      'THE v2 FILINGS ARE WHAT SETTLE THIS. FY2015 is the only August year in the v1 window '
+      + 'and carries a full year of money (1.008 of its own mean), which is the keying-slip '
+      + 'fingerprint — but Norcross reports August 31 in ALL SEVEN v2 years FY2016-2022. The '
+      + 'change is real and FY2015 is its first year, not a slip.',
+  },
+  {
+    id: 'mcdonough-fy2011-december-to-june',
+    cicoid: '2075003', entity: 'McDonough',
+    monthByYear: Object.freeze({"2009":1,"2010":1,"2011":7,"2012":7,"2013":7,"2014":7,"2015":7}),
+    declaredBy: null,
+    corroboration:
+      'THE FORM DECLARES NOTHING — FY2011 reports V99 = 12 — but it carries 0.454 of '
+      + 'McDonough’s own mean where half a year is 0.500. This is the Talbot FY2022 shape: only '
+      + 'the figures reveal the stub. Its v2 filings report June 30 in all ten years.',
+  },
+  {
+    id: 'colbert-fy2013-september-to-december',
+    cicoid: '2097002', entity: 'Colbert',
+    monthByYear: Object.freeze({"2009":10,"2010":10,"2011":10,"2012":10,"2013":1,"2014":1,"2015":1}),
+    declaredBy: null,
+    corroboration:
+      'Four sustained September years then three sustained December years, and its v2 filings '
+      + 'report December 31 in every year DCA lists (FY2016-2018, FY2020, FY2022). No stub is '
+      + 'visible in the money, as with Mount Zion.',
+  },
+  {
+    id: 'oxford-fy2011-december-to-june',
+    cicoid: '2107004', entity: 'Oxford',
+    monthByYear: Object.freeze({"2009":1,"2010":1,"2011":7,"2012":7,"2013":7,"2014":7,"2015":7}),
+    declaredBy:
+      'the FY2011 filing reports V99 = 6 — a six-month transition stub',
+    corroboration:
+      'Its v2 filings report June 30 in all ten years FY2016-2025.',
+  },
+  {
+    id: 'bishop-fy2010-december-to-june',
+    cicoid: '2108001', entity: 'Bishop',
+    monthByYear: Object.freeze({"2009":1,"2010":7,"2011":7,"2012":7,"2013":7,"2014":7,"2015":7}),
+    declaredBy: null,
+    corroboration:
+      'The form reports V99 = 12, but FY2010 carries 0.244 of Bishop’s own mean — the Talbot '
+      + 'shape again. Its v2 filings report June 30 in FY2016-2018. Bishop is a town whose '
+      + 'whole budget is under $100,000, so its ratios are noisy; the sustained month change on '
+      + 'both sides is the firmer signal.',
+  },
+  {
+    id: 'talbotton-fy2014-december-to-june',
+    cicoid: '2130003', entity: 'Talbotton',
+    monthByYear: Object.freeze({"2012":1,"2013":1,"2014":7,"2015":7}),
+    declaredBy:
+      'the FY2014 filing reports V99 = 6 — a six-month transition stub',
+    corroboration:
+      'Its v2 filings report June 30 in all eight years FY2016-2023.',
+  },
+  {
+    id: 'butler-fy2011-june-to-september',
+    cicoid: '2133001', entity: 'Butler',
+    monthByYear: Object.freeze({"2009":7,"2010":7,"2011":10,"2012":10,"2013":10,"2014":10,"2015":10}),
+    declaredBy: null,
+    corroboration:
+      'Two sustained June years then five sustained September years, and its v2 filings '
+      + 'report September 30 in all ten years FY2016-2025.',
   },
 ]);
 

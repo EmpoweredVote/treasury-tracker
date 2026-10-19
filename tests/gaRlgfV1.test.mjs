@@ -17,7 +17,7 @@ import {
 } from '../scripts/lib/gaRlgfV1.mjs';
 import { REVENUE_SECTIONS } from '../scripts/lib/gaRlgf.mjs';
 import {
-  resolveMonth, assertV1MonthConsistency, unrecordedBlankParts,
+  resolveMonth, assertV1MonthConsistency, unrecordedBlankParts, explainChecks,
 } from '../scripts/loadGeorgiaRLGF.mjs';
 import {
   consolidationOverlap, GA_CONSOLIDATION_OVERLAP, GA_V1_MONTH_CHANGES, fyeMonthDefect,
@@ -892,13 +892,25 @@ describe('GA_V1_MONTH_CHANGES — a split the form itself declares', () => {
     // ⚠⚠ RECORDING a change needs no evidence; this register is not recording,
     // it is telling a GUARD to stand down — so each entry carries both the
     // form's own declaration and an independent measurement of the money.
-    expect(GA_V1_MONTH_CHANGES.length).toBe(7);
+    // 7 counties (statewide county sweep) + 12 municipalities.
+    expect(GA_V1_MONTH_CHANGES.length).toBe(19);
+    expect(GA_V1_MONTH_CHANGES.filter((c) => c.cicoid[0] === '1')).toHaveLength(7);
+    expect(GA_V1_MONTH_CHANGES.filter((c) => c.cicoid[0] === '2')).toHaveLength(12);
     for (const c of GA_V1_MONTH_CHANGES) {
       expect(c.cicoid).toMatch(/^\d{7}$/);
       expect(Object.keys(c.monthByYear).length).toBeGreaterThan(1);
-      expect(c.declaredBy).toBeTruthy();
-      expect(c.corroboration).toBeTruthy();
+      // ⚠⚠ `declaredBy` MAY BE NULL, and the county sweep was wrong to assume
+      // otherwise. All 7 counties happened to declare a stub in V99; only 6 of
+      // the 12 municipalities do. The rest are carried by their FY2016+ filings
+      // (the far side of the change, independent of the v1 form) or by the
+      // money. What is NOT optional is corroboration of some kind, stated — so
+      // the field must be present and deliberate, never merely absent.
+      expect(c).toHaveProperty('declaredBy');
+      expect(c.corroboration.length).toBeGreaterThan(40);
     }
+    // A regression that silently stopped recording declared stubs would leave
+    // the entries looking fine, so the count of them is pinned too.
+    expect(GA_V1_MONTH_CHANGES.filter((c) => c.declaredBy)).toHaveLength(12);
   });
 
   it('⚠ Chattooga is NOT in here — a full year of money is a slip, not a change', () => {
@@ -1028,5 +1040,101 @@ describe('the Part V oracle reads the printed total too, not only the extract', 
     const pageRead = readV1Pages(noTotal);
     const tree = buildV1ExpenditureTree(pageRead, {});
     expect(checkV1ExpenditureTotal(tree, {}, pageRead.totals).skipped).toBe(true);
+  });
+});
+
+describe('explainChecks covers REVENUE sections, not only expenditure', () => {
+  it('⚠⚠ accounts for Braselton FY2013 3A, whose printed total swallows Section B', () => {
+    // MEASURED to the cent in both FY2013 and FY2014: the printed "Total
+    // Section A" equals Section A's own items PLUS the printed Total Section B.
+    // The gate only ever looked at `tag === 'EXP'`, so a revenue section whose
+    // publisher total is provably wrong could never be accounted for and the
+    // whole filing refused — for a defect in DCA's spreadsheet, not in the read.
+    const checks = [{ tag: 'rev', id: '3A', ok: false, expected: 1116404, actual: 65810 }];
+    explainChecks(checks, '2078002', 2013);
+    expect(checks[0].explainedBy).toMatchObject({ id: 'braselton-fy2013-3a-total-includes-section-b' });
+  });
+
+  it('⚠ still refuses a revenue section whose figures do not match the pinned ones', () => {
+    // A defect of a different size is a different filing, not the recorded one.
+    const checks = [{ tag: 'rev', id: '3A', ok: false, expected: 1116404, actual: 70000 }];
+    explainChecks(checks, '2078002', 2013);
+    expect(checks[0].explainedBy).toBeUndefined();
+  });
+
+  it('⚠ does not let a 3A entry excuse a DIFFERENT section of the same filing', () => {
+    const checks = [{ tag: 'rev', id: '3B', ok: false, expected: 1116404, actual: 65810 }];
+    explainChecks(checks, '2078002', 2013);
+    expect(checks[0].explainedBy).toBeUndefined();
+  });
+});
+
+describe('a v1 filing whose form states no month at all', () => {
+  const WINTERVILLE = {
+    cicoid: '2029002', name: 'Winterville', fiscalYearStartMonth: 1,
+    fiscalYears: [2016, 2017, 2018], censusConfirms: false,
+  };
+
+  it('⚠ falls back to the registry month, the way v2 does for a placeholder', () => {
+    // Winterville FY2013 prints the unfilled placeholder "MONTH" — the Baldwin
+    // FY2020 shape. It prints "December 31" in its other SIXTEEN filings across
+    // both generations, so the registry's month is not a guess about this year,
+    // it is the government's settled calendar. Refusing the filing outright
+    // would drop a fully-oracled 9/9 read over a blank metadata cell.
+    const r = resolveMonth(WINTERVILLE, { fyEndMonth: null, fyEndMonthText: 'MONTH' }, 2013);
+    expect(r.ok).toBe(true);
+    expect(r.month).toBe(1);
+    expect(r.confirmed).toBe(false);
+    expect(r.how).toMatch(/registry only/);
+  });
+
+  it('⚠ treats an unparseable date SERIAL the same way', () => {
+    // Doerun FY2010 holds "40908" — an Excel serial that resolves to a date in
+    // 2012, not even inside FY2010. It is junk, not a month.
+    const doerun = { ...WINTERVILLE, cicoid: '2035003', name: 'Doerun' };
+    expect(resolveMonth(doerun, { fyEndMonth: null, fyEndMonthText: '40908' }, 2010).month).toBe(1);
+  });
+
+  it('⚠⚠ still REFUSES when the registry has no month either', () => {
+    const noMonth = { ...WINTERVILLE, fiscalYearStartMonth: null };
+    expect(resolveMonth(noMonth, { fyEndMonth: null, fyEndMonthText: 'MONTH' }, 2013).ok).toBe(false);
+  });
+
+  it('⚠⚠ REFUSES when the government changed calendar and this year is uncovered', () => {
+    // Bacon changed at FY2014. If a year outside its recorded map had no form
+    // month, the entity-level month would be an assertion about the wrong side
+    // of a change — precisely the defaulting this whole branch exists to avoid.
+    const bacon = {
+      cicoid: '1003003', name: 'Bacon County', fiscalYearStartMonth: 7,
+      fiscalYears: [2016, 2017], censusConfirms: false,
+    };
+    expect(resolveMonth(bacon, { fyEndMonth: null, fyEndMonthText: 'MONTH' }, 2012).ok).toBe(false);
+  });
+});
+
+describe('unrecordedBlankParts and the unverifiable register do not double-report', () => {
+  it('⚠ says nothing about a filing already excluded as unverifiable', () => {
+    // Baldwin city FY2010 is BOTH: every one of its eight subtotals is #REF!
+    // AND both its trees are $0.00. It is excluded by
+    // `baldwin-city-fy2010-every-subtotal-is-ref` and writes nothing, so
+    // reporting it again as an unrecorded blank Part would demand a second
+    // register entry for a filing that is already accounted for.
+    const filing = {
+      cicoid: '2068002', fiscalYear: 2010,
+      exp: { roots: [], total: 0 },
+      rev: { roots: [], total: 0 },
+    };
+    expect(unrecordedBlankParts([filing])).toEqual([]);
+  });
+
+  it('still reports a blank Part on a filing the oracle CAN check', () => {
+    const filing = {
+      cicoid: '2119003', fiscalYear: 2011,
+      exp: { roots: [], total: 0 },
+      rev: { roots: [{ id: '1A', label: 'x', amount: 5, items: [] }], total: 5 },
+    };
+    expect(unrecordedBlankParts([filing])).toContainEqual(
+      expect.objectContaining({ cicoid: '2119003', datasetType: 'operating' }),
+    );
   });
 });

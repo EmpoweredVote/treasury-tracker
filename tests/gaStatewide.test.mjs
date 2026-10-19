@@ -514,11 +514,22 @@ describe('the statewide sweep findings reach readers', () => {
     const ids = GA_EMPTY_DATASETS.map((e) => e.id);
     expect(new Set(ids).size, 'duplicate id in GA_EMPTY_DATASETS').toBe(ids.length);
     for (const e of GA_EMPTY_DATASETS) {
-      expect(e.dataset).toBe('operating');
+      expect(['operating', 'revenue']).toContain(e.dataset);
       expect(e.what).toBeTruthy();
-      expect(emptyDataset(e.cicoid, e.fiscalYear, 'operating')).toBe(e);
-      // the REVENUE side of the same filing is not withheld
-      expect(emptyDataset(e.cicoid, e.fiscalYear, 'revenue')).toBeNull();
+      expect(emptyDataset(e.cicoid, e.fiscalYear, e.dataset)).toBe(e);
+    }
+    // ⚠⚠ THE REVENUE SIDE IS WITHHELD ONLY WHERE IT IS ITSELF BLANK, and only
+    // with its own named entry. This read `expect(...'revenue')).toBeNull()`
+    // for every entry, because in three earlier waves a blank Part was always
+    // the EXPENDITURE side of a filing whose revenue was fine. Mountain City
+    // FY2010 is the first filing where BOTH sides are blank, so that filing
+    // publishes nothing at all — which is a different and louder fact than a
+    // government that reported revenue and left its spending blank.
+    const withheld = GA_EMPTY_DATASETS.filter((e) => e.dataset === 'revenue');
+    expect(withheld.map((e) => `${e.entity} FY${e.fiscalYear}`)).toEqual(['Mountain City FY2010']);
+    for (const e of withheld) {
+      expect(emptyDataset(e.cicoid, e.fiscalYear, 'operating'), 'a filing with a blank revenue '
+        + 'side must have its expenditure side recorded too').toBeTruthy();
     }
   });
 });
