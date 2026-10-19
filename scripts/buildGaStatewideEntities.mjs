@@ -63,9 +63,11 @@ import { fyeMonthChange, fyeMonthDefect } from './data/gaRlgfAnomalies.mjs';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const DEFAULT_DIR = join(ROOT, '_acfr-work/ga/sweep/xlsx');
 const DEFAULT_ENUM = join(ROOT, '_acfr-work/ga/sweep/enumeration.json');
+const COUNTY_ENUM = join(ROOT, '_acfr-work/ga/sweep/enumeration.json');
 const OUT_BY_KIND = Object.freeze({
   county: join(ROOT, 'scripts/data/georgiaStatewideEntities.mjs'),
   municipality: join(ROOT, 'scripts/data/georgiaStatewideMunicipalities.mjs'),
+  consolidated: join(ROOT, 'scripts/data/georgiaStatewideConsolidated.mjs'),
 });
 // ⚠⚠ ONE FILE PER KIND. A single default output would have the municipality run
 // OVERWRITE the 148 counties the previous run generated, silently deleting a
@@ -91,6 +93,27 @@ const COUNTY_POP = join(ROOT, 'cache/co-est2024-alldata.csv');
 const PLACE_POP = join(ROOT, 'cache/sub-est2024_13.csv');
 
 export const GA_STATE = 'GA';
+
+/**
+ * Display names for the consolidated governments.
+ *
+ * ⚠ DCA's dropdown strings are not reader-facing names: "Augusta/Richmond CG"
+ * carries an abbreviation and a SLASH, and "Webster County Unified" trails off.
+ * TT already names this class readably — `Macon-Bibb County` and
+ * `Columbus-Muscogee`, both loaded in earlier waves — so these follow suit.
+ *
+ * ⚠ Six entries, declared rather than derived, because there is no rule here to
+ * derive: each government's legal name is its own. The DCA string is kept on
+ * the row as `dcaName` so the mapping is checkable against the source.
+ */
+export const CONSOLIDATED_NAMES = Object.freeze({
+  '3029029': 'Athens-Clarke County',
+  '3121121': 'Augusta-Richmond County',
+  '3026026': 'Cusseta-Chattahoochee County',
+  '3050050': 'Echols County',
+  '3118118': 'Georgetown-Quitman County',
+  '3152152': 'Webster County',
+});
 export const GA_FIRST_YEAR = 2016;
 export const GA_LAST_YEAR = 2025;
 
@@ -437,7 +460,25 @@ export async function buildEntities({
   if (!existsSync(dir)) throw new Error(`no converted workbooks at ${dir} — run fetchGeorgiaRLGF.mjs first`);
   const manifest = JSON.parse(readFileSync(enumeration, 'utf8'));
   const isCounty = kind === 'county';
-  const pops = isCounty ? readCountyPopulations() : readPlacePopulations();
+  const isConsolidated = kind === 'consolidated';
+  const countyPops = readCountyPopulations();
+  const pops = isCounty || isConsolidated ? countyPops : readPlacePopulations();
+  // ⚠⚠ A CONSOLIDATED GOVERNMENT TAKES ITS COUNTY'S POPULATION, NOT ITS CENSUS
+  // PLACE ROW. Six of the eight are coterminous and the two figures agree, but
+  // Athens-Clarke's place row is `(balance)` — 128,691 against Clarke County's
+  // 129,995 — because it EXCLUDES Winterville and Bogart, which are separately
+  // incorporated and separately loaded. Augusta-Richmond is the same at 201,737
+  // against 206,303, excluding Blythe and Hephzibah.
+  //
+  // The unified government IS the county government and serves everyone in the
+  // county, exactly as every other TT county does while its cities are also
+  // loaded. Taking the balance figure would make these two the only county
+  // governments in TT whose population omits their own residents.
+  const countyNameByCicoid = new Map();
+  if (isConsolidated) {
+    const cm = JSON.parse(readFileSync(COUNTY_ENUM, 'utf8'));
+    for (const g of cm.governments) countyNameByCicoid.set(g.cicoid, g.name);
+  }
   const census = buildCensus(GA_STATE);
   // ⚠ A municipality's parent county is derived from its CICOID, never from its
   // name. The county must already EXIST as a TT entity; where the county
@@ -480,7 +521,13 @@ export async function buildEntities({
         why: 'carried by georgiaRlgfEntities.mjs; excluded so two registries cannot claim one CICOID' });
       continue;
     }
-    const pop = isCounty ? pops.get(g.name.trim().toLowerCase()) : joinPlace(g.name, pops);
+    let pop;
+    if (isCounty) pop = pops.get(g.name.trim().toLowerCase());
+    else if (isConsolidated) {
+      const cn = countyNameByCicoid.get(countyCicoidFor(g.cicoid));
+      pop = cn ? countyPops.get(cn.trim().toLowerCase()) : null;
+      if (pop) pop = { ...pop, countyName: cn };
+    } else pop = joinPlace(g.name, pops);
     if (!pop || pop.why) {
       refusals.push({ cicoid: g.cicoid, name: g.name, status: 'no-population',
         why: pop?.why ?? `Census Vintage 2024 has no GA ${kind} named ${JSON.stringify(g.name)}` });
@@ -500,13 +547,20 @@ export async function buildEntities({
     // "Arcade Town" against the census's "Arcade city"), and the census is the
     // source already supplying the population and the one comparable nationally.
     // DCA's own word is kept on the row so the disagreement stays visible.
-    const entityType = isCounty ? 'county' : (pop.censusType ?? 'city');
-    const displayName = isCounty ? g.name : pop.base;
+    // ⚠ A consolidated government is typed `city` with a NULL county, per the
+    // San Francisco / Philadelphia / Macon-Bibb / Columbus-Muscogee precedent:
+    // it is one government doing both jobs, and TT has no type for that.
+    const entityType = isCounty ? 'county' : (isConsolidated ? 'city' : (pop.censusType ?? 'city'));
+    const displayName = isConsolidated
+      ? (CONSOLIDATED_NAMES[g.cicoid] ?? g.name)
+      : (isCounty ? g.name : pop.base);
     const stub = { cicoid: g.cicoid, name: displayName, entityType, censusName: null, censusKind: null };
     // ⚠ FAC writes a municipality's BARE name (`Atlanta`), not the census's
     // `Atlanta city`. Tried bare first, then the full DCA string, which is what
     // a legally "... City" place needs.
-    const facKind = isCounty ? 'county' : 'municipality';
+    // ⚠ No kind filter for a consolidated government: it is neither, and FAC
+    // files them under whatever name survived the consolidation.
+    const facKind = isCounty ? 'county' : (isConsolidated ? null : 'municipality');
     let joined = joinCensusName(displayName, facKind, census);
     if (joined.why && !isCounty) joined = joinCensusName(g.name, facKind, census);
     if (!joined.why) { stub.censusName = joined.censusName; stub.censusKind = joined.kind; }
@@ -519,9 +573,14 @@ export async function buildEntities({
     }
 
     const monthText = months.find((m) => m.month === r.month)?.text ?? null;
-    const parentCicoid = isCounty ? null : countyCicoidFor(g.cicoid);
+    const parentCicoid = isCounty || isConsolidated ? null : countyCicoidFor(g.cicoid);
     entities.push({
-      key: entityKey(displayName + (isCounty ? '' : ` ${entityType}`)),
+      // ⚠ The type suffix disambiguates MUNICIPALITIES only. A consolidated
+      // government has no same-named county entity to collide with — the eight
+      // counties it would clash with file nothing and are absent from TT — so
+      // `echols-county-city` would be noise. The duplicate-key assertion in
+      // loadGeorgiaRLGF.mjs is what proves this, at import time.
+      key: entityKey(displayName + (isCounty || isConsolidated ? '' : ` ${entityType}`)),
       cicoid: g.cicoid,
       name: displayName,
       state: GA_STATE,
@@ -530,7 +589,10 @@ export async function buildEntities({
       population: pop.population,
       populationSource: isCounty
         ? `co-est2024-alldata.csv SUMLEV=050 STATE=13 COUNTY=${pop.fips.slice(2)}`
-        : `sub-est2024_13.csv SUMLEV=162 PLACE=${pop.placeFips} (${pop.censusName}, joined by ${pop.how})`,
+        : (isConsolidated
+          ? `co-est2024-alldata.csv SUMLEV=050 STATE=13 COUNTY=${pop.fips.slice(2)} (${pop.countyName}, `
+            + 'the county this government IS — not its census place row, which may be a `(balance)`)'
+          : `sub-est2024_13.csv SUMLEV=162 PLACE=${pop.placeFips} (${pop.censusName}, joined by ${pop.how})`),
       fiscalYearStartMonth: r.month,
       fiscalYearEndText: monthText,
       censusName: r.censusName ?? null,
@@ -673,8 +735,10 @@ export async function main(argv = process.argv.slice(2), log = console.log) {
   const meta = {
     builtAt: new Date().toISOString().slice(0, 10),
     read: r.read, targets: r.targets, kind: values.kind,
-    windowConst: values.kind === 'municipality' ? 'GA_STATEWIDE_MUNI_WINDOW' : 'GA_STATEWIDE_WINDOW',
-    exportConst: values.kind === 'municipality' ? 'GA_STATEWIDE_MUNICIPALITIES' : 'GA_STATEWIDE_ENTITIES',
+    windowConst: { municipality: 'GA_STATEWIDE_MUNI_WINDOW', consolidated: 'GA_STATEWIDE_CONS_WINDOW' }[values.kind]
+      ?? 'GA_STATEWIDE_WINDOW',
+    exportConst: { municipality: 'GA_STATEWIDE_MUNICIPALITIES', consolidated: 'GA_STATEWIDE_CONSOLIDATED' }[values.kind]
+      ?? 'GA_STATEWIDE_ENTITIES',
     statuses: { confirmed: 0, unverified: 0, 'census-only': 0, conflict: 0, ...r.statuses },
     byReason: r.refusals.reduce((a, x) => ({ ...a, [x.status]: (a[x.status] ?? 0) + 1 }), {}),
     refused: r.refusals.length, first: GA_FIRST_YEAR, last: GA_LAST_YEAR,

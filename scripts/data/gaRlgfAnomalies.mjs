@@ -29,6 +29,47 @@
  * ⚠⚠ THIS IS LOADED AS PUBLISHED. It is not suppressed, capped, or corrected.
  */
 export const GA_FIGURE_FLAGS = Object.freeze([
+
+  {
+    id: 'georgetown-quitman-fy2023-six-month-transition-year',
+    entity: 'Georgetown-Quitman County', state: 'GA', fiscalYear: 2023,
+    dataset: 'operating and revenue', section: 'the whole filing', ucoa: null,
+    label: 'A six-month transition year',
+    amount: 2620719.00, loaded: true, severity: 'not-comparable',
+    // ⚠⚠ THE FIGURES ARE CORRECT. The period is genuinely shorter.
+    what:
+      'Georgetown-Quitman County moved its year end from 31 December to 30 June in FY2023, '
+      + 'so that year covers SIX MONTHS. ⚠ The form does not say so — all ten filings report '
+      + 'MosRptd = 12 and MoChng = No — which is the Talbot FY2022 shape: the months-reported '
+      + 'field cannot be used to find a stub, only the figures can.',
+    magnitude: [
+      'Operating $2,620,719 against a $4,650,280 mean of FY2022 and FY2024 — ratio 0.564.',
+      'Revenue $1,855,762 against a $4,765,256 mean — ratio 0.389.',
+      'A December-to-June move makes the stub exactly half a year, so 0.500 is the figure '
+        + 'both ratios straddle.',
+      '⚠⚠ READER DISTORTION: unflagged, a reader sees revenue fall 63% from FY2022 and then '
+        + 'rise 146% into FY2024. Neither movement happened.',
+    ],
+    verifiedBecause: [
+      'The year end printed on the filings moves: 31 December for FY2016-FY2022, 30 June for '
+        + 'FY2023-FY2025. Three consecutive later filings carry the new date.',
+      'The money independently confirms the length, straddling 0.500 on both sides of the '
+        + 'return without being fitted to it.',
+      '⚠ FAC CANNOT CORROBORATE THIS ONE AND IS NOT CLAIMED TO. It holds no row for this '
+        + 'government covering the window, and its nearest names are ambiguous — "Quitman" '
+        + 'is most likely Quitman CITY in BROOKS county, a different government entirely.',
+    ],
+    benignExplanations: [
+      'A government may change its fiscal calendar; the figures are correct for the period '
+        + 'they cover.',
+      'The months-reported and month-changed fields were left at their defaults while the '
+        + 'year-end date was updated.',
+    ],
+    corroboration:
+      'Two independent lines: the year-end date printed across ten filings, and the size of '
+      + 'the figures. ⚠ No federal audit record exists for this government in the window, so '
+      + 'neither line is external to the publisher — stated rather than glossed.',
+  },
   // ── MUNICIPALITIES: four figures that dwarf their own entity ──────────────
   //
   // ⚠ All four TIE 18/18 — the form's own printed subtotal carries the figure,
@@ -1719,6 +1760,30 @@ export const GA_FYE_MONTH_CHANGES = Object.freeze([
     corroboration: "The form DECLARES the change itself — FY2018 reports MosRptd = 9 and "
       + "MoChng = Yes. FAC reports Villa Rica at month 4: 1999,2000,2002,2003; "
       + "month 10: 2023.",
+  },
+  // ── CONSOLIDATED GOVERNMENTS (statewide sweep, 2026-10-18) ────────────────
+  {
+    id: 'georgetown-quitman-fy2023-december-to-june',
+    cicoid: '3118118',
+    entity: 'Georgetown-Quitman CG',
+    month: 7,
+    monthByYear: Object.freeze({
+      2016: 1, 2017: 1, 2018: 1, 2019: 1, 2020: 1, 2021: 1, 2022: 1,
+    }),
+    declaredBy: null,
+    // ⚠ The form declares NOTHING — all ten filings report MosRptd = 12 and
+    // MoChng = No — so the change rests on two sustained runs and on the size of
+    // the transition year, the Talbot shape.
+    corroboration:
+      'Seven consecutive filings print "December 31" (FY2016-FY2022) and three print '
+      + '"June 30" (FY2023-FY2025); three consecutive years on a new date is not a keying '
+      + 'slip. ⭐ THE MONEY CORROBORATES INDEPENDENTLY: a December-to-June move makes FY2023 '
+      + 'a SIX-MONTH period, and FY2023 reports 0.564 of its neighbours on the expenditure '
+      + 'side and 0.389 on the revenue side, against 0.500 for an exact half year. '
+      + '⚠ FAC cannot help here and is not claimed to: it holds no row for this government '
+      + 'under any name covering the window, and its nearest matches — "Georgetown" '
+      + '(municipality, 1999-2006) and "Quitman" (municipality, month 7) — are ambiguous, '
+      + 'the latter most likely Quitman CITY in BROOKS county rather than Quitman County.',
   },
 ]);
 

@@ -118,6 +118,92 @@ const DCA_NAME = 'Georgia DCA Report of Local Government Finances';
  * the additive pattern `cityBasisNotes` already uses.
  */
 export const figureFlags: Record<string, FigureFlag> = {
+
+  'Georgetown-Quitman County|GA|2023|operating': {
+    id: 'georgetown-quitman-fy2023-six-month-transition-year',
+    severity: 'not-comparable',
+    headline: 'This is a six-month year, not a full one — the county moved its year-end in 2023',
+    summary:
+      'Georgetown-Quitman County closed its books on 31 December through 2022 and on 30 June '
+      + 'from 2023 onwards, so the year shown here covers about six months rather than twelve. '
+      + 'The figure is correct for the period it covers and is shown as filed, but it is not '
+      + 'comparable with the years around it. ⚠ The form itself does not say the period was '
+      + 'short — it still reports twelve months — so the only sign is the size of the figures.',
+    whatThisMeans:
+      'Expect roughly half a normal year here. The fall from 2022 and the rise into 2024 are '
+      + 'the calendar changing, not the county’s finances.',
+    entries: [
+      {
+        title: 'The year-end moves, and the money moves with it',
+        text:
+          'The county’s returns give a year-end of 31 December for 2016 through 2022 and 30 '
+          + 'June for 2023 through 2025. Spending in 2023 is $2.62 million against an average '
+          + 'of $4.65 million in 2022 and 2024 — a ratio of 0.56 — and revenue is $1.86 million '
+          + 'against $4.77 million, a ratio of 0.39. Half a year would be 0.50. Three '
+          + 'consecutive later returns carry the new date, so this is a change of calendar and '
+          + 'not a one-year mistake.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Georgetown-Quitman County FY2022–FY2024',
+        source_url: 'https://apps.dca.ga.gov/development/Research/programs/documents/RLGF/3118118_2023_RLGF_Georgetown-Quitman.xls',
+        source_date: '2026-10-18',
+      },
+      {
+        title: '⚠ What the form gets wrong, and what cannot be checked',
+        text:
+          'The 2023 report answers “No” to the question about whether the fiscal year changed '
+          + 'and reports twelve months, while reporting about six months of money. The figures '
+          + 'themselves reconcile to the report’s own printed totals. There is also no '
+          + 'independently audited statement to check this against: the county files no federal '
+          + 'Single Audit covering these years.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Georgetown-Quitman County FY2023',
+        source_url: 'https://apps.dca.ga.gov/development/Research/programs/documents/RLGF/3118118_2023_RLGF_Georgetown-Quitman.xls',
+        source_date: '2026-10-18',
+      },
+    ],
+  },
+
+
+  'Georgetown-Quitman County|GA|2023|revenue': {
+    id: 'georgetown-quitman-fy2023-six-month-transition-year',
+    severity: 'not-comparable',
+    headline: 'This is a six-month year, not a full one — the county moved its year-end in 2023',
+    summary:
+      'Georgetown-Quitman County closed its books on 31 December through 2022 and on 30 June '
+      + 'from 2023 onwards, so the year shown here covers about six months rather than twelve. '
+      + 'The figure is correct for the period it covers and is shown as filed, but it is not '
+      + 'comparable with the years around it. ⚠ The form itself does not say the period was '
+      + 'short — it still reports twelve months — so the only sign is the size of the figures.',
+    whatThisMeans:
+      'Expect roughly half a normal year here. The fall from 2022 and the rise into 2024 are '
+      + 'the calendar changing, not the county’s finances.',
+    entries: [
+      {
+        title: 'The year-end moves, and the money moves with it',
+        text:
+          'The county’s returns give a year-end of 31 December for 2016 through 2022 and 30 '
+          + 'June for 2023 through 2025. Spending in 2023 is $2.62 million against an average '
+          + 'of $4.65 million in 2022 and 2024 — a ratio of 0.56 — and revenue is $1.86 million '
+          + 'against $4.77 million, a ratio of 0.39. Half a year would be 0.50. Three '
+          + 'consecutive later returns carry the new date, so this is a change of calendar and '
+          + 'not a one-year mistake.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Georgetown-Quitman County FY2022–FY2024',
+        source_url: 'https://apps.dca.ga.gov/development/Research/programs/documents/RLGF/3118118_2023_RLGF_Georgetown-Quitman.xls',
+        source_date: '2026-10-18',
+      },
+      {
+        title: '⚠ What the form gets wrong, and what cannot be checked',
+        text:
+          'The 2023 report answers “No” to the question about whether the fiscal year changed '
+          + 'and reports twelve months, while reporting about six months of money. The figures '
+          + 'themselves reconcile to the report’s own printed totals. There is also no '
+          + 'independently audited statement to check this against: the county files no federal '
+          + 'Single Audit covering these years.',
+        source_name: 'Georgia DCA Report of Local Government Finances — Georgetown-Quitman County FY2023',
+        source_url: 'https://apps.dca.ga.gov/development/Research/programs/documents/RLGF/3118118_2023_RLGF_Georgetown-Quitman.xls',
+        source_date: '2026-10-18',
+      },
+    ],
+  },
+
   'Monroe|GA|2025|revenue': {
     id: 'monroe-fy2025-other-intergovernmental-line',
     severity: 'outlier',
