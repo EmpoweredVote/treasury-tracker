@@ -46,6 +46,10 @@ const SUITES = [
   { name: 'acfrGF', file: 'scripts/lib/acfrGF.selftest.py', requires: [] },
   // ⚠ imports pdfplumber at module load — see requirements-dev.txt.
   { name: 'acfrGfCoords', file: 'scripts/lib/acfrGfCoords.selftest.py', requires: ['pdfplumber'] },
+  // ⚠ ALSO stdlib-only, and deliberately so: nySchoolAcfrGF imports pdfplumber
+  // INSIDE read(), so every pure function it tests — the fragment merge, the
+  // column anchor, the continuation rule — runs with no third-party dependency.
+  { name: 'nySchoolAcfrGF', file: 'scripts/lib/nySchoolAcfrGF.selftest.py', requires: [] },
 ];
 
 let py;
