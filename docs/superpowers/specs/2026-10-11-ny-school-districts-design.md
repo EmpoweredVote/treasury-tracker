@@ -141,8 +141,16 @@ FY1995 928   FY1996 858   FY1997 295   FY1998 377   FY1999 321   FY2000 331
 FY2001 325   FY2002-FY2010 ~35/yr      FY2011 1     FY2012 4     FY2013+ 0
 ```
 
-**3,762 of 43,168 Total Governmental cells (8.71%), every one of them in
+**3,762 of 43,163 Total Governmental cells (8.71%), every one of them in
 FY1995–FY2012.** They follow §5's rule and publish `unknown`.
+
+> ⚠ **Corrected 2026-10-19.** This read `43,168` as written and propagated that
+> figure into the plan and into `nyOscSchoolFundPrefixes.mjs`. The denominator
+> is **43,163**, the measured `ny-osc-school-general-fund` row count:
+> `43,163 + 39,401 = 82,564` (every row loaded) and `43,163 − 39,401 = 3,762`
+> (the refused cells) both reconcile, and `43,168` reconciles with neither.
+> `8.71%` is unchanged — both denominators round to it, which is why the
+> percentage never flagged the error.
 
 ⚠ `CS` is retired in the *city* data too, over the same era, and the city
 investigation disproved the obvious CS→MS rename. **Do not re-litigate it from

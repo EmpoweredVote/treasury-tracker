@@ -243,7 +243,7 @@ Expected: FAIL — cannot resolve `../scripts/data/nyOscSchoolFundPrefixes.mjs`
  * ⚠ Districts have NO enterprise and NO internal service funds at all.
  *
  * ⚠ `CS`, `TN` and `B` occur in FY1995-FY2012 and are NOT in the manual's
- * table, so they are deliberately absent: 3,762 of 43,168 total_governmental
+ * table, so they are deliberately absent: 3,762 of 43,163 total_governmental
  * cells (8.71%) publish `unknown`, every one of them before FY2013. `CS` is
  * retired in the CITY data over the same era and the obvious CS->MS rename was
  * tested there and DISPROVED — do not re-litigate it from this side without
@@ -1232,7 +1232,7 @@ Add to `FUND_SCOPE_REGISTRY`, at the head:
              + '⚠ `C` (School Food Service Programs) is SPECIAL REVENUE and therefore INCLUDED here, '
              + 'while the equivalent city activity sits in an E_ enterprise fund and is excluded — '
              + '278,779 rows turn on that difference. A district-year carrying a retired prefix '
-             + '(CS/TN/B) is written `unknown`: 3,762 of 43,168 cells (8.71%), all FY1995-FY2012. '
+             + '(CS/TN/B) is written `unknown`: 3,762 of 43,163 cells (8.71%), all FY1995-FY2012. '
              + 'REPORTING ENTITY: UNKNOWN — nothing read establishes whether a district consolidates '
              + 'component units.',
     },

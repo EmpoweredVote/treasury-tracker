@@ -19,7 +19,7 @@
  * ⚠ Districts have NO enterprise and NO internal service funds at all.
  *
  * ⚠ `CS`, `TN` and `B` occur in FY1995-FY2012 and are NOT in the manual's
- * table, so they are deliberately absent: 3,762 of 43,168 total_governmental
+ * table, so they are deliberately absent: 3,762 of 43,163 total_governmental
  * cells (8.71%) publish `unknown`, every one of them before FY2013. `CS` is
  * retired in the CITY data over the same era and the obvious CS->MS rename was
  * tested there and DISPROVED — do not re-litigate it from this side without
