@@ -325,6 +325,18 @@ Each of the five was later proven able to fail; do the same here.
 
 ### 11.1 The independent oracle
 
+> ✅ **DONE 2026-10-19 — findings in `docs/superpowers/plans/NY-SCHOOLS-FAC-RECON.md`.**
+> Rochester ties **to the dollar in 8 of 9 readable years**, once OSC's
+> definitional difference is accounted for: OSC folds other financing
+> sources/uses *into* revenue/expenditure, so comparing the two `Total revenues`
+> lines directly makes a faithful filing look wrong by the size of its
+> transfers. Buffalo files as `BOARD OF EDUCATION, CITY OF BUFFALO` (EIN
+> 166001554) — a name search for "buffalo school" finds charter schools and
+> misses it entirely — and reconciles in the four years its ACFR prints
+> transfers gross; from FY2020 it nets them, which makes those years
+> **not reconcilable from the document**, not mismatches.
+> Run it with `npm run ny:recon-schools-fac`.
+
 FAC serves audited district ACFRs at the same free endpoint, and **school
 districts are the single largest class of Single Audit filer**, so coverage
 should be better than the cities'.

@@ -34,6 +34,7 @@
     "ny:seed-schools": "node --env-file=.env scripts/seedNySchools.mjs",
     "ny:load-schools": "node --env-file=.env scripts/loadNyOscSchools.mjs",
     "ny:verify-schools": "node --env-file=.env scripts/verifyNyOscSchools.mjs",
+    "ny:recon-schools-fac": "node scripts/reconcileNyOscSchoolsFac.mjs",
     "verify:live-sync": "node scripts/liveSyncExclusions.mjs --check",
     "verify:grants": "node scripts/verifyAnonExecute.mjs",
     "check:single-copy": "node scripts/checkSingleCopy.mjs"
