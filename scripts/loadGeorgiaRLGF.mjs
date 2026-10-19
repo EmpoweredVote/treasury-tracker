@@ -64,6 +64,7 @@ import {
 import { GA_RLGF_ENTITIES, GA_LOAD_WINDOW } from './data/georgiaRlgfEntities.mjs';
 import { GA_STATEWIDE_ENTITIES } from './data/georgiaStatewideEntities.mjs';
 import { GA_STATEWIDE_MUNICIPALITIES } from './data/georgiaStatewideMunicipalities.mjs';
+import { GA_STATEWIDE_CONSOLIDATED } from './data/georgiaStatewideConsolidated.mjs';
 import {
   formTotalDefect, fyeMonthDefect, unverifiableFiling, emptyDataset,
 } from './data/gaRlgfAnomalies.mjs';
@@ -85,6 +86,7 @@ import {
  */
 export const GA_ALL_ENTITIES = Object.freeze([
   ...GA_RLGF_ENTITIES, ...GA_STATEWIDE_ENTITIES, ...GA_STATEWIDE_MUNICIPALITIES,
+  ...GA_STATEWIDE_CONSOLIDATED,
 ]);
 
 const seenCicoids = new Set();
