@@ -28,6 +28,8 @@ import { figureFlags } from '../src/data/figureFlags.ts';
 // source, pinned to LF by .gitattributes:73.
 const CENSUS_FIXTURE = 'tests/fixtures/census/co-est2024-ga-slice.csv';
 const CENSUS_SOURCE = 'cache/co-est2024-alldata.csv';
+const PLACE_FIXTURE = 'tests/fixtures/census/sub-est2024-ga-places-slice.csv';
+const PLACE_SOURCE = 'cache/sub-est2024_13.csv';
 
 const OPTIONS = `<select name="ctl00$bodyContent$ddlGovs" id="ctl00_bodyContent_ddlGovs">
   <option selected="selected" value="">-- Select a Local Government --</option>
@@ -557,10 +559,51 @@ describe('⚠⚠ a blank Part is seven roots of zero, NOT an empty tree', () => 
 });
 
 describe('the municipality name join — three shapes, measured not assumed', () => {
-  const places = readPlacePopulations();
+  // ⚠ The FIXTURE, never `cache/`. This call sits in the describe BODY, so when
+  // it read the gitignored source it threw at COLLECTION time and took all of
+  // tests/gaStatewide.test.mjs down with it in CI — not one test.
+  const places = readPlacePopulations(PLACE_FIXTURE);
 
   it('reads the 537 Georgia places out of Census Vintage 2024', () => {
     expect(places.size).toBe(537);
+  });
+
+  /**
+   * ⚠⚠ SUMLEV 157 CARRIES THE SAME NAME SHAPE AS 162 — "Baxley city" is both a
+   * place (162) and a place-within-county part (157). A reader that dropped the
+   * `!== '162'` test would not fail loudly; it would quietly overwrite places
+   * with county parts and admit 205 names that are not places at all.
+   *
+   * The fixture therefore carries six 157 rows, one of which ("Balance of
+   * Appling County") exists ONLY at 157. If the filter breaks, size becomes 538.
+   */
+  it('⚠ rejects the SUMLEV 157 county parts rather than merely ignoring them', () => {
+    expect([...places.values()].some((p) => p.censusName.startsWith('Balance of'))).toBe(false);
+    expect([...places.values()].some((p) => p.censusName.includes('(pt.)'))).toBe(false);
+    // ⚠ NOT "every name ends in city/town". Georgia's CONSOLIDATED governments
+    // are themselves SUMLEV 162 — `Macon-Bibb County`, `Echols County
+    // consolidated government`, `Cusseta-Chattahoochee County unified
+    // government`. A designator-shaped assertion here would reject the seven
+    // governments #269 goes on to load.
+    expect(places.has('macon-bibbcounty')).toBe(true);
+  });
+
+  /**
+   * ⚠⚠ Same contract as the county fixture: a fixture can drift into agreeing
+   * with a wrong registry, so parity is re-checked against the real source when
+   * it is present and SKIPS LOUDLY when it is not.
+   */
+  it('keeps the place fixture honest against its source, where the source is present', () => {
+    if (!existsSync(PLACE_SOURCE)) {
+      console.log(`  SKIPPED: ${PLACE_SOURCE} absent (gitignored). `
+        + 'Fixture-vs-source parity was NOT checked in this run.');
+      return;
+    }
+    const split = (t) => t.split(/\r?\n/).filter(Boolean);
+    const source = new Set(split(readFileSync(PLACE_SOURCE, 'latin1')));
+    const fixture = split(readFileSync(PLACE_FIXTURE, 'latin1'));
+    expect(fixture).toHaveLength(548); // header + 537 places + 6×157 + 040 + 050 + 170 + 172
+    expect(fixture.filter((l) => !source.has(l))).toEqual([]);
   });
 
   it('SUFFIX — the trailing word is the designator', () => {
