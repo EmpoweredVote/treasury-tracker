@@ -451,6 +451,19 @@ export const EXPECTED_BASIS_ROWS = Object.freeze({
   // and the district-years where a district filed no revenue/expenditure
   // section at all.
   'ny-osc-school': 82564,
+  // NY OSC TOWN / VILLAGE / COUNTY AFRs — finishing New York, 2026-10-19.
+  // ⚠ ONE basis entry covering all THREE classes and both fund scopes, where
+  // the fund-scope registry has six. The basis is identical across the three —
+  // the same AFR, filed under the same manual, for a closed fiscal period —
+  // and the fund-scope registry is split per class only because the
+  // governmental FUND LIST differs by class.
+  //
+  // MEASURED against the live table after each class loads, never predicted.
+  //     County    3532 general_fund +  3204 total_governmental =  6736  ✅
+  //     Village  33539 general_fund + 32518 total_governmental = 66057  ✅
+  //     Town     56960 general_fund + 55754 total_governmental = 112714  ✅
+  //                                                       total =  185507
+  'ny-osc-municipal': 185507,
   // The sixteen entity-published city/state ACFR families, measured 2026-08-19.
   // Evidence: docs/superpowers/plans/ACFR-GF-CLASSIFICATION-RECON.md §2.
   'or-city-acfr-gf': 106,

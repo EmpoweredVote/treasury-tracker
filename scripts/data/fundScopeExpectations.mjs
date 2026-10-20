@@ -438,6 +438,81 @@ export const EXPECTED_ROWS = Object.freeze({
   // inequality by registering them on inference.
   'ny-osc-school-general-fund': 43163,
   'ny-osc-school-total-governmental': 39401,
+  // ⏳ NY OSC TOWN / VILLAGE / COUNTY AFRs — finishing New York, 2026-10-19.
+  // 933 towns + 561 villages + 57 counties, FY1995-FY2025.
+  //
+  // ⚠⚠ THESE SIX ARE PLACEHOLDERS UNTIL EACH CLASS IS LOADED AND MEASURED.
+  // Zero is the truthful value for a family with no rows in the table, and it
+  // is what makes the partition gate catch the load rather than wave it
+  // through: a registry entry with no EXPECTED_ROWS at all is what
+  // tests/fundScope.test.mjs refuses. Each line is replaced with the MEASURED
+  // count in the same commit as its load, in the house style above —
+  // rows / DISTINCT ids / strings / entities — never with the plan's
+  // arithmetic. The districts' plan predicted ~85,400 and the truth was
+  // 82,564; that gap is the reason this file does not accept predictions.
+  //
+  // Expect the two scopes to be UNEQUAL in every class, by the same mechanism
+  // as the cities and districts: 1,630 entity-years carry a prefix the ARM
+  // does not name, so their total_governmental is refused rather than summed
+  // short. All 1,630 are FY1995-FY2001, and `CS` is nearly all of them —
+  // Town 808 (CS 807, EB 3, T 1), Village 651 (CS 650, F 1, C 1), County 171
+  // (CS 166, EB 5). General Fund is never refused: `A` is unambiguous.
+  // ⚠ Do NOT "fix" the inequality by registering CS on inference. The
+  // CS->MS rename was tested on the city archive and DISPROVED.
+  // ✅ TOWNS LOADED 2026-10-19/20. MEASURED against the live table after the
+  // load. House style — rows / DISTINCT ids / strings / entities:
+  //
+  //     ny-osc-town-general-fund        56960 / 56960 / 62 / 933
+  //     ny-osc-town-total-governmental  55754 / 55754 / 62 / 933
+  //
+  // rows == DISTINCT ids on both. 62 strings each = 31 fiscal years x 2
+  // datasets. 56960 + 55754 = 112714, equal to the loader's own count and to
+  // its dry run. All 933 towns appear in both scopes, in all 31 years.
+  //
+  // ⚠ 56960 - 55754 = 1206 refused total_governmental cells: CS 1198, six
+  // carrying CS and EB together, and T 2. All FY1995-FY2001.
+  'ny-osc-town-general-fund': 56960,
+  'ny-osc-town-total-governmental': 55754,
+  // ✅ VILLAGES LOADED 2026-10-19. MEASURED against the live table after the
+  // load. House style — rows / DISTINCT ids / strings / entities:
+  //
+  //     ny-osc-village-general-fund        33539 / 33539 / 62 / 561
+  //     ny-osc-village-total-governmental  32518 / 32518 / 62 / 561
+  //
+  // rows == DISTINCT ids on both. 62 strings each = 31 fiscal years x 2
+  // datasets. 33539 + 32518 = 66057, equal to the loader's own count and to
+  // its dry run. All 561 villages appear in both scopes.
+  //
+  // ⚠ 33539 - 32518 = 1021 refused total_governmental cells: CS 1018, C 2,
+  // and one cell carrying CS and F together. All FY1995-FY2001.
+  //
+  // ⚠⚠ FOUR VILLAGE-YEARS ARE ABSENT FROM BOTH SCOPES, and that is the point
+  // of them: Schoharie FY2020, Kiryas Joel FY2021 and Middleburgh FY2021 each
+  // file a FULL YEAR AND A SEVEN-MONTH STUB under one CALENDAR_YEAR, and
+  // Bloomingburg FY2023 files a single 425-day period. Summing any of them
+  // would publish more than twelve months as a year. See spec §6.
+  'ny-osc-village-general-fund': 33539,
+  'ny-osc-village-total-governmental': 32518,
+  // ✅ COUNTIES LOADED 2026-10-19. MEASURED against the live table after the
+  // load. House style — rows / DISTINCT ids / strings / entities:
+  //
+  //     ny-osc-county-general-fund        3532 / 3532 / 62 / 57
+  //     ny-osc-county-total-governmental  3204 / 3204 / 62 / 57
+  //
+  // rows == DISTINCT ids on both, the guard against a paged read duplicating
+  // rows. 62 strings each = 31 fiscal years x 2 datasets. 3532 + 3204 = 6736,
+  // equal to the loader's own count of rows written and to its dry run.
+  //
+  // ⚠ THE TWO SCOPES ARE DELIBERATELY UNEQUAL. 3532 - 3204 = 328 refused
+  // total_governmental cells: CS 319 (FY1995-2001) and EB 9 (FY2008-2012).
+  // ⚠ 328, not 342. The 171 affected county-years do NOT multiply by two,
+  // because a prefix is refused PER SECTION — a county-year carrying CS only
+  // in its expenditure rows loses its expenditure total_governmental and
+  // keeps its revenue one.
+  // ⚠ All 57 counties appear in BOTH scopes, unlike the districts' 717/714:
+  // no county filed a retired prefix in every year it filed.
+  'ny-osc-county-general-fund': 3532,
+  'ny-osc-county-total-governmental': 3204,
   // SCOPE-01-RECON.md §12, measured 2026-10-09 against the live table.
   // The cities' OWN portals, added to close 4 of the 21 scope seams. Four NEW
   // families, so no pre-existing count moved.

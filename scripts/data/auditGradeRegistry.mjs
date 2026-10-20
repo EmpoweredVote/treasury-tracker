@@ -182,6 +182,36 @@ export const AUDIT_GRADE_REGISTRY = [
     },
   },
   {
+    id: 'ny-osc-municipal',
+    // ⚠ Anchored, and distinct from BOTH `ny-osc-city` below and `nyc-acfr`.
+    // Three New York publishers wear similar names here: this is the STATE
+    // COMPTROLLER's unaudited filing by 933 towns, 561 villages and 57
+    // counties.
+    match: /^New York OSC (Town|Village|County) Annual Financial Report — (Revenues|Expenditures), (General Fund|Total Governmental) \(FY\d{4} actual, self-reported\)$/,
+    value: AUDIT_GRADE.SELF_REPORTED_UNAUDITED,
+    evidence: {
+      document: 'OSC Annual Financial Report filing requirements '
+              + '(osc.ny.gov/local-government/required-reporting/annual-financial-report); spec '
+              + 'docs/superpowers/specs/2026-10-19-ny-towns-villages-counties-design.md §9',
+      figures: 'The AFR is filed BY the local government under General Municipal Law Article 3. '
+             + 'The dataset carries no audit flag, no opinion and no auditor — its 15 columns are '
+             + 'CALENDAR_YEAR, MUNICIPAL_CODE, ENTITY_NAME, CLASS_DESCRIPTION, COUNTY, the period '
+             + 'columns, ACCOUNT_CODE, ACCOUNT_CODE_NARRATIVE, the section column, the three '
+             + 'category columns, AMOUNT and SNAPSHOT_DATE — identical to the city and school '
+             + 'archives, and OSC\'s AFR page asserts no audit status. '
+             + '⚠ This is ASSURANCE, not measurement: accounting_basis stays `unknown`, because '
+             + 'the ARM ch. 3 directing modified accrual is an INSTRUCTION, not an outcome, and '
+             + 'no opinion establishes that any of these 1,551 governments achieved it. '
+             + '⚠⚠ NO TOTAL ROW EXISTS ANYWHERE IN THIS SOURCE. OSC publishes line items only, so '
+             + 'every TT total here is Σ items BY CONSTRUCTION and "total = sum of items" proves '
+             + 'nothing. Verification establishes that TT read OSC faithfully; it does NOT '
+             + 'establish that OSC is right. The districts got that second proof in #272 by '
+             + 'reconciling against their own audited ACFRs through the Federal Audit '
+             + 'Clearinghouse; the 57 counties are the natural candidate here and that work is '
+             + 'scoped separately and HAS NOT been performed.',
+    },
+  },
+  {
     id: 'ny-osc-city',
     // ⚠ NOT the same publisher as `nyc-acfr` below, despite both being New
     // York. That entry is New York CITY's own audited ACFR; this one is the

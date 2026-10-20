@@ -256,6 +256,83 @@ export const SCHOOL_FIRST_YEAR = 1995;
 export const SCHOOL_LAST_YEAR = 2026;
 
 /**
+ * The five OSC publications, by the member-class token in `{year}_{Class}.csv`.
+ *
+ * Spec: docs/superpowers/specs/2026-10-19-ny-towns-villages-counties-design.md §2
+ *
+ * ⚠⚠ `firstYear`/`lastYear` ARE THE ARCHIVE'S EXTENT, not the load window.
+ * They exist so `readYear` refuses a year the file cannot contain. What TT
+ * chooses to LOAD is narrower and lives in the loader — FY2026 is refused for
+ * every class (§3.1), and for towns and counties the FY2026 member is empty
+ * anyway.
+ *
+ * ⚠ Before this table the range check was a ternary over City-vs-everything
+ * else, so `readYear(zip, year, 'Town')` silently borrowed the SCHOOL range.
+ * It happened to be the same numbers; a table makes that a fact rather than a
+ * coincidence.
+ */
+export const NY_OSC_ARCHIVES = Object.freeze({
+  City: {
+    path: ARCHIVE_PATH,
+    url: ARCHIVE_URL,
+    firstYear: ARCHIVE_FIRST_YEAR,
+    lastYear: ARCHIVE_LAST_YEAR,
+    entityType: 'city',
+  },
+  SchoolDistrict: {
+    path: SCHOOL_ARCHIVE_PATH,
+    url: SCHOOL_ARCHIVE_URL,
+    firstYear: SCHOOL_FIRST_YEAR,
+    lastYear: SCHOOL_LAST_YEAR,
+    entityType: 'school_district',
+  },
+  Town: {
+    path: 'docs/NY/town_all_years.zip',
+    url: 'https://wwe1.osc.state.ny.us/localgov/findata/level3zip/town_all_years.zip',
+    firstYear: 1995,
+    lastYear: 2026,
+    entityType: 'town',
+    sourceKey: 'NY_OSC_TOWN',
+    namePrefix: 'Town of ',
+  },
+  Village: {
+    path: 'docs/NY/village_all_years.zip',
+    url: 'https://wwe1.osc.state.ny.us/localgov/findata/level3zip/village_all_years.zip',
+    firstYear: 1995,
+    lastYear: 2026,
+    entityType: 'village',
+    sourceKey: 'NY_OSC_VILLAGE',
+    namePrefix: 'Village of ',
+  },
+  County: {
+    path: 'docs/NY/county_all_years.zip',
+    url: 'https://wwe1.osc.state.ny.us/localgov/findata/level3zip/county_all_years.zip',
+    firstYear: 1995,
+    lastYear: 2026,
+    entityType: 'county',
+    sourceKey: 'NY_OSC_COUNTY',
+    namePrefix: 'County of ',
+  },
+});
+
+/** The three classes this town/village/county load covers. */
+export const MUNICIPAL_CLASSES = Object.freeze(['Town', 'Village', 'County']);
+
+/** ⚠ FY2026 is refused for every class — spec §3.1. */
+export const MUNICIPAL_FIRST_YEAR = 1995;
+export const MUNICIPAL_LAST_YEAR = 2025;
+
+export function archiveFor(memberClass) {
+  const a = NY_OSC_ARCHIVES[memberClass];
+  if (!a) {
+    throw new Error(
+      `unknown NY OSC member class ${JSON.stringify(memberClass)} — expected one of `
+      + Object.keys(NY_OSC_ARCHIVES).join(', '));
+  }
+  return a;
+}
+
+/**
  * Minimal RFC4180 reader — the OSC files quote fields containing commas.
  *
  * ⚠⚠ AN UNTERMINATED QUOTE THROWS. It used to put the parser into quote mode
@@ -310,8 +387,10 @@ const REQUIRED_COLUMNS = Object.freeze([
  * `zipfile.py` beside the archive cannot be imported. Keep it that way.
  */
 export function readYear(zipPath, year, memberClass = 'City') {
-  const first = memberClass === 'City' ? ARCHIVE_FIRST_YEAR : SCHOOL_FIRST_YEAR;
-  const last = memberClass === 'City' ? ARCHIVE_LAST_YEAR : SCHOOL_LAST_YEAR;
+  // ⚠ Range-checked against THIS class's archive, from NY_OSC_ARCHIVES. An
+  // unknown class throws rather than defaulting to some other publication's
+  // range.
+  const { firstYear: first, lastYear: last } = archiveFor(memberClass);
   if (!Number.isInteger(year) || year < first || year > last) {
     throw new Error(`no such year ${year} — the archive covers FY${first}-FY${last}`);
   }
@@ -365,6 +444,19 @@ export function readYear(zipPath, year, memberClass = 'City') {
       municipalCode: get(r, 'MUNICIPAL_CODE'),
       entityName: get(r, 'ENTITY_NAME'),
       county: get(r, 'COUNTY'),
+      // ⚠ READ, NEVER USED TO TYPE AN ENTITY. The entity type comes from WHICH
+      // FILE the row is in; this is the publisher's own word and is only ever
+      // asserted against that. See the municipal loader's CLASS assertion and
+      // project_pick_up_next's "never type an entity from the publisher's own
+      // City/Town word". Optional: `get()` yields undefined if the column is
+      // absent, which must not be a structural failure.
+      classDescription: get(r, 'CLASS_DESCRIPTION'),
+      // ⚠ The raw period bounds, so a caller can prove a filing covers a full
+      // year. Three villages filed 213-day stubs and one a 425-day period
+      // (spec §6); published as a year they would show a cliff that never
+      // happened. Only the 2013+ era has them — see assertFullFiscalPeriod.
+      periodStart: get(r, 'PERIOD_START'),
+      periodEnd: get(r, 'PERIOD_END'),
       fiscalYear,
       accountCode: get(r, 'ACCOUNT_CODE'),
       accountCodeNarrative: get(r, 'ACCOUNT_CODE_NARRATIVE'),
@@ -501,6 +593,202 @@ export function schoolSourceNameFor(datasetType, fiscalYear, scope) {
       + `FY${SCHOOL_FIRST_YEAR}-FY${SCHOOL_LAST_YEAR}`);
   }
   return `${SCHOOL_SOURCE_PREFIX} — ${face}, ${scopeFace} (FY${fiscalYear} actual, self-reported)`;
+}
+
+/**
+ * Source-name prefixes for the town, village and county AFRs.
+ *
+ * ⚠⚠ DISTINCT FROM THE CITIES', THOUGH IT IS THE SAME REPORT. Towns, villages
+ * and counties file the same AFR under the same manual as the 61 cities, so
+ * the cities' string would resolve fund_scope, basis and audit_grade
+ * correctly — and would still be wrong. Those three registry entries carry
+ * evidence prose ABOUT CITIES ("All 61 cities carry an A fund", "392,234
+ * revenue/expenditure lines"), and the Total Governmental fund list genuinely
+ * differs by class: towns use B/DA/DB/S_, counties use D/DM/S, villages use
+ * none of them. A town inheriting that string would publish a provenance claim
+ * nobody ever measured about towns.
+ *
+ * ⚠ The registry patterns are anchored at BOTH ends, so
+ * `^New York OSC Annual Financial Report —` cannot claim
+ * `New York OSC Town Annual Financial Report —` or the reverse. A test asserts
+ * that cross-claim is impossible for all four NY families.
+ */
+export const MUNICIPAL_SOURCE_PREFIXES = Object.freeze({
+  Town: 'New York OSC Town Annual Financial Report',
+  Village: 'New York OSC Village Annual Financial Report',
+  County: 'New York OSC County Annual Financial Report',
+});
+
+/**
+ * ⚠ EVERY ARGUMENT IS VALIDATED, for the reasons spelled out on
+ * `sourceNameFor`: a silent dataset-type fallback once turned a revenue row
+ * into an expenditures label with a matching registry entry and a clean basis
+ * stamp, and a NaN year produced `FYNaN`, which matches none of the three
+ * registry patterns and loses fund_scope, basis AND audit_grade at once.
+ */
+export function municipalSourceNameFor(memberClass, datasetType, fiscalYear, scope) {
+  const prefix = MUNICIPAL_SOURCE_PREFIXES[memberClass];
+  if (!prefix) {
+    throw new Error(
+      `unknown member class ${JSON.stringify(memberClass)} — expected `
+      + `${MUNICIPAL_CLASSES.join(', ')}`);
+  }
+  const face = DATASET_FACE[datasetType];
+  if (!face) {
+    throw new Error(
+      `unknown dataset type ${JSON.stringify(datasetType)} — expected operating or revenue`);
+  }
+  const scopeFace = SCOPE_FACE[scope];
+  if (!scopeFace) throw new Error(`unknown fund scope for source name: ${JSON.stringify(scope)}`);
+  if (!Number.isInteger(fiscalYear)
+      || fiscalYear < MUNICIPAL_FIRST_YEAR || fiscalYear > MUNICIPAL_LAST_YEAR) {
+    throw new Error(
+      `fiscal year ${fiscalYear} is not an integer in `
+      + `FY${MUNICIPAL_FIRST_YEAR}-FY${MUNICIPAL_LAST_YEAR}`);
+  }
+  return `${prefix} — ${face}, ${scopeFace} (FY${fiscalYear} actual, self-reported)`;
+}
+
+/**
+ * Is this entity-year ONE filing, covering ONE full twelve-month period?
+ *
+ * ⚠⚠⚠ IT TAKES THE WHOLE ENTITY-YEAR, NOT ONE ROW, AND THAT IS THE WHOLE
+ * POINT. A per-row version of this check shipped and was wrong: Village of
+ * Schoharie files BOTH `2019-06-01..2020-05-31` (365 days) AND
+ * `2020-06-01..2020-12-31` (213 days) under CALENDAR_YEAR 2020. The first row
+ * is the full year, so a first-row check PASSES — and the loader then sums
+ * both periods into one total and publishes NINETEEN MONTHS AS A YEAR. Nothing
+ * raises; the figure merely becomes ~58% too large, and it ties against itself.
+ *
+ * Three village-years are shaped like that, all fiscal-calendar transitions:
+ *
+ *     Village of Schoharie   FY2020   365d + 213d
+ *     Village of Kiryas Joel FY2021   364d + 213d
+ *     Village of Middleburgh FY2021   364d + 213d
+ *
+ * and one more carries a single 425-day period (Village of Bloomingburg
+ * FY2023). All four are refused.
+ *
+ * ⚠ The 12-month half is NOT kept on its own. TT has no surface that says
+ * which months a figure covers, so keeping one of the publisher's two filings
+ * would mean TT silently choosing which one a reader sees — reinterpretation,
+ * which this module does not do. The refusal is reported by name instead.
+ *
+ * ⚠ Returns `{ ok: true, checked: false }` for the 1995-2012 era, which
+ * publishes no period bounds. That is not a silent pass: a transition REQUIRES
+ * FISCAL_YEAR_END to change, and across every entity and every consecutive
+ * pair of old-era years there are ZERO changes in all three classes. The old
+ * era is affirmatively clean, not merely unchecked.
+ */
+const ISO_DATE_RE = /^(\d{4})-(\d{2})-(\d{2})$/;
+const FULL_YEAR_DAYS = Object.freeze(new Set([364, 365, 366]));
+
+export function fiscalPeriodLength(row) {
+  const s = row.periodStart;
+  const e = row.periodEnd;
+  if (!s || !e) return null; // old era — no bounds published
+  if (!ISO_DATE_RE.test(String(s))) {
+    throw new Error(`unrecognised PERIOD_START format: ${JSON.stringify(s)}`);
+  }
+  if (!ISO_DATE_RE.test(String(e))) {
+    throw new Error(`unrecognised PERIOD_END format: ${JSON.stringify(e)}`);
+  }
+  // ⚠ UTC, not local. `new Date('2021-06-01')` is UTC midnight, but a
+  // local-time constructor would straddle a DST boundary and yield 212.95
+  // days, which floors to 212 and turns a clean comparison into an off-by-one.
+  const ms = Date.parse(`${e}T00:00:00Z`) - Date.parse(`${s}T00:00:00Z`);
+  return Math.round(ms / 86400000);
+}
+
+/**
+ * @param {object[]} rows  EVERY revenue/expenditure row of one entity-year
+ * @returns {{ok: boolean, checked: boolean, periods: string[], days: number[], why: string|null}}
+ */
+export function isFullFiscalPeriod(rows) {
+  const list = Array.isArray(rows) ? rows : [rows];
+  if (list.length === 0) {
+    throw new Error('isFullFiscalPeriod needs at least one row of the entity-year');
+  }
+
+  const seen = new Map(); // "start..end" -> days
+  for (const r of list) {
+    if (!r.periodStart || !r.periodEnd) continue;
+    const k = `${r.periodStart}..${r.periodEnd}`;
+    if (!seen.has(k)) seen.set(k, fiscalPeriodLength(r));
+  }
+
+  if (seen.size === 0) {
+    return { ok: true, checked: false, periods: [], days: [], why: null };
+  }
+
+  const periods = [...seen.keys()];
+  const days = [...seen.values()];
+
+  if (seen.size > 1) {
+    return {
+      ok: false,
+      checked: true,
+      periods,
+      days,
+      why: `${seen.size} distinct fiscal periods filed under one CALENDAR_YEAR — `
+        + 'summing them would publish more than twelve months as a year',
+    };
+  }
+
+  const [d] = days;
+  if (!FULL_YEAR_DAYS.has(d)) {
+    return {
+      ok: false,
+      checked: true,
+      periods,
+      days,
+      why: `the filed period is ${d} days, not a full year`,
+    };
+  }
+  return { ok: true, checked: true, periods, days, why: null };
+}
+
+/**
+ * Pre-flight a town/village/county roster before a seeder writes anything.
+ *
+ * ⚠⚠ THIS IS NOT `assertRosterHasNoNyc`, AND REUSING THAT ONE HERE IS A BUG.
+ * It refuses any name matching /new york/i, and the village roster contains
+ * **New York Mills**, a real government in Oneida County. New York City cannot
+ * collide with these classes in the first place — it is a `city`, and
+ * treasury_ensure_municipality keys on (name, state, entity_type) — so the
+ * guard that matters here is the one on the roster's own internal consistency.
+ */
+export function assertMunicipalRoster(entities, memberClass) {
+  const { entityType } = archiveFor(memberClass);
+  const codes = new Set();
+  const names = new Set();
+  for (const e of entities) {
+    if (e.entityType !== entityType) {
+      throw new Error(
+        `REFUSING: "${e.name}" is typed ${e.entityType}, but the ${memberClass} `
+        + `archive may only produce ${entityType}`);
+    }
+    if (codes.has(e.municipalCode)) {
+      throw new Error(`REFUSING: duplicate municipal code ${e.municipalCode} in the roster`);
+    }
+    codes.add(e.municipalCode);
+    // ⚠⚠ THE COLLISION IS THE WHOLE POINT. treasury_ensure_municipality keys on
+    // (name, state, entity_type), so two governments sharing a display name
+    // collapse into ONE row carrying both budgets. Ten town names are each
+    // shared by two towns; the generator county-qualifies them, and this
+    // asserts it worked BEFORE the first write rather than after.
+    const k = e.name.toLowerCase();
+    if (names.has(k)) {
+      throw new Error(
+        `REFUSING: two ${entityType}s would both be named "${e.name}" — `
+        + 'county-qualification did not separate them, and loading would collapse '
+        + 'two governments into one entity');
+    }
+    names.add(k);
+    if (k === 'new york') {
+      throw new Error(`REFUSING: roster contains a government named "${e.name}"`);
+    }
+  }
 }
 
 /**

@@ -114,6 +114,157 @@ export const FUND_SCOPE_REGISTRY = [
              + 'incl_component_units can be asserted across all 61.',
     },
   },
+  // ── New York towns, villages and counties ────────────────────────────────
+  //
+  // ⚠⚠ A SEPARATE SOURCE-NAME FAMILY PER CLASS, THOUGH IT IS THE SAME REPORT
+  // AS THE CITIES'. The `ny-osc-city-*` patterns above are anchored and carry
+  // evidence prose about cities — "All 61 cities carry an A fund", "392,234
+  // revenue/expenditure lines". Letting a town resolve through them would
+  // publish a provenance claim nobody measured about towns, and the Total
+  // Governmental fund list genuinely differs by class.
+  //
+  // Common to all six entries below:
+  //   document — OSC Accounting and Reporting Manual ch. 4 and the ch. 5
+  //     fund/alpha-code table (docs/NY/osc-accounting-and-reporting-manual-2021.pdf);
+  //     spec docs/superpowers/specs/2026-10-19-ny-towns-villages-counties-design.md §4;
+  //     prefix table scripts/data/nyOscMunicipalFundPrefixes.mjs, every entry
+  //     carrying its ARM wording.
+  //   ⚠⚠ The ch. 5 table CANNOT be read with `pdftotext -layout`, which prints
+  //     the Fund and Alpha Code columns as two independent vertical runs and
+  //     pairs `Special Districts` with `SF`. Read by glyph y-centre it pairs on
+  //     one baseline, and the alignment reproduces all 25 entries the CITY
+  //     registry derived independently from ch. 4 prose.
+  {
+    id: 'ny-osc-town-general-fund',
+    match: /^New York OSC Town Annual Financial Report — (Revenues|Expenditures), General Fund \(FY\d{4} actual, self-reported\)$/,
+    scope: SCOPE.GENERAL_FUND,
+    evidence: {
+      document: 'OSC Accounting and Reporting Manual ch. 4 '
+              + '(docs/NY/osc-accounting-and-reporting-manual-2021.pdf); spec '
+              + 'docs/superpowers/specs/2026-10-19-ny-towns-villages-counties-design.md §4',
+      figures: 'The scope is the `A` account-code prefix alone. ARM ch. 4: "General Fund (A) — '
+             + 'the principal operating fund of a local government. It includes all financial '
+             + 'resources not accounted for and reported in another fund." 2,098,773 of the town '
+             + 'archive\'s 3,860,139 FY1995-2025 revenue/expenditure lines carry it. '
+             + '⚠⚠ A TOWN\'S GENERAL FUND IS NOT ITS WHOLE GENERAL-PURPOSE OPERATION. A town '
+             + 'containing a village keeps a SECOND general fund, `B` (Town-Outside-Village), for '
+             + 'transactions statute charges to the area outside the village — 259,199 lines. `B` '
+             + 'is a SPECIAL REVENUE fund in the ARM\'s own grouping and is therefore in '
+             + 'total_governmental and NOT in general_fund. Comparing a village-containing town\'s '
+             + 'general_fund with a village-free town\'s compares different scopes of government.',
+    },
+  },
+  {
+    id: 'ny-osc-town-total-governmental',
+    match: /^New York OSC Town Annual Financial Report — (Revenues|Expenditures), Total Governmental \(FY\d{4} actual, self-reported\)$/,
+    scope: SCOPE.TOTAL_GOVERNMENTAL,
+    evidence: {
+      document: 'OSC Accounting and Reporting Manual ch. 4 and the ch. 5 fund/alpha-code table '
+              + '(docs/NY/osc-accounting-and-reporting-manual-2021.pdf), the latter read by glyph '
+              + 'coordinates; spec §4; prefix table scripts/data/nyOscMunicipalFundPrefixes.mjs',
+      figures: 'Governmental = A B CB CD CL CM CP CR CT CU D DA DB FX G H L PN SD SF SL SM SP SR '
+             + 'SS ST SW V. EXCLUDED: enterprise EA EE EF EH EI EL EM ER ES EW, internal service M '
+             + 'and MS, fiduciary TC TE TN TX. ARM ch. 4 states the rule for the town-specific '
+             + 'block in one sentence: "Funds that are legally mandated to be kept separately '
+             + '(e.g., town highway, county road, county road machinery, town special districts, '
+             + 'and sewer funds) should be reported as special revenue funds." Across FY1995-2025 '
+             + 'this splits 3,860,139 revenue/expenditure lines into 3,833,207 governmental, '
+             + '25,108 excluded and 1,824 unclassifiable. '
+             + '⚠⚠ `S_` IS THE SPECIAL-DISTRICT FAMILY AND IS GOVERNMENTAL; BARE `S` IS WORKERS\' '
+             + 'COMPENSATION AND IS PROPRIETARY. No town files `S` (the ARM: "can only be used by '
+             + 'counties", and measured, 0 town lines), but the two are one letter apart and the '
+             + 'county entry below turns on the difference. '
+             + '⚠ A town-year containing an unclassifiable prefix is written `unknown`, never '
+             + 'summed short: 808 of 28,480 town-years (2.84%) publish unknown by design — CS 807 '
+             + '(FY1995-2000, unresolved and the obvious fix already disproved), EB 3, T 1. '
+             + 'REPORTING ENTITY: UNKNOWN. The AFR is fund-level reporting of whatever funds the '
+             + 'filing government chose to maintain, and the ARM leaves inclusion to local '
+             + 'judgement in as many words.',
+    },
+  },
+  {
+    id: 'ny-osc-village-general-fund',
+    match: /^New York OSC Village Annual Financial Report — (Revenues|Expenditures), General Fund \(FY\d{4} actual, self-reported\)$/,
+    scope: SCOPE.GENERAL_FUND,
+    evidence: {
+      document: 'OSC Accounting and Reporting Manual ch. 4 '
+              + '(docs/NY/osc-accounting-and-reporting-manual-2021.pdf); spec §4',
+      figures: 'The scope is the `A` account-code prefix alone, on the same ARM sentence as every '
+             + 'other New York general fund. 1,361,710 of the village archive\'s FY1995-2025 '
+             + 'revenue/expenditure lines carry it — 71%, the highest share of any New York class, '
+             + 'because a village has no part-town fund and no special districts. '
+             + '⚠ Villages run water (FX, 224,724 lines) and sewer (G, 158,266) as GOVERNMENTAL '
+             + 'special revenue funds far more than as enterprise funds (EW 7,692, ES 2,719), so a '
+             + 'village\'s general_fund excludes utility operations that its total_governmental '
+             + 'includes.',
+    },
+  },
+  {
+    id: 'ny-osc-village-total-governmental',
+    match: /^New York OSC Village Annual Financial Report — (Revenues|Expenditures), Total Governmental \(FY\d{4} actual, self-reported\)$/,
+    scope: SCOPE.TOTAL_GOVERNMENTAL,
+    evidence: {
+      document: 'OSC Accounting and Reporting Manual ch. 4 and the ch. 5 fund/alpha-code table '
+              + '(docs/NY/osc-accounting-and-reporting-manual-2021.pdf), the latter read by glyph '
+              + 'coordinates; spec §4; prefix table scripts/data/nyOscMunicipalFundPrefixes.mjs',
+      figures: 'Governmental = A CB CD CL CM CP CR CT CU FX G H L PN V — the same set the 61 '
+             + 'cities use, because a village has neither the town block (B, DA, DB, S_) nor the '
+             + 'county block (D, DM, S). EXCLUDED: enterprise EE EL EM EP ER ES ET EW, internal '
+             + 'service M and MS, fiduciary TC TE TN TX. Across FY1995-2025 this splits 1,920,053 '
+             + 'revenue/expenditure lines into 1,883,316 governmental, 35,251 excluded and 1,486 '
+             + 'unclassifiable. '
+             + '⚠ 651 of 16,774 village-years (3.88%) publish `unknown` rather than a total summed '
+             + 'short — CS 650 (FY1995-2001), F 1, C 1. '
+             + '⚠⚠ FOUR VILLAGE-YEARS ARE REFUSED ENTIRELY as non-annual filings: Kiryas Joel '
+             + 'FY2021 and Middleburgh FY2021 (213 days), Schoharie FY2020 (213), Bloomingburg '
+             + 'FY2023 (425). All four are fiscal-calendar transitions, and TT has no surface that '
+             + 'says "this figure covers seven months". '
+             + 'REPORTING ENTITY: UNKNOWN, as for every class of this filing.',
+    },
+  },
+  {
+    id: 'ny-osc-county-general-fund',
+    match: /^New York OSC County Annual Financial Report — (Revenues|Expenditures), General Fund \(FY\d{4} actual, self-reported\)$/,
+    scope: SCOPE.GENERAL_FUND,
+    evidence: {
+      document: 'OSC Accounting and Reporting Manual ch. 4 '
+              + '(docs/NY/osc-accounting-and-reporting-manual-2021.pdf); spec §4',
+      figures: 'The scope is the `A` account-code prefix alone. 496,060 of the county archive\'s '
+             + '691,217 FY1995-2025 revenue/expenditure lines carry it — 72%, because New York '
+             + 'counties run social services, public health and the sheriff through the general '
+             + 'fund. All 57 counties carry an A fund with both revenue and expenditure in every '
+             + 'year they filed. '
+             + '⚠ The 57 are New York\'s 62 counties MINUS the five New York City boroughs, which '
+             + 'OSC does not file here; there is no overlap with TT\'s New York City rows.',
+    },
+  },
+  {
+    id: 'ny-osc-county-total-governmental',
+    match: /^New York OSC County Annual Financial Report — (Revenues|Expenditures), Total Governmental \(FY\d{4} actual, self-reported\)$/,
+    scope: SCOPE.TOTAL_GOVERNMENTAL,
+    evidence: {
+      document: 'OSC Accounting and Reporting Manual ch. 4 and the ch. 5 fund/alpha-code table '
+              + '(docs/NY/osc-accounting-and-reporting-manual-2021.pdf), the latter read by glyph '
+              + 'coordinates; spec §4; prefix table scripts/data/nyOscMunicipalFundPrefixes.mjs',
+      figures: 'Governmental = A CB CD CL CM CN CR CT D DA DM FX G H L PN V. EXCLUDED: enterprise '
+             + 'EA EE EF EH EI EL EM ER ES ET EW, internal service M, MS and S, fiduciary TC TE TN '
+             + 'TX. Across FY1995-2025 this splits 691,217 revenue/expenditure lines into 647,090 '
+             + 'governmental, 43,109 excluded and 1,018 unclassifiable. '
+             + '⚠⚠⚠ `S` IS WORKERS\' COMPENSATION AND IS EXCLUDED, THOUGH `S_` IS THE GOVERNMENTAL '
+             + 'SPECIAL-DISTRICT FAMILY. ARM ch. 4: "Workers Compensation Fund (S) — used to '
+             + 'account for workers\' compensation risk-sharing pools. This fund can only be used '
+             + 'by counties and should be reported as an internal service fund." It carries 6,214 '
+             + 'lines in all 31 years. Classified by its letter it would have inflated every New '
+             + 'York county\'s Total Governmental for the entire series, tying at $0 against '
+             + 'itself. The restriction is corroborated by the data without exception: every one '
+             + 'of those 6,214 lines is a county, and no town or village files `S`. '
+             + '⚠ 171 of 1,766 county-years (9.68%) publish `unknown` — CS 166 (FY1995-2001), '
+             + 'EB 5. The share is the highest of the three classes because counties are 57 '
+             + 'governments and CS reached most of them. '
+             + 'REPORTING ENTITY: UNKNOWN, as for every class of this filing.',
+    },
+  },
+
   {
     id: 'ca-sco-city-exp',
     match: /^CA State Controller - Expenditures$/,

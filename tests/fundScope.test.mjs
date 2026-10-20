@@ -462,7 +462,16 @@ describe('the shipped registry', () => {
     // ⚠ `ny-osc-school-total-governmental` joins on 2026-10-11, and its
     // reporting entity is UNKNOWN for the same reason: nothing in the district
     // AFR establishes whether a district consolidates its component units.
-    expect(totGov.map((e) => e.id).sort()).toEqual(['ca-sco-derived-tg', 'fl-dfs-afr', 'in-county-acfr-tg', 'mi-treasury-f65-tg', 'mn-osa', 'ny-osc-city-total-governmental', 'ny-osc-school-total-governmental', 'oh-aos', 'pa-dced-clgs30-county']);
+    // ⚠ `ny-osc-{town,village,county}-total-governmental` join on 2026-10-19,
+    // finishing New York. Same filing, same manual, same UNKNOWN reporting
+    // entity — but three entries rather than one, because the governmental
+    // fund list genuinely differs by class. A town adds B/DA/DB and the S_
+    // special districts; a county adds D/DM and must EXCLUDE bare `S`
+    // (Workers' Compensation, proprietary, one letter from the governmental
+    // S_ family); a village has neither block. One entry could not state
+    // three different fund lists, and sharing the cities' entry would have
+    // published evidence that says "All 61 cities" over a town's figure.
+    expect(totGov.map((e) => e.id).sort()).toEqual(['ca-sco-derived-tg', 'fl-dfs-afr', 'in-county-acfr-tg', 'mi-treasury-f65-tg', 'mn-osa', 'ny-osc-city-total-governmental', 'ny-osc-county-total-governmental', 'ny-osc-school-total-governmental', 'ny-osc-town-total-governmental', 'ny-osc-village-total-governmental', 'oh-aos', 'pa-dced-clgs30-county']);
     for (const e of totGov) {
       expect(e.evidence.figures, e.id).toMatch(/REPORTING ENTITY|reporting-entity/);
     }
