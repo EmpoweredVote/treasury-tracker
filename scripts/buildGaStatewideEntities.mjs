@@ -56,9 +56,13 @@ import path from 'node:path';
 
 import ExcelJS from 'exceljs';
 import { parseLoad1, readLog1 } from './lib/gaRlgf.mjs';
+import {
+  parseExportable, readV1Log, matchSheetName, V1_EXTRACT_SHEET,
+} from './lib/gaRlgfV1.mjs';
 import { buildCensus, censusMonthFor } from './lib/facFiscalYearCensus.mjs';
 import { GA_RLGF_ENTITIES } from './data/georgiaRlgfEntities.mjs';
 import { fyeMonthChange, fyeMonthDefect } from './data/gaRlgfAnomalies.mjs';
+import { loadLadder, resolvePlace, DEFAULT_LADDER } from './lib/censusVintages.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const DEFAULT_DIR = join(ROOT, '_acfr-work/ga/sweep/xlsx');
@@ -115,6 +119,27 @@ export const CONSOLIDATED_NAMES = Object.freeze({
   '3152152': 'Webster County',
 });
 export const GA_FIRST_YEAR = 2016;
+
+/**
+ * ⚠⚠ THE REGISTRY WINDOW STAYS v2, AND THAT IS LOAD-BEARING.
+ *
+ * It is tempting to widen `GA_FIRST_YEAR` to 2009 now that #273 loads the v1
+ * generation. It would be WRONG. `loadGeorgiaRLGF.resolveMonth` documents and
+ * depends on the opposite: "the statewide registry was BUILT from the
+ * FY2016-2025 filings, and its entity-level `fiscalYearStartMonth` is that
+ * government's CURRENT month — not an assertion about 2012." Its whole v1
+ * path keys on `belowV2 && !hasClaim` — the registry having NO claim about a
+ * v1 year — to RECORD the filing's own month. A registry built from 2009 would
+ * start making claims about v1 years and silently convert that recording into
+ * a comparison, for every v1 filing in the state.
+ *
+ * ⭐ THE ACTUAL GAP IS NARROWER. Only a government with NO v2 filing at all has
+ * no entity. So the v1 window is a FALLBACK, applied per government and only
+ * when the v2 window is empty: five municipalities (Macon City, Payne City,
+ * Riverside Town, Helena City, McRae City) that stopped filing before FY2016.
+ * Every government with a v2 filing is built exactly as before, byte for byte.
+ */
+export const GA_V1_FALLBACK_FIRST_YEAR = 2009;
 export const GA_LAST_YEAR = 2025;
 
 /**
@@ -424,32 +449,83 @@ export function entityKey(name) {
   return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 }
 
-/** Read every in-window workbook for one CICOID and return its LOG1 months. */
-async function readFormMonths(dir, cicoid, first, last) {
-  const files = readdirSync(dir)
-    .filter((f) => f.startsWith(`${cicoid}_`) && f.toLowerCase().endsWith('.xlsx'))
-    .sort();
+/**
+ * Read every in-window workbook for one CICOID and return its months.
+ *
+ * ⚠⚠ READS BOTH FORM GENERATIONS, AND ACROSS SEVERAL DIRECTORIES. The v2
+ * corpus and the v1 corpus are separate directories
+ * (`_acfr-work/ga/muni/xlsx`, `_acfr-work/ga/pre2016/xlsx`), and a single
+ * government's series can span both. When this read one directory and only
+ * the `LOAD1` sheet, five governments that filed ONLY in FY2009-2015 — Macon
+ * City, Payne City, Riverside Town, Helena City, McRae City — were refused
+ * `no-readable-filing` AFTER the census ladder had successfully typed them.
+ * Typing a government is not enough to load it.
+ *
+ * ⚠⚠ The v1 month comes from `Exportable Data`'s V98/V99 and NEVER from the
+ * `Data` twin's `MO`, which is measured garbage — Banks reads 2005/2007/2009,
+ * Cobb and DeKalb read 0. `readV1Log` enforces that by its signature; this
+ * passes it the live sheet only.
+ *
+ * ⚠ Sheet names are matched LOOSELY. Three workbooks name a page `'Page 3 '`
+ * with a trailing space, and an exact lookup cost a whole Part once.
+ *
+ * ⚠ A fiscal year read from one directory is not re-read from another; the
+ * first corpus to supply a year wins, and duplicates are reported.
+ */
+export async function readFormMonths(dirs, cicoid, first, last) {
+  const list = Array.isArray(dirs) ? dirs : [dirs];
   const months = [];
   const notes = [];
-  for (const f of files) {
-    const meta = parseWorkbookName(f);
-    if (!meta) { notes.push(`${f}: refused, non-numeric fiscal year`); continue; }
-    if (meta.fiscalYear < first || meta.fiscalYear > last) continue;
-    const wb = new ExcelJS.Workbook();
-    await wb.xlsx.readFile(join(dir, f));
-    const load1 = gridOf(wb, 'LOAD1');
-    if (!load1) { notes.push(`FY${meta.fiscalYear}: no LOAD1 sheet (pre-FY2016 form)`); continue; }
-    const { blocks } = parseLoad1(load1);
-    const log1 = readLog1(blocks._LOG1 || {});
-    months.push({
-      fiscalYear: meta.fiscalYear,
-      month: log1.fyEndMonth,
-      text: log1.fyEndMonthText,
-      monthsReported: log1.monthsReported,
-      monthChanged: log1.monthChanged,
-      government: log1.government,
-    });
+  const seen = new Set();
+  for (const dir of list) {
+    if (!existsSync(dir)) { notes.push(`${dir}: no such directory`); continue; }
+    const files = readdirSync(dir)
+      .filter((f) => f.startsWith(`${cicoid}_`) && f.toLowerCase().endsWith('.xlsx'))
+      .sort();
+    for (const f of files) {
+      const meta = parseWorkbookName(f);
+      if (!meta) { notes.push(`${f}: refused, non-numeric fiscal year`); continue; }
+      if (meta.fiscalYear < first || meta.fiscalYear > last) continue;
+      if (seen.has(meta.fiscalYear)) {
+        notes.push(`FY${meta.fiscalYear}: already read from an earlier corpus; ${f} ignored`);
+        continue;
+      }
+      const wb = new ExcelJS.Workbook();
+      await wb.xlsx.readFile(join(dir, f));
+
+      const load1 = gridOf(wb, 'LOAD1');
+      let log;
+      if (load1) {
+        const { blocks } = parseLoad1(load1);
+        log = readLog1(blocks._LOG1 || {});
+      } else {
+        // v1 (`Exportable Data`) generation.
+        const names = wb.worksheets.map((w) => w.name);
+        const sheet = matchSheetName(names, V1_EXTRACT_SHEET);
+        if (!sheet) {
+          notes.push(`FY${meta.fiscalYear}: no LOAD1 and no ${JSON.stringify(V1_EXTRACT_SHEET)} sheet`);
+          continue;
+        }
+        // ⚠ `.flat`, not the whole result: parseExportable returns
+        // `{ blocks, flat }`, and readV1Log takes the LIVE sheet's flat map.
+        // Passing the wrapper reads every key as undefined and yields a null
+        // month for every filing, silently.
+        const { flat: live } = parseExportable(gridOf(wb, sheet));
+        log = readV1Log(live);
+      }
+
+      seen.add(meta.fiscalYear);
+      months.push({
+        fiscalYear: meta.fiscalYear,
+        month: log.fyEndMonth,
+        text: log.fyEndMonthText,
+        monthsReported: log.monthsReported,
+        monthChanged: log.monthChanged,
+        government: log.government,
+      });
+    }
   }
+  months.sort((a, b) => a.fiscalYear - b.fiscalYear);
   return { months, notes };
 }
 
@@ -457,7 +533,12 @@ export async function buildEntities({
   dir = DEFAULT_DIR, enumeration = DEFAULT_ENUM, kind = 'county',
   first = GA_FIRST_YEAR, last = GA_LAST_YEAR, log = console.log,
 } = {}) {
-  if (!existsSync(dir)) throw new Error(`no converted workbooks at ${dir} — run fetchGeorgiaRLGF.mjs first`);
+  // ⚠ `--dir` may name SEVERAL corpora, comma-separated: a government's series
+  // can span the v1 and v2 directories and both must be read.
+  const dirs = (Array.isArray(dir) ? dir : String(dir).split(',')).map((d) => d.trim()).filter(Boolean);
+  for (const d of dirs) {
+    if (!existsSync(d)) throw new Error(`no converted workbooks at ${d} — run fetchGeorgiaRLGF.mjs first`);
+  }
   const manifest = JSON.parse(readFileSync(enumeration, 'utf8'));
   const isCounty = kind === 'county';
   const isConsolidated = kind === 'consolidated';
@@ -480,6 +561,14 @@ export async function buildEntities({
     for (const g of cm.governments) countyNameByCicoid.set(g.cicoid, g.name);
   }
   const census = buildCensus(GA_STATE);
+  // ⚠ Loaded ONCE, not per government: four vintages re-read for each of 530
+  // municipalities would be ~2,100 file reads.
+  const { ladders, missing } = isCounty || isConsolidated
+    ? { ladders: [], missing: [] }
+    : loadLadder(ROOT, '13', DEFAULT_LADDER);
+  if (!isCounty && !isConsolidated && missing.length) {
+    log(`⚠ census vintages not cached: ${missing.join(', ')} — run: node scripts/fetchCensusVintages.mjs 13`);
+  }
   // ⚠ A municipality's parent county is derived from its CICOID, never from its
   // name. The county must already EXIST as a TT entity; where the county
   // government is consolidated there is no county entity at all, and the parent
@@ -511,9 +600,20 @@ export async function buildEntities({
 
   for (const g of targets) {
     const inWindow = g.years.filter((y) => y >= first && y <= last);
-    if (!inWindow.length) {
+    // ⚠⚠ THE v1 FALLBACK, PER GOVERNMENT AND ONLY WHEN THE v2 WINDOW IS EMPTY.
+    // A government that stopped filing before FY2016 has no entity at all, so
+    // its v1 filings cannot load however well they parse. One that DOES file in
+    // the v2 window is built from the v2 window alone, unchanged — see
+    // GA_V1_FALLBACK_FIRST_YEAR for why widening this for everyone is wrong.
+    const v1Window = inWindow.length
+      ? []
+      : g.years.filter((y) => y >= GA_V1_FALLBACK_FIRST_YEAR && y < first);
+    const v1Only = !inWindow.length && v1Window.length > 0;
+    const windowFirst = v1Only ? GA_V1_FALLBACK_FIRST_YEAR : first;
+    const windowLast = v1Only ? first - 1 : last;
+    if (!inWindow.length && !v1Only) {
       refusals.push({ cicoid: g.cicoid, name: g.name, status: 'no-filings',
-        why: `DCA lists no filing in FY${first}-${last}` });
+        why: `DCA lists no filing in FY${GA_V1_FALLBACK_FIRST_YEAR}-${last}` });
       continue;
     }
     if (ALREADY_LOADED.includes(g.cicoid)) {
@@ -527,14 +627,42 @@ export async function buildEntities({
       const cn = countyNameByCicoid.get(countyCicoidFor(g.cicoid));
       pop = cn ? countyPops.get(cn.trim().toLowerCase()) : null;
       if (pop) pop = { ...pop, countyName: cn };
-    } else pop = joinPlace(g.name, pops);
+    } else {
+      pop = joinPlace(g.name, pops);
+      // ⚠⚠ Vintage 2024 cannot name a government that ended before 2024. Fall
+      // back DOWN THE LADDER rather than refusing — and record WHICH vintage
+      // typed it, because an entity typed from an unrecorded source is exactly
+      // the unsourced estimate this project already had to undo once
+      // (project_state_node_unsourced_estimates).
+      if (!pop || pop.why) {
+        const r = resolvePlace(g.name, { ladders, missing });
+        if (r.why) pop = { why: r.why };
+        else {
+          pop = {
+            censusName: r.censusName,
+            base: r.base,
+            censusType: r.entityType,
+            placeFips: r.placeFips,
+            how: r.how,
+            vintage: r.vintage,
+            // ⚠ NULL, not the old vintage's figure. There is no current
+            // estimate for a government no current vintage names, and that is
+            // the honest value — consistent with FL's two dissolved
+            // municipalities and the 17 already in TT. The vintage figure is
+            // kept for the provenance prose only.
+            population: null,
+            vintagePopulation: r.population,
+          };
+        }
+      }
+    }
     if (!pop || pop.why) {
       refusals.push({ cicoid: g.cicoid, name: g.name, status: 'no-population',
-        why: pop?.why ?? `Census Vintage 2024 has no GA ${kind} named ${JSON.stringify(g.name)}` });
+        why: pop?.why ?? `no census vintage names a GA ${kind} called ${JSON.stringify(g.name)}` });
       continue;
     }
 
-    const { months, notes } = await readFormMonths(dir, g.cicoid, first, last);
+    const { months, notes } = await readFormMonths(dirs, g.cicoid, windowFirst, windowLast);
     read += months.length;
     if (!months.length) {
       refusals.push({ cicoid: g.cicoid, name: g.name, status: 'no-readable-filing',
@@ -587,12 +715,26 @@ export async function buildEntities({
       entityType,
       dcaName: isCounty ? undefined : g.name,
       population: pop.population,
+      censusVintage: pop.vintage ?? 2024,
+      placeFips: pop.placeFips ?? null,
+      // ⚠ 'v1' means this entity's month was derived from FY2009-2015 filings
+      // because the government filed nothing in the v2 window. For every other
+      // entity the month is a claim about FY2016+ ONLY, which is what
+      // loadGeorgiaRLGF.resolveMonth's `belowV2 && !hasClaim` rule relies on.
+      builtFrom: v1Only ? 'v1' : 'v2',
       populationSource: isCounty
         ? `co-est2024-alldata.csv SUMLEV=050 STATE=13 COUNTY=${pop.fips.slice(2)}`
         : (isConsolidated
           ? `co-est2024-alldata.csv SUMLEV=050 STATE=13 COUNTY=${pop.fips.slice(2)} (${pop.countyName}, `
             + 'the county this government IS — not its census place row, which may be a `(balance)`)'
-          : `sub-est2024_13.csv SUMLEV=162 PLACE=${pop.placeFips} (${pop.censusName}, joined by ${pop.how})`),
+          : (pop.vintage && pop.vintage !== 2024
+            // ⚠ No current population exists for this government. The newest
+            // vintage that could still NAME it is recorded, so the TYPE stays
+            // sourced even though the population is null.
+            ? `no current estimate — typed from sub-est${pop.vintage}_13.csv SUMLEV=162 `
+              + `PLACE=${pop.placeFips} (${pop.censusName}, joined by ${pop.how}; `
+              + `vintage ${pop.vintage} population ${pop.vintagePopulation})`
+            : `sub-est2024_13.csv SUMLEV=162 PLACE=${pop.placeFips} (${pop.censusName}, joined by ${pop.how})`)),
       fiscalYearStartMonth: r.month,
       fiscalYearEndText: monthText,
       censusName: r.censusName ?? null,
@@ -616,6 +758,37 @@ export async function buildEntities({
   return { entities, refusals, statuses, read, targets: targets.length };
 }
 
+/**
+ * ⚠⚠ REFUSE TO WRITE A SMALLER REGISTRY OVER A LARGER ONE.
+ *
+ * MEASURED, NOT HYPOTHETICAL: running this builder with the SWEEP enumeration
+ * (159 counties) while `--kind municipality` selected nothing wrote a 0-entity
+ * registry over the 526 loaded municipalities, printed "REGISTRY: 0 entities"
+ * and exited 0. Nothing failed. The registry is the only record of which
+ * CICOID is which government, so losing it silently loses every entity's
+ * identity — and a loader run against the empty file would then create 526 new
+ * governments.
+ *
+ * Same shape as the `length === 0` guard that put three $0 rows into
+ * production: an empty result is a question, never an answer.
+ *
+ * ⚠ The count is read from the rendered text rather than by importing the
+ * module, because the export name differs per kind and a half-written file
+ * must still be countable.
+ */
+export function assertNotShrinking(outPath, entities, { allowShrink = false } = {}) {
+  if (allowShrink || !existsSync(outPath)) return;
+  const existing = (readFileSync(outPath, 'utf8').match(/^\s{4}cicoid: /gm) ?? []).length;
+  if (existing && entities.length < existing) {
+    throw new Error(
+      `refusing to write ${outPath}: would write ${entities.length} entities over ${existing}. `
+      + 'Check --kind against --enumeration; the sweep enumeration holds only counties, '
+      + 'municipalities are in _acfr-work/ga/muni/enumeration.json. '
+      + 'Pass --allow-shrink if the reduction is deliberate.',
+    );
+  }
+}
+
 /** Serialise the registry as a module, sorted by key so the diff is reviewable. */
 export function renderModule(entities, meta) {
   const rows = [...entities].sort((a, b) => a.key.localeCompare(b.key));
@@ -631,7 +804,12 @@ export function renderModule(entities, meta) {
     fiscalYearEndText: ${JSON.stringify(e.fiscalYearEndText)},
     censusName: ${JSON.stringify(e.censusName)},
     censusKind: ${JSON.stringify(e.censusKind)},
-    censusConfirms: ${e.censusConfirms},${e.dcaName && e.dcaName !== e.name ? `
+    censusConfirms: ${e.censusConfirms},
+    censusVintage: ${e.censusVintage},
+    placeFips: ${JSON.stringify(e.placeFips)},${e.builtFrom === 'v1' ? `
+    // ⚠⚠ Built from FY2009-2015: this government filed nothing in the v2
+    // window, so its month IS a claim about v1 years, unlike every other row.
+    builtFrom: 'v1',` : ''}${e.dcaName && e.dcaName !== e.name ? `
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: ${JSON.stringify(e.dcaName)},` : ''}${e.monthByYear ? `
     // ⚠ CHANGED ITS FISCAL CALENDAR INSIDE THE WINDOW. These years are written
@@ -710,6 +888,8 @@ export async function main(argv = process.argv.slice(2), log = console.log) {
       out: { type: 'string' },
       kind: { type: 'string', default: 'county' },
       'dry-run': { type: 'boolean', default: false },
+      // ⚠ Only ever pass this when a reduction is deliberate and checked.
+      'allow-shrink': { type: 'boolean', default: false },
     },
   });
   const out = values.out ?? OUT_BY_KIND[values.kind];
@@ -732,6 +912,9 @@ export async function main(argv = process.argv.slice(2), log = console.log) {
   for (const e of unverified) log(`     ${e.cicoid} ${e.name} (month ${e.fiscalYearStartMonth}, ${e.monthStatus}): ${e.monthWhy}`);
 
   if (values['dry-run']) { log('\n--dry-run: nothing written'); return r; }
+  // ⚠⚠ Before anything is written. A 0-entity build silently replaced 526
+  // loaded municipalities once; see assertNotShrinking.
+  assertNotShrinking(out, r.entities, { allowShrink: !!values['allow-shrink'] });
   const meta = {
     builtAt: new Date().toISOString().slice(0, 10),
     read: r.read, targets: r.targets, kind: values.kind,

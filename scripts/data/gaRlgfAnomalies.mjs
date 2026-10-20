@@ -2361,7 +2361,21 @@ export const GA_OUT_OF_SCOPE_FINDINGS = Object.freeze([
       + '1,034-filing sweep. '
       + '⚠ The six filings are fetched, converted and verified; nothing needs re-measuring. '
       + 'The loader reports them as `CICOID … is in no registry — not loaded` on every run, '
-      + 'so they cannot be forgotten silently.',
+      + 'so they cannot be forgotten silently. '
+      + '✅✅ RESOLVED 2026-10-19, and the two halves did get opposite answers. '
+      + 'ECHOLS: a declared CICOID alias (`GA_CICOID_ALIASES` in loadGeorgiaRLGF.mjs) maps '
+      + '`1050050` onto the existing `3050050` entity. ⚠⚠ The alias ADDS NO ENTITY — a '
+      + 'second one would DUPLICATE rows through `treasury_sync_city_budget`, which keys on '
+      + 'fund_scope + basis and not on data_source, instead of colliding visibly — and the '
+      + 'duplicate-CICOID assertion is unchanged and still absolute. FY2010 stays REFUSED as '
+      + 'the one measured overlap in the state. '
+      + 'BIBB: its own entity, `bibb-county` (scripts/data/gaBibbPredecessor.mjs), FY2009-2013 '
+      + 'only, asserted never to gain an FY2014+ year. Chris\'s call, 2026-10-19: a reader '
+      + 'should see two governments because there were two. ⭐ The Census Bureau reached the '
+      + 'same conclusion independently — it retired PLACE 49000 (`Macon city`) after vintage '
+      + '2013 and issued 49008 for Macon-Bibb rather than continuing the old code. '
+      + '⚠ Bibb\'s month is MEASURED, not assumed: all five filings print "June 30" with '
+      + 'MosRptd = 12.',
   },
   {
     what: '⚠⚠ SEVEN MUNICIPALITIES WITH FY2009-2015 FILINGS HAVE NO REGISTRY ENTRY, so 37 '
@@ -2385,7 +2399,61 @@ export const GA_OUT_OF_SCOPE_FINDINGS = Object.freeze([
       + 'and Riverside Town files only FY2009-2015. Loading them now would mean typing a '
       + 'government the census does not describe, which is the one thing that sweep refused to '
       + 'do. ⚠ Doing it consistently is a single coherent follow-up — a way to type a '
-      + 'government the current census vintage cannot name — and NOT a Georgia-only problem.',
+      + 'government the current census vintage cannot name — and NOT a Georgia-only problem. '
+      + '✅✅ RESOLVED 2026-10-19 — see the next entry.',
+  },
+  {
+    what: '✅✅ RESOLVED 2026-10-19 — ALL SEVEN ARE TYPED AND IN THE REGISTRY (533 entities, '
+      + 'was 526). The answer to "how do you type a government the current census vintage '
+      + 'cannot name" needed no new authority and no judgement call: THE NEWEST CENSUS '
+      + 'VINTAGE THAT CAN NAME IT. Measured, with the PLACE FIPS each carries: Ranger town '
+      + '(63560) and Sunny Side city (74572) from Vintage 2019; Helena city (37816), McRae '
+      + 'city (49084), Payne city (59584) and Riverside town (65604) from 2014; Macon city '
+      + '(49000) from 2013. ⭐ In all seven the census type agrees with DCA\'s word — a '
+      + 'result, not a reason: the point is that the type is now SOURCED, so the 20 known '
+      + 'DCA/census contradictions cannot reach a recovered entity either.',
+    why:
+      '`scripts/lib/censusVintages.mjs` walks a ladder of vintages newest-first and stops at '
+      + 'the first that names the government, recording WHICH vintage typed it on the entity '
+      + '(`censusVintage`, `placeFips`). Population stays NULL — there is no current estimate '
+      + 'for a government no current vintage names, which is the honest value and what FL\'s '
+      + 'two dissolved municipalities and the 17 already in TT carry. '
+      + '⚠⚠ TYPING A GOVERNMENT TURNED OUT NOT TO BE ENOUGH TO LOAD IT, and that was the half '
+      + 'the follow-up had not seen. After the ladder typed all seven, FIVE WERE STILL '
+      + 'REFUSED — now as `no-readable-filing` — because they file ONLY FY2009-2015 and '
+      + '`readFormMonths` read one directory and only the v2 `LOAD1` sheet, while the v1 '
+      + 'corpus is a separate directory using `Exportable Data`. It now reads both. '
+      + '⚠⚠ AND WIDENING THE REGISTRY WINDOW TO 2009 FOR EVERYONE IS WRONG, which was tried '
+      + 'and measured: `loadGeorgiaRLGF.resolveMonth` depends on the registry having NO claim '
+      + 'about a v1 year (`belowV2 && !hasClaim`) in order to RECORD a v1 filing\'s own month '
+      + 'rather than compare it against a month derived from years a decade later. The wide '
+      + 'build also produced 516 entities against 526 committed — it would have DROPPED 17 '
+      + 'loaded governments whose v1/v2 months differ for reasons already in '
+      + 'GA_V1_MONTH_CHANGES. So the v1 window is a FALLBACK applied per government and only '
+      + 'where the v2 window is empty; entities carry `builtFrom` so the distinction is '
+      + 'visible rather than inferred. '
+      + 'Design: docs/superpowers/specs/2026-10-19-census-vintage-typing-design.md.',
+  },
+  {
+    what: '⚠⚠ THE CENSUS AND DCA DISAGREE ABOUT WHETHER RANGER AND SUNNY SIDE EXIST. Census '
+      + 'Vintage 2019 lists 538 Georgia places and Vintage 2024 lists 537, and the diff is '
+      + 'exactly three rows: Ranger town and Sunny Side city REMOVED, Mableton city '
+      + '(incorporated 2022) ADDED. So the Census Bureau dropped precisely the two '
+      + 'governments DCA still shows filing — Sunny Side from FY2016, Ranger from FY2017.',
+    why:
+      'Both are LOADED, typed from Vintage 2019, the newest vintage that names them. '
+      + '⚠ TT DOES NOT DECIDE WHICH SOURCE IS RIGHT. The census may be recording a '
+      + 'dissolution DCA\'s roster has not reflected, or DCA may be carrying stub filings for '
+      + 'governments that no longer operate — `MosRptd` is already known to lie about stubs '
+      + '(Talbot, Georgetown-Quitman) and only the money finds them. The figures shown are '
+      + 'the filings\' own, oracled like every other. '
+      + '⚠ NOT a `figureFlags` entry, deliberately: that register is keyed per '
+      + 'entity-year-dataset and its three severities (`understated`, `outlier`, '
+      + '`not-comparable`) all describe A FIGURE. Nothing is wrong with these figures — what '
+      + 'is disputed is whether the GOVERNMENT exists — so a banner would need ~40 duplicate '
+      + 'per-year entries and a severity that misdescribes the finding. The entity\'s own '
+      + '`populationSource` carries the census note, and every reader already sees that '
+      + 'through the source chip.',
   },
 ]);
 
