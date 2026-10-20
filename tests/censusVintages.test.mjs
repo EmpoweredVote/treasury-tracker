@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   readPlaceVintage, squash, resolvePlace, loadLadder, DEFAULT_LADDER,
 } from '../scripts/lib/censusVintages.mjs';
+import { auditState } from '../scripts/auditCensusVintageGaps.mjs';
 
 const FIX = (v) => `tests/fixtures/census/sub-est${v}-ga-places-slice.csv`;
 
@@ -78,8 +79,8 @@ describe('the ladder stops at the newest vintage that names the government', () 
     const expected = {
       'Ranger Town':     { entityType: 'town', placeFips: '63560', vintage: 2019 },
       'Sunny Side City': { entityType: 'city', placeFips: '74572', vintage: 2019 },
-      'Helena':          { entityType: 'city', placeFips: '37816', vintage: 2014 },
-      'McRae':           { entityType: 'city', placeFips: '49084', vintage: 2014 },
+      'Helena City':     { entityType: 'city', placeFips: '37816', vintage: 2014 },
+      'McRae City':      { entityType: 'city', placeFips: '49084', vintage: 2014 },
       'Payne City':      { entityType: 'city', placeFips: '59584', vintage: 2014 },
       'Riverside Town':  { entityType: 'town', placeFips: '65604', vintage: 2014 },
       'Macon City':      { entityType: 'city', placeFips: '49000', vintage: 2013 },
@@ -138,5 +139,30 @@ describe('the ladder stops at the newest vintage that names the government', () 
     const { ladders: got, missing } = loadLadder('.', '13', DEFAULT_LADDER);
     expect(missing, 'run: node scripts/fetchCensusVintages.mjs 13').toEqual([]);
     expect(got.map((l) => l.vintage)).toEqual([2024, 2019, 2014, 2013]);
+  });
+});
+
+describe('the cross-state audit reports, and loads nothing', () => {
+  it('buckets names by the vintage that would type them', () => {
+    const r = auditState('13', ['Atlanta City', 'Macon City', 'Nowhereville City'], { ladders });
+    expect(r.byVintage[2024]).toContain('Atlanta City');
+    expect(r.byVintage[2013]).toContain('Macon City');
+    expect(r.unnamed).toEqual(['Nowhereville City']);
+    expect(r.named).toBe(2);
+  });
+
+  it('⚠ reports a state whose older vintages are not cached instead of calling it clean', () => {
+    // Otherwise a state nobody fetched reads as "no recoverable governments",
+    // which is the same lie the ladder exists to prevent, one level up.
+    const r = auditState('06', ['Anything City'], { ladders: [], missing: [2019, 2014, 2013] });
+    expect(r.incomplete).toBe(true);
+    expect(r.missing).toEqual([2019, 2014, 2013]);
+  });
+
+  it('is clean when every name types at the current vintage', () => {
+    const r = auditState('13', ['Atlanta City', 'Savannah City'], { ladders });
+    expect(r.unnamed).toEqual([]);
+    expect(Object.keys(r.byVintage)).toEqual(['2024']);
+    expect(r.incomplete).toBe(false);
   });
 });
