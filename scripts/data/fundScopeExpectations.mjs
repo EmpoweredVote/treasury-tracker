@@ -463,8 +463,26 @@ export const EXPECTED_ROWS = Object.freeze({
   'ny-osc-town-total-governmental': 0,
   'ny-osc-village-general-fund': 0,
   'ny-osc-village-total-governmental': 0,
-  'ny-osc-county-general-fund': 0,
-  'ny-osc-county-total-governmental': 0,
+  // ✅ COUNTIES LOADED 2026-10-19. MEASURED against the live table after the
+  // load. House style — rows / DISTINCT ids / strings / entities:
+  //
+  //     ny-osc-county-general-fund        3532 / 3532 / 62 / 57
+  //     ny-osc-county-total-governmental  3204 / 3204 / 62 / 57
+  //
+  // rows == DISTINCT ids on both, the guard against a paged read duplicating
+  // rows. 62 strings each = 31 fiscal years x 2 datasets. 3532 + 3204 = 6736,
+  // equal to the loader's own count of rows written and to its dry run.
+  //
+  // ⚠ THE TWO SCOPES ARE DELIBERATELY UNEQUAL. 3532 - 3204 = 328 refused
+  // total_governmental cells: CS 319 (FY1995-2001) and EB 9 (FY2008-2012).
+  // ⚠ 328, not 342. The 171 affected county-years do NOT multiply by two,
+  // because a prefix is refused PER SECTION — a county-year carrying CS only
+  // in its expenditure rows loses its expenditure total_governmental and
+  // keeps its revenue one.
+  // ⚠ All 57 counties appear in BOTH scopes, unlike the districts' 717/714:
+  // no county filed a retired prefix in every year it filed.
+  'ny-osc-county-general-fund': 3532,
+  'ny-osc-county-total-governmental': 3204,
   // SCOPE-01-RECON.md §12, measured 2026-10-09 against the live table.
   // The cities' OWN portals, added to close 4 of the 21 scope seams. Four NEW
   // families, so no pre-existing count moved.

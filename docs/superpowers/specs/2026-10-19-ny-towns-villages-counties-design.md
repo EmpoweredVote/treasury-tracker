@@ -411,11 +411,21 @@ Axis values, identical to the cities and for the same reasons:
 | Town | 28,480 | ~112,100 | 3,860,139 |
 | **total** | **47,020** | **~184,800** | **6,471,409** |
 
-Upper bound = entity-years × 2 datasets × 2 scopes, less 3,260 refused TG cells
-(§5), less the 16 cells of the four refused entity-years (§6), less entity-years
-with an empty tree.
+Upper bound = entity-years × 2 datasets × 2 scopes, less the refused
+`total_governmental` cells (§5), less the 16 cells of the four refused
+entity-years (§6), less entity-years with an empty tree.
 **The loader's `--dry-run` measures the real figure; nothing here is pasted
 into an expectation.**
+
+⚠ The §5 entity-year counts do **not** multiply cleanly by two. A prefix is
+refused **per section**, so an entity-year carrying `CS` only in its
+expenditure rows loses its expenditure `total_governmental` and keeps its
+revenue one. Measured on the counties: 171 blanked entity-years yield **328**
+refused cells, not 342.
+
+Measured for the counties (dry run, then the load): **6,736 rows** = 1,766
+entity-years × 4, less 328 refused cells, less 0 empty trees. All 1,766 report
+fiscal start month 1, and none is refused as non-annual.
 
 This is **2.2× the district load**, TT's largest to date, and it grows
 `treasury.budgets` from 397,682 rows by roughly 46%.
