@@ -35,6 +35,7 @@
     "ny:load-schools": "node --env-file=.env scripts/loadNyOscSchools.mjs",
     "ny:verify-schools": "node --env-file=.env scripts/verifyNyOscSchools.mjs",
     "ny:recon-schools-fac": "node scripts/reconcileNyOscSchoolsFac.mjs",
+    "ny:recon-counties-fac": "node scripts/reconcileNyOscCountiesFac.mjs",
     "ny:fetch-towns": "node scripts/fetchNyOsc.mjs --towns",
     "ny:fetch-villages": "node scripts/fetchNyOsc.mjs --villages",
     "ny:fetch-counties": "node scripts/fetchNyOsc.mjs --counties",
