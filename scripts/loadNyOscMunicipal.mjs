@@ -38,6 +38,14 @@ import { NY_MUNICIPAL_ENTITIES } from './data/nyOscMunicipalEntities.mjs';
 const BASIS_VALUE = 'actual';
 const DERIVATION = 'derived';
 const SCOPES = ['general_fund', 'total_governmental'];
+/**
+ * ⚠ How many RPC round trips may be in flight at once. 8 turns a ~10-minute
+ * town year into one that finishes inside a foreground command, which the
+ * memory reaper does not target — background shells running this load were
+ * reaped mid-year on 2026-10-19. Raising it further buys little and multiplies
+ * what a failure leaves part-written.
+ */
+const CONCURRENCY = 16;
 const DATASETS = [
   { datasetType: 'operating', section: 'EXPENDITURE' },
   { datasetType: 'revenue', section: 'REVENUE' },
@@ -146,6 +154,7 @@ for (let fy = FROM; fy <= TO; fy++) {
   }
 
   let wroteThisYear = 0;
+  const jobs = [];
 
   for (const [code, entityRows] of byCode) {
     const municipalityId = idByCode.get(code);
@@ -195,6 +204,34 @@ for (let fy = FROM; fy <= TO; fy++) {
 
         if (DRY) { written++; wroteThisYear++; continue; }
 
+        jobs.push({ code, datasetType, scope, agg, fysm, municipalityId });
+      }
+    }
+  }
+
+  // ⚠⚠ THE WRITES RUN WITH BOUNDED CONCURRENCY, THE DECISIONS DO NOT.
+  // Everything above — the period refusal, the unknown-prefix refusal, the
+  // never-overwrite guard, the aggregation — is decided serially, and only the
+  // RPC round trips are overlapped. That ordering matters: a guard that ran
+  // inside the pool could race the read it depends on.
+  //
+  // One round trip is ~165ms, so a 3,600-row town year is ~10 MINUTES serially
+  // — past the point where it must be run as a background shell, and this
+  // session had four such shells reaped mid-load. At CONCURRENCY 8 the same
+  // year finishes well inside a foreground command, which the reaper does not
+  // target. The rows are independent (distinct municipality/dataset/scope
+  // keys), so overlapping them changes nothing about what is written.
+  //
+  // ⚠ A FAILING JOB STILL THROWS, and in-flight siblings are not cancelled, so
+  // a failure can leave the year part-written. That is already true of the
+  // serial loop and is safe for the same reason: re-running a year refreshes
+  // it in place.
+  if (!DRY && jobs.length) {
+    const sourceDate = new Date().toISOString().slice(0, 10);
+    let next = 0;
+    const worker = async () => {
+      for (let i = next++; i < jobs.length; i = next++) {
+        const { code, datasetType, scope, agg, fysm, municipalityId } = jobs[i];
         const { data, error } = await db.rpc('treasury_sync_city_budget', {
           p_municipality_id: municipalityId,
           p_fiscal_year: fy,
@@ -204,7 +241,7 @@ for (let fy = FROM; fy <= TO; fy++) {
           p_row_count: agg.tree.length,
           p_data_source_name: municipalSourceNameFor(memberClass, datasetType, fy, scope),
           p_source_url: SOURCE_URL,
-          p_source_date: new Date().toISOString().slice(0, 10),
+          p_source_date: sourceDate,
           p_fiscal_year_start_month: fysm,
           p_fund_scope: scope,   // ⚠ part of the RPC's key
           p_basis: BASIS_VALUE,  // ⚠ part of the RPC's key
@@ -222,8 +259,16 @@ for (let fy = FROM; fy <= TO; fy++) {
         wroteThisYear++;
         categories += agg.tree.reduce((a, r) => a + 1 + (r.c?.length || 0), 0);
       }
+    };
+    await Promise.all(Array.from({ length: Math.min(CONCURRENCY, jobs.length) }, worker));
+
+    // ⚠ Every queued job must have been written. A worker that returned early
+    // would otherwise shorten the year silently.
+    if (wroteThisYear !== jobs.length) {
+      throw new Error(`FY${fy}: queued ${jobs.length} writes but recorded ${wroteThisYear}`);
     }
   }
+
   console.log(`FY${fy}: ${wroteThisYear} rows${DRY ? ' (dry-run)' : ''}, ${written} so far`);
 }
 

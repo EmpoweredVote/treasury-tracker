@@ -459,8 +459,20 @@ export const EXPECTED_ROWS = Object.freeze({
   // (CS 166, EB 5). General Fund is never refused: `A` is unambiguous.
   // ⚠ Do NOT "fix" the inequality by registering CS on inference. The
   // CS->MS rename was tested on the city archive and DISPROVED.
-  'ny-osc-town-general-fund': 0,
-  'ny-osc-town-total-governmental': 0,
+  // ✅ TOWNS LOADED 2026-10-19/20. MEASURED against the live table after the
+  // load. House style — rows / DISTINCT ids / strings / entities:
+  //
+  //     ny-osc-town-general-fund        56960 / 56960 / 62 / 933
+  //     ny-osc-town-total-governmental  55754 / 55754 / 62 / 933
+  //
+  // rows == DISTINCT ids on both. 62 strings each = 31 fiscal years x 2
+  // datasets. 56960 + 55754 = 112714, equal to the loader's own count and to
+  // its dry run. All 933 towns appear in both scopes, in all 31 years.
+  //
+  // ⚠ 56960 - 55754 = 1206 refused total_governmental cells: CS 1198, six
+  // carrying CS and EB together, and T 2. All FY1995-FY2001.
+  'ny-osc-town-general-fund': 56960,
+  'ny-osc-town-total-governmental': 55754,
   // ✅ VILLAGES LOADED 2026-10-19. MEASURED against the live table after the
   // load. House style — rows / DISTINCT ids / strings / entities:
   //
