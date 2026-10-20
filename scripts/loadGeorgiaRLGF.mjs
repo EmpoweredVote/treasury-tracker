@@ -102,9 +102,51 @@ for (const e of GA_ALL_ENTITIES) {
   seenKeys.add(e.key);
 }
 
+/**
+ * ⚠⚠ TWO CICOIDs, ONE GOVERNMENT.
+ *
+ * Echols County filed under `1050050` (county prefix) and `3050050`
+ * (consolidated prefix). Its FY2010 county-prefix filing reports operating
+ * $2,679,270 — IDENTICAL to the FY2010 consolidated filing already loaded
+ * under `3050050`. Echols has no municipalities, so the unified government
+ * covers the same territory and the same money: FY2009 is a genuine
+ * continuation of the series TT already shows, not a second government.
+ *
+ * ⚠⚠ THE ALIAS ADDS NO ENTITY, AND THAT IS THE WHOLE POINT. A second entity
+ * would DUPLICATE rows through `treasury_sync_city_budget`, which keys on
+ * fund_scope + basis rather than on data_source, instead of colliding visibly
+ * (`project_sync_city_budget_not_source_safe`). The duplicate-CICOID assertion
+ * above is unchanged and still absolute; this map is the one DECLARED way a
+ * CICOID may resolve to an entity it does not itself own.
+ *
+ * ⚠ FY2010 stays REFUSED as a double-count — it is the single measured overlap
+ * in the whole state (`GA_CONSOLIDATION_OVERLAP`). Only FY2009 loads.
+ */
+export const GA_CICOID_ALIASES = Object.freeze({
+  '1050050': '3050050',
+});
+
+/**
+ * An alias must point AT something and must not BE something.
+ *
+ * ⚠ Exported so the rules are testable rather than asserted once at import and
+ * never exercised again.
+ */
+export function assertAliases(aliases, entities) {
+  const own = new Set(entities.map((e) => e.cicoid));
+  for (const [from, to] of Object.entries(aliases)) {
+    if (own.has(from)) {
+      throw new Error(`alias source ${from} is itself a registry entry — an alias must add no entity`);
+    }
+    if (!own.has(to)) throw new Error(`alias target ${to} is in no registry`);
+  }
+}
+assertAliases(GA_CICOID_ALIASES, GA_ALL_ENTITIES);
+
 /** Look one up by CICOID — the only safe key, across both registries. */
 export function entityByCicoid(cicoid) {
-  return GA_ALL_ENTITIES.find((e) => e.cicoid === String(cicoid)) || null;
+  const id = GA_CICOID_ALIASES[String(cicoid)] ?? String(cicoid);
+  return GA_ALL_ENTITIES.find((e) => e.cicoid === id) || null;
 }
 
 import { ensureMunicipality } from './lib/ensureMunicipality.mjs';

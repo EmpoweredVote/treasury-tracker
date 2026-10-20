@@ -9,20 +9,26 @@ import {
 import {
   resolveMonth, joinCensusName, parseWorkbookName, entityKey, readCountyPopulations,
   readPlacePopulations, joinPlace, countyCicoidFor,
-  ALREADY_LOADED, GA_FIRST_YEAR, GA_LAST_YEAR,
+  ALREADY_LOADED, GA_FIRST_YEAR, GA_LAST_YEAR, assertNotShrinking, readFormMonths,
+  GA_V1_FALLBACK_FIRST_YEAR,
 } from '../scripts/buildGaStatewideEntities.mjs';
 import { GA_STATEWIDE_ENTITIES } from '../scripts/data/georgiaStatewideEntities.mjs';
+import { GA_STATEWIDE_MUNICIPALITIES } from '../scripts/data/georgiaStatewideMunicipalities.mjs';
+import { GA_STATEWIDE_CONSOLIDATED } from '../scripts/data/georgiaStatewideConsolidated.mjs';
+import { GA_RLGF_ENTITIES } from '../scripts/data/georgiaRlgfEntities.mjs';
 import { GA_FORM_GENERATIONS } from '../scripts/data/georgiaRlgfEntities.mjs';
 import { buildCensus } from '../scripts/lib/facFiscalYearCensus.mjs';
 import {
   resolveMonth as loaderResolveMonth, unverifiableMatches, toTree,
+  GA_ALL_ENTITIES, entityByCicoid, assertAliases,
 } from '../scripts/loadGeorgiaRLGF.mjs';
 import {
   GA_FYE_MONTH_CHANGES, GA_FYE_MONTH_DEFECTS, fyeMonthChange, fyeMonthDefect,
-  GA_UNVERIFIABLE_FILINGS, unverifiableFiling, formTotalDefect,
+  GA_UNVERIFIABLE_FILINGS, unverifiableFiling, formTotalDefect, consolidationOverlap,
   GA_FIGURE_FLAGS, GA_EMPTY_DATASETS, emptyDataset,
 } from '../scripts/data/gaRlgfAnomalies.mjs';
 import { figureFlags } from '../src/data/figureFlags.ts';
+import { loadLadder, resolvePlace, DEFAULT_LADDER } from '../scripts/lib/censusVintages.mjs';
 
 // ⚠ `cache/` is gitignored IN FULL (.gitignore:121), so nothing under it can be
 // read by a test that has to pass in CI. The fixture is a byte extract of the
@@ -272,6 +278,26 @@ describe('registry mechanics', () => {
     expect(GA_FIRST_YEAR).toBe(GA_FORM_GENERATIONS.v2.firstFiscalYear);
     expect(GA_LAST_YEAR).toBe(GA_FORM_GENERATIONS.v2.lastFiscalYear);
     expect(GA_LOAD_WINDOW).toEqual({ first: 2016, last: 2025 });
+  });
+
+  it('⚠⚠ the v1 fallback is a FALLBACK, not a wider window', () => {
+    /**
+     * Widening GA_FIRST_YEAR to 2009 was tried and is WRONG.
+     * `loadGeorgiaRLGF.resolveMonth` depends on the registry having NO claim
+     * about a v1 year — `belowV2 && !hasClaim` is what makes it RECORD the
+     * filing's own month instead of comparing against a month derived from
+     * years a decade later. A registry built from 2009 makes claims about v1
+     * years and silently turns that recording into a comparison, statewide.
+     *
+     * It also measured badly: the wider build dropped the registry from 526
+     * entities to 516, refusing 17 governments whose v1 and v2 months differ
+     * for reasons already registered in GA_V1_MONTH_CHANGES.
+     *
+     * So the v1 window applies per government and ONLY where the v2 window is
+     * empty.
+     */
+    expect(GA_V1_FALLBACK_FIRST_YEAR).toBe(GA_FORM_GENERATIONS.v1.firstFiscalYear);
+    expect(GA_V1_FALLBACK_FIRST_YEAR).toBeLessThan(GA_FIRST_YEAR);
   });
 });
 
@@ -673,12 +699,39 @@ describe('the municipality name join — three shapes, measured not assumed', ()
     }
   });
 
-  it('says WHY when the census has no such place, rather than guessing', () => {
+  it('Vintage 2024 genuinely cannot name Ranger or Sunny Side', () => {
+    // ⚠ Still true, and still the reason the ladder exists. Measured: the GA
+    // roster goes 538 places (V2019) -> 537 (V2024), and the diff is exactly
+    // Ranger town and Sunny Side city removed, Mableton city (incorporated
+    // 2022) added. The Census Bureau believes both ceased to exist.
     for (const n of ['Ranger Town', 'Sunny Side City']) {
       const r = joinPlace(n, places);
       expect(r.censusName, n).toBeUndefined();
       expect(r.why, n).toMatch(/no Georgia place matching/);
     }
+  });
+
+  it('⚠⚠ BUT THEY ARE NO LONGER REFUSED — the ladder types them from 2019', () => {
+    // The old assertion here was that TT refuses them, "not guessed". It no
+    // longer refuses, and still does not guess: the type comes from the newest
+    // census vintage that names the government, not from DCA's own word.
+    // ⚠ This decides TYPE only. Whether these two still exist is a
+    // disagreement between two sources, recorded in gaRlgfAnomalies.mjs and
+    // deliberately not settled here.
+    const { ladders, missing } = loadLadder('.', '13', DEFAULT_LADDER);
+    expect(missing, 'run: node scripts/fetchCensusVintages.mjs 13').toEqual([]);
+    for (const [n, type] of Object.entries({ 'Ranger Town': 'town', 'Sunny Side City': 'city' })) {
+      const r = resolvePlace(n, { ladders, missing });
+      expect(r.why, n).toBeUndefined();
+      expect(r.entityType, n).toBe(type);
+      expect(r.vintage, n).toBe(2019);
+    }
+  });
+
+  it('still says WHY, naming every vintage tried, when nothing names it', () => {
+    const { ladders, missing } = loadLadder('.', '13', DEFAULT_LADDER);
+    const r = resolvePlace('Nowhereville City', { ladders, missing });
+    expect(r.why).toMatch(/named by no vintage of 2024, 2019, 2014, 2013/);
   });
 });
 
@@ -730,5 +783,195 @@ describe('⚠⚠ a Part that SUMS to zero is as unpublishable as a blank one', (
     expect(hasMoney, 'amounts are present').toBe(true);
     // ...which is exactly why presence alone is the wrong test.
     expect(hasMoney && Number(0) !== 0).toBe(false);
+  });
+});
+
+describe('governments the current census vintage cannot name', () => {
+  /**
+   * ⚠⚠ `treasury_ensure_municipality` keys on (name, state, entity_type). A
+   * recovered entity whose triple matches a loaded one does NOT fail — it
+   * silently joins or duplicates a government. This assertion is the only
+   * thing standing between the vintage ladder and a duplicate.
+   */
+  it('⚠⚠ no recovered entity collides with a loaded one on key or on (name, type)', () => {
+    const all = [...GA_RLGF_ENTITIES, ...GA_STATEWIDE_ENTITIES,
+      ...GA_STATEWIDE_MUNICIPALITIES, ...GA_STATEWIDE_CONSOLIDATED];
+    const byKey = new Map();
+    const byIdentity = new Map();
+    for (const e of all) {
+      expect(byKey.has(e.key), `two entities claim key ${e.key}`).toBe(false);
+      byKey.set(e.key, e);
+      const id = `${e.name.toLowerCase()}|GA|${e.entityType}`;
+      expect(byIdentity.has(id), `two entities share (name, state, entity_type): ${id}`).toBe(false);
+      byIdentity.set(id, e);
+    }
+  });
+
+  it('carries the seven recovered municipalities, each with its typing vintage', () => {
+    const want = {
+      Ranger:       { entityType: 'town', censusVintage: 2019, placeFips: '63560' },
+      'Sunny Side': { entityType: 'city', censusVintage: 2019, placeFips: '74572' },
+      Helena:       { entityType: 'city', censusVintage: 2014, placeFips: '37816' },
+      McRae:        { entityType: 'city', censusVintage: 2014, placeFips: '49084' },
+      Payne:        { entityType: 'city', censusVintage: 2014, placeFips: '59584' },
+      Riverside:    { entityType: 'town', censusVintage: 2014, placeFips: '65604' },
+      Macon:        { entityType: 'city', censusVintage: 2013, placeFips: '49000' },
+    };
+    for (const [name, w] of Object.entries(want)) {
+      const e = GA_STATEWIDE_MUNICIPALITIES.find((x) => x.name === name);
+      expect(e, `${name} missing from the registry`).toBeDefined();
+      expect(e.entityType, name).toBe(w.entityType);
+      expect(e.censusVintage, name).toBe(w.censusVintage);
+      expect(e.placeFips, name).toBe(w.placeFips);
+      // ⚠ NULL population is the honest value, not a defect: there is no
+      // current estimate for a government no current vintage names.
+      expect(e.population, name).toBeNull();
+      expect(e.populationSource, name).toMatch(/no current estimate/);
+    }
+  });
+
+  it('⚠ every OTHER municipality still types from Vintage 2024', () => {
+    const recovered = new Set(['Ranger', 'Sunny Side', 'Helena', 'McRae', 'Payne', 'Riverside', 'Macon']);
+    const others = GA_STATEWIDE_MUNICIPALITIES.filter((e) => !recovered.has(e.name));
+    expect(others.length).toBeGreaterThan(500);
+    for (const e of others) {
+      expect(e.censusVintage, e.name).toBe(2024);
+      expect(e.population, e.name).not.toBeNull();
+    }
+  });
+});
+
+describe('⚠⚠ a generated registry is never overwritten by a smaller one', () => {
+  /**
+   * MEASURED, NOT HYPOTHETICAL: running the builder with the SWEEP enumeration
+   * (159 counties) while `--kind municipality` selects nothing wrote a
+   * 0-entity registry over the 526 loaded municipalities, printed
+   * "REGISTRY: 0 entities", and exited 0. Same shape as the `length === 0`
+   * guard that put three $0 rows into production: an empty result is a
+   * question, never an answer.
+   */
+  const FIXTURE = 'tests/fixtures/ga/registry-two-entities.mjs';
+
+  it('refuses to write zero entities over a non-empty registry', () => {
+    expect(() => assertNotShrinking(FIXTURE, []))
+      .toThrow(/would write 0 entities over 2/);
+  });
+
+  it('refuses any shrink, not just an empty one', () => {
+    expect(() => assertNotShrinking(FIXTURE, [{ key: 'a' }]))
+      .toThrow(/would write 1 entities over 2/);
+  });
+
+  it('allows the same count or more', () => {
+    expect(() => assertNotShrinking(FIXTURE, [{ key: 'a' }, { key: 'b' }])).not.toThrow();
+    expect(() => assertNotShrinking(FIXTURE, [{ key: 'a' }, { key: 'b' }, { key: 'c' }])).not.toThrow();
+  });
+
+  it('allows a deliberate shrink when it is asked for explicitly', () => {
+    expect(() => assertNotShrinking(FIXTURE, [], { allowShrink: true })).not.toThrow();
+  });
+
+  it('allows a first write, where there is no file to destroy', () => {
+    expect(() => assertNotShrinking('tests/fixtures/ga/does-not-exist.mjs', [])).not.toThrow();
+  });
+});
+
+describe('⚠⚠ a government whose filings span BOTH form generations', () => {
+  /**
+   * MEASURED: the v2 corpus (`_acfr-work/ga/muni/xlsx`, 4,808 workbooks) and
+   * the v1 corpus (`_acfr-work/ga/pre2016/xlsx`, 4,551) are SEPARATE
+   * DIRECTORIES, and `readFormMonths` read one. So a government that filed
+   * only FY2009-2015 — Macon City, Payne City, Riverside Town, Helena City,
+   * McRae City — had no readable filing at all and was refused
+   * `no-readable-filing`, AFTER the census ladder had successfully typed it.
+   *
+   * ⚠ Typing a government is not enough to load it. Both halves must work.
+   *
+   * ⚠⚠ The v1 month comes from `Exportable Data`'s V98/V99 and NEVER from the
+   * `Data` twin's `MO`, which is measured garbage (Banks reads 2005/2007/2009,
+   * Cobb and DeKalb read 0).
+   */
+  const V1 = '_acfr-work/ga/pre2016/xlsx';
+  const V2 = '_acfr-work/ga/muni/xlsx';
+
+  it('reads a v1-only government across both corpora', async () => {
+    if (!existsSync(V1) || !existsSync(V2)) {
+      // ⚠ SKIPS LOUDLY. The corpora are gitignored; silence here would mean
+      // the assertion had quietly stopped testing anything.
+      console.warn(`SKIPPED: no GA corpus at ${V1} / ${V2}`);
+      return;
+    }
+    // Macon City, 2011001 — five filings, FY2009-2013, all v1.
+    const { months, notes } = await readFormMonths([V1, V2], '2011001', 2009, 2025);
+    expect(months.map((m) => m.fiscalYear), notes.join('; ')).toEqual([2009, 2010, 2011, 2012, 2013]);
+
+    // ⚠⚠ FY2011's V98 IS `#REF!`, AND THE MONTH COMES BACK NULL — NOT
+    // DEFAULTED. The scoping found the `#REF!` hazard was a false alarm for
+    // the FLOWS; it is not a false alarm for the month field. A null here is
+    // the correct read of an unreadable cell, and `resolveMonth` falls back to
+    // the entity's own consensus rather than inventing a month.
+    // `project_fysm_column_default_one_defect` is 18,700 rows of why a
+    // defaulted month is worse than a missing one.
+    const byYear = Object.fromEntries(months.map((m) => [m.fiscalYear, m]));
+    expect(byYear[2011].text).toBe('#REF!');
+    expect(byYear[2011].month).toBeNull();
+    for (const y of [2009, 2010, 2012, 2013]) {
+      expect(byYear[y].text, `FY${y}`).toBe('June 30');
+      expect(byYear[y].month, `FY${y}`).toBe(7);
+    }
+  });
+
+  it('reads a government that filed in BOTH generations as one series', async () => {
+    if (!existsSync(V1) || !existsSync(V2)) {
+      console.warn(`SKIPPED: no GA corpus at ${V1} / ${V2}`);
+      return;
+    }
+    // Sunny Side City, 2126003 — FY2009-2015 are v1, FY2016+ are v2.
+    const { months } = await readFormMonths([V1, V2], '2126003', 2009, 2025);
+    const years = months.map((m) => m.fiscalYear).sort((a, b) => a - b);
+    expect(years).toContain(2009);
+    expect(years).toContain(2016);
+    expect(new Set(years).size, 'a year must not be read twice').toBe(years.length);
+  });
+});
+
+describe('Echols is one government under two CICOIDs', () => {
+  /**
+   * ⭐ MEASURED: the FY2010 county-prefix filing (`1050050`) reports operating
+   * $2,679,270 — IDENTICAL to the FY2010 consolidated filing already loaded
+   * under `3050050`. Echols has no municipalities, so the unified government
+   * covers the same territory and the same money. FY2009 is a genuine
+   * continuation of the series TT already shows, not a second government.
+   *
+   * ⚠⚠ THE ALIAS MUST ADD NO ENTITY. A second entity would DUPLICATE rows
+   * through `treasury_sync_city_budget`, which keys on fund_scope + basis and
+   * not on data_source, instead of colliding visibly.
+   */
+  it('resolves the county-prefix CICOID onto the consolidated entity', () => {
+    const viaCg = entityByCicoid('3050050');
+    const viaCounty = entityByCicoid('1050050');
+    expect(viaCg).toBeDefined();
+    expect(viaCg.name).toBe('Echols County');
+    expect(viaCounty).toBe(viaCg); // the SAME object, not an equal one
+  });
+
+  it('⚠⚠ adds NO second entity — the alias target is the only row', () => {
+    expect(GA_ALL_ENTITIES.filter((e) => e.cicoid === '1050050')).toHaveLength(0);
+    expect(GA_ALL_ENTITIES.filter((e) => e.cicoid === '3050050')).toHaveLength(1);
+  });
+
+  it('⚠ an alias whose target is in no registry fails loudly', () => {
+    expect(() => assertAliases({ '9999999': '8888888' }, GA_ALL_ENTITIES))
+      .toThrow(/alias target 8888888 is in no registry/);
+  });
+
+  it('⚠ an alias SOURCE that is itself a registry entry fails loudly', () => {
+    expect(() => assertAliases({ '3050050': '3050050' }, GA_ALL_ENTITIES))
+      .toThrow(/alias source 3050050 is itself a registry entry/);
+  });
+
+  it('⚠⚠ FY2010 stays REFUSED as the one measured overlap in the state', () => {
+    // Loading it would double-count: both CICOIDs filed the same money.
+    expect(consolidationOverlap('1050050', 2010) ?? consolidationOverlap('3050050', 2010)).toBeTruthy();
   });
 });
