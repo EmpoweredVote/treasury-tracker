@@ -438,6 +438,33 @@ export const EXPECTED_ROWS = Object.freeze({
   // inequality by registering them on inference.
   'ny-osc-school-general-fund': 43163,
   'ny-osc-school-total-governmental': 39401,
+  // ⏳ NY OSC TOWN / VILLAGE / COUNTY AFRs — finishing New York, 2026-10-19.
+  // 933 towns + 561 villages + 57 counties, FY1995-FY2025.
+  //
+  // ⚠⚠ THESE SIX ARE PLACEHOLDERS UNTIL EACH CLASS IS LOADED AND MEASURED.
+  // Zero is the truthful value for a family with no rows in the table, and it
+  // is what makes the partition gate catch the load rather than wave it
+  // through: a registry entry with no EXPECTED_ROWS at all is what
+  // tests/fundScope.test.mjs refuses. Each line is replaced with the MEASURED
+  // count in the same commit as its load, in the house style above —
+  // rows / DISTINCT ids / strings / entities — never with the plan's
+  // arithmetic. The districts' plan predicted ~85,400 and the truth was
+  // 82,564; that gap is the reason this file does not accept predictions.
+  //
+  // Expect the two scopes to be UNEQUAL in every class, by the same mechanism
+  // as the cities and districts: 1,630 entity-years carry a prefix the ARM
+  // does not name, so their total_governmental is refused rather than summed
+  // short. All 1,630 are FY1995-FY2001, and `CS` is nearly all of them —
+  // Town 808 (CS 807, EB 3, T 1), Village 651 (CS 650, F 1, C 1), County 171
+  // (CS 166, EB 5). General Fund is never refused: `A` is unambiguous.
+  // ⚠ Do NOT "fix" the inequality by registering CS on inference. The
+  // CS->MS rename was tested on the city archive and DISPROVED.
+  'ny-osc-town-general-fund': 0,
+  'ny-osc-town-total-governmental': 0,
+  'ny-osc-village-general-fund': 0,
+  'ny-osc-village-total-governmental': 0,
+  'ny-osc-county-general-fund': 0,
+  'ny-osc-county-total-governmental': 0,
   // SCOPE-01-RECON.md §12, measured 2026-10-09 against the live table.
   // The cities' OWN portals, added to close 4 of the 21 scope seams. Four NEW
   // families, so no pre-existing count moved.

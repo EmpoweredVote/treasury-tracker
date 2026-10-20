@@ -17,13 +17,35 @@
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
 
-import {
-  ARCHIVE_PATH, ARCHIVE_URL, SCHOOL_ARCHIVE_PATH, SCHOOL_ARCHIVE_URL,
-} from './lib/nyOsc.mjs';
+import { NY_OSC_ARCHIVES, archiveFor } from './lib/nyOsc.mjs';
 
-const WHICH = process.argv.includes('--schools')
-  ? { path: SCHOOL_ARCHIVE_PATH, url: SCHOOL_ARCHIVE_URL, label: 'school districts' }
-  : { path: ARCHIVE_PATH, url: ARCHIVE_URL, label: 'cities' };
+/**
+ * ⚠ The flag selects a MEMBER CLASS, which is the same token that names the
+ * members inside the zip (`2024_Town.csv`). One table drives the fetcher, the
+ * reader's range check and the loader, so a class cannot be known to one and
+ * unknown to another.
+ */
+const BY_FLAG = {
+  '--schools': 'SchoolDistrict',
+  '--towns': 'Town',
+  '--villages': 'Village',
+  '--counties': 'County',
+};
+
+const flag = process.argv.slice(2).find((a) => a in BY_FLAG);
+const unknown = process.argv.slice(2).filter((a) => a.startsWith('--') && !(a in BY_FLAG));
+if (unknown.length) {
+  throw new Error(`unknown flag(s) ${unknown.join(' ')} — expected one of `
+    + `${Object.keys(BY_FLAG).join(', ')}, or none for the cities`);
+}
+
+const memberClass = flag ? BY_FLAG[flag] : 'City';
+const archive = archiveFor(memberClass);
+const WHICH = { path: archive.path, url: archive.url, label: memberClass };
+
+if (!Object.hasOwn(NY_OSC_ARCHIVES, memberClass)) {
+  throw new Error(`no archive declared for ${memberClass}`);
+}
 
 if (existsSync(WHICH.path)) {
   console.log(`present, skipping: ${WHICH.path} (${WHICH.label})`);

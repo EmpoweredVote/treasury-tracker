@@ -37,6 +37,37 @@ export const BASIS_REGISTRY = [
     },
   },
   {
+    // ⚠ One entry per class, and each anchored. These are the SAME report the
+    // 61 cities file, under the same manual — the separation exists because
+    // the evidence below is class-specific, not because the basis differs.
+    id: 'ny-osc-municipal',
+    match: /^New York OSC (Town|Village|County) Annual Financial Report — (Revenues|Expenditures), (General Fund|Total Governmental) \(FY\d{4} actual, self-reported\)$/,
+    value: BASIS.ACTUAL,
+    evidence: {
+      document: 'OSC Local Government Financial Data, the town, village and county archives '
+              + '(docs/NY/{town,village,county}_all_years.zip); spec '
+              + 'docs/superpowers/specs/2026-10-19-ny-towns-villages-counties-design.md §6, §9',
+      figures: 'The AFR reports a CLOSED fiscal period, not an appropriation: every row carries '
+             + 'PERIOD_START/PERIOD_END (2013+) or FISCAL_YEAR_END (1995-2012) bounding a '
+             + 'completed year, and CALENDAR_YEAR equals the year of PERIOD_END in 100% of the '
+             + '2,684,610 modern-era revenue/expenditure rows across the three classes. '
+             + '⭐ The period is not merely bounded, it is MEASURED to be a full year: '
+             + 'PERIOD_END − PERIOD_START is 364 or 365 days on every modern-era row in all three '
+             + 'classes EXCEPT four village-years, which are refused and named — Kiryas Joel '
+             + 'FY2021 and Middleburgh FY2021 (213 days), Schoharie FY2020 (213), Bloomingburg '
+             + 'FY2023 (425), all fiscal-calendar transitions. '
+             + '⚠ The 1995-2012 era publishes no period bounds, so the day count cannot run '
+             + 'there. It is not unchecked: a stub REQUIRES FISCAL_YEAR_END to change, and across '
+             + 'every entity and every consecutive pair of old-era years there are ZERO changes in '
+             + 'all three classes. The old era is affirmatively clean. '
+             + 'The window is FY1995-FY2025. FY2026 is refused for every class: the town and '
+             + 'county members are EMPTY, and the village member carries 294 of 561 villages '
+             + '(52%) — the same partial-snapshot refusal the 719 districts got at ~70%. '
+             + 'Only the REVENUE and EXPENDITURE sections are read; GL/FBNP and BALANCE '
+             + 'SHEET/CHANGE IN EQUITY are balance-sheet rows, not budget activity.',
+    },
+  },
+  {
     id: 'ny-osc-city',
     match: /^New York OSC Annual Financial Report — (Revenues|Expenditures), (General Fund|Total Governmental) \(FY\d{4} actual, self-reported\)$/,
     value: BASIS.ACTUAL,

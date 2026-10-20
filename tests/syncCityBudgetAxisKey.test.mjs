@@ -99,6 +99,16 @@ const REQUIRED = {
   // on one key, and the second scope would overwrite the first — a load of
   // half the data that looks entirely successful.
   'loadNyOscSchools.mjs': 'NY OSC school district AFRs — 82,564 rows, general_fund + total_governmental / actual (two scopes per district-year)',
+  // ⚠⚠ The same two-scope shape, at 2.2x the districts' scale: 933 towns, 561
+  // villages and 57 counties, FY1995-FY2025. Omit p_fund_scope and both passes
+  // would ask for unknown/unknown, collide on one key, and the second scope
+  // would silently overwrite the first — half a load that looks entirely
+  // successful. The two scopes are DELIBERATELY unequal here too: 1,630
+  // entity-years publish `unknown` for total_governmental because `CS` (and in
+  // a handful of cases EB/C/F/T) is unresolved against OSC's Accounting and
+  // Reporting Manual, all of them in FY1995-FY2001. Measured counts live in
+  // scripts/data/fundScopeExpectations.mjs, one line per class and scope.
+  'loadNyOscMunicipal.mjs': 'NY OSC town/village/county AFRs — general_fund + total_governmental / actual (two scopes per entity-year)',
   // ⚠⚠ NYC is the first caller to write TWO SCOPES for the SAME city-year, so
   // the axis pair is not decoration here — it is the only thing separating the
   // two series. Measured in the live table after the 2026-10-09 load:
