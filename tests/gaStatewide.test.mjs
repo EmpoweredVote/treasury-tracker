@@ -20,7 +20,7 @@ import { GA_FORM_GENERATIONS } from '../scripts/data/georgiaRlgfEntities.mjs';
 import { buildCensus } from '../scripts/lib/facFiscalYearCensus.mjs';
 import {
   resolveMonth as loaderResolveMonth, unverifiableMatches, toTree,
-  GA_ALL_ENTITIES, entityByCicoid, assertAliases,
+  GA_ALL_ENTITIES, entityByCicoid, assertAliases, cicoidsForEntity,
 } from '../scripts/loadGeorgiaRLGF.mjs';
 import {
   GA_FYE_MONTH_CHANGES, GA_FYE_MONTH_DEFECTS, fyeMonthChange, fyeMonthDefect,
@@ -1036,5 +1036,32 @@ describe('Bibb County is a predecessor government, not early Macon-Bibb', () => 
     expect(Math.max(...county.years)).toBe(2013);
     expect(Math.min(...cons.years)).toBe(2014);
     expect(county.years.filter((y) => cons.years.includes(y))).toEqual([]);
+  });
+});
+
+describe('⚠⚠ an alias must reach FILE SELECTION, not just lookup', () => {
+  /**
+   * MEASURED: `entityByCicoid('1050050')` resolved to the Echols entity, and
+   * Echols FY2009 STILL DID NOT LOAD. `--entity echols-county` builds its
+   * wanted-CICOID set from GA_ALL_ENTITIES, which deliberately excludes the
+   * alias source — so the one filing the alias exists to recover was filtered
+   * out as "a government the registry does not carry".
+   *
+   * ⚠ Resolving an id in one place and selecting files in another is how a
+   * fix can be complete, tested, and still do nothing.
+   */
+  it('includes the aliased CICOID when selecting by entity key', () => {
+    const ids = cicoidsForEntity('echols-county');
+    expect([...ids].sort()).toEqual(['1050050', '3050050']);
+  });
+
+  it('includes every alias source when selecting all entities', () => {
+    const ids = cicoidsForEntity(undefined);
+    expect(ids.has('1050050')).toBe(true);
+    expect(ids.has('3050050')).toBe(true);
+  });
+
+  it('an unknown key still selects nothing, so the CLI can refuse it', () => {
+    expect(cicoidsForEntity('not-a-government').size).toBe(0);
   });
 });

@@ -151,6 +151,29 @@ export function entityByCicoid(cicoid) {
   return GA_ALL_ENTITIES.find((e) => e.cicoid === id) || null;
 }
 
+/**
+ * Every CICOID whose filings belong to an entity — INCLUDING ALIAS SOURCES.
+ *
+ * ⚠⚠ RESOLVING AN ID AND SELECTING A FILE ARE TWO PLACES, AND THE ALIAS HAS TO
+ * REACH BOTH. `entityByCicoid('1050050')` resolved correctly while Echols
+ * FY2009 still did not load, because the run's wanted-CICOID set was built
+ * from `GA_ALL_ENTITIES` alone — which deliberately excludes the alias source
+ * — so the one filing the alias exists to recover was filtered out as "a
+ * government the registry does not carry". A fix can be complete, tested, and
+ * still do nothing.
+ *
+ * @param {string|undefined} key an entity key, or undefined for every entity.
+ */
+export function cicoidsForEntity(key) {
+  const entities = key ? GA_ALL_ENTITIES.filter((e) => e.key === key) : GA_ALL_ENTITIES;
+  const ids = new Set(entities.map((e) => e.cicoid));
+  if (!ids.size) return ids;
+  for (const [from, to] of Object.entries(GA_CICOID_ALIASES)) {
+    if (ids.has(to)) ids.add(from);
+  }
+  return ids;
+}
+
 import { ensureMunicipality } from './lib/ensureMunicipality.mjs';
 const SOURCE_PREFIX = 'Georgia DCA Report of Local Government Finances';
 const SOURCE_URL = 'https://apps.dca.ga.gov/RLGF/Default.aspx';
@@ -669,11 +692,8 @@ async function main() {
     files = files.slice((m - 1) * size, m * size);
     console.log(`--slice ${m}/${n}: ${files.length} of ${all} workbook(s)`);
   }
-  const wanted = new Set(
-    argv.entity
-      ? GA_ALL_ENTITIES.filter((e) => e.key === argv.entity).map((e) => e.cicoid)
-      : GA_ALL_ENTITIES.map((e) => e.cicoid),
-  );
+  // ⚠ Includes alias sources — see cicoidsForEntity.
+  const wanted = cicoidsForEntity(argv.entity);
   if (argv.entity && wanted.size === 0) {
     console.error(`Unknown --entity ${argv.entity}`);
     process.exit(2);
