@@ -975,3 +975,66 @@ describe('Echols is one government under two CICOIDs', () => {
     expect(consolidationOverlap('1050050', 2010) ?? consolidationOverlap('3050050', 2010)).toBeTruthy();
   });
 });
+
+describe('Bibb County is a predecessor government, not early Macon-Bibb', () => {
+  /**
+   * Chris's call, 2026-10-19. Bibb County filed as `1011011` through FY2013 and
+   * reports $92.0M-$115.7M of operating. In 2014 it consolidated with the CITY
+   * of Macon to form Macon-Bibb County (`3011011`), which reports $195.3M in
+   * FY2016. Appending one series to the other would show a ~1.7x step that
+   * reads as growth and is a change of scope — the Fulton FY2017/FY2018
+   * reader-distortion shape, where 92% of an apparent jump was not growth.
+   */
+  it('exists as its own county entity with its own CICOID', () => {
+    const b = entityByCicoid('1011011');
+    expect(b).toBeDefined();
+    expect(b.name).toBe('Bibb County');
+    expect(b.entityType).toBe('county');
+    expect(b.key).toBe('bibb-county');
+  });
+
+  it('⚠ its month is its filings own, measured — all five state June 30', () => {
+    const b = entityByCicoid('1011011');
+    expect(b.fiscalYearStartMonth).toBe(7);
+    expect(b.fiscalYearEndText).toBe('June 30');
+  });
+
+  it('⚠⚠ STOPS AT FY2013 — it must never acquire a Macon-Bibb year', () => {
+    const b = entityByCicoid('1011011');
+    expect(Math.max(...b.fiscalYears)).toBe(2013);
+    expect(b.lastFiscalYear).toBe(2013);
+    expect(b.fiscalYears).toEqual([2009, 2010, 2011, 2012, 2013]);
+    // Macon-Bibb is a DIFFERENT entity, and nothing joins the two series.
+    const mb = entityByCicoid('3011011');
+    expect(mb.key).not.toBe(b.key);
+    expect(b.successorCicoid).toBe('3011011');
+  });
+
+  it('⚠ the census agrees: Macon got a NEW place code rather than continuing', () => {
+    // PLACE 49000 (`Macon city`) ends after vintage 2013; 49008
+    // (`Macon-Bibb County`) begins at vintage 2014. The Bureau treats the
+    // consolidation as a new government — independent corroboration for not
+    // splicing the series.
+    const mb = entityByCicoid('3011011');
+    expect(mb.populationSource).toMatch(/49008/);
+    const { ladders, missing } = loadLadder('.', '13', DEFAULT_LADDER);
+    expect(missing).toEqual([]);
+    const macon = resolvePlace('Macon City', { ladders, missing });
+    expect(macon.placeFips).toBe('49000');
+    expect(macon.vintage).toBe(2013);
+  });
+
+  it('⚠ DCA\'s own enumeration shows a clean handover, no overlapping year', () => {
+    const ENUM = '_acfr-work/ga/sweep/enumeration.json';
+    const CONS = '_acfr-work/ga/cons/enumeration.json';
+    if (!existsSync(ENUM) || !existsSync(CONS)) {
+      console.warn('SKIPPED: no GA enumeration present');
+      return;
+    }
+    const county = JSON.parse(readFileSync(ENUM, 'utf8')).governments.find((g) => g.cicoid === '1011011');
+    const cons = JSON.parse(readFileSync(CONS, 'utf8')).governments.find((g) => g.cicoid === '3011011');
+    expect(Math.max(...county.years)).toBe(2013);
+    expect(Math.min(...cons.years)).toBe(2014);
+    expect(county.years.filter((y) => cons.years.includes(y))).toEqual([]);
+  });
+});

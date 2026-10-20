@@ -88,9 +88,11 @@ import {
  * excludes the hand-written seven; this proves it at import time rather than
  * trusting it.
  */
+import { GA_BIBB_PREDECESSOR } from './data/gaBibbPredecessor.mjs';
+
 export const GA_ALL_ENTITIES = Object.freeze([
   ...GA_RLGF_ENTITIES, ...GA_STATEWIDE_ENTITIES, ...GA_STATEWIDE_MUNICIPALITIES,
-  ...GA_STATEWIDE_CONSOLIDATED,
+  ...GA_STATEWIDE_CONSOLIDATED, ...GA_BIBB_PREDECESSOR,
 ]);
 
 const seenCicoids = new Set();
