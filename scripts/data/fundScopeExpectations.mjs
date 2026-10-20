@@ -461,8 +461,26 @@ export const EXPECTED_ROWS = Object.freeze({
   // CS->MS rename was tested on the city archive and DISPROVED.
   'ny-osc-town-general-fund': 0,
   'ny-osc-town-total-governmental': 0,
-  'ny-osc-village-general-fund': 0,
-  'ny-osc-village-total-governmental': 0,
+  // ✅ VILLAGES LOADED 2026-10-19. MEASURED against the live table after the
+  // load. House style — rows / DISTINCT ids / strings / entities:
+  //
+  //     ny-osc-village-general-fund        33539 / 33539 / 62 / 561
+  //     ny-osc-village-total-governmental  32518 / 32518 / 62 / 561
+  //
+  // rows == DISTINCT ids on both. 62 strings each = 31 fiscal years x 2
+  // datasets. 33539 + 32518 = 66057, equal to the loader's own count and to
+  // its dry run. All 561 villages appear in both scopes.
+  //
+  // ⚠ 33539 - 32518 = 1021 refused total_governmental cells: CS 1018, C 2,
+  // and one cell carrying CS and F together. All FY1995-FY2001.
+  //
+  // ⚠⚠ FOUR VILLAGE-YEARS ARE ABSENT FROM BOTH SCOPES, and that is the point
+  // of them: Schoharie FY2020, Kiryas Joel FY2021 and Middleburgh FY2021 each
+  // file a FULL YEAR AND A SEVEN-MONTH STUB under one CALENDAR_YEAR, and
+  // Bloomingburg FY2023 files a single 425-day period. Summing any of them
+  // would publish more than twelve months as a year. See spec §6.
+  'ny-osc-village-general-fund': 33539,
+  'ny-osc-village-total-governmental': 32518,
   // ✅ COUNTIES LOADED 2026-10-19. MEASURED against the live table after the
   // load. House style — rows / DISTINCT ids / strings / entities:
   //

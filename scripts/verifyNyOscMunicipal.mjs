@@ -18,7 +18,7 @@ import { createClient } from '@supabase/supabase-js';
 import { parseArgs } from 'node:util';
 
 import {
-  readYear, aggregateCityYear, archiveFor, isFullFiscalPeriod,
+  readYear, aggregateCityYear, archiveFor, isFullFiscalPeriod, classifyPrefix, parseAmount,
   MUNICIPAL_SOURCE_PREFIXES, MUNICIPAL_CLASSES,
   MUNICIPAL_FIRST_YEAR, MUNICIPAL_LAST_YEAR,
 } from './lib/nyOsc.mjs';
@@ -265,27 +265,84 @@ console.log('\nCHECK 2 — every row carries the axes the registries claim');
   else ok(`every row carries the ${memberClass}-specific source family`);
 }
 
-// ── CHECK 3 — general_fund never exceeds total_governmental ─────────────────
-console.log('\nCHECK 3 — general_fund <= total_governmental, wherever both exist');
+// ── CHECK 3 — the General Fund sits inside Total Governmental ───────────────
+//
+// ⚠⚠ `general_fund <= total_governmental` IS NOT A LAW HERE, AND ASSERTING IT
+// AS ONE WAS WRONG. The village load produced 9 inverted cells and every one
+// is CORRECT: a non-general governmental fund reported NEGATIVE revenue.
+//
+//     Village of Bellport FY2006 revenue   A 4,260,822 · FX    -922
+//     Village of Livonia  FY2012 revenue   A   901,499 · PN -168,607 · FX 162,720 · H 0
+//
+// Those are genuine contra entries — refunds and corrections — which this
+// source carries at a rate of roughly 28 a year and which the tree builder
+// deliberately KEEPS (filtering `> 0` would silently shrink every total
+// containing one).
+//
+// ⚠ The check is made EXACT rather than deleted. An inversion is waved through
+// only when the archive says the shortfall IS the non-general governmental
+// funds, to the cent: `TG - GF == Σ(governmental funds other than A)`, and
+// that sum must actually be negative. An inversion that cannot be explained
+// that way — a scope mix-up, a mangled tree — still fails. Deleting the check
+// because real data violated it would have thrown away the thing that catches
+// the defect it was written for.
+console.log('\nCHECK 3 — the General Fund sits inside Total Governmental');
 {
   const byCell = new Map();
   for (const r of rows) {
     const k = `${r.municipality_id}|${r.fiscal_year}|${r.dataset_type}`;
-    if (!byCell.has(k)) byCell.set(k, {});
+    if (!byCell.has(k)) byCell.set(k, { fy: r.fiscal_year, dataset: r.dataset_type, id: r.municipality_id });
     byCell.get(k)[r.fund_scope] = Number(r.total_budget);
   }
-  let bad = 0;
+
   let compared = 0;
+  const inverted = [];
   for (const [k, v] of byCell) {
     if (v.general_fund === undefined || v.total_governmental === undefined) continue;
     compared++;
-    if (v.general_fund > v.total_governmental + 0.5) {
-      bad++;
-      if (bad <= 3) console.error(`      ${k}: GF ${v.general_fund} > TG ${v.total_governmental}`);
+    if (v.general_fund > v.total_governmental + 0.005) inverted.push([k, v]);
+  }
+
+  // ⚠ The archive is read ONLY for the inverted cells. Re-deriving all of them
+  // would cost a full pass per class for a fact CHECK 5 already samples.
+  let unexplained = 0;
+  const yearCache = new Map();
+  for (const [k, v] of inverted) {
+    if (!yearCache.has(v.fy)) yearCache.set(v.fy, yearByCode(v.fy));
+    const entityRows = yearCache.get(v.fy).get(codeById.get(v.id));
+    const section = v.dataset === 'revenue' ? 'REVENUE' : 'EXPENDITURE';
+    let nonGeneral = 0;
+    const funds = new Map();
+    for (const r of entityRows.filter((r) => r.section === section)) {
+      const c = classifyPrefix(r.fundPrefix, NY_MUNICIPAL_FUND_PREFIXES);
+      if (!c || !MUNICIPAL_GOVERNMENTAL_TYPES.has(c.type) || r.fundPrefix === 'A') continue;
+      const a = parseAmount(r.AMOUNT);
+      nonGeneral += a;
+      funds.set(r.fundPrefix, (funds.get(r.fundPrefix) ?? 0) + a);
+    }
+    const shortfall = v.total_governmental - v.general_fund;
+    const explained = nonGeneral < 0 && Math.abs(nonGeneral - shortfall) <= 0.005;
+    const detail = [...funds].map(([p, a]) => `${p} ${a.toFixed(0)}`).join(' · ');
+    if (explained) {
+      console.log(`      explained: ${k} — non-general governmental funds sum to `
+        + `${nonGeneral.toFixed(2)} (${detail})`);
+    } else {
+      unexplained++;
+      console.error(`      UNEXPLAINED: ${k} — GF ${v.general_fund} > TG `
+        + `${v.total_governmental}, shortfall ${shortfall.toFixed(2)} but non-general `
+        + `governmental funds sum to ${nonGeneral.toFixed(2)} (${detail})`);
     }
   }
-  if (bad) fail(`${bad} of ${compared} cells where General Fund exceeds Total Governmental`);
-  else ok(`${compared} cells compared, none inverted`);
+
+  if (unexplained) {
+    fail(`${unexplained} of ${inverted.length} inverted cells are NOT explained by a `
+      + 'negative non-general governmental fund');
+  } else if (inverted.length) {
+    ok(`${compared} cells compared; ${inverted.length} inverted, every one explained to the `
+      + 'cent by a negative non-general governmental fund (a real contra entry)');
+  } else {
+    ok(`${compared} cells compared, none inverted`);
+  }
 }
 
 // ── CHECK 4 — fiscal calendars, per class ───────────────────────────────────

@@ -459,10 +459,10 @@ export const EXPECTED_BASIS_ROWS = Object.freeze({
   // governmental FUND LIST differs by class.
   //
   // MEASURED against the live table after each class loads, never predicted.
-  //     County   3532 general_fund + 3204 total_governmental = 6736   ✅ loaded
-  //     Village  (pending)
+  //     County    3532 general_fund +  3204 total_governmental =  6736  ✅
+  //     Village  33539 general_fund + 32518 total_governmental = 66057  ✅
   //     Town     (pending)
-  'ny-osc-municipal': 6736,
+  'ny-osc-municipal': 72793,
   // The sixteen entity-published city/state ACFR families, measured 2026-08-19.
   // Evidence: docs/superpowers/plans/ACFR-GF-CLASSIFICATION-RECON.md §2.
   'or-city-acfr-gf': 106,
