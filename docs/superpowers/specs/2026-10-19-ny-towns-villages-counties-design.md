@@ -487,11 +487,38 @@ proves TT read OSC faithfully. It does **not** prove OSC is right.
 
 The districts got that second proof in #272 — reconciliation against their own
 audited ACFRs via the Federal Audit Clearinghouse, which established the rule
-*OSC revenue = ACFR Total revenues + other financing SOURCES*. The counties are
-the natural candidate here: 57 governments, all Single Audit filers, all in FAC
-from audit year 2016. **That is a follow-up, scoped separately, and until it
-exists these figures are faithful readings of an unaudited filing — which is
-exactly what `self_reported_unaudited` says.**
+*OSC revenue = ACFR Total revenues + other financing SOURCES*.
+
+### ✅ DONE for the counties — and the rule does NOT transfer cleanly
+
+`npm run ny:recon-counties-fac` · findings:
+`docs/superpowers/plans/NY-COUNTIES-FAC-RECON.md`
+
+Four counties spanning the size range (Albany, Orange, Tompkins, Schuyler),
+nine audit years each, 36 documents read.
+
+⭐⭐ **The districts' reader works on a county ACFR unmodified** —
+`nySchoolAcfrGF.py` anchors the General Fund column on a TOTAL row rather than
+on a layout. That was the whole risk in the task.
+
+⚠⚠ **The headline is negative and is reported as such: 4 of 35 county-years
+tie to the dollar on revenue, 3 of 35 on expenditure.** The rule that tied 8 of
+9 years for Rochester's district does not hold for counties.
+
+⭐⭐ But the residuals are not noise. Where a county-year misses, the revenue
+residual and the expenditure residual are very often **the same number** —
+Tompkins FY2019 is +6,284,003 and +6,284,001; Orange FY2016 is −102,004 twice.
+That rearranges to: the two publishers **agree on the net change in fund
+balance** and differ only on gross presentation. **21 of 35 county-years agree
+on the net.** The other **14 are not corroborated at all**, Albany worst at 7
+of 9.
+
+⚠ 33 of New York's 57 counties never appear in FAC (the $750k Single Audit
+threshold), and FAC begins at audit year 2016, so **21 of the 31 loaded years
+have no audit route**. Towns and villages have no comparable route at scale.
+
+**`audit_grade` stays `self_reported_unaudited`, which is exactly what this
+result supports.**
 
 ---
 
