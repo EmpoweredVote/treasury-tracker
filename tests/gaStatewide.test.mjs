@@ -16,6 +16,7 @@ import { GA_STATEWIDE_ENTITIES } from '../scripts/data/georgiaStatewideEntities.
 import { GA_STATEWIDE_MUNICIPALITIES } from '../scripts/data/georgiaStatewideMunicipalities.mjs';
 import { GA_STATEWIDE_CONSOLIDATED } from '../scripts/data/georgiaStatewideConsolidated.mjs';
 import { GA_RLGF_ENTITIES } from '../scripts/data/georgiaRlgfEntities.mjs';
+import { GA_DISSOLVED } from '../scripts/data/gaDissolved.mjs';
 import { GA_FORM_GENERATIONS } from '../scripts/data/georgiaRlgfEntities.mjs';
 import { buildCensus } from '../scripts/lib/facFiscalYearCensus.mjs';
 import {
@@ -1104,3 +1105,59 @@ describe('⚠⚠ an alias must reach FILE SELECTION, not just lookup', () => {
   });
 });
 
+
+describe('⭐⭐ the seven are DISSOLVED — the census and DCA never disagreed', () => {
+  /**
+   * ⚠⚠ THIS CORRECTS A CLAIM #274 PUBLISHED. It recorded that "the census and
+   * DCA disagree about whether Ranger and Sunny Side exist". They do not.
+   * Both were dissolved by the General Assembly in 2023, and every one of the
+   * seven has its LAST FILING IN ITS LAST FISCAL YEAR BEFORE DISSOLUTION.
+   *
+   * The conflict was manufactured by comparing a 2024 roster against a filing
+   * history without looking up when each government ended. An apparent
+   * conflict between two sources is a question about a THIRD fact.
+   */
+  it('every dissolved government stops filing at or before its dissolution', () => {
+    for (const d of GA_DISSOLVED) {
+      const e = GA_ALL_ENTITIES.find((x) => x.cicoid === d.cicoid);
+      expect(e, `${d.name} (${d.cicoid}) is in no registry`).toBeDefined();
+      const last = Math.max(...e.fiscalYears);
+      // ⚠ The FL_DISSOLVED contract: if one ever files again, the premise is
+      // wrong and this must fail rather than quietly extend a dead
+      // government's series.
+      expect(last, `${d.name} filed FY${last} but is recorded dissolved after FY${d.lastFiscalYear}`)
+        .toBeLessThanOrEqual(d.lastFiscalYear);
+    }
+  });
+
+  it('⚠ a dissolution year is never BEFORE the last filing it explains', () => {
+    for (const d of GA_DISSOLVED) {
+      const year = Number(String(d.dissolvedOn).slice(0, 4));
+      expect(year, `${d.name}: dissolved ${d.dissolvedOn} but last filed FY${d.lastFiscalYear}`)
+        .toBeGreaterThanOrEqual(d.lastFiscalYear);
+    }
+  });
+
+  it('⚠ every government with a named successor hands over with NO overlapping year', () => {
+    for (const d of GA_DISSOLVED.filter((x) => x.successorCicoid)) {
+      const e = GA_ALL_ENTITIES.find((x) => x.cicoid === d.cicoid);
+      const s = GA_ALL_ENTITIES.find((x) => x.cicoid === d.successorCicoid);
+      expect(s, `${d.name}'s successor ${d.successorCicoid} is in no registry`).toBeDefined();
+      if (!s.fiscalYears) continue; // hand-written entries carry no year list
+      const overlap = e.fiscalYears.filter((y) => s.fiscalYears.includes(y));
+      expect(overlap, `${d.name} and its successor both claim FY${overlap.join('/')}`).toEqual([]);
+    }
+  });
+
+  it('⚠ a cause with no authority says so, rather than implying one', () => {
+    // Four of the seven are measured boundaries, not cited statutes. The
+    // register must not let a measured date read as a sourced one.
+    for (const d of GA_DISSOLVED) {
+      if (d.authority === null) {
+        expect(d.why, `${d.name}`).toMatch(/MEASURED|not sourced|not a cited|no statute/i);
+      } else {
+        expect(d.authority.length, `${d.name}`).toBeGreaterThan(40);
+      }
+    }
+  });
+});
