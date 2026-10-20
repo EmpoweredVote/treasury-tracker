@@ -34,6 +34,14 @@ export const squash = (s) => s.toLowerCase().replace(/\s+/g, '');
  * them invents places that do not exist.
  */
 export function readPlaceVintage(file, { vintage, stateFips }) {
+  // ⚠⚠ ZERO-PAD. The census FILENAME carries the bare fips
+  // (`sub-est2024_4.csv`) while the STATE column INSIDE is padded (`04`).
+  // Comparing them as strings matches nothing, and the empty map that came
+  // back made `resolvePlace` refuse every government in the state with
+  // "named by no vintage" — a total failure wearing the words of a measured
+  // refusal. It would have hit AL, AK, AZ, AR, CA, CO and CT; CA and CO are
+  // live. Found by the cross-state audit, not by a test.
+  const want = String(stateFips).padStart(2, '0');
   const text = readFileSync(file, 'latin1');
   const [head, ...lines] = text.split(/\r?\n/).filter((l) => l.trim());
   const cols = head.split(',').map((c) => c.trim());
@@ -51,7 +59,7 @@ export function readPlaceVintage(file, { vintage, stateFips }) {
   const out = new Map();
   for (const line of lines) {
     const f = line.split(',');
-    if (f[iSum] !== '162' || f[iState] !== stateFips) continue;
+    if (f[iSum] !== '162' || f[iState].padStart(2, '0') !== want) continue;
     const name = f[iName].trim();
     const m = name.match(/^(.*) (city|town|village|borough)$/);
     out.set(squash(name), {
@@ -62,6 +70,13 @@ export function readPlaceVintage(file, { vintage, stateFips }) {
       population: Number(f[iPop]),
       vintage,
     });
+  }
+  // ⚠⚠ AN EMPTY PLACE MAP IS NEVER A LEGITIMATE ANSWER FOR A REAL STATE FILE.
+  // Returning one silently is what turned a two-character padding bug into
+  // seven states' worth of "this government never existed". An empty result
+  // is a question, never an answer.
+  if (!out.size) {
+    throw new Error(`${file}: no SUMLEV=162 rows for state ${want} — wrong file, wrong fips, or a layout change`);
   }
   return out;
 }

@@ -166,3 +166,44 @@ describe('the cross-state audit reports, and loads nothing', () => {
     expect(r.incomplete).toBe(false);
   });
 });
+
+describe('⚠⚠ a single-digit state FIPS must still match', () => {
+  /**
+   * FOUND BY THE CROSS-STATE AUDIT, NOT BY A TEST: Arizona, California and
+   * Colorado each reported ZERO places in Vintage 2024.
+   *
+   * The census filename carries the BARE fips (`sub-est2024_4.csv`) while the
+   * STATE column inside is ZERO-PADDED (`04`). Comparing the two as strings
+   * matches nothing, so `readPlaceVintage` returned an EMPTY MAP and
+   * `resolvePlace` refused every government with "named by no vintage of
+   * 2024, 2019, 2014, 2013" — a total failure wearing the words of a
+   * confident, measured refusal.
+   *
+   * ⚠ It would have hit AL, AK, AZ, AR, CA, CO and CT. California and
+   * Colorado are live TT states.
+   */
+  const AZ = 'tests/fixtures/census/sub-est2024-az-places-slice.csv';
+
+  it('matches when the caller passes the bare fips the FILENAME uses', () => {
+    const places = readPlaceVintage(AZ, { vintage: 2024, stateFips: '4' });
+    expect(places.size).toBe(5);
+    expect(places.get(squash('Apache Junction city')).placeFips).toBe('02830');
+  });
+
+  it('matches when the caller passes the padded fips the FILE uses', () => {
+    const places = readPlaceVintage(AZ, { vintage: 2024, stateFips: '04' });
+    expect(places.size).toBe(5);
+  });
+
+  it('accepts a number, which is what a FIPS read from a filename often is', () => {
+    expect(readPlaceVintage(AZ, { vintage: 2024, stateFips: 4 }).size).toBe(5);
+  });
+
+  it('⚠⚠ REFUSES an empty result rather than returning one', () => {
+    // An empty place map is never a legitimate answer for a real state file.
+    // Returning it silently is what turned a path bug into 7 states of
+    // "this government never existed".
+    expect(() => readPlaceVintage(AZ, { vintage: 2024, stateFips: '99' }))
+      .toThrow(/no SUMLEV=162 rows for state 99/);
+  });
+});
