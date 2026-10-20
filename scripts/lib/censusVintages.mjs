@@ -71,3 +71,92 @@ export function vintageFile(root, vintage, stateFips) {
   const p = `${root}/cache/sub-est${vintage}_${stateFips}.csv`;
   return existsSync(p) ? p : null;
 }
+
+export const DEFAULT_LADDER = Object.freeze([2024, 2019, 2014, 2013]);
+
+/**
+ * Load each vintage's places for a state, newest first.
+ *
+ * ⚠⚠ A vintage whose file is absent is RETURNED IN `missing`, never silently
+ * skipped. Forgetting the fetch must not read as "this government never
+ * existed" — that is the exact failure this module exists to prevent.
+ */
+export function loadLadder(root, stateFips, vintages = DEFAULT_LADDER) {
+  const ladders = [];
+  const missing = [];
+  for (const v of vintages) {
+    const file = vintageFile(root, v, stateFips);
+    if (!file) { missing.push(v); continue; }
+    ladders.push({ vintage: v, places: readPlaceVintage(file, { vintage: v, stateFips }) });
+  }
+  return { ladders, missing };
+}
+
+/**
+ * Match one publisher name inside ONE vintage, by the measured cascade.
+ *
+ * ⚠ `legal` is tried BEFORE `retyped` so a place legally named "... City"
+ * (Peachtree City, Garden City, Mountain City) can never be re-typed into
+ * something else. Eleven Georgia places need this — the PA `GROVE CITY BORO`
+ * trap, live in Georgia.
+ */
+function matchIn(places, publisherName) {
+  const m = publisherName.match(/^(.*) (City|Town)$/);
+  const base = m ? m[1] : publisherName;
+  const typ = m ? m[2].toLowerCase() : null;
+
+  if (typ) {
+    const hit = places.get(squash(`${base} ${typ}`));
+    if (hit) return { ...hit, how: 'suffix' };
+  }
+  for (const t of ['city', 'town']) {
+    const hit = places.get(squash(`${publisherName} ${t}`));
+    if (hit) return { ...hit, how: 'legal' };
+  }
+  if (typ) {
+    const other = typ === 'city' ? 'town' : 'city';
+    const hit = places.get(squash(`${base} ${other}`));
+    if (hit) return { ...hit, how: 'retyped' };
+  }
+  return null;
+}
+
+/**
+ * Resolve a publisher's name to the NEWEST vintage that names the government.
+ *
+ * Newest-first is the point: the most recent vintage naming a government is
+ * the most current statement of its legal type. A government the current
+ * vintage still names resolves at 2024 and nothing about it changes.
+ */
+export function resolvePlace(publisherName, { ladders, missing = [] }) {
+  const tried = [];
+  for (const { vintage, places } of ladders) {
+    tried.push(vintage);
+    const hit = matchIn(places, publisherName);
+    if (hit) {
+      return {
+        censusName: hit.censusName,
+        base: hit.base,
+        entityType: hit.censusType ?? 'city',
+        placeFips: hit.placeFips,
+        population: hit.population,
+        vintage,
+        how: hit.how,
+      };
+    }
+  }
+  if (missing.length) {
+    return {
+      why: `${JSON.stringify(publisherName)} is named by no vintage of ${tried.join(', ') || '(none)'}, `
+        + `and vintage ${missing.join(', ')} is not present — run `
+        + 'scripts/fetchCensusVintages.mjs before concluding it cannot be named',
+      tried,
+      missing,
+    };
+  }
+  return {
+    why: `${JSON.stringify(publisherName)} is named by no vintage of ${tried.join(', ')}`,
+    tried,
+    missing,
+  };
+}

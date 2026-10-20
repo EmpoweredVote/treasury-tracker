@@ -1,5 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { readPlaceVintage, squash } from '../scripts/lib/censusVintages.mjs';
+import {
+  readPlaceVintage, squash, resolvePlace, loadLadder, DEFAULT_LADDER,
+} from '../scripts/lib/censusVintages.mjs';
 
 const FIX = (v) => `tests/fixtures/census/sub-est${v}-ga-places-slice.csv`;
 
@@ -62,5 +64,79 @@ describe('readPlaceVintage reads by header name, not by column position', () => 
       }
       expect(places.size).toBeGreaterThan(500);
     }
+  });
+});
+
+const V2024 = 'tests/fixtures/census/sub-est2024-ga-places-slice.csv';
+const ladders = [2024, 2019, 2014, 2013].map((v) => ({
+  vintage: v,
+  places: readPlaceVintage(v === 2024 ? V2024 : FIX(v), { vintage: v, stateFips: '13' }),
+}));
+
+describe('the ladder stops at the newest vintage that names the government', () => {
+  it('resolves all seven held-out Georgia municipalities to exact triples', () => {
+    const expected = {
+      'Ranger Town':     { entityType: 'town', placeFips: '63560', vintage: 2019 },
+      'Sunny Side City': { entityType: 'city', placeFips: '74572', vintage: 2019 },
+      'Helena':          { entityType: 'city', placeFips: '37816', vintage: 2014 },
+      'McRae':           { entityType: 'city', placeFips: '49084', vintage: 2014 },
+      'Payne City':      { entityType: 'city', placeFips: '59584', vintage: 2014 },
+      'Riverside Town':  { entityType: 'town', placeFips: '65604', vintage: 2014 },
+      'Macon City':      { entityType: 'city', placeFips: '49000', vintage: 2013 },
+    };
+    for (const [dcaName, want] of Object.entries(expected)) {
+      const r = resolvePlace(dcaName, { ladders });
+      expect(r.why, dcaName).toBeUndefined();
+      expect({ entityType: r.entityType, placeFips: r.placeFips, vintage: r.vintage }, dcaName).toEqual(want);
+    }
+  });
+
+  it('⚠ a live government still resolves at 2024 — the ladder changes nothing for it', () => {
+    const r = resolvePlace('Atlanta City', { ladders });
+    expect(r.vintage).toBe(2024);
+    expect(r.entityType).toBe('city');
+  });
+
+  it('⚠⚠ NEWEST WINS when two vintages type the same place differently', () => {
+    const fake = [
+      { vintage: 2024, places: new Map([['dualplacecity', { censusName: 'Dualplace city', base: 'Dualplace', censusType: 'city', placeFips: '11111', population: 10, vintage: 2024 }]]) },
+      { vintage: 2013, places: new Map([['dualplacetown', { censusName: 'Dualplace town', base: 'Dualplace', censusType: 'town', placeFips: '11111', population: 9, vintage: 2013 }]]) },
+    ];
+    const r = resolvePlace('Dualplace City', { ladders: fake });
+    expect(r.entityType).toBe('city');
+    expect(r.vintage).toBe(2024);
+  });
+
+  it('⚠ LEGAL still beats RETYPED on an older vintage', () => {
+    const r = resolvePlace('Mountain City', { ladders });
+    expect(r.how).toBe('legal');
+    expect(r.base).toBe('Mountain City');
+  });
+
+  it('refuses a government no vintage names, and says which it tried', () => {
+    const r = resolvePlace('Nowhereville City', { ladders });
+    expect(r.entityType).toBeUndefined();
+    expect(r.why).toMatch(/named by no vintage/);
+    expect(r.tried).toEqual([2024, 2019, 2014, 2013]);
+  });
+
+  it('⚠⚠ AN ABSENT VINTAGE FILE IS REPORTED, NOT TREATED AS "NOT NAMED"', () => {
+    // Otherwise forgetting the fetch silently becomes a refusal that reads as
+    // "this government never existed".
+    const r = resolvePlace('Macon City', { ladders: ladders.filter((l) => l.vintage !== 2013), missing: [2013] });
+    expect(r.why).toMatch(/not present/);
+    expect(r.missing).toEqual([2013]);
+  });
+
+  it('loadLadder reports an absent vintage instead of dropping it', () => {
+    const { ladders: got, missing } = loadLadder('/nonexistent-root', '13', DEFAULT_LADDER);
+    expect(got).toHaveLength(0);
+    expect(missing).toEqual([2024, 2019, 2014, 2013]);
+  });
+
+  it('loadLadder reads the real cache for Georgia, all four vintages present', () => {
+    const { ladders: got, missing } = loadLadder('.', '13', DEFAULT_LADDER);
+    expect(missing, 'run: node scripts/fetchCensusVintages.mjs 13').toEqual([]);
+    expect(got.map((l) => l.vintage)).toEqual([2024, 2019, 2014, 2013]);
   });
 });
