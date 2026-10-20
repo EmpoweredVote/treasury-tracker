@@ -68,6 +68,7 @@ import { GA_RLGF_ENTITIES, GA_LOAD_WINDOW, GA_FORM_GENERATIONS } from './data/ge
 import { GA_STATEWIDE_ENTITIES } from './data/georgiaStatewideEntities.mjs';
 import { GA_STATEWIDE_MUNICIPALITIES } from './data/georgiaStatewideMunicipalities.mjs';
 import { GA_STATEWIDE_CONSOLIDATED } from './data/georgiaStatewideConsolidated.mjs';
+import { GA_BIBB_PREDECESSOR } from './data/gaBibbPredecessor.mjs';
 import {
   formTotalDefect, fyeMonthDefect, unverifiableFiling, emptyDataset, consolidationOverlap,
   v1MonthChange,
@@ -87,10 +88,14 @@ import {
  * (`project_sync_city_budget_not_source_safe`). The generated registry already
  * excludes the hand-written seven; this proves it at import time rather than
  * trusting it.
+ *
+ * ⚠ `gaBibbPredecessor.mjs` is a third, hand-maintained source: a government
+ * that ceased to exist cannot be derived from a current roster, so it is
+ * carried by hand the way FL's dissolved municipalities are.
  */
 export const GA_ALL_ENTITIES = Object.freeze([
   ...GA_RLGF_ENTITIES, ...GA_STATEWIDE_ENTITIES, ...GA_STATEWIDE_MUNICIPALITIES,
-  ...GA_STATEWIDE_CONSOLIDATED,
+  ...GA_STATEWIDE_CONSOLIDATED, ...GA_BIBB_PREDECESSOR,
 ]);
 
 const seenCicoids = new Set();
@@ -102,9 +107,74 @@ for (const e of GA_ALL_ENTITIES) {
   seenKeys.add(e.key);
 }
 
+/**
+ * ⚠⚠ TWO CICOIDs, ONE GOVERNMENT.
+ *
+ * Echols County filed under `1050050` (county prefix) and `3050050`
+ * (consolidated prefix). Its FY2010 county-prefix filing reports operating
+ * $2,679,270 — IDENTICAL to the FY2010 consolidated filing already loaded
+ * under `3050050`. Echols has no municipalities, so the unified government
+ * covers the same territory and the same money: FY2009 is a genuine
+ * continuation of the series TT already shows, not a second government.
+ *
+ * ⚠⚠ THE ALIAS ADDS NO ENTITY, AND THAT IS THE WHOLE POINT. A second entity
+ * would DUPLICATE rows through `treasury_sync_city_budget`, which keys on
+ * fund_scope + basis rather than on data_source, instead of colliding visibly
+ * (`project_sync_city_budget_not_source_safe`). The duplicate-CICOID assertion
+ * above is unchanged and still absolute; this map is the one DECLARED way a
+ * CICOID may resolve to an entity it does not itself own.
+ *
+ * ⚠ FY2010 stays REFUSED as a double-count — it is the single measured overlap
+ * in the whole state (`GA_CONSOLIDATION_OVERLAP`). Only FY2009 loads.
+ */
+export const GA_CICOID_ALIASES = Object.freeze({
+  '1050050': '3050050',
+});
+
+/**
+ * An alias must point AT something and must not BE something.
+ *
+ * ⚠ Exported so the rules are testable rather than asserted once at import and
+ * never exercised again.
+ */
+export function assertAliases(aliases, entities) {
+  const own = new Set(entities.map((e) => e.cicoid));
+  for (const [from, to] of Object.entries(aliases)) {
+    if (own.has(from)) {
+      throw new Error(`alias source ${from} is itself a registry entry — an alias must add no entity`);
+    }
+    if (!own.has(to)) throw new Error(`alias target ${to} is in no registry`);
+  }
+}
+assertAliases(GA_CICOID_ALIASES, GA_ALL_ENTITIES);
+
 /** Look one up by CICOID — the only safe key, across both registries. */
 export function entityByCicoid(cicoid) {
-  return GA_ALL_ENTITIES.find((e) => e.cicoid === String(cicoid)) || null;
+  const id = GA_CICOID_ALIASES[String(cicoid)] ?? String(cicoid);
+  return GA_ALL_ENTITIES.find((e) => e.cicoid === id) || null;
+}
+
+/**
+ * Every CICOID whose filings belong to an entity — INCLUDING ALIAS SOURCES.
+ *
+ * ⚠⚠ RESOLVING AN ID AND SELECTING A FILE ARE TWO PLACES, AND THE ALIAS HAS TO
+ * REACH BOTH. `entityByCicoid('1050050')` resolved correctly while Echols
+ * FY2009 still did not load, because the run's wanted-CICOID set was built
+ * from `GA_ALL_ENTITIES` alone — which deliberately excludes the alias source
+ * — so the one filing the alias exists to recover was filtered out as "a
+ * government the registry does not carry". A fix can be complete, tested, and
+ * still do nothing.
+ *
+ * @param {string|undefined} key an entity key, or undefined for every entity.
+ */
+export function cicoidsForEntity(key) {
+  const entities = key ? GA_ALL_ENTITIES.filter((e) => e.key === key) : GA_ALL_ENTITIES;
+  const ids = new Set(entities.map((e) => e.cicoid));
+  if (!ids.size) return ids;
+  for (const [from, to] of Object.entries(GA_CICOID_ALIASES)) {
+    if (ids.has(to)) ids.add(from);
+  }
+  return ids;
 }
 
 import { ensureMunicipality } from './lib/ensureMunicipality.mjs';
@@ -625,11 +695,8 @@ async function main() {
     files = files.slice((m - 1) * size, m * size);
     console.log(`--slice ${m}/${n}: ${files.length} of ${all} workbook(s)`);
   }
-  const wanted = new Set(
-    argv.entity
-      ? GA_ALL_ENTITIES.filter((e) => e.key === argv.entity).map((e) => e.cicoid)
-      : GA_ALL_ENTITIES.map((e) => e.cicoid),
-  );
+  // ⚠ Includes alias sources — see cicoidsForEntity.
+  const wanted = cicoidsForEntity(argv.entity);
   if (argv.entity && wanted.size === 0) {
     console.error(`Unknown --entity ${argv.entity}`);
     process.exit(2);

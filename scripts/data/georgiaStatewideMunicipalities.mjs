@@ -4,7 +4,7 @@
  * Regenerate with:
  *   node scripts/buildGaStatewideEntities.mjs --dir _acfr-work/ga/sweep/xlsx
  *
- * Built 2026-10-18 from 4775 workbooks across 553 municipality
+ * Built 2026-10-20 from 4818 workbooks across 553 municipality
  * governments listed by DCA.
  *
  * ⚠⚠ `entityType` IS THE CENSUS DESIGNATION, NOT THE WORD DCA PRINTS. They
@@ -26,13 +26,13 @@
  * runs inside a single metro — so a per-state value was never available.
  *
  * `monthStatus` records WHICH of those happened, per entity:
- *   confirmed    the form and the FAC census agree        (202)
- *   unverified   the form states it; the census is silent (324)
+ *   confirmed    the form and the FAC census agree        (204)
+ *   unverified   the form states it; the census is silent (329)
  *   census-only  every form was blank; the census answered (0)
  * Absent from this file, each for a DIFFERENT reason — never one count:
  *     0 month CONFLICT   the form and the census disagree, or the
  *       entity's own filings disagree with each other
- *    23 no filing      DCA lists nothing in the window; all 8 are
+ *    18 no filing      DCA lists nothing in the window; all 8 are
  *       counties whose consolidated government files instead
  *     2 already loaded carried by georgiaRlgfEntities.mjs
  * Every one is named in the build log. None is silently dropped.
@@ -64,6 +64,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Abbeville",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "00184",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Abbeville City",
     monthStatus: "confirmed",
@@ -84,6 +86,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Acworth",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "00408",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Acworth City",
     monthStatus: "confirmed",
@@ -104,6 +108,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Adairsville",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "00436",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Adairsville City",
     monthStatus: "confirmed",
@@ -124,6 +130,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Adel",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "00576",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Adel City",
     monthStatus: "confirmed",
@@ -144,6 +152,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Adrian",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "00660",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Adrian City",
     monthStatus: "unverified",
@@ -164,6 +174,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "00828",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Ailey City",
     monthStatus: "unverified",
@@ -184,6 +196,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Alamo",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "00996",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Alamo Town",
     monthStatus: "unverified",
@@ -204,6 +218,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Alapaha",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "01024",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Alapaha Town",
     monthStatus: "unverified",
@@ -224,6 +240,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Albany",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "01052",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Albany City",
     monthStatus: "confirmed",
@@ -244,6 +262,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "01248",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Aldora Town",
     monthStatus: "unverified",
@@ -264,6 +284,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "01472",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Allenhurst City",
     monthStatus: "unverified",
@@ -284,6 +306,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "01500",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Allentown City",
     monthStatus: "unverified",
@@ -304,6 +328,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Alma",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "01612",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Alma City",
     monthStatus: "confirmed",
@@ -324,6 +350,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Alpharetta",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "01696",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Alpharetta City",
     monthStatus: "confirmed",
@@ -344,6 +372,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "01808",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Alston Town",
     monthStatus: "unverified",
@@ -364,6 +394,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "01948",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Alto Town",
     monthStatus: "unverified",
@@ -384,6 +416,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Ambrose",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "02060",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Ambrose City",
     monthStatus: "unverified",
@@ -404,6 +438,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Americus",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "02116",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Americus City",
     monthStatus: "confirmed",
@@ -424,6 +460,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "02256",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Andersonville City",
     monthStatus: "unverified",
@@ -444,6 +482,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "02564",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Arabi Town",
     monthStatus: "unverified",
@@ -464,6 +504,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "02592",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Aragon City",
     monthStatus: "unverified",
@@ -484,6 +526,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "02648",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Arcade Town",
     monthStatus: "unverified",
@@ -504,6 +548,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "02844",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Argyle Town",
     monthStatus: "unverified",
@@ -524,6 +570,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Arlington",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "02928",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Arlington City",
     monthStatus: "confirmed",
@@ -544,6 +592,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Arnoldsville",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "03124",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Arnoldsville City",
     monthStatus: "unverified",
@@ -564,6 +614,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "03236",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Ashburn City",
     monthStatus: "unverified",
@@ -584,6 +636,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "04084",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Attapulgus City",
     monthStatus: "unverified",
@@ -604,6 +658,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "04140",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Auburn City",
     monthStatus: "unverified",
@@ -624,6 +680,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Austell",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "04252",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Austell City",
     monthStatus: "confirmed",
@@ -644,6 +702,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "04392",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Avalon Town",
     monthStatus: "unverified",
@@ -664,6 +724,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "04448",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Avera City",
     monthStatus: "unverified",
@@ -684,6 +746,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Avondale Estates",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "04644",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Avondale Estates City",
     monthStatus: "confirmed",
@@ -704,6 +768,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Baconton",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "04840",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Baconton City",
     monthStatus: "unverified",
@@ -724,6 +790,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Bainbridge",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "04896",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Bainbridge City",
     monthStatus: "confirmed",
@@ -744,6 +812,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Baldwin",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "04980",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Baldwin City",
     monthStatus: "unverified",
@@ -764,6 +834,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Ball Ground",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "05036",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Ball Ground City",
     monthStatus: "unverified",
@@ -784,6 +856,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "05344",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Barnesville City",
     monthStatus: "unverified",
@@ -804,6 +878,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "05680",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Bartow Town",
     monthStatus: "unverified",
@@ -824,6 +900,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "05708",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Barwick City",
     monthStatus: "unverified",
@@ -844,6 +922,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Baxley",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "06016",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Baxley City",
     monthStatus: "confirmed",
@@ -864,6 +944,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "06688",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Bellville City",
     monthStatus: "unverified",
@@ -884,6 +966,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Berkeley Lake",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "07248",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Berkeley Lake City",
     monthStatus: "unverified",
@@ -904,6 +988,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "07304",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Berlin City",
     monthStatus: "unverified",
@@ -924,6 +1010,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "07612",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Bethlehem Town",
     monthStatus: "unverified",
@@ -944,6 +1032,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "07640",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Between Town",
     monthStatus: "unverified",
@@ -964,6 +1054,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "08200",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Bishop Town",
     monthStatus: "unverified",
@@ -984,6 +1076,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Blackshear",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "08284",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Blackshear City",
     monthStatus: "confirmed",
@@ -1004,6 +1098,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Blairsville",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "08480",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Blairsville City",
     monthStatus: "confirmed",
@@ -1024,6 +1120,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Blakely",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "08536",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Blakely City",
     monthStatus: "confirmed",
@@ -1044,6 +1142,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "08844",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Bloomingdale City",
     // ⚠ CHANGED ITS FISCAL CALENDAR INSIDE THE WINDOW. These years are written
@@ -1067,6 +1167,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Blue Ridge",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "08928",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Blue Ridge City",
     monthStatus: "confirmed",
@@ -1087,6 +1189,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "08956",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Bluffton Town",
     monthStatus: "unverified",
@@ -1107,6 +1211,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "09040",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Blythe Town",
     monthStatus: "unverified",
@@ -1127,6 +1233,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "09068",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Bogart City",
     monthStatus: "unverified",
@@ -1147,6 +1255,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Boston",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "09460",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Boston City",
     monthStatus: "confirmed",
@@ -1167,6 +1277,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "09488",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Bostwick City",
     monthStatus: "unverified",
@@ -1187,6 +1299,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Bowdon",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "09544",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Bowdon City",
     monthStatus: "unverified",
@@ -1207,6 +1321,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "09656",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Bowersville Town",
     monthStatus: "unverified",
@@ -1227,6 +1343,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "09712",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Bowman City",
     monthStatus: "unverified",
@@ -1247,6 +1365,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Braselton",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "10076",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Braselton Town",
     monthStatus: "confirmed",
@@ -1267,6 +1387,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "10132",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Bremen City",
     monthStatus: "unverified",
@@ -1287,6 +1409,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "10608",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Brinson Town",
     monthStatus: "unverified",
@@ -1307,6 +1431,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Bronwood",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "10860",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Bronwood City",
     monthStatus: "unverified",
@@ -1327,6 +1453,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Brookhaven",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "10944",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Brookhaven City",
     monthStatus: "confirmed",
@@ -1347,6 +1475,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "11000",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Brooklet City",
     monthStatus: "unverified",
@@ -1367,6 +1497,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "11056",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Brooks Town",
     monthStatus: "unverified",
@@ -1387,6 +1519,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "11504",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Broxton City",
     monthStatus: "unverified",
@@ -1407,6 +1541,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Brunswick",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "11560",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Brunswick City",
     monthStatus: "confirmed",
@@ -1427,6 +1563,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "11616",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Buchanan City",
     monthStatus: "unverified",
@@ -1447,6 +1585,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Buckhead",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "11672",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Buckhead Town",
     monthStatus: "unverified",
@@ -1467,6 +1607,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "11728",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Buena Vista City",
     monthStatus: "unverified",
@@ -1487,6 +1629,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Buford",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "11784",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Buford City",
     monthStatus: "confirmed",
@@ -1507,6 +1651,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Butler",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "12120",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Butler City",
     monthStatus: "confirmed",
@@ -1527,6 +1673,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Byromville",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "12232",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Byromville Town",
     monthStatus: "unverified",
@@ -1547,6 +1695,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Byron",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "12260",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Byron City",
     monthStatus: "confirmed",
@@ -1567,6 +1717,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "12344",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Cadwell Town",
     monthStatus: "unverified",
@@ -1587,6 +1739,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Cairo",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "12400",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Cairo City",
     monthStatus: "confirmed",
@@ -1607,6 +1761,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Calhoun",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "12456",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Calhoun City",
     monthStatus: "confirmed",
@@ -1627,6 +1783,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Camak",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "12512",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Camak Town",
     monthStatus: "unverified",
@@ -1647,6 +1805,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Camilla",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "12624",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Camilla City",
     monthStatus: "confirmed",
@@ -1667,6 +1827,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Canon",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "12932",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Canon City",
     monthStatus: "unverified",
@@ -1687,6 +1849,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Canton",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "12988",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Canton City",
     monthStatus: "confirmed",
@@ -1707,6 +1871,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "13184",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Carl Town",
     monthStatus: "unverified",
@@ -1727,6 +1893,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "13212",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Carlton City",
     monthStatus: "unverified",
@@ -1747,6 +1915,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "13352",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Carnesville City",
     monthStatus: "unverified",
@@ -1767,6 +1937,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Carrollton",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "13492",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Carrollton City",
     monthStatus: "confirmed",
@@ -1787,6 +1959,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Cartersville",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "13688",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Cartersville City",
     monthStatus: "confirmed",
@@ -1807,6 +1981,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Cave Spring",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "14108",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Cave Spring City",
     monthStatus: "unverified",
@@ -1827,6 +2003,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Cecil",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "14192",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Cecil City",
     monthStatus: "unverified",
@@ -1847,6 +2025,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Cedartown",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "14500",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Cedartown City",
     monthStatus: "confirmed",
@@ -1867,6 +2047,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Centerville",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "14920",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Centerville City",
     monthStatus: "confirmed",
@@ -1887,6 +2069,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "15026",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Centralhatchee Town",
     monthStatus: "unverified",
@@ -1907,6 +2091,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Chamblee",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "15172",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Chamblee City",
     monthStatus: "confirmed",
@@ -1927,6 +2113,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "15508",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Chatsworth City",
     monthStatus: "unverified",
@@ -1947,6 +2135,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "15552",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Chattahoochee Hills City",
     monthStatus: "unverified",
@@ -1967,6 +2157,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "15648",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Chauncey City",
     monthStatus: "unverified",
@@ -1987,6 +2179,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Chester",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "15900",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Chester Town",
     monthStatus: "unverified",
@@ -2007,6 +2201,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Chickamauga",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "15984",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Chickamauga City",
     monthStatus: "unverified",
@@ -2027,6 +2223,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Clarkesville",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "16460",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Clarkesville City",
     monthStatus: "confirmed",
@@ -2047,6 +2245,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Clarkston",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "16544",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Clarkston City",
     monthStatus: "confirmed",
@@ -2067,6 +2267,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Claxton",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "16600",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Claxton City",
     monthStatus: "confirmed",
@@ -2087,6 +2289,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Clayton",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "16656",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Clayton City",
     monthStatus: "unverified",
@@ -2107,6 +2311,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "16796",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Clermont Town",
     monthStatus: "unverified",
@@ -2127,6 +2333,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Cleveland",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "16824",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Cleveland City",
     monthStatus: "unverified",
@@ -2147,6 +2355,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "16908",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Climax City",
     monthStatus: "unverified",
@@ -2167,6 +2377,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "17272",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Cobbtown City",
     monthStatus: "unverified",
@@ -2187,6 +2399,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Cochran",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "17328",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Cochran City",
     monthStatus: "confirmed",
@@ -2207,6 +2421,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "17496",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Cohutta Town",
     monthStatus: "unverified",
@@ -2227,6 +2443,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "17552",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Colbert City",
     monthStatus: "unverified",
@@ -2247,6 +2465,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "College Park",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "17776",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "College Park City",
     monthStatus: "confirmed",
@@ -2267,6 +2487,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "17832",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Collins City",
     monthStatus: "unverified",
@@ -2287,6 +2509,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Colquitt",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "18000",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Colquitt City",
     monthStatus: "confirmed",
@@ -2307,6 +2531,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Comer",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "19084",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Comer City",
     monthStatus: "unverified",
@@ -2327,6 +2553,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Commerce",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "19112",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Commerce City",
     monthStatus: "confirmed",
@@ -2347,6 +2575,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "19168",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Concord City",
     monthStatus: "unverified",
@@ -2367,6 +2597,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Conyers",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "19336",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Conyers City",
     monthStatus: "confirmed",
@@ -2387,6 +2619,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Coolidge",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "19392",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Coolidge City",
     monthStatus: "unverified",
@@ -2407,6 +2641,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Cordele",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "19616",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Cordele City",
     monthStatus: "confirmed",
@@ -2427,6 +2663,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Cornelia",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "19728",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Cornelia City",
     monthStatus: "confirmed",
@@ -2447,6 +2685,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Covington",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "20064",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Covington City",
     monthStatus: "confirmed",
@@ -2467,6 +2707,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Crawford",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "20288",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Crawford City",
     monthStatus: "unverified",
@@ -2487,6 +2729,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Crawfordville",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "20316",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Crawfordville City",
     monthStatus: "unverified",
@@ -2507,6 +2751,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "20848",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Culloden City",
     monthStatus: "unverified",
@@ -2527,6 +2773,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Cumming",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "20932",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Cumming City",
     monthStatus: "confirmed",
@@ -2547,6 +2795,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Cuthbert",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "21072",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Cuthbert City",
     monthStatus: "unverified",
@@ -2567,6 +2817,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Dacula",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "21184",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Dacula City",
     monthStatus: "confirmed",
@@ -2587,6 +2839,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Dahlonega",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "21240",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Dahlonega City",
     monthStatus: "confirmed",
@@ -2607,6 +2861,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "21268",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Daisy City",
     monthStatus: "unverified",
@@ -2627,6 +2883,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Dallas",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "21324",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Dallas City",
     monthStatus: "confirmed",
@@ -2647,6 +2905,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Dalton",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "21380",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Dalton City",
     monthStatus: "confirmed",
@@ -2667,6 +2927,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "21436",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Damascus City",
     monthStatus: "unverified",
@@ -2687,6 +2949,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "21632",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Danielsville City",
     monthStatus: "unverified",
@@ -2707,6 +2971,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Danville",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "21688",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Danville Town",
     monthStatus: "unverified",
@@ -2727,6 +2993,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Darien",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "21716",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Darien City",
     monthStatus: "unverified",
@@ -2747,6 +3015,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "21744",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Dasher City",
     monthStatus: "unverified",
@@ -2767,6 +3037,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Davisboro",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "21800",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Davisboro City",
     monthStatus: "confirmed",
@@ -2787,6 +3059,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Dawson",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "21912",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Dawson City",
     monthStatus: "unverified",
@@ -2807,6 +3081,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Dawsonville",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "21940",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Dawsonville City",
     monthStatus: "confirmed",
@@ -2827,6 +3103,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "22472",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "De Soto City",
     monthStatus: "unverified",
@@ -2847,6 +3125,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "22024",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Dearing Town",
     monthStatus: "unverified",
@@ -2867,6 +3147,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Decatur",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "22052",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Decatur City",
     monthStatus: "confirmed",
@@ -2887,6 +3169,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "22108",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Deepstep Town",
     monthStatus: "unverified",
@@ -2907,6 +3191,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Demorest",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "22304",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Demorest City",
     monthStatus: "unverified",
@@ -2927,6 +3213,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "22388",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Denton City",
     monthStatus: "unverified",
@@ -2947,6 +3235,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "22752",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Dexter Town",
     monthStatus: "unverified",
@@ -2967,6 +3257,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "22976",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Dillard City",
     monthStatus: "unverified",
@@ -2987,6 +3279,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "23284",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Doerun City",
     monthStatus: "unverified",
@@ -3007,6 +3301,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "23368",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Donalsonville City",
     monthStatus: "unverified",
@@ -3027,6 +3323,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "23480",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Dooling Town",
     monthStatus: "unverified",
@@ -3047,6 +3345,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Doraville",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "23536",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Doraville City",
     // ⚠ CHANGED ITS FISCAL CALENDAR INSIDE THE WINDOW. These years are written
@@ -3070,6 +3370,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Douglas",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "23872",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Douglas City",
     monthStatus: "confirmed",
@@ -3090,6 +3392,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Douglasville",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "23900",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Douglasville City",
     monthStatus: "confirmed",
@@ -3110,6 +3414,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "24796",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Du Pont Town",
     monthStatus: "unverified",
@@ -3130,6 +3436,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Dublin",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "24376",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Dublin City",
     monthStatus: "confirmed",
@@ -3150,6 +3458,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "24488",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Dudley City",
     monthStatus: "unverified",
@@ -3170,6 +3480,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Duluth",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "24600",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Duluth City",
     monthStatus: "confirmed",
@@ -3190,6 +3502,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Dunwoody",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "24768",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Dunwoody City",
     monthStatus: "confirmed",
@@ -3210,6 +3524,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "East Dublin",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "25300",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "East Dublin City",
     monthStatus: "unverified",
@@ -3230,6 +3546,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "East Ellijay",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "25356",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "East Ellijay City",
     monthStatus: "unverified",
@@ -3250,6 +3568,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "East Point",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "25720",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "East Point City",
     monthStatus: "confirmed",
@@ -3270,6 +3590,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Eastman",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "25552",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Eastman City",
     monthStatus: "confirmed",
@@ -3290,6 +3612,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Eatonton",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "26084",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Eatonton City",
     monthStatus: "confirmed",
@@ -3310,6 +3634,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "26224",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Edgehill City",
     monthStatus: "unverified",
@@ -3330,6 +3656,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Edison",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "26448",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Edison City",
     monthStatus: "unverified",
@@ -3350,6 +3678,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Elberton",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "26616",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Elberton City",
     monthStatus: "confirmed",
@@ -3370,6 +3700,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Ellaville",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "26980",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Ellaville City",
     monthStatus: "unverified",
@@ -3390,6 +3722,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Ellenton",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "27008",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Ellenton City",
     monthStatus: "unverified",
@@ -3410,6 +3744,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "27092",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Ellijay City",
     monthStatus: "unverified",
@@ -3430,6 +3766,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Emerson",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "27344",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Emerson City",
     monthStatus: "confirmed",
@@ -3450,6 +3788,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "27596",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Enigma City",
     monthStatus: "unverified",
@@ -3470,6 +3810,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "27708",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Ephesus City",
     monthStatus: "unverified",
@@ -3490,6 +3832,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "27932",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Eton City",
     monthStatus: "unverified",
@@ -3510,6 +3854,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "27988",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Euharlee City",
     monthStatus: "unverified",
@@ -3530,6 +3876,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Fairburn",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "28380",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Fairburn City",
     monthStatus: "confirmed",
@@ -3550,6 +3898,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Fairmount",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "28492",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Fairmount City",
     monthStatus: "unverified",
@@ -3570,6 +3920,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Fargo",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "28744",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Fargo City",
     monthStatus: "unverified",
@@ -3590,6 +3942,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Fayetteville",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "28968",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Fayetteville City",
     monthStatus: "confirmed",
@@ -3610,6 +3964,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Fitzgerald",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "29528",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Fitzgerald City",
     monthStatus: "confirmed",
@@ -3630,6 +3986,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "30088",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Flemington City",
     monthStatus: "unverified",
@@ -3650,6 +4008,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "30312",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Flovilla City",
     monthStatus: "unverified",
@@ -3670,6 +4030,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Flowery Branch",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "30340",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Flowery Branch City",
     monthStatus: "confirmed",
@@ -3690,6 +4052,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "30424",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Folkston City",
     monthStatus: "unverified",
@@ -3710,6 +4074,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Forest Park",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "30536",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Forest Park City",
     monthStatus: "confirmed",
@@ -3730,6 +4096,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Forsyth",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "30732",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Forsyth City",
     monthStatus: "unverified",
@@ -3750,6 +4118,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Fort Gaines",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "30816",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Fort Gaines City",
     monthStatus: "confirmed",
@@ -3770,6 +4140,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Fort Oglethorpe",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "30956",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Fort Oglethorpe City",
     monthStatus: "unverified",
@@ -3790,6 +4162,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Fort Valley",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "31096",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Fort Valley City",
     monthStatus: "unverified",
@@ -3810,6 +4184,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "31292",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Franklin City",
     monthStatus: "unverified",
@@ -3830,6 +4206,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "31320",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Franklin Springs City",
     monthStatus: "unverified",
@@ -3850,6 +4228,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "31684",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Funston City",
     monthStatus: "unverified",
@@ -3870,6 +4250,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Gainesville",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "31908",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Gainesville City",
     monthStatus: "confirmed",
@@ -3890,6 +4272,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Garden City",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "32048",
     monthStatus: "confirmed",
     monthWhy: null,
     parentCountyKey: null,
@@ -3908,6 +4292,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "32188",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Garfield City",
     monthStatus: "unverified",
@@ -3928,6 +4314,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "32384",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Gay Town",
     monthStatus: "unverified",
@@ -3948,6 +4336,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Geneva",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "32412",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Geneva Town",
     monthStatus: "unverified",
@@ -3968,6 +4358,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "32748",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Gibson City",
     monthStatus: "unverified",
@@ -3988,6 +4380,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "32860",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Gillsville City",
     monthStatus: "unverified",
@@ -4008,6 +4402,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "32916",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Girard Town",
     monthStatus: "unverified",
@@ -4028,6 +4424,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Glennville",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "33336",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Glennville City",
     monthStatus: "confirmed",
@@ -4048,6 +4446,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Glenwood",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "33392",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Glenwood City",
     monthStatus: "unverified",
@@ -4068,6 +4468,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "33896",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Good Hope City",
     monthStatus: "unverified",
@@ -4088,6 +4490,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Gordon",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "33980",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Gordon City",
     monthStatus: "confirmed",
@@ -4108,6 +4512,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "34260",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Graham City",
     monthStatus: "unverified",
@@ -4128,6 +4534,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Grantville",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "34428",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Grantville City",
     monthStatus: "confirmed",
@@ -4148,6 +4556,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Gray",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "34512",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Gray City",
     monthStatus: "confirmed",
@@ -4168,6 +4578,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Grayson",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "34596",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Grayson City",
     monthStatus: "unverified",
@@ -4188,6 +4600,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Greensboro",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "34876",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Greensboro City",
     monthStatus: "confirmed",
@@ -4208,6 +4622,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Greenville",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "35016",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Greenville City",
     monthStatus: "confirmed",
@@ -4228,6 +4644,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Griffin",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "35324",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Griffin City",
     monthStatus: "confirmed",
@@ -4248,6 +4666,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Grovetown",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "35716",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Grovetown City",
     // ⚠ CHANGED ITS FISCAL CALENDAR INSIDE THE WINDOW. These years are written
@@ -4271,6 +4691,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "35800",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Gum Branch City",
     monthStatus: "unverified",
@@ -4291,6 +4713,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Guyton",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "35884",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Guyton City",
     monthStatus: "unverified",
@@ -4311,6 +4735,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Hagan",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "36024",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Hagan City",
     monthStatus: "unverified",
@@ -4331,6 +4757,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Hahira",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "36052",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Hahira City",
     monthStatus: "confirmed",
@@ -4351,6 +4779,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Hamilton",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "36220",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Hamilton City",
     monthStatus: "unverified",
@@ -4371,6 +4801,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Hampton",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "36276",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Hampton City",
     monthStatus: "confirmed",
@@ -4391,6 +4823,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Hapeville",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "36472",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Hapeville City",
     // ⚠ CHANGED ITS FISCAL CALENDAR INSIDE THE WINDOW. These years are written
@@ -4414,6 +4848,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "36528",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Haralson Town",
     monthStatus: "unverified",
@@ -4434,6 +4870,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Harlem",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "36696",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Harlem City",
     monthStatus: "confirmed",
@@ -4454,6 +4892,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "36920",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Harrison Town",
     monthStatus: "unverified",
@@ -4474,6 +4914,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Hartwell",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "37144",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Hartwell City",
     monthStatus: "confirmed",
@@ -4494,6 +4936,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Hawkinsville",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "37396",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Hawkinsville City",
     monthStatus: "confirmed",
@@ -4514,6 +4958,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Hazlehurst",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "37564",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Hazlehurst City",
     monthStatus: "confirmed",
@@ -4534,12 +4980,39 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Helen",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "37788",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Helen City",
     monthStatus: "unverified",
     monthWhy: "the census has a row for \"Helen\" but covers none of FY2016-2025",
     parentCountyKey: null,
     fiscalYears: [2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025],
+  },
+  {
+    key: "helena-city",
+    cicoid: "2134001",
+    name: "Helena",
+    state: 'GA',
+    entityType: "city",
+    population: null,
+    populationSource: "no current estimate — typed from sub-est2014_13.csv SUMLEV=162 PLACE=37816 (Helena city, joined by suffix; vintage 2014 population 2893)",
+    fiscalYearStartMonth: 7,
+    fiscalYearEndText: "June 30",
+    censusName: null,
+    censusKind: null,
+    censusConfirms: false,
+    censusVintage: 2014,
+    placeFips: "37816",
+    // ⚠⚠ Built from FY2009-2015: this government filed nothing in the v2
+    // window, so its month IS a claim about v1 years, unlike every other row.
+    builtFrom: 'v1',
+    // ⚠ DCA prints this name; the census designation above is what TT types on.
+    dcaName: "Helena City",
+    monthStatus: "unverified",
+    monthWhy: "the FAC census has no row for \"Helena\"",
+    parentCountyKey: null,
+    fiscalYears: [2009, 2010, 2011, 2012, 2013, 2014],
   },
   {
     key: "hephzibah-city",
@@ -4554,6 +5027,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "38040",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Hephzibah City",
     monthStatus: "unverified",
@@ -4574,6 +5049,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Hiawassee",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "38124",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Hiawassee City",
     monthStatus: "confirmed",
@@ -4594,6 +5071,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "38348",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Higgston Town",
     monthStatus: "unverified",
@@ -4614,6 +5093,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "38920",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Hiltonia City",
     monthStatus: "unverified",
@@ -4634,6 +5115,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Hinesville",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "38964",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Hinesville City",
     monthStatus: "confirmed",
@@ -4654,6 +5137,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Hiram",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "39076",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Hiram City",
     monthStatus: "confirmed",
@@ -4674,6 +5159,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "39216",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Hoboken City",
     monthStatus: "unverified",
@@ -4694,6 +5181,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Hogansville",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "39244",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Hogansville City",
     monthStatus: "confirmed",
@@ -4714,6 +5203,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Holly Springs",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "39524",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Holly Springs City",
     monthStatus: "confirmed",
@@ -4734,6 +5225,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "39692",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Homeland City",
     monthStatus: "unverified",
@@ -4754,6 +5247,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "39720",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Homer Town",
     monthStatus: "unverified",
@@ -4774,6 +5269,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Homerville",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "39748",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Homerville City",
     monthStatus: "confirmed",
@@ -4794,6 +5291,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Hoschton",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "40056",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Hoschton City",
     monthStatus: "unverified",
@@ -4814,6 +5313,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "40532",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Hull Town",
     monthStatus: "unverified",
@@ -4834,6 +5335,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "40812",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Ideal City",
     monthStatus: "unverified",
@@ -4854,6 +5357,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Ila",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "40840",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Ila City",
     monthStatus: "unverified",
@@ -4874,6 +5379,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Iron City",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "41344",
     monthStatus: "confirmed",
     monthWhy: null,
     parentCountyKey: null,
@@ -4892,6 +5399,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "41400",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Irwinton City",
     monthStatus: "unverified",
@@ -4912,6 +5421,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Ivey",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "41540",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Ivey City",
     monthStatus: "unverified",
@@ -4932,6 +5443,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Jackson",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "41596",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Jackson City",
     monthStatus: "confirmed",
@@ -4952,6 +5465,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "41708",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Jacksonville City",
     monthStatus: "unverified",
@@ -4972,6 +5487,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "41792",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Jakin City",
     monthStatus: "unverified",
@@ -4992,6 +5509,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Jasper",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "41932",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Jasper City",
     monthStatus: "confirmed",
@@ -5012,6 +5531,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Jefferson",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "41988",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Jefferson City",
     monthStatus: "confirmed",
@@ -5032,6 +5553,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "42100",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Jeffersonville City",
     monthStatus: "unverified",
@@ -5052,6 +5575,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "42156",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Jenkinsburg Town",
     monthStatus: "unverified",
@@ -5072,6 +5597,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "42184",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Jersey City",
     monthStatus: "unverified",
@@ -5092,6 +5619,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Jesup",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "42268",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Jesup City",
     monthStatus: "confirmed",
@@ -5112,6 +5641,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Johns Creek",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "42425",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Johns Creek City",
     monthStatus: "confirmed",
@@ -5132,6 +5663,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Jonesboro",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "42604",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Jonesboro City",
     monthStatus: "confirmed",
@@ -5152,6 +5685,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Junction City",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "42800",
     monthStatus: "unverified",
     monthWhy: "the census has a row for \"Junction City\" but covers none of FY2016-2025",
     parentCountyKey: null,
@@ -5170,6 +5705,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Kennesaw",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "43192",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Kennesaw City",
     monthStatus: "confirmed",
@@ -5190,6 +5727,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "43360",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Keysville City",
     monthStatus: "unverified",
@@ -5210,6 +5749,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Kingsland",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "43640",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Kingsland City",
     monthStatus: "confirmed",
@@ -5230,6 +5771,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Kingston",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "43668",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Kingston City",
     monthStatus: "confirmed",
@@ -5250,6 +5793,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "43892",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Kite City",
     monthStatus: "unverified",
@@ -5270,6 +5815,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Lafayette",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "44312",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "LaFayette City",
     monthStatus: "confirmed",
@@ -5290,6 +5837,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Lagrange",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "44340",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "LaGrange City",
     monthStatus: "confirmed",
@@ -5310,6 +5859,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "44508",
     monthStatus: "unverified",
     monthWhy: "the FAC census has no row for \"Lake City\"",
     parentCountyKey: null,
@@ -5328,6 +5879,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "44704",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Lake Park City",
     monthStatus: "unverified",
@@ -5348,6 +5901,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Lakeland",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "44592",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Lakeland City",
     monthStatus: "confirmed",
@@ -5368,6 +5923,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Lavonia",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "45460",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Lavonia City",
     monthStatus: "confirmed",
@@ -5388,6 +5945,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Lawrenceville",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "45488",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Lawrenceville City",
     // ⚠ CHANGED ITS FISCAL CALENDAR INSIDE THE WINDOW. These years are written
@@ -5411,6 +5970,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Leary",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "45600",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Leary City",
     monthStatus: "unverified",
@@ -5431,6 +5992,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Leesburg",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "45768",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Leesburg City",
     monthStatus: "confirmed",
@@ -5451,6 +6014,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Lenox",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "45936",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Lenox Town",
     monthStatus: "unverified",
@@ -5471,6 +6036,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "46020",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Leslie City",
     monthStatus: "unverified",
@@ -5491,6 +6058,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Lexington",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "46188",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Lexington City",
     monthStatus: "unverified",
@@ -5511,6 +6080,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Lilburn",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "46356",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Lilburn City",
     monthStatus: "confirmed",
@@ -5531,6 +6102,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "46384",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Lilly City",
     monthStatus: "unverified",
@@ -5551,6 +6124,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Lincolnton",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "46552",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Lincolnton City",
     monthStatus: "confirmed",
@@ -5571,6 +6146,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "46860",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Lithonia City",
     // ⚠ CHANGED ITS FISCAL CALENDAR INSIDE THE WINDOW. These years are written
@@ -5594,6 +6171,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Locust Grove",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "47140",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Locust Grove City",
     monthStatus: "unverified",
@@ -5614,6 +6193,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Loganville",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "47196",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Loganville City",
     monthStatus: "confirmed",
@@ -5634,6 +6215,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "47252",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Lone Oak Town",
     monthStatus: "unverified",
@@ -5654,6 +6237,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Lookout Mountain",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "47336",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Lookout Mountain City",
     monthStatus: "confirmed",
@@ -5674,6 +6259,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Louisville",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "47560",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Louisville City",
     monthStatus: "confirmed",
@@ -5694,6 +6281,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "47616",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Lovejoy City",
     monthStatus: "unverified",
@@ -5714,6 +6303,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "47784",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Ludowici City",
     monthStatus: "unverified",
@@ -5734,6 +6325,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Lula",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "47896",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Lula City",
     monthStatus: "unverified",
@@ -5754,6 +6347,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "47952",
     monthStatus: "unverified",
     monthWhy: "the FAC census has no row for \"Lumber City\"",
     parentCountyKey: null,
@@ -5772,6 +6367,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "47980",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Lumpkin City",
     monthStatus: "unverified",
@@ -5792,6 +6389,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "48008",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Luthersville Town",
     monthStatus: "unverified",
@@ -5812,6 +6411,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Lyerly",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "48092",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Lyerly Town",
     monthStatus: "unverified",
@@ -5832,6 +6433,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Lyons",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "48232",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Lyons City",
     monthStatus: "confirmed",
@@ -5852,12 +6455,39 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "48288",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Mableton City",
     monthStatus: "unverified",
     monthWhy: "the FAC census has no row for \"Mableton\"",
     parentCountyKey: null,
     fiscalYears: [2024, 2025],
+  },
+  {
+    key: "macon-city",
+    cicoid: "2011001",
+    name: "Macon",
+    state: 'GA',
+    entityType: "city",
+    population: null,
+    populationSource: "no current estimate — typed from sub-est2013_13.csv SUMLEV=162 PLACE=49000 (Macon city, joined by suffix; vintage 2013 population 89981)",
+    fiscalYearStartMonth: 7,
+    fiscalYearEndText: "June 30",
+    censusName: "Macon",
+    censusKind: "municipality",
+    censusConfirms: true,
+    censusVintage: 2013,
+    placeFips: "49000",
+    // ⚠⚠ Built from FY2009-2015: this government filed nothing in the v2
+    // window, so its month IS a claim about v1 years, unlike every other row.
+    builtFrom: 'v1',
+    // ⚠ DCA prints this name; the census designation above is what TT types on.
+    dcaName: "Macon City",
+    monthStatus: "confirmed",
+    monthWhy: null,
+    parentCountyKey: null,
+    fiscalYears: [2009, 2010, 2011, 2012, 2013],
   },
   {
     key: "madison-city",
@@ -5872,6 +6502,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Madison",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "49196",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Madison City",
     monthStatus: "confirmed",
@@ -5892,6 +6524,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "49504",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Manassas City",
     monthStatus: "unverified",
@@ -5912,6 +6546,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Manchester",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "49532",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Manchester City",
     monthStatus: "confirmed",
@@ -5932,6 +6568,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "49616",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Mansfield City",
     monthStatus: "unverified",
@@ -5952,6 +6590,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Marietta",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "49756",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Marietta City",
     monthStatus: "confirmed",
@@ -5972,6 +6612,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "49924",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Marshallville City",
     monthStatus: "unverified",
@@ -5992,6 +6634,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "50008",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Martin Town",
     monthStatus: "unverified",
@@ -6012,6 +6656,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Maxeys",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "50260",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Maxeys Town",
     monthStatus: "unverified",
@@ -6032,6 +6678,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Maysville",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "50484",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Maysville Town",
     monthStatus: "confirmed",
@@ -6052,6 +6700,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Mccaysville",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "48428",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "McCaysville City",
     monthStatus: "confirmed",
@@ -6072,6 +6722,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Mcdonough",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "48624",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "McDonough City",
     monthStatus: "confirmed",
@@ -6092,12 +6744,39 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Mcintyre",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "48848",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "McIntyre Town",
     monthStatus: "confirmed",
     monthWhy: null,
     parentCountyKey: null,
     fiscalYears: [2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2025],
+  },
+  {
+    key: "mcrae-city",
+    cicoid: "2134004",
+    name: "McRae",
+    state: 'GA',
+    entityType: "city",
+    population: null,
+    populationSource: "no current estimate — typed from sub-est2014_13.csv SUMLEV=162 PLACE=49084 (McRae city, joined by suffix; vintage 2014 population 5972)",
+    fiscalYearStartMonth: 1,
+    fiscalYearEndText: "December 31",
+    censusName: "Mcrae",
+    censusKind: "municipality",
+    censusConfirms: true,
+    censusVintage: 2014,
+    placeFips: "49084",
+    // ⚠⚠ Built from FY2009-2015: this government filed nothing in the v2
+    // window, so its month IS a claim about v1 years, unlike every other row.
+    builtFrom: 'v1',
+    // ⚠ DCA prints this name; the census designation above is what TT types on.
+    dcaName: "McRae City",
+    monthStatus: "confirmed",
+    monthWhy: null,
+    parentCountyKey: null,
+    fiscalYears: [2009, 2010, 2011, 2012, 2013, 2014],
   },
   {
     key: "mcrae-helena-city",
@@ -6112,6 +6791,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "49100",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "McRae-Helena City",
     monthStatus: "unverified",
@@ -6132,6 +6813,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "50596",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Meansville City",
     monthStatus: "unverified",
@@ -6152,6 +6835,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Meigs",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "50680",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Meigs City",
     // ⚠ CHANGED ITS FISCAL CALENDAR INSIDE THE WINDOW. These years are written
@@ -6175,6 +6860,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Menlo",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "50848",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Menlo City",
     monthStatus: "unverified",
@@ -6195,6 +6882,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Metter",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "51072",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Metter City",
     monthStatus: "confirmed",
@@ -6215,6 +6904,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Midville",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "51240",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Midville City",
     monthStatus: "unverified",
@@ -6235,6 +6926,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "51352",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Midway City",
     monthStatus: "unverified",
@@ -6255,6 +6948,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "51408",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Milan City",
     monthStatus: "unverified",
@@ -6275,6 +6970,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Millen",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "51520",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Millen City",
     monthStatus: "confirmed",
@@ -6295,6 +6992,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "51604",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Milner City",
     monthStatus: "unverified",
@@ -6315,6 +7014,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Milton",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "51670",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Milton City",
     monthStatus: "confirmed",
@@ -6335,6 +7036,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Mitchell",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "51968",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Mitchell Town",
     monthStatus: "unverified",
@@ -6355,6 +7058,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "52108",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Molena City",
     monthStatus: "unverified",
@@ -6375,6 +7080,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Monroe",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "52192",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Monroe City",
     monthStatus: "confirmed",
@@ -6395,6 +7102,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Montezuma",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "52304",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Montezuma City",
     monthStatus: "confirmed",
@@ -6415,6 +7124,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Monticello",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "52416",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Monticello City",
     monthStatus: "confirmed",
@@ -6435,6 +7146,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "52500",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Montrose Town",
     monthStatus: "unverified",
@@ -6455,6 +7168,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "52668",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Moreland Town",
     monthStatus: "unverified",
@@ -6475,6 +7190,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "52696",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Morgan City",
     monthStatus: "unverified",
@@ -6495,6 +7212,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Morganton",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "52724",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Morganton City",
     monthStatus: "unverified",
@@ -6515,6 +7234,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Morrow",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "53004",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Morrow City",
     monthStatus: "unverified",
@@ -6535,6 +7256,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "53032",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Morven City",
     monthStatus: "unverified",
@@ -6555,6 +7278,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Moultrie",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "53060",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Moultrie City",
     monthStatus: "confirmed",
@@ -6575,6 +7300,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "53284",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Mount Airy Town",
     monthStatus: "unverified",
@@ -6595,6 +7322,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "53508",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Mount Vernon City",
     monthStatus: "unverified",
@@ -6615,6 +7344,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Mount Zion",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "53620",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Mount Zion City",
     monthStatus: "confirmed",
@@ -6635,6 +7366,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "53116",
     monthStatus: "unverified",
     monthWhy: "the FAC census has no row for \"Mountain City\"",
     parentCountyKey: null,
@@ -6653,6 +7386,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "53172",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Mountain Park City",
     monthStatus: "unverified",
@@ -6673,6 +7408,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "54124",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Nahunta City",
     monthStatus: "unverified",
@@ -6693,6 +7430,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Nashville",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "54264",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Nashville City",
     monthStatus: "confirmed",
@@ -6713,6 +7452,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "54572",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Nelson City",
     monthStatus: "unverified",
@@ -6733,6 +7474,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "54656",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Newborn Town",
     // ⚠ CHANGED ITS FISCAL CALENDAR INSIDE THE WINDOW. These years are written
@@ -6756,6 +7499,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "54992",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Newington Town",
     monthStatus: "unverified",
@@ -6776,6 +7521,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Newnan",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "55020",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Newnan City",
     monthStatus: "confirmed",
@@ -6796,6 +7543,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "55244",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Newton City",
     monthStatus: "unverified",
@@ -6816,6 +7565,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "55440",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Nicholls City",
     monthStatus: "unverified",
@@ -6836,6 +7587,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "55468",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Nicholson Town",
     monthStatus: "unverified",
@@ -6856,6 +7609,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Norcross",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "55776",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Norcross City",
     monthStatus: "confirmed",
@@ -6876,6 +7631,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "55860",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Norman Park City",
     monthStatus: "unverified",
@@ -6896,6 +7653,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "56308",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "North High Shoals Town",
     monthStatus: "unverified",
@@ -6916,6 +7675,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "56560",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Norwood City",
     monthStatus: "unverified",
@@ -6936,6 +7697,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Nunez",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "56644",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Nunez City",
     monthStatus: "unverified",
@@ -6956,6 +7719,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "57232",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Oak Park Town",
     monthStatus: "unverified",
@@ -6976,6 +7741,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Oakwood",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "57260",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Oakwood City",
     monthStatus: "unverified",
@@ -6996,6 +7763,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Ochlocknee",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "57372",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Ochlocknee Town",
     monthStatus: "confirmed",
@@ -7016,6 +7785,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Ocilla",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "57428",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Ocilla City",
     monthStatus: "unverified",
@@ -7036,6 +7807,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Oconee",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "57456",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Oconee City",
     monthStatus: "unverified",
@@ -7056,6 +7829,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "57540",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Odum City",
     monthStatus: "unverified",
@@ -7076,6 +7851,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "57568",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Offerman City",
     monthStatus: "unverified",
@@ -7096,6 +7873,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Oglethorpe",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "57736",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Oglethorpe City",
     monthStatus: "confirmed",
@@ -7116,6 +7895,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "58100",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Oliver City",
     monthStatus: "unverified",
@@ -7136,6 +7917,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Omega",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "58184",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Omega City",
     monthStatus: "unverified",
@@ -7156,6 +7939,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "58296",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Orchard Hill Town",
     monthStatus: "unverified",
@@ -7176,6 +7961,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Oxford",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "58744",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Oxford City",
     monthStatus: "unverified",
@@ -7196,6 +7983,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "58884",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Palmetto City",
     monthStatus: "unverified",
@@ -7216,6 +8005,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Parrott",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "59416",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Parrott Town",
     monthStatus: "unverified",
@@ -7236,6 +8027,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "59500",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Patterson City",
     monthStatus: "unverified",
@@ -7256,12 +8049,39 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Pavo",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "59556",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Pavo City",
     monthStatus: "confirmed",
     monthWhy: null,
     parentCountyKey: null,
     fiscalYears: [2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025],
+  },
+  {
+    key: "payne-city",
+    cicoid: "2011002",
+    name: "Payne",
+    state: 'GA',
+    entityType: "city",
+    population: null,
+    populationSource: "no current estimate — typed from sub-est2014_13.csv SUMLEV=162 PLACE=59584 (Payne city, joined by suffix; vintage 2014 population 214)",
+    fiscalYearStartMonth: 1,
+    fiscalYearEndText: "December 31",
+    censusName: null,
+    censusKind: null,
+    censusConfirms: false,
+    censusVintage: 2014,
+    placeFips: "59584",
+    // ⚠⚠ Built from FY2009-2015: this government filed nothing in the v2
+    // window, so its month IS a claim about v1 years, unlike every other row.
+    builtFrom: 'v1',
+    // ⚠ DCA prints this name; the census designation above is what TT types on.
+    dcaName: "Payne City",
+    monthStatus: "unverified",
+    monthWhy: "the FAC census has no row for \"Payne\"",
+    parentCountyKey: null,
+    fiscalYears: [2009, 2010, 2011, 2012, 2013],
   },
   {
     key: "peachtree-city-city",
@@ -7276,6 +8096,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Peachtree City",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "59724",
     monthStatus: "confirmed",
     monthWhy: null,
     parentCountyKey: null,
@@ -7294,6 +8116,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Peachtree Corners",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "59735",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Peachtree Corners City",
     monthStatus: "confirmed",
@@ -7314,6 +8138,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Pearson",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "59808",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Pearson City",
     monthStatus: "unverified",
@@ -7334,6 +8160,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Pelham",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "59976",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Pelham City",
     monthStatus: "unverified",
@@ -7354,6 +8182,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Pembroke",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "60004",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Pembroke City",
     monthStatus: "confirmed",
@@ -7374,6 +8204,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "60032",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Pendergrass Town",
     monthStatus: "unverified",
@@ -7394,6 +8226,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Perry",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "60340",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Perry City",
     monthStatus: "confirmed",
@@ -7414,6 +8248,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Pine Lake",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "61040",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Pine Lake City",
     monthStatus: "unverified",
@@ -7434,6 +8270,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Pine Mountain",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "61124",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Pine Mountain Town",
     monthStatus: "unverified",
@@ -7454,6 +8292,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "60984",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Pinehurst City",
     monthStatus: "unverified",
@@ -7474,6 +8314,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Pineview",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "61320",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Pineview Town",
     monthStatus: "unverified",
@@ -7494,6 +8336,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Pitts",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "61544",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Pitts City",
     monthStatus: "confirmed",
@@ -7514,6 +8358,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Plains",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "61628",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Plains City",
     monthStatus: "unverified",
@@ -7534,6 +8380,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "61684",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Plainville City",
     monthStatus: "unverified",
@@ -7554,6 +8402,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Pooler",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "62104",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Pooler City",
     monthStatus: "confirmed",
@@ -7574,6 +8424,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "62328",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Port Wentworth City",
     monthStatus: "unverified",
@@ -7594,6 +8446,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Portal",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "62216",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Portal Town",
     monthStatus: "unverified",
@@ -7614,6 +8468,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Porterdale",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "62244",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Porterdale Town",
     monthStatus: "confirmed",
@@ -7634,6 +8490,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Poulan",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "62496",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Poulan City",
     monthStatus: "unverified",
@@ -7654,6 +8512,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Powder Springs",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "62524",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Powder Springs City",
     monthStatus: "confirmed",
@@ -7674,6 +8534,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "63000",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Pulaski Town",
     monthStatus: "unverified",
@@ -7694,12 +8556,36 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Quitman",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "63224",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Quitman City",
     monthStatus: "unverified",
     monthWhy: "the census has a row for \"Quitman\" but covers none of FY2016-2025",
     parentCountyKey: null,
     fiscalYears: [2016, 2017, 2018],
+  },
+  {
+    key: "ranger-town",
+    cicoid: "2064902",
+    name: "Ranger",
+    state: 'GA',
+    entityType: "town",
+    population: null,
+    populationSource: "no current estimate — typed from sub-est2019_13.csv SUMLEV=162 PLACE=63560 (Ranger town, joined by suffix; vintage 2019 population 136)",
+    fiscalYearStartMonth: 1,
+    fiscalYearEndText: "December 31",
+    censusName: null,
+    censusKind: null,
+    censusConfirms: false,
+    censusVintage: 2019,
+    placeFips: "63560",
+    // ⚠ DCA prints this name; the census designation above is what TT types on.
+    dcaName: "Ranger Town",
+    monthStatus: "unverified",
+    monthWhy: "the FAC census has no row for \"Ranger\"",
+    parentCountyKey: null,
+    fiscalYears: [2017, 2018, 2019, 2020, 2021, 2022],
   },
   {
     key: "ray-city-city",
@@ -7714,6 +8600,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Ray City",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "63728",
     monthStatus: "unverified",
     monthWhy: "the census has a row for \"Ray City\" but covers none of FY2016-2025",
     parentCountyKey: null,
@@ -7732,6 +8620,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "63756",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Rayle Town",
     monthStatus: "unverified",
@@ -7752,6 +8642,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "63840",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Rebecca Town",
     monthStatus: "unverified",
@@ -7772,6 +8664,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "64372",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Register Town",
     monthStatus: "unverified",
@@ -7792,6 +8686,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Reidsville",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "64512",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Reidsville City",
     monthStatus: "unverified",
@@ -7812,6 +8708,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "64596",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Remerton City",
     monthStatus: "unverified",
@@ -7832,6 +8730,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "64680",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Rentz City",
     monthStatus: "unverified",
@@ -7852,6 +8752,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "64736",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Resaca Town",
     // ⚠ CHANGED ITS FISCAL CALENDAR INSIDE THE WINDOW. These years are written
@@ -7875,6 +8777,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "64792",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Rest Haven City",
     monthStatus: "unverified",
@@ -7895,6 +8799,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Reynolds",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "64876",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Reynolds City",
     monthStatus: "unverified",
@@ -7915,6 +8821,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "64932",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Rhine Town",
     monthStatus: "unverified",
@@ -7935,6 +8843,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Riceboro",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "64960",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Riceboro City",
     monthStatus: "confirmed",
@@ -7955,6 +8865,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Richland",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "65016",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Richland City",
     monthStatus: "unverified",
@@ -7975,6 +8887,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Richmond Hill",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "65044",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Richmond Hill City",
     monthStatus: "confirmed",
@@ -7995,6 +8909,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Riddleville",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "65156",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Riddleville Town",
     monthStatus: "unverified",
@@ -8015,6 +8931,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Rincon",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "65296",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Rincon City",
     monthStatus: "confirmed",
@@ -8035,6 +8953,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Ringgold",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "65324",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Ringgold City",
     monthStatus: "confirmed",
@@ -8055,12 +8975,39 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Riverdale",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "65464",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Riverdale City",
     monthStatus: "confirmed",
     monthWhy: null,
     parentCountyKey: null,
     fiscalYears: [2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025],
+  },
+  {
+    key: "riverside-town",
+    cicoid: "2035008",
+    name: "Riverside",
+    state: 'GA',
+    entityType: "town",
+    population: null,
+    populationSource: "no current estimate — typed from sub-est2014_13.csv SUMLEV=162 PLACE=65604 (Riverside town, joined by suffix; vintage 2014 population 36)",
+    fiscalYearStartMonth: 7,
+    fiscalYearEndText: "June 30",
+    censusName: null,
+    censusKind: null,
+    censusConfirms: false,
+    censusVintage: 2014,
+    placeFips: "65604",
+    // ⚠⚠ Built from FY2009-2015: this government filed nothing in the v2
+    // window, so its month IS a claim about v1 years, unlike every other row.
+    builtFrom: 'v1',
+    // ⚠ DCA prints this name; the census designation above is what TT types on.
+    dcaName: "Riverside Town",
+    monthStatus: "unverified",
+    monthWhy: "the FAC census has no row for \"Riverside\"",
+    parentCountyKey: null,
+    fiscalYears: [2009, 2010, 2011, 2012, 2013, 2014, 2015],
   },
   {
     key: "roberta-city",
@@ -8075,6 +9022,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Roberta",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "65856",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Roberta City",
     monthStatus: "confirmed",
@@ -8095,6 +9044,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Rochelle",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "66024",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Rochelle City",
     monthStatus: "unverified",
@@ -8115,6 +9066,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Rockmart",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "66276",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Rockmart City",
     monthStatus: "confirmed",
@@ -8135,6 +9088,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "66444",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Rocky Ford City",
     monthStatus: "unverified",
@@ -8155,6 +9110,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Rome",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "66668",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Rome City",
     monthStatus: "confirmed",
@@ -8175,6 +9132,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "66696",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Roopville Town",
     monthStatus: "unverified",
@@ -8195,6 +9154,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "67256",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Rossville City",
     monthStatus: "unverified",
@@ -8215,6 +9176,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Roswell",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "67284",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Roswell City",
     monthStatus: "confirmed",
@@ -8235,6 +9198,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Royston",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "67452",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Royston City",
     monthStatus: "confirmed",
@@ -8255,6 +9220,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Rutledge",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "67760",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Rutledge City",
     monthStatus: "unverified",
@@ -8275,6 +9242,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "68096",
     monthStatus: "unverified",
     monthWhy: "the FAC census has no row for \"Sale City\"",
     parentCountyKey: null,
@@ -8293,6 +9262,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Sandersville",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "68208",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Sandersville City",
     monthStatus: "confirmed",
@@ -8313,6 +9284,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Sandy Springs",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "68516",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Sandy Springs City",
     monthStatus: "confirmed",
@@ -8333,6 +9306,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "68600",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Santa Claus City",
     monthStatus: "unverified",
@@ -8353,6 +9328,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Sardis",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "68740",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Sardis City",
     monthStatus: "confirmed",
@@ -8373,6 +9350,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "68796",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Sasser Town",
     monthStatus: "unverified",
@@ -8393,6 +9372,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Savannah",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "69000",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Savannah City",
     monthStatus: "confirmed",
@@ -8413,6 +9394,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "69336",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Scotland City",
     monthStatus: "unverified",
@@ -8433,6 +9416,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Screven",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "69448",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Screven City",
     monthStatus: "unverified",
@@ -8453,6 +9438,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Senoia",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "69672",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Senoia City",
     // ⚠ CHANGED ITS FISCAL CALENDAR INSIDE THE WINDOW. These years are written
@@ -8476,6 +9463,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "69784",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Shady Dale City",
     monthStatus: "unverified",
@@ -8496,6 +9485,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "69896",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Sharon City",
     monthStatus: "unverified",
@@ -8516,6 +9507,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "69980",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Sharpsburg Town",
     monthStatus: "unverified",
@@ -8536,6 +9529,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Shellman",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "70120",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Shellman City",
     monthStatus: "unverified",
@@ -8556,6 +9551,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "70428",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Shiloh City",
     monthStatus: "unverified",
@@ -8576,6 +9573,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "70932",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Siloam Town",
     monthStatus: "unverified",
@@ -8596,6 +9595,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "71282",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Sky Valley City",
     monthStatus: "unverified",
@@ -8616,6 +9617,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "71464",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Smithville City",
     monthStatus: "unverified",
@@ -8636,6 +9639,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Smyrna",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "71492",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Smyrna City",
     monthStatus: "confirmed",
@@ -8656,6 +9661,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Snellville",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "71604",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Snellville City",
     monthStatus: "confirmed",
@@ -8676,6 +9683,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Social Circle",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "71660",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Social Circle City",
     monthStatus: "confirmed",
@@ -8696,6 +9705,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Soperton",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "71772",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Soperton City",
     monthStatus: "unverified",
@@ -8716,6 +9727,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "South Fulton",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "72122",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "South Fulton City",
     monthStatus: "confirmed",
@@ -8736,6 +9749,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Sparks",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "72556",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Sparks Town",
     monthStatus: "unverified",
@@ -8756,6 +9771,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Sparta",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "72584",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Sparta City",
     // ⚠ CHANGED ITS FISCAL CALENDAR INSIDE THE WINDOW. These years are written
@@ -8779,6 +9796,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "72780",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Springfield City",
     monthStatus: "unverified",
@@ -8799,6 +9818,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "St. Marys",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "67984",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "St. Marys City",
     monthStatus: "confirmed",
@@ -8819,6 +9840,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "73004",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Stapleton City",
     monthStatus: "unverified",
@@ -8839,6 +9862,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Statesboro",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "73256",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Statesboro City",
     monthStatus: "confirmed",
@@ -8859,6 +9884,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "73312",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Statham City",
     monthStatus: "unverified",
@@ -8879,6 +9906,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Stillmore",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "73620",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Stillmore City",
     monthStatus: "unverified",
@@ -8899,6 +9928,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Stockbridge",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "73704",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Stockbridge City",
     monthStatus: "confirmed",
@@ -8919,6 +9950,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Stone Mountain",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "73816",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Stone Mountain City",
     monthStatus: "unverified",
@@ -8939,6 +9972,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Stonecrest",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "73784",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Stonecrest City",
     monthStatus: "confirmed",
@@ -8959,6 +9994,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Sugar Hill",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "74180",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Sugar Hill City",
     monthStatus: "confirmed",
@@ -8979,6 +10016,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Summertown",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "74348",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Summertown City",
     monthStatus: "unverified",
@@ -8999,6 +10038,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Summerville",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "74376",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Summerville City",
     monthStatus: "confirmed",
@@ -9019,12 +10060,36 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "74432",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Sumner Town",
     monthStatus: "unverified",
     monthWhy: "the FAC census has no row for \"Sumner\"",
     parentCountyKey: null,
     fiscalYears: [2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024],
+  },
+  {
+    key: "sunny-side-city",
+    cicoid: "2126003",
+    name: "Sunny Side",
+    state: 'GA',
+    entityType: "city",
+    population: null,
+    populationSource: "no current estimate — typed from sub-est2019_13.csv SUMLEV=162 PLACE=74572 (Sunny Side city, joined by suffix; vintage 2019 population 140)",
+    fiscalYearStartMonth: 1,
+    fiscalYearEndText: "December 31",
+    censusName: null,
+    censusKind: null,
+    censusConfirms: false,
+    censusVintage: 2019,
+    placeFips: "74572",
+    // ⚠ DCA prints this name; the census designation above is what TT types on.
+    dcaName: "Sunny Side City",
+    monthStatus: "unverified",
+    monthWhy: "the FAC census has no row for \"Sunny Side\"",
+    parentCountyKey: null,
+    fiscalYears: [2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023],
   },
   {
     key: "surrency-town",
@@ -9039,6 +10104,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "74852",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Surrency Town",
     monthStatus: "unverified",
@@ -9059,6 +10126,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Suwanee",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "74936",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Suwanee City",
     monthStatus: "confirmed",
@@ -9079,6 +10148,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Swainsboro",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "74964",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Swainsboro City",
     monthStatus: "confirmed",
@@ -9099,6 +10170,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Sycamore",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "75104",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Sycamore City",
     monthStatus: "unverified",
@@ -9119,6 +10192,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Sylvania",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "75160",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Sylvania City",
     monthStatus: "confirmed",
@@ -9139,6 +10214,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Sylvester",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "75188",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Sylvester City",
     monthStatus: "confirmed",
@@ -9159,6 +10236,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Talbotton",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "75244",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Talbotton City",
     monthStatus: "unverified",
@@ -9179,6 +10258,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "75272",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Talking Rock Town",
     monthStatus: "unverified",
@@ -9199,6 +10280,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Tallapoosa",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "75300",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Tallapoosa City",
     monthStatus: "confirmed",
@@ -9219,6 +10302,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "75328",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Tallulah Falls Town",
     monthStatus: "unverified",
@@ -9239,6 +10324,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "75412",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Talmo Town",
     monthStatus: "unverified",
@@ -9259,6 +10346,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "75496",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Tarrytown City",
     monthStatus: "unverified",
@@ -9279,6 +10368,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "75664",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Taylorsville Town",
     monthStatus: "unverified",
@@ -9299,6 +10390,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Temple",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "75832",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Temple City",
     monthStatus: "confirmed",
@@ -9319,6 +10412,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Tennille",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "75888",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Tennille City",
     monthStatus: "unverified",
@@ -9339,6 +10434,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Thomaston",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "76168",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Thomaston City",
     monthStatus: "confirmed",
@@ -9359,6 +10456,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Thomasville",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "76224",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Thomasville City",
     monthStatus: "confirmed",
@@ -9379,6 +10478,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Thomson",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "76280",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Thomson City",
     monthStatus: "confirmed",
@@ -9399,6 +10500,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Thunderbolt",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "76364",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Thunderbolt Town",
     monthStatus: "unverified",
@@ -9419,6 +10522,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Tifton",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "76476",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Tifton City",
     monthStatus: "confirmed",
@@ -9439,6 +10544,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Tiger",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "76504",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Tiger Town",
     monthStatus: "unverified",
@@ -9459,6 +10566,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "76532",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Tignall Town",
     monthStatus: "unverified",
@@ -9479,6 +10588,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Toccoa",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "76756",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Toccoa City",
     monthStatus: "confirmed",
@@ -9499,6 +10610,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "76952",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Toomsboro City",
     monthStatus: "unverified",
@@ -9519,6 +10632,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "77372",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Trenton City",
     monthStatus: "unverified",
@@ -9539,6 +10654,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Trion",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "77540",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Trion Town",
     monthStatus: "confirmed",
@@ -9559,6 +10676,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Tucker",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "77652",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Tucker City",
     // ⚠ CHANGED ITS FISCAL CALENDAR INSIDE THE WINDOW. These years are written
@@ -9582,6 +10701,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "77736",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Tunnel Hill City",
     monthStatus: "unverified",
@@ -9602,6 +10723,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "77764",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Turin Town",
     monthStatus: "unverified",
@@ -9622,6 +10745,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "77988",
     monthStatus: "unverified",
     monthWhy: "the FAC census has no row for \"Twin City\"",
     parentCountyKey: null,
@@ -9640,6 +10765,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "78100",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Ty Ty City",
     monthStatus: "unverified",
@@ -9660,6 +10787,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Tybee Island",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "78036",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Tybee Island City",
     monthStatus: "confirmed",
@@ -9680,6 +10809,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Tyrone",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "78044",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Tyrone Town",
     monthStatus: "confirmed",
@@ -9700,6 +10831,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Unadilla",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "78156",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Unadilla City",
     monthStatus: "confirmed",
@@ -9720,6 +10853,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Union City",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "78324",
     monthStatus: "confirmed",
     monthWhy: null,
     parentCountyKey: null,
@@ -9738,6 +10873,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Union Point",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "78380",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Union Point City",
     monthStatus: "confirmed",
@@ -9758,6 +10895,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "78744",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Uvalda City",
     monthStatus: "unverified",
@@ -9778,6 +10917,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Valdosta",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "78800",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Valdosta City",
     monthStatus: "confirmed",
@@ -9798,6 +10939,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "78996",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Varnell City",
     monthStatus: "unverified",
@@ -9818,6 +10961,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "79164",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Vernonburg Town",
     monthStatus: "unverified",
@@ -9838,6 +10983,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Vidalia",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "79388",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Vidalia City",
     monthStatus: "confirmed",
@@ -9858,6 +11005,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "79416",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Vidette Town",
     monthStatus: "unverified",
@@ -9878,6 +11027,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Vienna",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "79444",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Vienna City",
     monthStatus: "confirmed",
@@ -9898,6 +11049,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Villa Rica",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "79528",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Villa Rica City",
     // ⚠ CHANGED ITS FISCAL CALENDAR INSIDE THE WINDOW. These years are written
@@ -9921,6 +11074,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Waco",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "79808",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Waco Town",
     monthStatus: "unverified",
@@ -9941,6 +11096,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Wadley",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "79864",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Wadley City",
     monthStatus: "unverified",
@@ -9961,6 +11118,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Waleska",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "79948",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Waleska City",
     monthStatus: "unverified",
@@ -9981,6 +11140,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "80228",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Walnut Grove City",
     monthStatus: "unverified",
@@ -10001,6 +11162,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "80256",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Walthourville City",
     monthStatus: "unverified",
@@ -10021,6 +11184,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "80480",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Warm Springs City",
     monthStatus: "unverified",
@@ -10041,6 +11206,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Warner Robins",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "80508",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Warner Robins City",
     monthStatus: "confirmed",
@@ -10061,6 +11228,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Warrenton",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "80592",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Warrenton City",
     monthStatus: "confirmed",
@@ -10081,6 +11250,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Warwick",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "80676",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Warwick City",
     monthStatus: "unverified",
@@ -10101,6 +11272,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Washington",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "80704",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Washington City",
     monthStatus: "unverified",
@@ -10121,6 +11294,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Watkinsville",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "80788",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Watkinsville City",
     monthStatus: "confirmed",
@@ -10141,6 +11316,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Waverly Hall",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "80844",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Waverly Hall Town",
     monthStatus: "confirmed",
@@ -10161,6 +11338,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Waycross",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "80956",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Waycross City",
     monthStatus: "confirmed",
@@ -10181,6 +11360,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Waynesboro",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "80984",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Waynesboro City",
     monthStatus: "confirmed",
@@ -10201,6 +11382,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "West Point",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "82132",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "West Point City",
     monthStatus: "unverified",
@@ -10221,6 +11404,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "82412",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Whigham City",
     monthStatus: "unverified",
@@ -10241,6 +11426,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "White",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "82468",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "White City",
     monthStatus: "confirmed",
@@ -10261,6 +11448,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "82692",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "White Plains City",
     monthStatus: "unverified",
@@ -10281,6 +11470,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "82720",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Whitesburg City",
     monthStatus: "unverified",
@@ -10301,6 +11492,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "82972",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Willacoochee City",
     monthStatus: "unverified",
@@ -10321,6 +11514,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "83084",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Williamson City",
     monthStatus: "unverified",
@@ -10341,6 +11536,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Winder",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "83420",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Winder City",
     monthStatus: "confirmed",
@@ -10361,6 +11558,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Winterville",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "83728",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Winterville City",
     monthStatus: "unverified",
@@ -10381,6 +11580,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Woodbine",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "83868",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Woodbine City",
     monthStatus: "unverified",
@@ -10401,6 +11602,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Woodbury",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "83896",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Woodbury City",
     monthStatus: "confirmed",
@@ -10421,6 +11624,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Woodland",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "83952",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Woodland City",
     monthStatus: "unverified",
@@ -10441,6 +11646,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Woodstock",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "84176",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Woodstock City",
     monthStatus: "confirmed",
@@ -10461,6 +11668,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "84260",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Woodville City",
     monthStatus: "unverified",
@@ -10481,6 +11690,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "84288",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Woolsey Town",
     monthStatus: "unverified",
@@ -10501,6 +11712,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Wrens",
     censusKind: "municipality",
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "84456",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Wrens City",
     monthStatus: "unverified",
@@ -10521,6 +11734,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Wrightsville",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "84512",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Wrightsville City",
     monthStatus: "confirmed",
@@ -10541,6 +11756,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "84708",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Yatesville Town",
     monthStatus: "unverified",
@@ -10561,6 +11778,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: null,
     censusKind: null,
     censusConfirms: false,
+    censusVintage: 2024,
+    placeFips: "84960",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Young Harris City",
     monthStatus: "unverified",
@@ -10581,6 +11800,8 @@ export const GA_STATEWIDE_MUNICIPALITIES = Object.freeze([
     censusName: "Zebulon",
     censusKind: "municipality",
     censusConfirms: true,
+    censusVintage: 2024,
+    placeFips: "85128",
     // ⚠ DCA prints this name; the census designation above is what TT types on.
     dcaName: "Zebulon City",
     monthStatus: "confirmed",
