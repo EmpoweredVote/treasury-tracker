@@ -1,3 +1,5 @@
+import { existsSync } from 'node:fs';
+
 import { describe, it, expect } from 'vitest';
 import {
   readPlaceVintage, squash, resolvePlace, loadLadder, DEFAULT_LADDER,
@@ -135,9 +137,21 @@ describe('the ladder stops at the newest vintage that names the government', () 
     expect(missing).toEqual([2024, 2019, 2014, 2013]);
   });
 
-  it('loadLadder reads the real cache for Georgia, all four vintages present', () => {
+  it('loadLadder reads the real cache for Georgia, where the cache is present', () => {
+    // ⚠⚠ `cache/` IS GITIGNORED IN FULL. Asserting it exists passes on a
+    // machine that has run the fetch and fails in CI, where the directory does
+    // not. This asserted `missing` was `[]` and took the build red after a
+    // green local run — the same trap as reference_stacked_prs_get_no_ci, in a
+    // file whose other 20 tests read committed fixtures precisely to avoid it.
+    //
+    // SKIPS LOUDLY rather than passing vacuously: silence would mean the
+    // assertion had quietly stopped testing anything.
+    if (!existsSync('cache/sub-est2024_13.csv')) {
+      console.warn('SKIPPED: no cache/ — run node scripts/fetchCensusVintages.mjs 13');
+      return;
+    }
     const { ladders: got, missing } = loadLadder('.', '13', DEFAULT_LADDER);
-    expect(missing, 'run: node scripts/fetchCensusVintages.mjs 13').toEqual([]);
+    expect(missing).toEqual([]);
     expect(got.map((l) => l.vintage)).toEqual([2024, 2019, 2014, 2013]);
   });
 });

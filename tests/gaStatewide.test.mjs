@@ -28,7 +28,9 @@ import {
   GA_FIGURE_FLAGS, GA_EMPTY_DATASETS, emptyDataset,
 } from '../scripts/data/gaRlgfAnomalies.mjs';
 import { figureFlags } from '../src/data/figureFlags.ts';
-import { loadLadder, resolvePlace, DEFAULT_LADDER } from '../scripts/lib/censusVintages.mjs';
+import {
+  resolvePlace, DEFAULT_LADDER, readPlaceVintage,
+} from '../scripts/lib/censusVintages.mjs';
 
 // ⚠ `cache/` is gitignored IN FULL (.gitignore:121), so nothing under it can be
 // read by a test that has to pass in CI. The fixture is a byte extract of the
@@ -36,6 +38,32 @@ import { loadLadder, resolvePlace, DEFAULT_LADDER } from '../scripts/lib/censusV
 const CENSUS_FIXTURE = 'tests/fixtures/census/co-est2024-ga-slice.csv';
 const CENSUS_SOURCE = 'cache/co-est2024-alldata.csv';
 const PLACE_FIXTURE = 'tests/fixtures/census/sub-est2024-ga-places-slice.csv';
+
+/**
+ * The vintage ladder, built from COMMITTED FIXTURES.
+ *
+ * ⚠⚠ NEVER `loadLadder('.', ...)` IN A TEST. That reads `cache/`, which is
+ * gitignored in full — so it passes on a machine that has run the fetch and
+ * fails in CI, where the directory does not exist. Three tests here did
+ * exactly that and took the build red after a green local run;
+ * `reference_stacked_prs_get_no_ci` is the same lesson, and this file's own
+ * census fixtures existed precisely to avoid it.
+ */
+function fixtureLadder() {
+  const files = {
+    2024: PLACE_FIXTURE,
+    2019: 'tests/fixtures/census/sub-est2019-ga-places-slice.csv',
+    2014: 'tests/fixtures/census/sub-est2014-ga-places-slice.csv',
+    2013: 'tests/fixtures/census/sub-est2013-ga-places-slice.csv',
+  };
+  return {
+    ladders: DEFAULT_LADDER.map((vintage) => ({
+      vintage,
+      places: readPlaceVintage(files[vintage], { vintage, stateFips: '13' }),
+    })),
+    missing: [],
+  };
+}
 const PLACE_SOURCE = 'cache/sub-est2024_13.csv';
 
 const OPTIONS = `<select name="ctl00$bodyContent$ddlGovs" id="ctl00_bodyContent_ddlGovs">
@@ -718,7 +746,7 @@ describe('the municipality name join — three shapes, measured not assumed', ()
     // ⚠ This decides TYPE only. Whether these two still exist is a
     // disagreement between two sources, recorded in gaRlgfAnomalies.mjs and
     // deliberately not settled here.
-    const { ladders, missing } = loadLadder('.', '13', DEFAULT_LADDER);
+    const { ladders, missing } = fixtureLadder();
     expect(missing, 'run: node scripts/fetchCensusVintages.mjs 13').toEqual([]);
     for (const [n, type] of Object.entries({ 'Ranger Town': 'town', 'Sunny Side City': 'city' })) {
       const r = resolvePlace(n, { ladders, missing });
@@ -729,7 +757,7 @@ describe('the municipality name join — three shapes, measured not assumed', ()
   });
 
   it('still says WHY, naming every vintage tried, when nothing names it', () => {
-    const { ladders, missing } = loadLadder('.', '13', DEFAULT_LADDER);
+    const { ladders, missing } = fixtureLadder();
     const r = resolvePlace('Nowhereville City', { ladders, missing });
     expect(r.why).toMatch(/named by no vintage of 2024, 2019, 2014, 2013/);
   });
@@ -1027,7 +1055,7 @@ describe('Bibb County is a predecessor government, not early Macon-Bibb', () => 
     // splicing the series.
     const mb = entityByCicoid('3011011');
     expect(mb.populationSource).toMatch(/49008/);
-    const { ladders, missing } = loadLadder('.', '13', DEFAULT_LADDER);
+    const { ladders, missing } = fixtureLadder();
     expect(missing).toEqual([]);
     const macon = resolvePlace('Macon City', { ladders, missing });
     expect(macon.placeFips).toBe('49000');
