@@ -871,6 +871,16 @@ describe('⚠⚠ a generated registry is never overwritten by a smaller one', ()
     expect(() => assertNotShrinking(FIXTURE, [], { allowShrink: true })).not.toThrow();
   });
 
+  it('⚠⚠ counts entities at ANY indentation — the guard must not silently disable itself', () => {
+    // The first version matched `^\s{4}cicoid: ` exactly. Change the
+    // renderer's indentation and the count becomes 0, `existing` is falsy,
+    // and the guard waves every write through — silently, which is the exact
+    // failure it exists to prevent. A guard that can quietly stop guarding is
+    // the same shape as the three $0 rows and the 0-entity registry.
+    expect(() => assertNotShrinking('tests/fixtures/ga/registry-odd-indent.mjs', []))
+      .toThrow(/would write 0 entities over 2/);
+  });
+
   it('allows a first write, where there is no file to destroy', () => {
     expect(() => assertNotShrinking('tests/fixtures/ga/does-not-exist.mjs', [])).not.toThrow();
   });
@@ -1065,3 +1075,4 @@ describe('⚠⚠ an alias must reach FILE SELECTION, not just lookup', () => {
     expect(cicoidsForEntity('not-a-government').size).toBe(0);
   });
 });
+

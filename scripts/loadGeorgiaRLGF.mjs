@@ -68,6 +68,7 @@ import { GA_RLGF_ENTITIES, GA_LOAD_WINDOW, GA_FORM_GENERATIONS } from './data/ge
 import { GA_STATEWIDE_ENTITIES } from './data/georgiaStatewideEntities.mjs';
 import { GA_STATEWIDE_MUNICIPALITIES } from './data/georgiaStatewideMunicipalities.mjs';
 import { GA_STATEWIDE_CONSOLIDATED } from './data/georgiaStatewideConsolidated.mjs';
+import { GA_BIBB_PREDECESSOR } from './data/gaBibbPredecessor.mjs';
 import {
   formTotalDefect, fyeMonthDefect, unverifiableFiling, emptyDataset, consolidationOverlap,
   v1MonthChange,
@@ -87,9 +88,11 @@ import {
  * (`project_sync_city_budget_not_source_safe`). The generated registry already
  * excludes the hand-written seven; this proves it at import time rather than
  * trusting it.
+ *
+ * ⚠ `gaBibbPredecessor.mjs` is a third, hand-maintained source: a government
+ * that ceased to exist cannot be derived from a current roster, so it is
+ * carried by hand the way FL's dissolved municipalities are.
  */
-import { GA_BIBB_PREDECESSOR } from './data/gaBibbPredecessor.mjs';
-
 export const GA_ALL_ENTITIES = Object.freeze([
   ...GA_RLGF_ENTITIES, ...GA_STATEWIDE_ENTITIES, ...GA_STATEWIDE_MUNICIPALITIES,
   ...GA_STATEWIDE_CONSOLIDATED, ...GA_BIBB_PREDECESSOR,

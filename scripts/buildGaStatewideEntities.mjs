@@ -775,10 +775,16 @@ export async function buildEntities({
  * ⚠ The count is read from the rendered text rather than by importing the
  * module, because the export name differs per kind and a half-written file
  * must still be countable.
+ *
+ * ⚠⚠ MATCHED AT ANY INDENTATION, DELIBERATELY. An earlier version keyed on
+ * exactly four spaces; change the renderer's indentation and the count becomes
+ * 0, `existing` is falsy, and the guard waves every write through — silently.
+ * A guard that can quietly stop guarding is the same failure it was written to
+ * catch.
  */
 export function assertNotShrinking(outPath, entities, { allowShrink = false } = {}) {
   if (allowShrink || !existsSync(outPath)) return;
-  const existing = (readFileSync(outPath, 'utf8').match(/^\s{4}cicoid: /gm) ?? []).length;
+  const existing = (readFileSync(outPath, 'utf8').match(/^\s*cicoid: /gm) ?? []).length;
   if (existing && entities.length < existing) {
     throw new Error(
       `refusing to write ${outPath}: would write ${entities.length} entities over ${existing}. `
