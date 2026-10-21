@@ -11,7 +11,11 @@ const posthogSourcemapsEnabled = Boolean(
 // https://vite.dev/config/
 export default defineConfig(async ({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
-  const apiTarget = env.VITE_API_URL || 'http://localhost:5050'
+  // Dev reads the LIVE public API unless told otherwise, so a fresh clone with
+  // no .env shows real budgets. In dev the browser always calls same-origin
+  // `/api` (src/data/dataLoader.ts); this proxy forwards it. Set VITE_API_URL
+  // to aim it at a local ev-accounts (e.g. http://localhost:5050).
+  const apiTarget = env.VITE_API_URL || 'https://accounts-api.empowered.vote'
 
   const plugins: PluginOption[] = [react(), tailwindcss()]
   if (posthogSourcemapsEnabled) {
@@ -35,6 +39,11 @@ export default defineConfig(async ({ mode }) => {
           target: apiTarget,
           changeOrigin: true,
           secure: false,
+          // The live API's CORS allow-list excludes localhost and rejects a
+          // disallowed Origin, so drop it (same as essentials). Dev only.
+          configure: (proxy) => {
+            proxy.on('proxyReq', (proxyReq) => proxyReq.removeHeader('origin'))
+          },
         },
       },
     },
