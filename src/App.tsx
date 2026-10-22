@@ -193,6 +193,8 @@ function App() {
   // App-level view state: resolving auth → landing or budget
   const [appView, setAppView] = useState<'resolving' | 'landing' | 'budget'>('resolving');
   const [landingReason, setLandingReason] = useState<LandingReason>({ type: 'guest' });
+  // Lives here, not in the search box, so Back from a city finds it still typed.
+  const [landingQuery, setLandingQuery] = useState('');
   // Set when a `?entity=` slug resolved through an alias — a name the entity
   // used to be published under. Null for every ordinary load, so the banner
   // costs nothing to the 99.99% of links that were never renamed.
@@ -486,118 +488,136 @@ function App() {
     syncURL(full, year, 'operating');
   }, []);
 
+  // Counts navigations (first load, Back, Forward) so only the newest one may
+  // set state when its lookups finish.
+  const routeSeq = useRef(0);
+
+  // Show the budget view a `?entity=` URL names: on first load (a shared or
+  // bookmarked link) and on Back/Forward (#281). `isCurrent` is false once a
+  // newer navigation has started, so a slow lookup cannot overwrite it.
+  const routeToEntityParam = useCallback(async (
+    params: URLSearchParams, entityParam: string, isCurrent: () => boolean,
+  ) => {
+    const yearParam = params.get('year');
+    const datasetParam = params.get('dataset');
+
+    // ⚠ Aliases are fetched ALONGSIDE the list, not after it misses: the
+    // request is tiny and a second serial round trip would sit in front of
+    // every renamed entity's first paint. listEntityAliases() resolves to []
+    // on any failure, so this cannot delay or break a link that already works.
+    //
+    // FALLBACK ONLY. Parents, panels, and the entity switcher now fetch their
+    // own slices (see panelQueries.ts / the lean index), so nothing on a
+    // normal load needs this. It still exists as (1) the not-found path — an
+    // unresolvable slug must land on the searchable landing page, not a
+    // blank — and (2) the deploy-order safety net: today's production API
+    // ignores `?slug=` on an unknown value and returns the full list, and the
+    // resolver re-derives `toSlug` on the returned row rather than trusting
+    // the server filter, so a drift surfaces as an honest "not found" rather
+    // than the wrong government's budget (TT #158).
+    const viaFullList = () =>
+      Promise.all([listMunicipalities(), listEntityAliases()]).then(([list, aliases]) => {
+        // ⚠ An unmatched slug must NOT resolve to another entity. It used to
+        // fall back to Bloomington, IN (then list[0]), so a stale or renamed
+        // link silently rendered the wrong government's budget with nothing on
+        // the page saying so. See utils/entityRouting.ts.
+        return resolveEntityParam(list, entityParam, aliases);
+      });
+
+    // ⚠⚠ FAST PATH — every host. This used to be gated on
+    // financials.empowered.vote because TT's parents and panels needed the
+    // full list; they no longer do (tasks 4-7 moved every consumer onto
+    // narrow queries), so every host now tries the slug lookup first and
+    // only falls through to viaFullList() when it does not resolve.
+    //
+    // ⚠ Any failure, and anything short of a resolved entity, FALLS BACK to
+    // the full list. So the worst case is the load time we already had, and
+    // the not-found landing keeps the searchable list it has today.
+    const viaSlugLookup = () =>
+      Promise.all([listMunicipalitiesBySlug(entityParam), listEntityAliases()]).then(
+        ([requested, aliases]) =>
+          resolveEntityParamViaLookup(requested, entityParam, aliases, listMunicipalitiesBySlug)
+      );
+
+    let resolution: Awaited<ReturnType<typeof viaFullList>> | null = null;
+    try {
+      const fast = await viaSlugLookup();
+      if (fast.kind !== 'not_found') resolution = fast;
+    } catch {
+      // fall through to the full list
+    }
+    if (!resolution) resolution = await viaFullList();
+    if (!isCurrent()) return;
+    if (resolution.kind === 'not_found') {
+      setLandingReason({ type: 'entity_not_found', slug: resolution.slug });
+      setAppView('landing');
+      return;
+    }
+    // ⚠ Cleared first: Back from an aliased link to another entity must not
+    // carry the old banner along.
+    setAliasNotice(null);
+    // A retired slug resolved through an alias. Canonicalise the address bar
+    // so the next copy of this link carries the current slug, and tell the
+    // reader why the name on the page is not the name they asked for —
+    // silence here would be the same "looks authoritative, is not what you
+    // asked for" failure that the not_found rule exists to prevent, even
+    // though an alias (unlike the old fallback) is an exact identity.
+    if (resolution.kind === 'aliased') {
+      const url = new URL(window.location.href);
+      url.searchParams.set('entity', resolution.canonicalSlug);
+      window.history.replaceState({}, '', url);
+      setAliasNotice({
+        // The published NAME, not the slug — "Birchwood is now published as
+        // Birchwood Village" says something; "birchwood-mn is" does not.
+        // Still run through displaySlug: it is a length and control-character
+        // guard on a value that reached us over the network.
+        requested: displayLabel(resolution.requestedLabel),
+        currentName: resolution.entity.name,
+      });
+    }
+    // ⚠ Hydrate before ANY of the year/dataset resolution below reads it.
+    const entity = await hydrateMunicipality(resolution.entity);
+    if (!isCurrent()) return;
+    setSelectedEntity(entity);
+
+    // Resolved as a local so ?dataset= can be validated against availability
+    // for that specific year (REVUX-02 fix). ⚠ An explicit ?year= still wins;
+    // otherwise land on what the DEFAULT series can render, not the newest row.
+    const resolvedYear = initialYearForEntity(entity.available_datasets, yearParam);
+    setSelectedYear(resolvedYear);
+    // Validate ?dataset= against the entity's actual availability for the
+    // resolved year — falls back to 'operating' for garbage params, missing
+    // datasets, or operating-only nodes (e.g. NASBO states). Both guards:
+    // (1) static allow-list [operating|revenue|salaries], (2) availability.
+    const resolvedYearTypes = entity.available_datasets
+      .filter(d => d.fiscal_year === parsePeriod(resolvedYear).fiscalYear)
+      .map(d => d.dataset_type)
+      .filter(t => t !== 'all_funds_requirements' && t !== 'federal_agency');
+    setActiveDataset(resolveEffectiveDataset(resolvedYearTypes, datasetParam));
+    // SCOPE-03: restore a deep-linked series. decodeSeries returns null for
+    // anything invalid, or for a series this entity does not have, which
+    // leaves the default in force rather than erroring.
+    setSelectedSeries(decodeSeries(
+      params.get('scope'), params.get('basis'),
+      listSeries(entity.available_datasets),
+    ));
+    // Both ways, not only 'agency': Back must also undo a lens change.
+    setFederalLens(params.get('lens') === 'agency' && entity.entity_type === 'federal' ? 'agency' : 'function');
+    setAppView('budget');
+  }, []);
+
   // On mount: resolve the ?entity= slug (or auth, when there is none), then
   // route. Neither path fetches the full municipality list unconditionally
   // any more — see the two branches below for what each actually needs.
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const entityParam = params.get('entity') ?? (isFinancialsHost ? 'empowered-vote-ca' : null);
-    const yearParam = params.get('year');
-    const datasetParam = params.get('dataset');
 
     // If a URL entity param is present, bypass auth routing entirely (shared/bookmarked link)
     if (entityParam) {
-      // ⚠ Aliases are fetched ALONGSIDE the list, not after it misses: the
-      // request is tiny and a second serial round trip would sit in front of
-      // every renamed entity's first paint. listEntityAliases() resolves to []
-      // on any failure, so this cannot delay or break a link that already works.
-      //
-      // FALLBACK ONLY. Parents, panels, and the entity switcher now fetch their
-      // own slices (see panelQueries.ts / the lean index), so nothing on a
-      // normal load needs this. It still exists as (1) the not-found path — an
-      // unresolvable slug must land on the searchable landing page, not a
-      // blank — and (2) the deploy-order safety net: today's production API
-      // ignores `?slug=` on an unknown value and returns the full list, and the
-      // resolver re-derives `toSlug` on the returned row rather than trusting
-      // the server filter, so a drift surfaces as an honest "not found" rather
-      // than the wrong government's budget (TT #158).
-      const viaFullList = () =>
-        Promise.all([listMunicipalities(), listEntityAliases()]).then(([list, aliases]) => {
-          // ⚠ An unmatched slug must NOT resolve to another entity. It used to
-          // fall back to Bloomington, IN (then list[0]), so a stale or renamed
-          // link silently rendered the wrong government's budget with nothing on
-          // the page saying so. See utils/entityRouting.ts.
-          return resolveEntityParam(list, entityParam, aliases);
-        });
-
-      // ⚠⚠ FAST PATH — every host. This used to be gated on
-      // financials.empowered.vote because TT's parents and panels needed the
-      // full list; they no longer do (tasks 4-7 moved every consumer onto
-      // narrow queries), so every host now tries the slug lookup first and
-      // only falls through to viaFullList() when it does not resolve.
-      //
-      // ⚠ Any failure, and anything short of a resolved entity, FALLS BACK to
-      // the full list. So the worst case is the load time we already had, and
-      // the not-found landing keeps the searchable list it has today.
-      const viaSlugLookup = () =>
-        Promise.all([listMunicipalitiesBySlug(entityParam), listEntityAliases()]).then(
-          ([requested, aliases]) =>
-            resolveEntityParamViaLookup(requested, entityParam, aliases, listMunicipalitiesBySlug)
-        );
-
-      (async () => {
-        let resolution: Awaited<ReturnType<typeof viaFullList>> | null = null;
-        try {
-          const fast = await viaSlugLookup();
-          if (fast.kind !== 'not_found') resolution = fast;
-        } catch {
-          // fall through to the full list
-        }
-        if (!resolution) resolution = await viaFullList();
-        if (resolution.kind === 'not_found') {
-          setLandingReason({ type: 'entity_not_found', slug: resolution.slug });
-          setAppView('landing');
-          return;
-        }
-        // A retired slug resolved through an alias. Canonicalise the address bar
-        // so the next copy of this link carries the current slug, and tell the
-        // reader why the name on the page is not the name they asked for —
-        // silence here would be the same "looks authoritative, is not what you
-        // asked for" failure that the not_found rule exists to prevent, even
-        // though an alias (unlike the old fallback) is an exact identity.
-        if (resolution.kind === 'aliased') {
-          const url = new URL(window.location.href);
-          url.searchParams.set('entity', resolution.canonicalSlug);
-          window.history.replaceState({}, '', url);
-          setAliasNotice({
-            // The published NAME, not the slug — "Birchwood is now published as
-            // Birchwood Village" says something; "birchwood-mn is" does not.
-            // Still run through displaySlug: it is a length and control-character
-            // guard on a value that reached us over the network.
-            requested: displayLabel(resolution.requestedLabel),
-            currentName: resolution.entity.name,
-          });
-        }
-        // ⚠ Hydrate before ANY of the year/dataset resolution below reads it.
-        const entity = await hydrateMunicipality(resolution.entity);
-        setSelectedEntity(entity);
-
-        // Resolved as a local so ?dataset= can be validated against availability
-        // for that specific year (REVUX-02 fix). ⚠ An explicit ?year= still wins;
-        // otherwise land on what the DEFAULT series can render, not the newest row.
-        const resolvedYear = initialYearForEntity(entity.available_datasets, yearParam);
-        setSelectedYear(resolvedYear);
-        // Validate ?dataset= against the entity's actual availability for the
-        // resolved year — falls back to 'operating' for garbage params, missing
-        // datasets, or operating-only nodes (e.g. NASBO states). Both guards:
-        // (1) static allow-list [operating|revenue|salaries], (2) availability.
-        const resolvedYearTypes = entity.available_datasets
-          .filter(d => d.fiscal_year === parsePeriod(resolvedYear).fiscalYear)
-          .map(d => d.dataset_type)
-          .filter(t => t !== 'all_funds_requirements' && t !== 'federal_agency');
-        setActiveDataset(resolveEffectiveDataset(resolvedYearTypes, datasetParam));
-        // SCOPE-03: restore a deep-linked series. decodeSeries returns null for
-        // anything invalid, or for a series this entity does not have, which
-        // leaves the default in force rather than erroring.
-        setSelectedSeries(decodeSeries(
-          params.get('scope'), params.get('basis'),
-          listSeries(entity.available_datasets),
-        ));
-        if (params.get('lens') === 'agency' && entity.entity_type === 'federal') {
-          setFederalLens('agency');
-        }
-        setAppView('budget');
-      })().catch(() => setAppView('budget'));
+      const seq = ++routeSeq.current;
+      routeToEntityParam(params, entityParam, () => routeSeq.current === seq)
+        .catch(() => setAppView('budget'));
       return;
     }
 
@@ -688,7 +708,29 @@ function App() {
       setLandingReason({ type: 'guest' });
       setAppView('landing');
     });
-  }, [navigateToEntity]);
+  }, [navigateToEntity, routeToEntityParam]);
+
+  // Back and Forward (#281). Every view change is a history.pushState (see
+  // syncURL), so without this listener Back changed the address bar and left
+  // the old view on screen. A URL without an entity is the search landing;
+  // its query is kept in `landingQuery`, so the search comes back as typed.
+  // ⚠ No auth routing here: a signed-in reader whose city auto-opened would
+  // be sent straight forward again, and Back would look broken.
+  useEffect(() => {
+    const onPopState = () => {
+      const seq = ++routeSeq.current;
+      const params = new URLSearchParams(window.location.search);
+      const entityParam = params.get('entity') ?? (isFinancialsHost ? 'empowered-vote-ca' : null);
+      if (!entityParam) {
+        setAppView('landing');
+        return;
+      }
+      routeToEntityParam(params, entityParam, () => routeSeq.current === seq)
+        .catch(() => setAppView('budget'));
+    };
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  }, [routeToEntityParam]);
 
   // Load operating budget and revenue totals for info cards (only if entity has that data)
   useEffect(() => {
@@ -1192,6 +1234,8 @@ function App() {
         indexLoading={indexLoading}
         onNavigateToCity={(city) => navigateToEntity(city)}
         profileMenu={profileMenu}
+        query={landingQuery}
+        onQueryChange={setLandingQuery}
       />
     );
   }
