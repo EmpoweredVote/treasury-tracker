@@ -26,6 +26,6 @@ routes with sample responses.
 ## Browser journeys (`e2e/`)
 
 Journeys in `e2e/` test what users do. If your change alters a journey on purpose, update its test in
-the same PR. Run `npm run e2e` locally (first time: `npx playwright install chromium`; if port 4173 is
+the same PR. Run `npm run e2e` locally (first time: `npx playwright install chromium`; if port 4174 is
 taken, set `E2E_PORT`). They run on every PR as the `journeys` job, against the PR's own build and the
 live API. A test marked `test.fail()` guards a known open bug; the PR that fixes the bug removes the mark.

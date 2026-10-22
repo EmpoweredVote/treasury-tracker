@@ -36,7 +36,9 @@ test('Searching "Atlanta" shows each result with its state @phone', async ({ pag
   await expect(resultFor(page, 'GA')).toBeVisible();
   await expect(resultFor(page, 'IN')).toBeVisible();
   for (const result of await searchResults(page).all()) {
-    await expect(result).toHaveAccessibleName(new RegExp(`^${PINNED_SEARCH}, [A-Z]{2}(?![A-Za-z])`));
+    // ", XX" after the name, whatever the name is: a future "Atlanta Township"
+    // must not turn every PR red.
+    await expect(result).toHaveAccessibleName(/, [A-Z]{2}(?![A-Za-z])/);
   }
 });
 
