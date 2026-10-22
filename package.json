@@ -13,6 +13,8 @@
     "dev:stop": "node scripts/stopDevServers.mjs",
     "test": "vitest run",
     "test:acfr": "node scripts/runPythonTests.mjs",
+    "e2e:serve": "vite build --config e2e/vite.preview.config.ts && vite preview --config e2e/vite.preview.config.ts",
+    "e2e": "playwright test",
     "smoke:essentials": "node scripts/essentials-live-smoke.mjs",
     "process-budget": "node scripts/processBudget.js",
     "process-revenue": "node scripts/processRevenue.js",
@@ -67,6 +69,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.64.1",
     "@posthog/rollup-plugin": "^1.4.7",
     "@tailwindcss/vite": "^4.2.2",
     "@types/node": "^24.10.1",
