@@ -194,3 +194,10 @@ app*.js
 # Playwright MCP page captures. 556 of these were committed to
 # ev-accounts and held live credentials.
 .playwright-mcp/
+
+# Playwright journeys (e2e/): run output, never source. `.api-down` is the
+# preflight marker global-setup writes when the live API is unreachable.
+playwright-report/
+test-results/
+blob-report/
+e2e/.api-down
