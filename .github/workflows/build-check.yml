@@ -3,10 +3,18 @@ name: Build check
 on:
   pull_request:
     branches: [main]
+  # ⚠ Also on main, for two reasons. A PR can read only its own caches and
+  # main's, and until this ran on main nothing was ever saved there, so every
+  # new PR downloaded the Playwright browser again (9+ minutes on #285). And a
+  # direct push to main that breaks a journey now shows red on that commit.
+  push:
+    branches: [main]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  # A newer push to a PR replaces the older run. On main every commit keeps
+  # its own result.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   build:
