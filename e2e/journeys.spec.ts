@@ -88,15 +88,24 @@ test('Changing the year changes the figures', async ({ page }) => {
   await expect(page).toHaveURL(new RegExp(`[?&]year=${year}\\b`));
   await expect.poll(() => moneyOut(page).textContent(), { message: 'the figures did not change' })
     .not.toBe(before);
+
+  // Back returns to the year we started on, figures included (#281).
+  await page.goBack();
+  await expect(page).toHaveURL(new RegExp(`[?&]year=${yearBefore}\\b`));
+  await expect.poll(() => moneyOut(page).textContent(), { message: 'Back did not restore the figures' })
+    .toBe(before);
 });
 
-// Expected to fail until EmpoweredVote/treasury-tracker#281: the app moves
-// between views with history.pushState but has no popstate handler, so Back
-// changes the URL and leaves the city on screen. The fix removes `test.fail()`.
+// Guards EmpoweredVote/treasury-tracker#281: Back used to change the URL and
+// leave the city on screen, and the search box came back empty.
 test('Back from a city returns to search with the query kept', async ({ page }) => {
-  test.fail();
   await openPinnedCity(page);
   await page.goBack();
   await expect(page.getByRole('textbox', { name: /Search by city name or state/ })).toHaveValue(PINNED_SEARCH);
   await expect(resultFor(page, PINNED_CITY.state)).toBeVisible();
+
+  // And Forward opens the city again.
+  await page.goForward();
+  await expect(page.getByRole('heading', { level: 1, name: new RegExp(PINNED_CITY.name) })).toBeVisible();
+  await expect(moneyOut(page)).toBeVisible();
 });
