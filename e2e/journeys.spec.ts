@@ -5,8 +5,21 @@ import { test, expect, PINNED_CITY, PINNED_SEARCH } from './support';
 // breaks. If your change alters one of these journeys on purpose, update the
 // test in the same PR.
 
+// The search waits for the place index: one large request (11,000+ rows) that
+// the live API has served in anywhere from 2 s to 29 s. That speed belongs to
+// the API, not to the PR, so the index gets its own allowance and the 5 s
+// budget still applies to what the page does once it has the data.
+const INDEX_WAIT_MS = 45_000;
+
 async function searchPinned(page: Page) {
+  test.info().setTimeout(test.info().timeout + INDEX_WAIT_MS);
+  // Any status counts as loaded: a 5xx still fails the test, through the guard
+  // in support.ts, instead of waiting out the allowance.
+  const indexLoaded = page.waitForResponse((res) => res.url().includes('fields=index'), {
+    timeout: INDEX_WAIT_MS,
+  });
   await page.goto('/');
+  await indexLoaded;
   await page.getByRole('textbox', { name: /Search by city name or state/ }).fill(PINNED_SEARCH);
 }
 
