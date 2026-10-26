@@ -1,4 +1,4 @@
-import type { Page } from '@playwright/test';
+import type { Locator, Page } from '@playwright/test';
 import { test, expect, PINNED_CITY, PINNED_SEARCH } from './support';
 
 // Each title is the plain-English line a PR author sees when the journey
@@ -35,6 +35,24 @@ function resultFor(page: Page, state: string) {
 /** The headline spending figure, e.g. "Money Out $1.8B". */
 function moneyOut(page: Page) {
   return page.getByRole('button', { name: /^Money Out \$[\d.,]+/ });
+}
+
+/**
+ * The locator's text once it has stopped changing. A city page can update a
+ * figure after it first shows (the Money In card has gone from one value to
+ * another during load), and a comparison against a figure still loading could
+ * pass even if the change under test did nothing.
+ */
+async function settledText(locator: Locator): Promise<string | null> {
+  const deadline = Date.now() + 10_000;
+  let last = await locator.textContent();
+  for (;;) {
+    await locator.page().waitForTimeout(750);
+    const now = await locator.textContent();
+    if (now === last) return now;
+    if (Date.now() > deadline) throw new Error(`The figure kept changing: last "${now}"`);
+    last = now;
+  }
 }
 
 async function openPinnedCity(page: Page) {
@@ -89,7 +107,7 @@ test('A city page shows figures and draws its chart @phone', async ({ page }) =>
 test('Changing the year changes the figures', async ({ page }) => {
   await openPinnedCity(page);
   await expect(moneyOut(page)).toBeVisible();
-  const before = await moneyOut(page).textContent();
+  const before = await settledText(moneyOut(page));
   const yearBefore = new URL(page.url()).searchParams.get('year');
 
   await page.getByRole('button', { name: 'Select fiscal year' }).click();
