@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { listLabel, shortNameInCounty, TYPE_LABELS, MIXED_LABEL } from './entityListLabel';
+import { listLabel, shortNameInCounty, placeDetail, TYPE_LABELS, MIXED_LABEL } from './entityListLabel';
 import type { Municipality } from '../types/budget';
 
 const of = (...types: Municipality['entity_type'][]) => types.map(t => ({ entity_type: t }));
@@ -101,5 +101,58 @@ describe('shortNameInCounty', () => {
   // ⚠ A partial suffix match must not fire — the separator is part of the match.
   it('requires the comma-space separator', () => {
     expect(shortNameInCounty('Grand Traverse County', 'Traverse County')).toBe('Grand Traverse County');
+  });
+});
+
+// #280: the search listed "Atlanta, GA" and "Atlanta, IN" with nothing but the
+// two-letter code to tell them apart. Every result now carries a second line
+// saying what kind of place it is and where.
+describe('placeDetail', () => {
+  const fulton = { id: 'c-fulton', name: 'Fulton County' };
+  const counties = new Map([[fulton.id, fulton.name], ['c-hamilton', 'Hamilton County']]);
+  const place = (p: Partial<Municipality>) =>
+    ({ id: 'x', name: 'Atlanta', state: 'GA', entity_type: 'city', county_id: null, ...p }) as Municipality;
+
+  it('names the kind of place, its county and its full state', () => {
+    expect(placeDetail(place({ county_id: 'c-fulton' }), counties)).toBe('City in Fulton County, Georgia');
+    expect(placeDetail(place({ state: 'IN', entity_type: 'town', county_id: 'c-hamilton' }), counties))
+      .toBe('Town in Hamilton County, Indiana');
+  });
+
+  // Two places with one name in one state differ by kind or county, never by state.
+  it('tells same-name places apart', () => {
+    const a = placeDetail(place({ county_id: 'c-fulton' }), counties);
+    const b = placeDetail(place({ state: 'IN', entity_type: 'town', county_id: 'c-hamilton' }), counties);
+    expect(a).not.toBe(b);
+  });
+
+  // About a third of places carry no county in the index.
+  it('falls back to the state alone when the county is unknown', () => {
+    expect(placeDetail(place({}), counties)).toBe('City in Georgia');
+    expect(placeDetail(place({ county_id: 'not-in-index' }), counties)).toBe('City in Georgia');
+  });
+
+  it('labels every common kind in the singular', () => {
+    const kinds: [Municipality['entity_type'], string][] = [
+      ['township', 'Township'], ['village', 'Village'], ['borough', 'Borough'],
+      ['county', 'County'], ['school_district', 'School district'], ['municipality', 'Municipality'],
+    ];
+    for (const [entity_type, label] of kinds) {
+      expect(placeDetail(place({ entity_type }), counties)).toBe(`${label} in Georgia`);
+    }
+  });
+
+  // ⚠ Same rule as listLabel: a raw schema value never reaches a reader.
+  it('never prints a raw schema value', () => {
+    const detail = placeDetail(place({ entity_type: 'conservation_district' as Municipality['entity_type'] }), counties);
+    expect(detail).toBe('Local government in Georgia');
+  });
+
+  it('says only "State" for a state, without repeating its own name', () => {
+    expect(placeDetail(place({ name: 'Georgia', entity_type: 'state' }), counties)).toBe('State');
+  });
+
+  it('drops the place part for a code that is not a US state', () => {
+    expect(placeDetail(place({ state: 'XX' }), counties)).toBe('City');
   });
 });

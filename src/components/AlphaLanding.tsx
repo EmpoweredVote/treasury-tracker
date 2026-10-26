@@ -7,6 +7,7 @@ import { getLoginUrl } from '../utils/auth';
 import { useTheme } from '../hooks/useTheme';
 import { hasDatasets, latestDatasetYear } from '../data/municipalityDatasets';
 import { displaySlug } from '../utils/entityRouting';
+import { placeDetail, shortNameInCounty } from '../data/entityListLabel';
 
 export type LandingReason =
   | { type: 'guest' }
@@ -80,6 +81,13 @@ function CitySearch({
     return { results: matches.slice(0, MAX_CITY_RESULTS), hiddenCount: Math.max(0, matches.length - MAX_CITY_RESULTS) };
   }, [query, municipalities]);
 
+  // County names by id, for each result's "City in Fulton County, Georgia" line
+  // (#280). The index holds every county a place points at.
+  const countyNames = useMemo(
+    () => new Map(municipalities.filter(m => m.entity_type === 'county').map(m => [m.id, m.name])),
+    [municipalities],
+  );
+
   // ⚠ Not while the index is still loading — an empty `municipalities` in
   // flight is not a genuine zero-result search, and rendering the not-found
   // message here for a slow index load is the same false coverage claim the
@@ -112,6 +120,7 @@ function CitySearch({
         <div className="mt-2 bg-white dark:bg-ev-gray-800 border border-[#E2EBEF] dark:border-ev-gray-700 rounded-xl overflow-hidden shadow-sm dark:shadow-black/40">
           {results.map(city => {
             const latestYear = latestDatasetYear(city);
+            const countyName = city.county_id ? countyNames.get(city.county_id) : undefined;
             return (
               <button
                 key={city.id}
@@ -119,8 +128,15 @@ function CitySearch({
                 className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-[#F7F7F8] dark:hover:bg-ev-gray-700 border-b border-[#E2EBEF] dark:border-ev-gray-700 last:border-0 transition-colors duration-150"
               >
                 <Building2 size={14} className="text-[#005366] shrink-0" />
-                <span className="flex-1 text-sm font-medium text-[#1C1C1C] dark:text-ev-gray-200">
-                  {city.name}, {city.state}
+                <span className="flex-1 min-w-0">
+                  {/* The county moves to the second line, so a Michigan
+                      township's ", Allegan County" suffix is not said twice. */}
+                  <span className="block text-sm font-medium text-[#1C1C1C] dark:text-ev-gray-200">
+                    {shortNameInCounty(city.name, countyName)}, {city.state}
+                  </span>
+                  <span className="block text-xs text-ev-gray-500 dark:text-ev-gray-400">
+                    {placeDetail(city, countyNames)}
+                  </span>
                 </span>
                 <span className="text-xs text-ev-gray-400">{latestYear}</span>
                 <ArrowRight size={13} className="text-ev-gray-400 shrink-0" />

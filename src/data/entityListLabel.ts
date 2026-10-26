@@ -1,4 +1,5 @@
 import type { Municipality } from '../types/budget';
+import { STATE_NAMES } from '../utils/wikiImage';
 
 /** Plural labels for the sub-state entity types a state page can list. */
 export const TYPE_LABELS: Record<string, string> = {
@@ -78,4 +79,48 @@ export function shortNameInCounty(name: string, countyName?: string | null): str
   // ⚠ Never return an empty label, however odd the input.
   if (!name.endsWith(suffix) || name.length <= suffix.length) return name;
   return name.slice(0, -suffix.length);
+}
+
+/** Singular labels for one place, as a search result describes it. */
+const KIND_LABELS: Record<string, string> = {
+  city: 'City',
+  town: 'Town',
+  township: 'Township',
+  village: 'Village',
+  borough: 'Borough',
+  county: 'County',
+  municipality: 'Municipality',
+  special_district: 'Special district',
+  school_district: 'School district',
+  library: 'Library',
+  conservancy: 'Conservancy district',
+};
+
+/**
+ * The second line of a search result: what kind of place it is, and where.
+ * "City in Fulton County, Georgia".
+ *
+ * ⚠ WHY (#280): the search listed "Atlanta, GA" and "Atlanta, IN" with only the
+ * two-letter code between them, and place names repeat across states (Franklin
+ * is in eight). The kind of place and the county separate same-name places in
+ * one state, which the state alone cannot.
+ *
+ * `countyNames` maps a county's id to its name. The lean index carries every
+ * county row a place points at, so the caller builds it from the list it
+ * already holds. A place with no county, or one the map lacks, gets the state
+ * alone rather than a guess.
+ *
+ * ⚠ An unknown kind reads "Local government", never its raw schema value — the
+ * same rule as listLabel.
+ */
+export function placeDetail(
+  place: Pick<Municipality, 'entity_type' | 'state' | 'county_id'>,
+  countyNames: ReadonlyMap<string, string>,
+): string {
+  if (place.entity_type === 'state') return 'State';
+  const kind = KIND_LABELS[place.entity_type] ?? 'Local government';
+  const state = STATE_NAMES[place.state?.toUpperCase()];
+  if (!state) return kind;
+  const county = place.county_id ? countyNames.get(place.county_id) : undefined;
+  return county ? `${kind} in ${county}, ${state}` : `${kind} in ${state}`;
 }
