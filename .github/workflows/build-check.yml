@@ -4,9 +4,10 @@ on:
   pull_request:
     branches: [main]
   # ⚠ Also on main, for two reasons. A PR can read only its own caches and
-  # main's, and until this ran on main nothing was ever saved there, so every
-  # new PR downloaded the Playwright browser again (9+ minutes on #285). And a
-  # direct push to main that breaks a journey now shows red on that commit.
+  # main's, so the npm cache must be saved there (the Playwright browser was the
+  # first casualty: 9+ minutes on #285, before the journeys job moved into
+  # Playwright's image). And a direct push to main that breaks a journey now
+  # shows red on that commit.
   push:
     branches: [main]
 
@@ -70,6 +71,16 @@ jobs:
   journeys:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    # ⚠ Playwright's own image: Chromium and every system package it needs are
+    # already in it. Installing them on the runner took from seconds to 5+
+    # minutes, at the mercy of the apt mirror (#290, #291). The tag MUST equal
+    # the @playwright/test version in package-lock.json;
+    # tests/playwrightImageMatchesLock.test.mjs fails `npm test` when it does not.
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.1-noble
+      # Recommended by Playwright for Chromium: a shared-memory limit of the
+      # container default (64 MB) can crash the browser.
+      options: --ipc=host
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
@@ -77,17 +88,6 @@ jobs:
           node-version: '20'
           cache: 'npm'
       - run: npm ci
-      - id: pw
-        run: echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
-      - uses: actions/cache@v4
-        id: pw-cache
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ steps.pw.outputs.version }}
-      - if: steps.pw-cache.outputs.cache-hit != 'true'
-        run: npx playwright install --with-deps chromium
-      - if: steps.pw-cache.outputs.cache-hit == 'true'
-        run: npx playwright install-deps chromium
       - run: npm run e2e
       - if: always()
         run: |
