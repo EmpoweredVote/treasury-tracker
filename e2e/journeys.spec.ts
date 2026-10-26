@@ -55,15 +55,16 @@ test('Searching "Atlanta" shows each result with its state @phone', async ({ pag
   }
 });
 
-// Expected to fail until EmpoweredVote/treasury-tracker#280 (same-name places
-// look alike). Today the two-letter state is the only cue. The PR that fixes
-// #280 removes `test.fail()`, and from then on this guards against regression.
+// Guards EmpoweredVote/treasury-tracker#280: same-name places used to differ
+// only by the two-letter state. Each result now says what kind of place it is
+// and where ("City in Fulton County, Georgia").
 test('Atlanta, GA and Atlanta, IN can be told apart', async ({ page }) => {
-  test.fail();
   await searchPinned(page);
-  // Something beyond the two-letter state: full state name, county or kind of place.
-  await expect(resultFor(page, 'GA')).toHaveText(/Georgia|County|\bcity\b/i);
-  await expect(resultFor(page, 'IN')).toHaveText(/Indiana|County|\btown\b/i);
+  await expect(resultFor(page, 'GA')).toHaveText(/Georgia/);
+  await expect(resultFor(page, 'IN')).toHaveText(/Indiana/);
+  const ga = await resultFor(page, 'GA').innerText();
+  const inPlace = await resultFor(page, 'IN').innerText();
+  expect(ga.replace(/\d{4}/, '')).not.toBe(inPlace.replace(/\d{4}/, ''));
 });
 
 test('A city page shows figures and draws its chart @phone', async ({ page }) => {
