@@ -94,7 +94,9 @@ AS $$
 DECLARE
   v_last treasury.anon_execute_runs%ROWTYPE;
 BEGIN
-  SELECT * INTO v_last FROM treasury.anon_execute_runs ORDER BY ran_at DESC LIMIT 1;
+  -- id breaks ties: two sweeps in one transaction share now(), so ran_at alone
+  -- can pick the older, clean row (caught by the rolled-back prod test).
+  SELECT * INTO v_last FROM treasury.anon_execute_runs ORDER BY ran_at DESC, id DESC LIMIT 1;
 
   IF NOT FOUND THEN
     RAISE EXCEPTION 'anon-EXECUTE sweep: no verdict has ever been recorded. INCONCLUSIVE, not a pass.';
