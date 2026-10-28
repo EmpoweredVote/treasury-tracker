@@ -1734,3 +1734,71 @@ Rows at `unknown` are never reported; an honest unknown is the point of the buck
 ⚠ Proven by removing `ky-lfucg-acfr-gf` from the registry and re-running: the gate
 reports exactly 20 rows and names them. A gate nobody has watched fail is not
 known to work.
+
+---
+
+## Task 14 — Alaska's first local government (2026-10-27)
+
+### 14.1 `ak-local-acfr-gf` — 26 rows, 1 entity
+
+**Municipality of Anchorage, FY2012–FY2024, 13 entity-years × 2 datasets = 26 rows.**
+
+A NEW family, not an extension. Alaska already had a `state-acfr-gf` member (the
+AK state node, FY2006–2025), but that is a different document, a different
+fiscal calendar (**July–June** vs Anchorage's **calendar year**) and a different
+units convention (**thousands** vs whole dollars). Extending the state family
+would have claimed both under one reconciliation that covers only one of them.
+
+Pattern anchored to the single entity name, like `co-local-acfr-gf` and
+`tx-local-acfr-gf`: a bare `/ACFR — General Fund/` claims ~1,850 rows across
+families nobody has reconciled, and a future Alaska ACFR load must land
+`unknown` until it is evidenced.
+
+### 14.2 How each entity-year was reconciled
+
+Three probes spanning the series, read by `scripts/acfrPrintedTotal.py` —
+pdfplumber glyph coordinates, sharing no code or strategy with `acfrGF.py`. As
+with the other ACFR families, the probe is not a second *reporter*; it
+establishes **which column** of the statement the stored figure is, which is the
+question that decides scope.
+
+| FY | page | GF revenue | GF expenditure | stored |
+|---|---|---|---|---|
+| 2024 | 25 (Exhibit B-3) | 803,259,435 | 802,933,870 | exact |
+| 2017 | 42 | 678,095,376 | 704,909,042 | exact |
+| 2012 | 43–44 | 644,166,584 | 648,356,553 | exact |
+
+Column sums, both sides, every probe:
+
+* FY2024 — `803,259,435 + 38,362,806 + 1,879,859 + 127,780,750 = 971,282,850`
+  and `802,933,870 + 959,448 + 36,399,930 + 137,122,558 = 977,415,806`.
+* FY2012 — `644,166,584 + 16,380,783 + 18,907,279 + 108,340,412 = 787,795,058`
+  and `648,356,553 + 705,720 + 51,310,266 + 111,236,818 = 811,609,357`.
+
+### 14.3 Candidate scopes rejected
+
+`total_governmental` is off by **17.3%/17.9%** (FY2024), **17.0%/25.0%**
+(FY2017) and **18.2%/20.1%** (FY2012).
+
+`all_funds` is further still: the governmental-funds statement contains no
+proprietary fund, and Anchorage's enterprise operations are reported separately
+in Exhibit C-2 — FY2024 operating revenues of 71,550,516 (Water), 68,766,088
+(Wastewater), 15,848,265 (Port) and 30,401,618 (Solid Waste Disposal),
+**186,566,487 in all**, none of it inside the stored figure.
+
+### 14.4 ⚠⚠ Two traps this reconciliation found
+
+**The FY2012-era statement spans two pages and carries a prior-year summarized
+column.** Page 44 prints Total Governmental `787,795,058` followed by
+`726,283,136` — the **December 31, 2011 comparative, not a fund**. A reader
+taking "the last number on the Total row" lands on the prior year. The loader
+reads column 0 so it is unaffected, but any future total-governmental extraction
+for Anchorage must not assume last-column-is-total.
+
+**Anchorage's GF is an unusually large share of total governmental (≈82%)**
+against ≈50–74% for the Colorado and Texas families. That is not a sign the
+wrong column was read: Anchorage is a **unified city-borough**, so its General
+Fund carries borough-level services — notably **Education at 263,714,389 in
+FY2024, a third of the fund**. The share is a property of the government, not of
+the reading. Recorded here because a future reviewer comparing families would
+otherwise reasonably suspect the column.
