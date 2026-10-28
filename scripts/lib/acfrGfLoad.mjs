@@ -78,6 +78,8 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { createClient } from '@supabase/supabase-js';
 import { resolvePython } from './pythonBin.mjs';
+import { classify, SCOPE } from './fundScope.mjs';
+import { FUND_SCOPE_REGISTRY } from '../data/fundScopeRegistry.mjs';
 
 const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1')), '..', '..');
 
@@ -295,9 +297,42 @@ export async function deleteEphemeralDataSource(supabase, dsId) {
   if (error) console.error('  WARNING: ephemeral data_source cleanup failed:', error.message);
 }
 
-function dataSourceLabel(cfg, fy, datasetType) {
+export function dataSourceLabel(cfg, fy, datasetType) {
   const kind = datasetType === 'revenue' ? 'Revenue by Source' : 'Expenditure by Function';
   return `${cfg.entityLabel} ACFR — General Fund ${kind} (FY${fy} actual, GAAP basis)`;
+}
+
+/**
+ * The `fund_scope` this loader must stamp for a given `data_source` label.
+ *
+ * ── ⚠⚠ WHY THE LOADER STAMPS SCOPE AT ALL ─────────────────────────────────
+ *
+ * `loadFiscalYear` DELETES the (municipality, fiscal_year, dataset_type) row
+ * and lets the RPC insert a replacement, which arrives at the column DEFAULT —
+ * `unknown`. Before this function existed, re-running a load that SCOPE-01 had
+ * already classified silently threw the classification away: same row count,
+ * same totals, nothing failing, and the table quietly disagreeing with the
+ * registry. Found 2026-10-28 by re-running Kodiak Island Borough as an
+ * idempotence test.
+ *
+ * ⚠ This is NOT a second authority on scope. It calls the SAME `classify()`
+ * against the SAME registry that `scripts/classifyFundScope.mjs` uses, so the
+ * loader writes precisely what the sweep would write and a reload cannot make
+ * the two disagree. `tests/acfrGfLoadScope.test.mjs` pins that equality.
+ *
+ * ⭐ The evidence gate is inherited, not re-implemented: `classify()` returns
+ * `unknown` for an entry whose `evidence` is missing or a placeholder, so an
+ * unevidenced claim cannot reach the database through this path any more than
+ * through the sweep. A genuinely new source therefore lands `unknown` until it
+ * is evidenced, which is the correct failure direction.
+ *
+ * ⚠ `loadCoKsAcfrs.mjs` has always passed `fund_scope` at write time and so
+ * never had this defect; it hardcodes `general_fund` rather than consulting the
+ * registry. This is the same idea done from the single source of truth.
+ */
+export function scopeForDataSource(label, registry = FUND_SCOPE_REGISTRY) {
+  const { scope } = classify(label, registry);
+  return scope ?? SCOPE.UNKNOWN;
 }
 
 // ── One fiscal year ──────────────────────────────────────────────────────────
@@ -324,14 +359,22 @@ async function loadFiscalYear(supabase, cfg, muniId, dsId, fy, datasetType, tree
     console.error('    Could not find budget row to stamp source:', budErr?.message ?? '(no row)');
     return false;
   }
+  const label = dataSourceLabel(cfg, fy, datasetType);
+  // ⚠⚠ `fund_scope` is stamped HERE, with the same label the registry matches
+  // on. The RPC inserts at the column default (`unknown`), so without this a
+  // re-load silently downgrades an already-classified row. See
+  // `scopeForDataSource` for why the loader is not a second authority.
+  const fundScope = scopeForDataSource(label);
   const { error: stampErr } = await supabase.schema('treasury').from('budgets').update({
     source_url: sourceUrl,
     source_date: `${fy}-${cfg.fyEndMonthDay}`,
-    data_source: dataSourceLabel(cfg, fy, datasetType),
+    data_source: label,
     fiscal_year_start_month: cfg.fiscalYearStartMonth,
+    fund_scope: fundScope,
   }).eq('id', bud.id);
   if (stampErr) { console.error('    Source stamp failed:', stampErr.message); return false; }
-  console.log(`    Inserted ${rpc?.rows_inserted ?? '?'} line items; stamped source_date=${fy}-${cfg.fyEndMonthDay}`);
+  console.log(`    Inserted ${rpc?.rows_inserted ?? '?'} line items; stamped source_date=${fy}-${cfg.fyEndMonthDay}`
+    + `, fund_scope=${fundScope}`);
   return true;
 }
 
