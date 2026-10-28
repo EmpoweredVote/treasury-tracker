@@ -416,24 +416,24 @@ export const EXPECTED_BASIS_ROWS = Object.freeze({
   // (entity, year, dataset) keys, 0 null-or-non-positive totals, and a single
   // fund_scope. The rows became more numerous; the pattern did not widen.
   //
-  // ⚠⚠ AND 9,071 GEORGIA ROWS ARE NOT CLAIMED HERE, THOUGH THE TABLE ALREADY
-  // CALLS THEM `actual`. The v1 generation — FY2009-FY2015, loaded by #273 —
-  // carries the same three audit-status suffixes and the same two dataset
-  // types, but this pattern is anchored at FY2016+, so no entry reaches them.
-  // Their loader wrote `basis = actual` directly, the way loadCoKsAcfrs.mjs
-  // hardcodes `fund_scope`, so all 21,682 Georgia rows read `actual` while only
-  // 12,611 of them have a registry entry standing behind that word.
+  // ⭐ 12,611 -> 21,682 ON 2026-10-28, AND THE +9,071 IS THE V1 GENERATION
+  // FINALLY BEING CLAIMED. FY2009-FY2015, loaded by #273, sat outside this
+  // entry's FY2016+ anchor while carrying `basis = actual` written directly by
+  // their loader — so the table asserted a basis no entry evidenced, and
+  // `--reset` would have wiped it unrecoverably. The V1 form has now been read
+  // (175 of 4,551 workbooks, 25 per fiscal year): 175/175 carry a "fiscal year
+  // ended" caption and the instruction "* Use audit, if available", and a 1/40
+  // dry run of the loader reports 1,026 form-vs-extract oracle checks run with
+  // 0 failures. Evidence in basisRegistry.mjs.
   //
-  // ⚠ That is a FINDING, not a count to tidy away, and it points BOTH ways:
-  // `--reset` would set those 9,071 to `unknown` and no sweep would restore
-  // them, and meanwhile the table asserts a basis the registry has not
-  // evidenced. The fix is to read the v1 form's own caption and widen the year
-  // range with evidence — the block below quotes the v2 form's "Fiscal Year
-  // Ended" caption and its "Use Audit figures if available" instruction, and
-  // the v1 form is a DIFFERENT GENERATION whose caption nobody has read.
-  // Widening the range without reading it would assert a basis from a family
-  // resemblance. 12,611 + 9,071 = 21,682, the whole Georgia family.
-  'ga-dca-rlgf': 12611,
+  // ⚠ THIS IS A RE-MEASUREMENT AFTER A PATTERN CHANGE, which this file's header
+  // normally forbids — so the pattern was interrogated first, on both sides of
+  // the boundary: 21,682 rows over 21,682 DISTINCT ids, 92 source strings, 695
+  // Georgia entities, 0 rows outside Georgia, exactly 2 dataset types, 3 entity
+  // types, FY2009-FY2025, 0 duplicate (entity, year, dataset) keys. The widened
+  // range claims the 9,071 rows it was meant to and not one more: 12,611 +
+  // 9,071 = 21,682, the whole Georgia family and nothing else.
+  'ga-dca-rlgf': 21682,
   // Alaska — Anchorage (#298) and the six largest boroughs (#299), one family
   // across two fiscal calendars. MEASURED IN THE TABLE 2026-10-28, never
   // derived from the roster: 139 rows over 139 DISTINCT ids and 139 distinct
