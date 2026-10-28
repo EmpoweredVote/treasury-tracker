@@ -24,6 +24,10 @@ import { classify, SCOPE } from '../scripts/lib/fundScope.mjs';
  *
  * ⚠ The frozen-invariant gate caught the sibling defect (new row ids) LOUDLY.
  * This one announced nothing, which is why it needs a test rather than a gate.
+ *
+ * ⚠ `fund_scope` was the ONLY axis this loader stamped, which is a defect of
+ * its own — see tests/acfrGfLoadBasis.test.mjs, where `basis` sat `unknown` on
+ * 139 Alaska rows whose Texas and Colorado siblings read `actual`.
  */
 
 const ANCHORAGE = {
