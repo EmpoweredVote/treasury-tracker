@@ -8,11 +8,16 @@ import { classify, SCOPE } from '../scripts/lib/fundScope.mjs';
 /**
  * ── THE DEFECT THIS FILE EXISTS FOR ────────────────────────────────────────
  *
- * `loadFiscalYear` DELETES (municipality, fiscal_year, dataset_type) and then
- * lets the RPC insert a fresh row. The replacement arrives at the column
+ * `loadFiscalYear` used to DELETE (municipality, fiscal_year, dataset_type) and
+ * then let the RPC insert a fresh row. The replacement arrived at the column
  * DEFAULT for `fund_scope`, which is 'unknown'. So re-running a load that had
  * already been classified by SCOPE-01 silently threw its classification away —
  * row counts unchanged, every total unchanged, nothing failing.
+ *
+ * ⚠ The delete is gone (see tests/acfrGfLoadReuse.test.mjs — it was also
+ * churning row ids), so the RPC no longer resets the column on a reload. The
+ * stamp still has to be right: it classifies every genuinely new row, which
+ * does insert at 'unknown'.
  *
  * Found 2026-10-28 by re-running the Kodiak Island Borough load as an
  * idempotence test: the rows came back, and came back `unknown`.
