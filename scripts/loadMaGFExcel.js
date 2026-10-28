@@ -27,6 +27,7 @@
  */
 
 import { createClient } from '@supabase/supabase-js';
+import { maKey, maEntityFor } from './lib/maNames.mjs';
 import { parseArgs } from 'node:util';
 import { writeFileSync, readFileSync, readdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
@@ -195,7 +196,7 @@ async function loadFile(supabase, { typeName, cfg, fy, file }, municMap, progres
   for (const record of records) {
     if (alreadyLoaded.has(record.dorCode)) { checkpointSkipped++; continue; }
 
-    const municId = municMap.get(record.name);
+    const municId = municMap.get(maKey(record.name));
     if (!municId) {
       if (skipped === 0) console.log(`    ⚠️  No DB row for "${record.name}" — skipping`);
       skipped++;
@@ -349,7 +350,13 @@ async function main() {
     .select('id, name')
     .eq('state', 'MA');
   if (mErr) { console.error('Cannot load municipalities:', mErr.message); process.exit(1); }
-  const municMap = new Map(munis.map(m => [m.name, m.id]));
+  // ⚠⚠ KEYED ON squashMa(), NEVER THE RAW NAME. Thirteen MA governments are
+  // stored under a legal name DLS does not print ("Barnstable Town" against
+  // DLS's "Barnstable"), and the census and DLS also disagree about
+  // Manchester-by-the-Sea's punctuation. A raw-name Map misses those rows, and
+  // a miss here is not a crash — it is a government that silently stops being
+  // found. See scripts/lib/maNames.mjs.
+  const municMap = new Map(munis.map(m => [maKey(m.name), m.id]));
   console.log(`Loaded ${municMap.size} MA municipalities from DB.`);
 
   const files = discoverFiles(typeFilter, fyFilter);

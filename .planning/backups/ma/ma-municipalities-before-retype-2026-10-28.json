@@ -1,0 +1,3219 @@
+{
+  "capturedAt": "2026-10-28T21:08:18.290Z",
+  "note": "MA municipality rows immediately BEFORE migration 20261028000000 (entity_type retype + 13 legal-name renames).",
+  "rows": [
+    {
+      "id": "fdc6b0d7-50b6-44ba-8b58-2eb4deb776b4",
+      "name": "Abington",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502300170",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 17090
+    },
+    {
+      "id": "4c57fc5e-4d48-4c24-a62c-7353e6f1bdb8",
+      "name": "Acton",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501700380",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 24539
+    },
+    {
+      "id": "7ac37fcc-c33b-4edd-abc9-a54dcfdeb008",
+      "name": "Acushnet",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500500520",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 10700
+    },
+    {
+      "id": "9e210c03-8718-4aea-bb99-084b2bbaa3ff",
+      "name": "Adams",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500300555",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 7992
+    },
+    {
+      "id": "e406c5b6-662f-4582-825e-d99a911d2247",
+      "name": "Agawam",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501300840",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 28749
+    },
+    {
+      "id": "2b30b5d9-7806-4bf4-9b25-2b7406ec6f65",
+      "name": "Alford",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500300975",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 483
+    },
+    {
+      "id": "2d8d10da-4b5d-47b2-b464-b7ed68f8a448",
+      "name": "Amesbury",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501185",
+      "geoid_basis": "census-pep-162-exact",
+      "population": 17617
+    },
+    {
+      "id": "7590b432-7b46-4d06-9e32-69679d9e6864",
+      "name": "Amherst",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501501370",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 40989
+    },
+    {
+      "id": "fe14be3b-8363-48df-ada9-84783fb3afc4",
+      "name": "Andover",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500901465",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 36927
+    },
+    {
+      "id": "7565a07a-5c02-41cd-80fb-8a1631455292",
+      "name": "Aquinnah",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500701585",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 451
+    },
+    {
+      "id": "4efb3fa1-4c80-4394-ae83-5f05a6811d2b",
+      "name": "Arlington",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501701605",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 47112
+    },
+    {
+      "id": "79b9c1b4-31e0-4850-abd9-db18f1f89483",
+      "name": "Ashburnham",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502701885",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 6522
+    },
+    {
+      "id": "df203fc5-122d-4858-9e49-c0015b6deac8",
+      "name": "Ashby",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501701955",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 3270
+    },
+    {
+      "id": "52216122-8853-4cb9-8b24-3f60eaa4d923",
+      "name": "Ashfield",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501102095",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 1685
+    },
+    {
+      "id": "f3b2ca79-3210-447d-9e5f-e310e05e1303",
+      "name": "Ashland",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501702130",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 19391
+    },
+    {
+      "id": "516ef5e2-07b8-4f5f-9e37-0a243ca4f1bf",
+      "name": "Athol",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502702480",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 12105
+    },
+    {
+      "id": "f6b65c13-1301-44a3-b31c-dcdd2463afc7",
+      "name": "Attleboro",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502690",
+      "geoid_basis": "census-pep-162-exact",
+      "population": 47085
+    },
+    {
+      "id": "1ec8fd96-ca39-47eb-932d-d9e3064ecb99",
+      "name": "Auburn",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502702760",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 17323
+    },
+    {
+      "id": "4bb562a6-527c-4dc5-a2d7-57d251417055",
+      "name": "Avon",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502102935",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 4801
+    },
+    {
+      "id": "b64de699-3c0a-45a4-a99f-d53afcf7a982",
+      "name": "Ayer",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501703005",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 9010
+    },
+    {
+      "id": "948ae058-8fb5-4b21-aa5b-71db00bef3b5",
+      "name": "Barnstable",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500103690",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 49831
+    },
+    {
+      "id": "ea3d59d8-059f-4f4f-b12a-4b61035578a7",
+      "name": "Barnstable County",
+      "state": "MA",
+      "entity_type": "county",
+      "geoid": "25001",
+      "geoid_basis": "census-pep-050-exact",
+      "population": 232570
+    },
+    {
+      "id": "027bc73f-cfcb-46c8-a7d2-54062e36decd",
+      "name": "Barre",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502703740",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 5631
+    },
+    {
+      "id": "cf2c2409-889b-42df-b70d-5f5d4c4095db",
+      "name": "Becket",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500304545",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 1922
+    },
+    {
+      "id": "f259f0ef-0b8d-49a8-8703-c823533ae9ea",
+      "name": "Bedford",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501704615",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 14955
+    },
+    {
+      "id": "7853ae50-544f-4455-93ad-89cebfa79d11",
+      "name": "Belchertown",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501504825",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 15372
+    },
+    {
+      "id": "ee6a0472-2ad5-4c98-aace-9464c567d104",
+      "name": "Bellingham",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502104930",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 17998
+    },
+    {
+      "id": "baba5988-6c4f-4824-9a87-bd7953d708bd",
+      "name": "Belmont",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501705070",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 27442
+    },
+    {
+      "id": "55e622d0-236a-4f46-b6ac-60cb01d04c8e",
+      "name": "Berkley",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500505280",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 6892
+    },
+    {
+      "id": "9452a9a3-9b00-466b-aef8-fc341fcf3710",
+      "name": "Berlin",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502705490",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 3479
+    },
+    {
+      "id": "168f58ab-e914-4688-bf46-74590c21752c",
+      "name": "Bernardston",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501105560",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 2109
+    },
+    {
+      "id": "7ed34232-5558-4c05-b21d-245341c6dc06",
+      "name": "Beverly",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2505595",
+      "geoid_basis": "census-pep-162-exact",
+      "population": 43223
+    },
+    {
+      "id": "aef8c129-41fc-4ad6-88ba-c32202e0b56d",
+      "name": "Billerica",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501705805",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 42978
+    },
+    {
+      "id": "d1daf947-7169-4e3a-b4df-15deb8f69962",
+      "name": "Blackstone",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502706015",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 9374
+    },
+    {
+      "id": "075aa28d-f879-4077-b592-fb908b239efc",
+      "name": "Blandford",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501306085",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 1209
+    },
+    {
+      "id": "92d03f1c-f114-4617-a0e3-e9894c216f06",
+      "name": "Bolton",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502706365",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 5809
+    },
+    {
+      "id": "7f7fa2cc-08ba-4bb4-b8a8-b8df99be8195",
+      "name": "Boston",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2507000",
+      "geoid_basis": "census-pep-162-exact",
+      "population": 673458
+    },
+    {
+      "id": "9312ad23-8eec-4ff4-ae10-05a1999d0c3d",
+      "name": "Bourne",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500107175",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 20508
+    },
+    {
+      "id": "987e158c-ed4c-4d35-9aee-72dce817d807",
+      "name": "Boxborough",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501707350",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 5565
+    },
+    {
+      "id": "2a0706b4-a194-4359-85b6-d3a38246d681",
+      "name": "Boxford",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500907420",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 8334
+    },
+    {
+      "id": "4fe2bff4-eae0-4468-a54b-6d164ba572a4",
+      "name": "Boylston",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502707525",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 5064
+    },
+    {
+      "id": "0ebe9a19-337b-4857-932b-763bb9524887",
+      "name": "Braintree",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502107740",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 39134
+    },
+    {
+      "id": "1c064966-f7bf-42d6-9438-9fc1d51740b3",
+      "name": "Brewster",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500107980",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 10447
+    },
+    {
+      "id": "7aa0bbea-ae51-432a-bfb0-da4dbd7f93e2",
+      "name": "Bridgewater",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502308130",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 29167
+    },
+    {
+      "id": "3f41403a-7d16-4e26-87f8-6d1a375f915a",
+      "name": "Brimfield",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501308470",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 3733
+    },
+    {
+      "id": "61f232a8-ffe9-47f5-beef-9bd2d52a150d",
+      "name": "Bristol County",
+      "state": "MA",
+      "entity_type": "county",
+      "geoid": "25005",
+      "geoid_basis": "census-pep-050-exact",
+      "population": 588593
+    },
+    {
+      "id": "5e6e588d-fdcf-4865-a484-3fd8bd029a88",
+      "name": "Brockton",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2509000",
+      "geoid_basis": "census-pep-162-exact",
+      "population": 105788
+    },
+    {
+      "id": "2dae1bb4-caa1-4df6-83cf-35db3f124c15",
+      "name": "Brookfield",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502709105",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 3500
+    },
+    {
+      "id": "127d9b73-4647-4841-b628-5430c31634f3",
+      "name": "Brookline",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502109175",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 63925
+    },
+    {
+      "id": "9fa79d1c-f4c8-40bc-abca-936131b766c0",
+      "name": "Buckland",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501109595",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 1818
+    },
+    {
+      "id": "9a29215c-9aa7-4dae-b805-517ce26e7222",
+      "name": "Burlington",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501709840",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 26977
+    },
+    {
+      "id": "8ce65a6c-9344-49f4-87cb-e7b68ba2dbf6",
+      "name": "Cambridge",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2511000",
+      "geoid_basis": "census-pep-162-exact",
+      "population": 121186
+    },
+    {
+      "id": "92c55ab3-1374-48ae-8856-db8c9a90f24f",
+      "name": "Canton",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502111315",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 25163
+    },
+    {
+      "id": "9bd57310-07c3-4ab6-b24d-4212bd583b66",
+      "name": "Carlisle",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501711525",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 5317
+    },
+    {
+      "id": "0dc209b1-12f0-48c5-b286-fc2cf469d96f",
+      "name": "Carver",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502311665",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 11817
+    },
+    {
+      "id": "67666c93-4532-4e83-9030-afd6046f35c8",
+      "name": "Charlemont",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501112505",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 1179
+    },
+    {
+      "id": "da1f3bdd-9080-4760-a66a-a1fd469a4262",
+      "name": "Charlton",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502712715",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 13606
+    },
+    {
+      "id": "f29af7f6-d9c8-455b-b63c-fdac3aeddd02",
+      "name": "Chatham",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500112995",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 6711
+    },
+    {
+      "id": "2223f4a2-839c-4145-a10e-bd92386584d7",
+      "name": "Chelmsford",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501713135",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 36953
+    },
+    {
+      "id": "87a0e7af-04de-4837-804b-75122c581398",
+      "name": "Chelsea",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2513205",
+      "geoid_basis": "census-pep-162-exact",
+      "population": 40245
+    },
+    {
+      "id": "56f73f34-e028-453f-9d15-85261ed390bc",
+      "name": "Cheshire",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500313345",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 3190
+    },
+    {
+      "id": "fb2aaf59-ed7f-4ce1-beec-a7f90e681730",
+      "name": "Chester",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501313485",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 1221
+    },
+    {
+      "id": "75d6cd0c-d795-4271-8369-609d8c4ce5ac",
+      "name": "Chesterfield",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501513590",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 1174
+    },
+    {
+      "id": "118a9dbd-e159-4e66-bb2a-ddfee81e8b6d",
+      "name": "Chicopee",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2513660",
+      "geoid_basis": "census-pep-162-exact",
+      "population": 55381
+    },
+    {
+      "id": "3b112c51-55c9-40e0-a1fe-b670fc83996d",
+      "name": "Chilmark",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500713800",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 1249
+    },
+    {
+      "id": "ee2182fc-c603-49ff-b663-257be8e478b4",
+      "name": "Clarksburg",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500314010",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 1637
+    },
+    {
+      "id": "c205b07f-f1bc-4034-865a-703cf776494e",
+      "name": "Clinton",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502714395",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 15740
+    },
+    {
+      "id": "63a0464c-a0e4-4017-9547-0325681b614f",
+      "name": "Cohasset",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502114640",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 8532
+    },
+    {
+      "id": "c8a3b34d-1f22-4414-b0c3-c3ca1f35eef2",
+      "name": "Colrain",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501114885",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 1643
+    },
+    {
+      "id": "4e694270-c5e0-4c8c-b8bf-e531b325092d",
+      "name": "Concord",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501715060",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 18092
+    },
+    {
+      "id": "0bfb4b25-db02-40d5-bed3-76885435aad1",
+      "name": "Conway",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501115200",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 1754
+    },
+    {
+      "id": "7f7e5d24-545d-4f98-9050-c4f36ba177e4",
+      "name": "Cummington",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501516040",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 819
+    },
+    {
+      "id": "fb7ab342-8afe-4f2c-a1e9-979dca83963f",
+      "name": "Dalton",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500316180",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 6198
+    },
+    {
+      "id": "e14e66e6-4e87-45d5-8dd0-168366dc3ef4",
+      "name": "Danvers",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500916250",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 28590
+    },
+    {
+      "id": "9f519b92-d2c8-4fdf-8a1d-6f62afd7ffc6",
+      "name": "Dartmouth",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500516425",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 34139
+    },
+    {
+      "id": "cb29c031-9eda-4e21-836c-79e4cf38c84f",
+      "name": "Dedham",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502116495",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 25485
+    },
+    {
+      "id": "127a1884-c6ee-4028-9a47-ea4feb1c1c41",
+      "name": "Deerfield",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501116670",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 5177
+    },
+    {
+      "id": "839c2a03-be82-44d4-93fa-a2f5fb6e3ac3",
+      "name": "Dennis",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500116775",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 14862
+    },
+    {
+      "id": "d13acfef-5a95-4369-8896-282e34a28a5d",
+      "name": "Dighton",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500516950",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 8275
+    },
+    {
+      "id": "57f70f33-9739-4086-aee1-136993992631",
+      "name": "Douglas",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502717300",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 9452
+    },
+    {
+      "id": "c138432d-3c45-43a5-9798-823e50b1b055",
+      "name": "Dover",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502117405",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 6057
+    },
+    {
+      "id": "53078c18-49d6-4777-a0bc-eecaf4c0ff34",
+      "name": "Dracut",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501717475",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 32972
+    },
+    {
+      "id": "e472c655-eb2c-47a3-9cb3-4270449299f2",
+      "name": "Dudley",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502717685",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 11984
+    },
+    {
+      "id": "bc6ffab5-db11-408f-bf98-31c70dff36b8",
+      "name": "Dukes County",
+      "state": "MA",
+      "entity_type": "county",
+      "geoid": "25007",
+      "geoid_basis": "census-pep-050-exact",
+      "population": 21061
+    },
+    {
+      "id": "6d0ade7a-1b05-40b2-88b5-00b75083ef11",
+      "name": "Dunstable",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501717825",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 3500
+    },
+    {
+      "id": "7f13afa2-9465-43dc-9e15-ed84ea91ea7d",
+      "name": "Duxbury",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502317895",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 16377
+    },
+    {
+      "id": "07be73c3-f5de-4de9-9378-30111b3d7526",
+      "name": "East Bridgewater",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502318455",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 14519
+    },
+    {
+      "id": "eda10e8e-d32f-47fc-93f9-a1b0500fd0a9",
+      "name": "East Brookfield",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502718560",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 2237
+    },
+    {
+      "id": "d64ad326-467e-4aab-a8fd-f8df95a1e60d",
+      "name": "East Longmeadow",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501319645",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 16515
+    },
+    {
+      "id": "18237d1c-d793-4601-9fe1-b7b987029675",
+      "name": "Eastham",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500119295",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 5824
+    },
+    {
+      "id": "54bc370a-8a5e-47ad-9dcc-e4c0e775b11c",
+      "name": "Easthampton",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2519365",
+      "geoid_basis": "census-pep-162-exact",
+      "population": 16020
+    },
+    {
+      "id": "ae7c30f6-f621-44fc-87ad-4ff997c7ffb7",
+      "name": "Easton",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500520100",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 25568
+    },
+    {
+      "id": "a61131aa-0e87-4fb1-bad3-a6a26bf2e65e",
+      "name": "Edgartown",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500721150",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 5328
+    },
+    {
+      "id": "6a4070e2-e87c-43b0-844d-1b16edc8717a",
+      "name": "Egremont",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500321360",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 1375
+    },
+    {
+      "id": "2dbfe58f-5e60-43cd-b920-b47bc58dabe4",
+      "name": "Erving",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501121780",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 1661
+    },
+    {
+      "id": "2f4c10f6-a32b-4bc9-bb8c-e678925ba488",
+      "name": "Essex",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500921850",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 3760
+    },
+    {
+      "id": "6b58b375-348e-4cd7-a015-3e9163b8c212",
+      "name": "Everett",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2521990",
+      "geoid_basis": "census-pep-162-exact",
+      "population": 51825
+    },
+    {
+      "id": "1fd36d23-fcbb-475d-8244-fed5d3cdefaa",
+      "name": "Fairhaven",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500522130",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 16005
+    },
+    {
+      "id": "34fa2c78-8fde-428a-951f-c66e312f1a99",
+      "name": "Fall River",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2523000",
+      "geoid_basis": "census-pep-162-exact",
+      "population": 94689
+    },
+    {
+      "id": "1e4e695a-d522-424f-9429-61b18efa5308",
+      "name": "Falmouth",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500123105",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 33227
+    },
+    {
+      "id": "dc14f10c-dcb3-4580-84c0-1c40dfc092f6",
+      "name": "Fitchburg",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2523875",
+      "geoid_basis": "census-pep-162-exact",
+      "population": 42145
+    },
+    {
+      "id": "9a6c0486-923d-45bd-afdd-6cbfa4f6cab9",
+      "name": "Florida",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500324120",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 673
+    },
+    {
+      "id": "a17b9e76-8a74-4ed8-bd3f-9de1c472359a",
+      "name": "Foxborough",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502124820",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 18791
+    },
+    {
+      "id": "521a7da7-a230-4f46-9a05-64b20c02fb2b",
+      "name": "Framingham",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2524960",
+      "geoid_basis": "census-pep-162-exact",
+      "population": 73361
+    },
+    {
+      "id": "2b4da0c6-166b-4194-942e-bde2fff2d81d",
+      "name": "Franklin",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502125172",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 33742
+    },
+    {
+      "id": "3a451baa-38c4-4686-bfe2-6abbd9e10d37",
+      "name": "Freetown",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500525240",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 9380
+    },
+    {
+      "id": "c6f1c35d-0af3-4458-a50c-79606bc57bb5",
+      "name": "Gardner",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2525485",
+      "geoid_basis": "census-pep-162-exact",
+      "population": 21381
+    },
+    {
+      "id": "27b27432-9939-4316-809a-108b9dcf7103",
+      "name": "Georgetown",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500925625",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 8558
+    },
+    {
+      "id": "6cad694e-3590-4a03-8cf4-ca2ec434c1e3",
+      "name": "Gill",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501125730",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 1553
+    },
+    {
+      "id": "a052853c-794a-436f-92d7-eab4d13f7b34",
+      "name": "Gloucester",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2526150",
+      "geoid_basis": "census-pep-162-exact",
+      "population": 30491
+    },
+    {
+      "id": "20f5f037-7bfc-48e6-b554-b4199d20e887",
+      "name": "Goshen",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501526290",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 942
+    },
+    {
+      "id": "6c763a5a-1f0c-4a79-844e-04f9937262a5",
+      "name": "Gosnold",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500726325",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 62
+    },
+    {
+      "id": "370fb240-0f26-4924-bbf8-9ca15cdeff5e",
+      "name": "Grafton",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502726430",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 20352
+    },
+    {
+      "id": "8281f96d-bae0-4cf4-95da-cc1936df7986",
+      "name": "Granby",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501526535",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 6064
+    },
+    {
+      "id": "55f344ca-8f53-483b-8f05-bc0e56b895c1",
+      "name": "Granville",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501326675",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 1540
+    },
+    {
+      "id": "a3ae6def-921a-45fe-a488-3323af2298f6",
+      "name": "Great Barrington",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500326815",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 7245
+    },
+    {
+      "id": "48d82a1e-2cfb-4a75-a33c-122decd7bf29",
+      "name": "Greenfield",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2527060",
+      "geoid_basis": "census-pep-162-exact",
+      "population": 17633
+    },
+    {
+      "id": "52e219fe-ea9d-4527-b01a-a4eb820ef8c8",
+      "name": "Groton",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501727480",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 11580
+    },
+    {
+      "id": "2234ad8c-cfa5-401f-bf88-b24b708f077a",
+      "name": "Groveland",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500927620",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 6849
+    },
+    {
+      "id": "677a508c-5714-41c5-84b7-c268f730c421",
+      "name": "Hadley",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501527690",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 5284
+    },
+    {
+      "id": "ae9af9ac-ed62-4e67-84a5-79f0b4e314f3",
+      "name": "Halifax",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502327795",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 7786
+    },
+    {
+      "id": "d04eb511-b681-4322-b7a4-e292217d207a",
+      "name": "Hamilton",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500927900",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 7670
+    },
+    {
+      "id": "787cffd2-3660-4698-bdef-1e8c7118a21c",
+      "name": "Hampden",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501328075",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 4964
+    },
+    {
+      "id": "2798605b-40cb-4eb6-8c89-b3cc1db31d50",
+      "name": "Hancock",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500328180",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 740
+    },
+    {
+      "id": "ffab0e55-9d1d-46de-827a-236ad51a50e2",
+      "name": "Hanover",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502328285",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 14887
+    },
+    {
+      "id": "a380c899-8743-42fd-80ab-018d6790b496",
+      "name": "Hanson",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502328495",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 10719
+    },
+    {
+      "id": "3d89a2c2-cb53-4e2d-aacf-b4f6e8b143af",
+      "name": "Hardwick",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502728740",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 2722
+    },
+    {
+      "id": "ad503cff-a54a-4ca8-8208-c5daa734f92f",
+      "name": "Harvard",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502728950",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 7004
+    },
+    {
+      "id": "a9e561c5-23e1-491a-86b1-7793d0c92eb8",
+      "name": "Harwich",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500129020",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 13620
+    },
+    {
+      "id": "83aea702-e2ab-4dbd-9e7e-cbddc17ddc8f",
+      "name": "Hatfield",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501529265",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 3321
+    },
+    {
+      "id": "e5b0b152-e2de-4481-99d1-7e65f032bb42",
+      "name": "Haverhill",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2529405",
+      "geoid_basis": "census-pep-162-exact",
+      "population": 68291
+    },
+    {
+      "id": "0b6f5604-44e7-461c-bc86-76cffc8d692f",
+      "name": "Hawley",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501129475",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 352
+    },
+    {
+      "id": "9ff0e636-20c8-484a-ad91-39c43a4dfcd5",
+      "name": "Heath",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501129650",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 717
+    },
+    {
+      "id": "8584b7d0-7fe7-448d-b703-5bc718b98564",
+      "name": "Hingham",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502330210",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 24414
+    },
+    {
+      "id": "8f595d89-fd09-4ce5-91e2-763523459052",
+      "name": "Hinsdale",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500330315",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 1890
+    },
+    {
+      "id": "b3945034-144c-4f9f-977f-33b176552262",
+      "name": "Holbrook",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502130455",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 11475
+    },
+    {
+      "id": "eb5a2155-3eba-489a-bfc0-a66bf6d9f468",
+      "name": "Holden",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502730560",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 20326
+    },
+    {
+      "id": "67d568f2-07a5-4891-bb83-13c2203ada49",
+      "name": "Holland",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501330665",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 2581
+    },
+    {
+      "id": "49ccb6a0-775a-4536-944d-a3c611798565",
+      "name": "Holliston",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501730700",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 15347
+    },
+    {
+      "id": "5be79c6a-6f56-4b0c-8436-f1bcae6701bf",
+      "name": "Holyoke",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2530840",
+      "geoid_basis": "census-pep-162-exact",
+      "population": 37838
+    },
+    {
+      "id": "a3438598-8345-405a-a374-4b289ea13ff4",
+      "name": "Hopedale",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502730945",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 6063
+    },
+    {
+      "id": "6b68412e-1e4b-40db-b587-857d13a2d940",
+      "name": "Hopkinton",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501731085",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 19971
+    },
+    {
+      "id": "f3df851c-3eb0-4de0-87de-e98d723243d5",
+      "name": "Hubbardston",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502731435",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 4433
+    },
+    {
+      "id": "ee8ceae7-0dbf-4e89-9b48-bb362fc8f190",
+      "name": "Hudson",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501731540",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 20364
+    },
+    {
+      "id": "99bdbb0b-ee3c-4312-b9de-b290073627d4",
+      "name": "Hull",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502331645",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 10278
+    },
+    {
+      "id": "6f85a1d7-a57e-4993-bc40-2024283d145f",
+      "name": "Huntington",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501531785",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 2071
+    },
+    {
+      "id": "28fcf32b-79cf-40ce-b3be-c97901089943",
+      "name": "Ipswich",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500932310",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 14110
+    },
+    {
+      "id": "45fbb4f4-c232-4fac-af5b-01535f3b2a82",
+      "name": "Kingston",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502333220",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 14462
+    },
+    {
+      "id": "9f1b25cb-a3b3-4dba-a027-32a26d5abfa7",
+      "name": "Lakeville",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502333920",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 12262
+    },
+    {
+      "id": "8392fb3c-3fb9-495f-9844-8aa8ada81896",
+      "name": "Lancaster",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502734165",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 8993
+    },
+    {
+      "id": "be710d28-f099-4722-86b9-def23a7d5f2b",
+      "name": "Lanesborough",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500334340",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 3004
+    },
+    {
+      "id": "0d7da4a5-cc42-486f-80b9-fc39584b6eda",
+      "name": "Lawrence",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2534550",
+      "geoid_basis": "census-pep-162-exact",
+      "population": 89332
+    },
+    {
+      "id": "62c44dd2-7856-4100-a88a-bc9847c00c81",
+      "name": "Lee",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500334655",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 5682
+    },
+    {
+      "id": "f19c2450-d7bb-411c-94e1-c56cfd0d3382",
+      "name": "Leicester",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502734795",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 11224
+    },
+    {
+      "id": "5ccd623d-876a-45a9-9acb-6a537ec6ce57",
+      "name": "Lenox",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500334970",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 5072
+    },
+    {
+      "id": "4c8bda87-3f9b-444f-b6ee-9b39646df0c7",
+      "name": "Leominster",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2535075",
+      "geoid_basis": "census-pep-162-exact",
+      "population": 44209
+    },
+    {
+      "id": "3307cb59-8f21-4eaf-a6aa-1ef5e4b7999c",
+      "name": "Leverett",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501135180",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 1863
+    },
+    {
+      "id": "3d5ad112-9d7a-4b6d-a401-60d74c1624a3",
+      "name": "Lexington",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501735215",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 34743
+    },
+    {
+      "id": "ba987cd6-1743-4f88-9fce-650e95e8a267",
+      "name": "Leyden",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501135285",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 735
+    },
+    {
+      "id": "6b0b5bb0-f510-4801-95b7-f8bda01a2686",
+      "name": "Lincoln",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501735425",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 6996
+    },
+    {
+      "id": "b33f819b-1c35-4f11-b1de-22d2a38c5eae",
+      "name": "Littleton",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501735950",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 10495
+    },
+    {
+      "id": "b51c7578-4bd0-4d5a-bd91-6ceb8991b87e",
+      "name": "Longmeadow",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501336300",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 15712
+    },
+    {
+      "id": "a16b6301-ca72-41bf-8998-d2b843947501",
+      "name": "Lowell",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2537000",
+      "geoid_basis": "census-pep-162-exact",
+      "population": 120418
+    },
+    {
+      "id": "0cc6a50a-96b0-4f1f-bd33-5150bd6bf239",
+      "name": "Ludlow",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501337175",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 21118
+    },
+    {
+      "id": "3e6c265d-5e3b-4014-a285-a67536874435",
+      "name": "Lunenburg",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502737420",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 12007
+    },
+    {
+      "id": "532b52c8-23ad-4891-81af-34b20d0826fd",
+      "name": "Lynn",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2537490",
+      "geoid_basis": "census-pep-162-exact",
+      "population": 103489
+    },
+    {
+      "id": "5344e4a9-e86f-44b5-b971-1d7bae5cf815",
+      "name": "Lynnfield",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500937560",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 13230
+    },
+    {
+      "id": "dc70f3c2-38b4-44ab-b1a0-55dbc23bc87d",
+      "name": "Malden",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2537875",
+      "geoid_basis": "census-pep-162-exact",
+      "population": 66693
+    },
+    {
+      "id": "4a9db4cb-c46f-4d15-bf56-eb343e639fff",
+      "name": "Manchester By The Sea",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500937995",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 5467
+    },
+    {
+      "id": "016982d9-4244-4321-946f-7dc78c5a6d09",
+      "name": "Mansfield",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500538225",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 24077
+    },
+    {
+      "id": "6e5f96b3-d729-450e-a12c-d45cf6c26f3a",
+      "name": "Marblehead",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500938400",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 20576
+    },
+    {
+      "id": "bf37f776-a800-44eb-9607-cb3a1ffefb74",
+      "name": "Marion",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502338540",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 5341
+    },
+    {
+      "id": "4a75b8e9-eae2-4743-8d8c-f9a2d652acd8",
+      "name": "Marlborough",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2538715",
+      "geoid_basis": "census-pep-162-exact",
+      "population": 42169
+    },
+    {
+      "id": "5e70148f-b0aa-418d-80d0-ed5650352f4b",
+      "name": "Marshfield",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502338855",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 26043
+    },
+    {
+      "id": "33e81894-62ff-49a1-ab6a-2cedf60e6859",
+      "name": "Mashpee",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500139100",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 15482
+    },
+    {
+      "id": "fd6b008f-4d35-4665-8c6a-0429de5a4e1f",
+      "name": "Massachusetts",
+      "state": "MA",
+      "entity_type": "state",
+      "geoid": "25",
+      "geoid_basis": "static-state-fips",
+      "population": 7029917
+    },
+    {
+      "id": "b619d29f-d677-44a6-9bbf-c0643198ec5c",
+      "name": "Mattapoisett",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502339450",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 6763
+    },
+    {
+      "id": "fcd90853-0486-4809-bef1-fc880b753e83",
+      "name": "Maynard",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501739625",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 10820
+    },
+    {
+      "id": "22c96581-9a04-4c3c-8b81-25b1dcca422a",
+      "name": "Medfield",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502139765",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 13334
+    },
+    {
+      "id": "e713fe3b-0279-4695-b9b3-0b2259baeee9",
+      "name": "Medford",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2539835",
+      "geoid_basis": "census-pep-162-exact",
+      "population": 59898
+    },
+    {
+      "id": "d20f9cfc-9e48-46e6-ab4a-80dcdd6399e4",
+      "name": "Medway",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502139975",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 13836
+    },
+    {
+      "id": "b4dbfb81-437f-4f03-a0f6-a5f0f726aedc",
+      "name": "Melrose",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2540115",
+      "geoid_basis": "census-pep-162-exact",
+      "population": 29938
+    },
+    {
+      "id": "d223e8cf-4633-4e31-9eec-9656157ecbc5",
+      "name": "Mendon",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502740255",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 6441
+    },
+    {
+      "id": "9e0b37a8-4044-4873-8567-b1b606815890",
+      "name": "Merrimac",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500940430",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 6810
+    },
+    {
+      "id": "2d94711d-31f8-460e-99bb-5d6278a52e40",
+      "name": "Methuen",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2540675",
+      "geoid_basis": "census-pep-162-exact",
+      "population": 54272
+    },
+    {
+      "id": "8f22a077-dde0-4040-a42a-ea079efb9c7c",
+      "name": "Middleborough",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502340850",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 24847
+    },
+    {
+      "id": "99097b90-0b75-4d46-98bc-ee67277a1451",
+      "name": "Middlefield",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501540990",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 397
+    },
+    {
+      "id": "4b02cc09-a332-4933-b842-c5d027ea18a3",
+      "name": "Middleton",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500941095",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 9959
+    },
+    {
+      "id": "f2cd5baa-efc7-4984-9049-8b0d24925079",
+      "name": "Milford",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502741165",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 30640
+    },
+    {
+      "id": "ea2abf30-17b7-4180-b5e2-e5682e2d3f0e",
+      "name": "Millbury",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502741340",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 14173
+    },
+    {
+      "id": "c2dc8d33-724a-485f-ba8e-d1dc2fec09f9",
+      "name": "Millis",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502141515",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 9338
+    },
+    {
+      "id": "f3688301-8422-4f7d-853d-6574cf21a2cb",
+      "name": "Millville",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502741585",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 3187
+    },
+    {
+      "id": "5ac98476-b76e-4f68-9233-6d49cc67c21d",
+      "name": "Milton",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502141690",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 28811
+    },
+    {
+      "id": "2c10e306-cdea-4ba0-8002-83dcd4d2d227",
+      "name": "Monroe",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501142040",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 115
+    },
+    {
+      "id": "1b15b9be-3b0d-4e61-a8bb-45f7b0cc18e7",
+      "name": "Monson",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501342145",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 8164
+    },
+    {
+      "id": "b1902e45-91b7-4491-a765-b1b088b16bbe",
+      "name": "Montague",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501142285",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 8437
+    },
+    {
+      "id": "48465d7b-31eb-45c6-8fe2-7cb4afdf5c63",
+      "name": "Monterey",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500342460",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 1085
+    },
+    {
+      "id": "fe88dbea-7d3c-4baf-b0c3-34de9637ec3e",
+      "name": "Montgomery",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501342530",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 837
+    },
+    {
+      "id": "92db569e-c15f-4f53-a1c9-9e4e5e7c4116",
+      "name": "Mount Washington",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500343300",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 157
+    },
+    {
+      "id": "1ac44afa-015d-40dc-bc48-460fbeb78e17",
+      "name": "Nahant",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500943580",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 3338
+    },
+    {
+      "id": "3ae0b227-73bb-4a44-906f-88fca4244cf5",
+      "name": "Nantucket",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501943790",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 14670
+    },
+    {
+      "id": "3a8c1b97-cc2c-4fdf-945e-e06bd6726faa",
+      "name": "Natick",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501743895",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 37316
+    },
+    {
+      "id": "50eabb27-bd09-4e2c-87d6-55d1660f5acc",
+      "name": "Needham",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502144105",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 32931
+    },
+    {
+      "id": "d0cae2e2-40d2-437f-8576-d4fc917b6bd5",
+      "name": "New Ashford",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500344385",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 249
+    },
+    {
+      "id": "999d14c1-0c4e-4c55-9cd6-066c928244a4",
+      "name": "New Bedford",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2545000",
+      "geoid_basis": "census-pep-162-exact",
+      "population": 101318
+    },
+    {
+      "id": "e3745568-224a-481c-848d-91861b6a507d",
+      "name": "New Braintree",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502745105",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 1010
+    },
+    {
+      "id": "0c809787-8897-4f44-86c2-a7aed16c1a6b",
+      "name": "New Marlborough",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500345420",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 1503
+    },
+    {
+      "id": "37d54d6e-b631-460b-83d0-042d44315886",
+      "name": "New Salem",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501145490",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 1023
+    },
+    {
+      "id": "d8547971-3a97-43b9-9226-23c27af9feef",
+      "name": "Newbury",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500945175",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 6880
+    },
+    {
+      "id": "407481b2-9b35-4c8b-89c3-6e8a2d0fc90e",
+      "name": "Newburyport",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2545245",
+      "geoid_basis": "census-pep-162-exact",
+      "population": 19163
+    },
+    {
+      "id": "698f9ec0-9d95-4ce3-8fbb-5d2a93e3969a",
+      "name": "Newton",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2545560",
+      "geoid_basis": "census-pep-162-exact",
+      "population": 90700
+    },
+    {
+      "id": "17a52e05-e241-4965-9e96-0e87986a527f",
+      "name": "Norfolk",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502146050",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 11962
+    },
+    {
+      "id": "54bc5258-b234-4ccd-8896-45b2e5db728c",
+      "name": "Norfolk County",
+      "state": "MA",
+      "entity_type": "county",
+      "geoid": "25021",
+      "geoid_basis": "census-pep-050-exact",
+      "population": 740754
+    },
+    {
+      "id": "c2fdedd0-48de-4fd5-9055-ea1bbc2a9335",
+      "name": "North Adams",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2546225",
+      "geoid_basis": "census-pep-162-exact",
+      "population": 12492
+    },
+    {
+      "id": "24964313-8845-4d89-a39a-50964f289599",
+      "name": "North Andover",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500946365",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 32135
+    },
+    {
+      "id": "97f20998-6f25-44f6-8c32-acdb3b1bbbe9",
+      "name": "North Attleborough",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500546598",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 31210
+    },
+    {
+      "id": "9a6aedd3-7e2d-4b6d-a683-2af1e2d034ae",
+      "name": "North Brookfield",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502747135",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 4797
+    },
+    {
+      "id": "50ffbe4f-869d-4c63-8a36-f39a2401510f",
+      "name": "North Reading",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501748955",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 16379
+    },
+    {
+      "id": "ed7d9698-42d9-430e-bb86-a44ad31ebbc3",
+      "name": "Northampton",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2546330",
+      "geoid_basis": "census-pep-162-exact",
+      "population": 31315
+    },
+    {
+      "id": "8982f059-6267-4e31-b5c0-6f6efc6a64a4",
+      "name": "Northborough",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502746820",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 15867
+    },
+    {
+      "id": "b7ecc6e6-5155-4454-9d0b-604ab795e297",
+      "name": "Northbridge",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502746925",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 16719
+    },
+    {
+      "id": "d0ed57bc-a816-44f5-8fcd-b6ce17de33ae",
+      "name": "Northfield",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501147835",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 2880
+    },
+    {
+      "id": "74cb9522-3cd3-44fe-b05e-3289375436e8",
+      "name": "Norton",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500549970",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 19392
+    },
+    {
+      "id": "9c9e4c1d-d788-4e94-a69f-b92dc1853669",
+      "name": "Norwell",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502350145",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 11477
+    },
+    {
+      "id": "eed9f5b2-0211-413b-af31-e65fbef8f378",
+      "name": "Norwood",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502150250",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 31764
+    },
+    {
+      "id": "4756b423-3bbe-4abf-9266-a3ee49b45b81",
+      "name": "Oak Bluffs",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500750390",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 5407
+    },
+    {
+      "id": "40b9b07d-2b63-4217-957f-ea8ec1e92f3e",
+      "name": "Oakham",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502750670",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 1914
+    },
+    {
+      "id": "7e36614e-420f-49a6-ae52-80735799b6a1",
+      "name": "Orange",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501151265",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 7583
+    },
+    {
+      "id": "b50f5bcc-ab11-4fcd-bdea-0b547008cfed",
+      "name": "Orleans",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500151440",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 6485
+    },
+    {
+      "id": "b34db996-c92d-4ec7-ad2d-1e3b6d80e6c8",
+      "name": "Otis",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500351580",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 1619
+    },
+    {
+      "id": "88b8b754-1a33-4750-9370-5b896322b88a",
+      "name": "Oxford",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502751825",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 13503
+    },
+    {
+      "id": "56b8d923-51aa-4edc-a141-d1a97b79f7d5",
+      "name": "Palmer",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501352144",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 12388
+    },
+    {
+      "id": "ce1b3540-e9d5-4709-b13e-b57655c1786f",
+      "name": "Paxton",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502752420",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 5043
+    },
+    {
+      "id": "fd42770c-d2fa-473b-bcc1-45c561efa8ca",
+      "name": "Peabody",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2552490",
+      "geoid_basis": "census-pep-162-exact",
+      "population": 55418
+    },
+    {
+      "id": "40635f88-05f0-4e68-8155-5b51f4a247c8",
+      "name": "Pelham",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501552560",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 1343
+    },
+    {
+      "id": "c51266bc-a168-45f6-94a4-fdd1cadc8f48",
+      "name": "Pembroke",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502352630",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 18428
+    },
+    {
+      "id": "4ecb4fd2-8f6e-4402-a599-7e52b6061137",
+      "name": "Pepperell",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501752805",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 11877
+    },
+    {
+      "id": "1d9b09aa-fd8b-4b65-8f15-febc8deb6a5e",
+      "name": "Peru",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500353050",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 798
+    },
+    {
+      "id": "a8751b3b-5155-4cea-9fb0-6c22386834a4",
+      "name": "Petersham",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502753120",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 1246
+    },
+    {
+      "id": "8639e151-030d-4eb0-9902-67c266ec44e1",
+      "name": "Phillipston",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502753225",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 1759
+    },
+    {
+      "id": "786a130e-4f8b-4631-a61f-102f2b4898ca",
+      "name": "Pittsfield",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2553960",
+      "geoid_basis": "census-pep-162-exact",
+      "population": 43121
+    },
+    {
+      "id": "e84fd547-e044-4b90-a47b-e989e12e5b9c",
+      "name": "Plainfield",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501554030",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 649
+    },
+    {
+      "id": "571927e7-a6ae-42a1-a9d0-9825bde682c2",
+      "name": "Plainville",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502154100",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 10067
+    },
+    {
+      "id": "1fbfe790-8f84-41a2-a1b6-97c30ca605cd",
+      "name": "Plymouth",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502354310",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 66663
+    },
+    {
+      "id": "713d8a45-2d41-498b-8a92-b5176b1373f1",
+      "name": "Plymouth County",
+      "state": "MA",
+      "entity_type": "county",
+      "geoid": "25023",
+      "geoid_basis": "census-pep-050-exact",
+      "population": 542090
+    },
+    {
+      "id": "074828c8-c074-4991-8f31-796dccb6882f",
+      "name": "Plympton",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502354415",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 2964
+    },
+    {
+      "id": "210956db-267c-4564-a41b-2c1b90c14da2",
+      "name": "Princeton",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502755395",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 3597
+    },
+    {
+      "id": "6fd5c558-5014-4129-bdf7-e5fa7dc6484c",
+      "name": "Provincetown",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500155500",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 3729
+    },
+    {
+      "id": "7bf829e4-59dd-4edd-b372-fa4944b00457",
+      "name": "Quincy",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2555745",
+      "geoid_basis": "census-pep-162-exact",
+      "population": 103434
+    },
+    {
+      "id": "a7cbf555-de21-40bb-9c3d-54d5b28df1f0",
+      "name": "Randolph",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502156000",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 35114
+    },
+    {
+      "id": "2ad5c789-5154-40ee-aaf5-38cc18bd1f9c",
+      "name": "Raynham",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500556060",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 15861
+    },
+    {
+      "id": "de3d8cac-ba80-459e-b0fb-fb2311c9defc",
+      "name": "Reading",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501756130",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 26041
+    },
+    {
+      "id": "5a009f7c-e61d-4aec-aea3-4190a36ebf30",
+      "name": "Rehoboth",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500556375",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 13537
+    },
+    {
+      "id": "12481bda-0983-4c85-8f29-8339f575e78c",
+      "name": "Revere",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2556585",
+      "geoid_basis": "census-pep-162-exact",
+      "population": 60702
+    },
+    {
+      "id": "0871a357-783c-40a8-bcd6-1c8a348c758b",
+      "name": "Richmond",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500356795",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 1405
+    },
+    {
+      "id": "294c0d9c-c40b-4a6e-a1b3-68db49577ca4",
+      "name": "Rochester",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502357600",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 5936
+    },
+    {
+      "id": "6bfa6e59-582e-46bb-9ff4-d79f2998228a",
+      "name": "Rockland",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502357775",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 17708
+    },
+    {
+      "id": "44077e65-eb36-432c-85cc-8e9ee2378666",
+      "name": "Rockport",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500957880",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 7091
+    },
+    {
+      "id": "aa2fa3b9-af13-4fe6-a8b6-c7d3816177ca",
+      "name": "Rowe",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501158335",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 419
+    },
+    {
+      "id": "be54a5be-d4ba-4b9b-8ac7-238dc1d1da1e",
+      "name": "Rowley",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500958405",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 6334
+    },
+    {
+      "id": "6604128a-0ace-4ad5-938b-8194c3064e31",
+      "name": "Royalston",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502758580",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 1291
+    },
+    {
+      "id": "93e1343b-88b3-49c4-b3c5-26f628632363",
+      "name": "Russell",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501358650",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 1640
+    },
+    {
+      "id": "5bf90a67-7ce3-4542-abc3-9c67e4fb6d97",
+      "name": "Rutland",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502758825",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 9637
+    },
+    {
+      "id": "f7314c6e-b7a6-4312-a4e3-b5be8fe440c3",
+      "name": "Salem",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2559105",
+      "geoid_basis": "census-pep-162-exact",
+      "population": 45677
+    },
+    {
+      "id": "1cdb41ad-85b5-4ac9-97e3-d2b011e548b6",
+      "name": "Salisbury",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500959245",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 9415
+    },
+    {
+      "id": "77f31eda-ffc2-447e-80d4-40c329c143cf",
+      "name": "Sandisfield",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500359665",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 984
+    },
+    {
+      "id": "c3d96349-2e55-42d4-9419-51744298e529",
+      "name": "Sandwich",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500159735",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 20507
+    },
+    {
+      "id": "5e12cac0-54f4-481f-ab92-594e1e93f32d",
+      "name": "Saugus",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500960015",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 29029
+    },
+    {
+      "id": "cf998943-df6c-4634-a683-de3e7ce33e5f",
+      "name": "Savoy",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500360225",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 655
+    },
+    {
+      "id": "d9f5b99f-a58a-4158-b7fe-a93f53847ceb",
+      "name": "Scituate",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502360330",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 19598
+    },
+    {
+      "id": "1631cc17-09a2-4e00-95c5-e9bad4fd10fb",
+      "name": "Seekonk",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500560645",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 15912
+    },
+    {
+      "id": "fec8eb40-ffab-4ad3-b546-6f51371f94ac",
+      "name": "Sharon",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502160785",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 18762
+    },
+    {
+      "id": "55908312-ce2c-481f-b3a5-4f078ad36fac",
+      "name": "Sheffield",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500361065",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 3324
+    },
+    {
+      "id": "f03b5119-2c3f-471a-bcce-0fc0d44ccc48",
+      "name": "Shelburne",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501161135",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 1874
+    },
+    {
+      "id": "ac136c8c-39cc-42e4-8ff3-fd6c21e6654d",
+      "name": "Sherborn",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501761380",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 4485
+    },
+    {
+      "id": "d11aec05-a9e1-4fb6-90a7-acc2168ea19a",
+      "name": "Shirley",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501761590",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 7042
+    },
+    {
+      "id": "2b42141c-de81-4a84-bf66-6ea130f8bcd8",
+      "name": "Shrewsbury",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502761800",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 39620
+    },
+    {
+      "id": "fdc6416b-d54d-4f13-8911-623a1a3058d4",
+      "name": "Shutesbury",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501161905",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 1717
+    },
+    {
+      "id": "ec18a160-b7d5-489d-931d-0b338802f8bc",
+      "name": "Somerset",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500562430",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 18375
+    },
+    {
+      "id": "27fcb9eb-5f43-4937-bdf4-8ee12e26c190",
+      "name": "Somerville",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2562535",
+      "geoid_basis": "census-pep-162-exact",
+      "population": 82149
+    },
+    {
+      "id": "a69b0061-eb06-4734-a644-720bdaae90f8",
+      "name": "South Hadley",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501564145",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 18031
+    },
+    {
+      "id": "2a6a9feb-0e66-4cda-b9f1-506bcb354e9a",
+      "name": "Southampton",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501562745",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 6181
+    },
+    {
+      "id": "c0b035d3-93e7-481e-a653-d54247aae636",
+      "name": "Southborough",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502763165",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 10569
+    },
+    {
+      "id": "77881d12-7d67-467b-9f04-7f518ab13546",
+      "name": "Southbridge",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502763345",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 18106
+    },
+    {
+      "id": "0bb86504-280a-4c7c-940e-64c3a3cb9dfd",
+      "name": "Southwick",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501365825",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 9277
+    },
+    {
+      "id": "db02a078-5f05-4bea-9044-7d216d115e8d",
+      "name": "Spencer",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502766105",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 12090
+    },
+    {
+      "id": "498bbf95-8e35-4015-9698-9c9e49b3b76d",
+      "name": "Springfield",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2567000",
+      "geoid_basis": "census-pep-162-exact",
+      "population": 154888
+    },
+    {
+      "id": "b7135385-3da9-4761-89e8-e8d2f2c46291",
+      "name": "Sterling",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502767385",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 8310
+    },
+    {
+      "id": "62774231-784a-4240-ac73-ae98d4201757",
+      "name": "Stockbridge",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500367595",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 1986
+    },
+    {
+      "id": "373de25f-1391-4d37-a0c9-75d21c0defd5",
+      "name": "Stoneham",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501767665",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 24550
+    },
+    {
+      "id": "ffba0303-0963-459e-9105-cf8c172fdd68",
+      "name": "Stoughton",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502167945",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 29457
+    },
+    {
+      "id": "69c46418-d8c9-4e5a-9e56-b92e73b2d28c",
+      "name": "Stow",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501768050",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 7335
+    },
+    {
+      "id": "c0e9fbf9-13d0-4c16-bed5-fecaf17ebfd9",
+      "name": "Sturbridge",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502768155",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 10097
+    },
+    {
+      "id": "3f220a43-200c-4be2-a9f3-414fae3dcc8e",
+      "name": "Sudbury",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501768260",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 19805
+    },
+    {
+      "id": "19607e5f-a40e-4392-a402-d7a886fc5008",
+      "name": "Sunderland",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501168400",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 3628
+    },
+    {
+      "id": "5e3c90a5-732f-493a-9fe4-340d893a81e7",
+      "name": "Sutton",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502768610",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 9599
+    },
+    {
+      "id": "95a9c01b-4044-4fab-bfce-b378116ef709",
+      "name": "Swampscott",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500968645",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 15658
+    },
+    {
+      "id": "b172d40b-be6c-4894-a28d-75cc579ad9fc",
+      "name": "Swansea",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500568750",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 17537
+    },
+    {
+      "id": "2722a1e6-af50-46f9-8bcc-13adae4c2ecd",
+      "name": "Taunton",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2569170",
+      "geoid_basis": "census-pep-162-exact",
+      "population": 61936
+    },
+    {
+      "id": "8e177a3a-ad58-4180-8861-e8f4114e57fd",
+      "name": "Templeton",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502769275",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 8387
+    },
+    {
+      "id": "89166cb4-bcf8-4be1-bc1d-71f436978160",
+      "name": "Tewksbury",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501769415",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 31796
+    },
+    {
+      "id": "476aa8e3-9643-4f6f-9ccc-f7813c938529",
+      "name": "Tisbury",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500769940",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 4927
+    },
+    {
+      "id": "9db2565d-b0f7-4aef-8ba2-57440a1b379a",
+      "name": "Tolland",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501370045",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 474
+    },
+    {
+      "id": "ea4fc1cb-9969-4133-8c13-4b9127b65ff3",
+      "name": "Topsfield",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500970150",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 6620
+    },
+    {
+      "id": "cad9f262-26d3-4631-92ce-9696cd791d0d",
+      "name": "Townsend",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501770360",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 9220
+    },
+    {
+      "id": "41eaca1b-423e-415a-a97a-4852baaccde9",
+      "name": "Truro",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500170605",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 2484
+    },
+    {
+      "id": "516a5281-559a-4a3a-af52-055b85acb797",
+      "name": "Tyngsborough",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501771025",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 12779
+    },
+    {
+      "id": "e5241dff-cf8b-48f6-9115-b7a6bacfe4b3",
+      "name": "Tyringham",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500371095",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 419
+    },
+    {
+      "id": "b855b1b6-cae7-4697-9965-bcb929116809",
+      "name": "Upton",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502771480",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 8475
+    },
+    {
+      "id": "f1d70459-7740-4065-bfb8-701016faaeb9",
+      "name": "Uxbridge",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502771620",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 14703
+    },
+    {
+      "id": "9426182e-4bc0-4843-8d56-4b218377e04b",
+      "name": "Wakefield",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501772215",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 29216
+    },
+    {
+      "id": "6dc3af68-eae4-44fa-96fc-cfb1b0197e25",
+      "name": "Wales",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501372390",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 1828
+    },
+    {
+      "id": "194a6b68-458c-4d84-8e3f-c898bf2ac62b",
+      "name": "Walpole",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502172495",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 26391
+    },
+    {
+      "id": "f9d2b55c-c809-4373-9723-6281ea8fae38",
+      "name": "Waltham",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2572600",
+      "geoid_basis": "census-pep-162-exact",
+      "population": 65849
+    },
+    {
+      "id": "3c439d22-9fd2-4c65-a5ae-dceb9775a92b",
+      "name": "Ware",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501572880",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 10142
+    },
+    {
+      "id": "541e9796-93d8-47c4-a91a-7de07b2c01f5",
+      "name": "Wareham",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502372985",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 23526
+    },
+    {
+      "id": "7769c3ae-11d6-4e34-8363-d6108b1451f5",
+      "name": "Warren",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502773090",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 5086
+    },
+    {
+      "id": "18813642-3b55-48b0-9d83-431a5fd91b1e",
+      "name": "Warwick",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501173265",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 774
+    },
+    {
+      "id": "bf52e9e5-3d82-4ff4-ad9a-793393e6594f",
+      "name": "Washington",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500373335",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 497
+    },
+    {
+      "id": "5b2b51a5-29cc-4920-afbf-43323cbf00c4",
+      "name": "Watertown",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2573405",
+      "geoid_basis": "census-pep-162-exact",
+      "population": 35985
+    },
+    {
+      "id": "b6b5dd66-45e9-4f66-be4a-668ef18fe22e",
+      "name": "Wayland",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501773790",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 14054
+    },
+    {
+      "id": "c376a7d1-6be2-4ca7-805d-a919162d39df",
+      "name": "Webster",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502773895",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 17817
+    },
+    {
+      "id": "f805f49c-8b8f-44a1-87ac-175c2b082d71",
+      "name": "Wellesley",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502174175",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 31242
+    },
+    {
+      "id": "0ef8f0d9-4e43-4043-b1af-93e37ffb3e38",
+      "name": "Wellfleet",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500174385",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 3645
+    },
+    {
+      "id": "b8a5419e-1474-4c73-a7e4-d6af34a03b4d",
+      "name": "Wendell",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501174525",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 916
+    },
+    {
+      "id": "3fd6e947-7576-4d34-98cc-b0a4d7e8d985",
+      "name": "Wenham",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500974595",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 4945
+    },
+    {
+      "id": "e0b72ed0-a422-4317-96fd-173c50aeb646",
+      "name": "West Boylston",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502775155",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 7938
+    },
+    {
+      "id": "a0505314-3018-451f-980d-e12e4a8f2f83",
+      "name": "West Bridgewater",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502375260",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 7771
+    },
+    {
+      "id": "b345692d-36e7-47fc-82be-e369e4f6e9e2",
+      "name": "West Brookfield",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502775400",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 3917
+    },
+    {
+      "id": "bbdfd265-9f1d-4437-90f3-2bc63f8711f9",
+      "name": "West Newbury",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500977150",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 4680
+    },
+    {
+      "id": "225c3d82-d063-4d42-a3b4-0dd86c58bebb",
+      "name": "West Springfield",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501377890",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 29028
+    },
+    {
+      "id": "6e47b818-005b-48f3-8ab8-3ba46a6499e0",
+      "name": "West Stockbridge",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500377990",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 1323
+    },
+    {
+      "id": "1bebdf2c-8d7e-467e-94d0-a8fd59fb1574",
+      "name": "West Tisbury",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500778235",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 3637
+    },
+    {
+      "id": "b870d0c1-0e2f-4971-b902-471952bbcf45",
+      "name": "Westborough",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502775015",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 22643
+    },
+    {
+      "id": "c7ca3c7f-7ae7-4abf-8cb1-8a4107250665",
+      "name": "Westfield",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2576030",
+      "geoid_basis": "census-pep-162-exact",
+      "population": 40403
+    },
+    {
+      "id": "b8997479-c941-43d7-8fd2-81a7ab6e45c2",
+      "name": "Westford",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501776135",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 25024
+    },
+    {
+      "id": "e1337d05-fa40-4515-8a0e-fbe033d3df20",
+      "name": "Westhampton",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501576380",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 1629
+    },
+    {
+      "id": "f516adaf-a9e7-42cc-9a82-2ddc40cc5d23",
+      "name": "Westminster",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502777010",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 8509
+    },
+    {
+      "id": "d8bcebdb-f751-4aec-a3d0-2be49582e3b3",
+      "name": "Weston",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501777255",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 11827
+    },
+    {
+      "id": "5f621488-ca37-4e62-82ac-14844d4c0d55",
+      "name": "Westport",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500577570",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 16705
+    },
+    {
+      "id": "779f93c4-af40-432b-876b-27ba940b5fb5",
+      "name": "Westwood",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502178690",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 16533
+    },
+    {
+      "id": "b77362d0-5eba-4929-b488-b2b36301a9f3",
+      "name": "Weymouth",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502178972",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 60159
+    },
+    {
+      "id": "1b82fec4-5413-4c6a-82d8-34ab0e7df958",
+      "name": "Whately",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501179110",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 1626
+    },
+    {
+      "id": "902028b5-2df8-460f-8624-818b6ca7b6fc",
+      "name": "Whitman",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502379530",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 15459
+    },
+    {
+      "id": "f5037d02-a3d2-4b07-b28b-597b52935d3d",
+      "name": "Wilbraham",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501379740",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 14663
+    },
+    {
+      "id": "2474c863-c650-4802-8284-2cbb610551ae",
+      "name": "Williamsburg",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501579915",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 2475
+    },
+    {
+      "id": "d6f4d3bd-fbaa-475a-9b3f-3afc139a5327",
+      "name": "Williamstown",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500379985",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 9189
+    },
+    {
+      "id": "fa259536-3b37-40d6-84be-ba5931d3bd40",
+      "name": "Wilmington",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501780230",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 23802
+    },
+    {
+      "id": "17e3e7b5-9d6b-40af-8a68-e71897fe97f8",
+      "name": "Winchendon",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502780405",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 10587
+    },
+    {
+      "id": "26e0a5a2-7e71-416d-b70a-fd7adfd1517f",
+      "name": "Winchester",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501780510",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 23953
+    },
+    {
+      "id": "acfdf84b-8612-44fb-a7b9-e8af3858c6c3",
+      "name": "Windsor",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500380685",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 817
+    },
+    {
+      "id": "44293abf-7c1b-40e0-ab73-9558b29de98c",
+      "name": "Winthrop",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502581005",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 18739
+    },
+    {
+      "id": "ce31725f-fa4a-4a98-bb83-73aa9135cf4b",
+      "name": "Woburn",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2581035",
+      "geoid_basis": "census-pep-162-exact",
+      "population": 43895
+    },
+    {
+      "id": "0a4dbaa2-4f48-4bdf-82da-1f59612bb008",
+      "name": "Worcester",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2582000",
+      "geoid_basis": "census-pep-162-exact",
+      "population": 211286
+    },
+    {
+      "id": "2648e55d-5ad9-4121-bb46-fb295ada3231",
+      "name": "Worthington",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2501582175",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 1181
+    },
+    {
+      "id": "a0a5ae2a-aa60-4559-b52a-af12325b19c0",
+      "name": "Wrentham",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2502182315",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 12516
+    },
+    {
+      "id": "03085d78-81ce-4b57-a782-c706a84a145c",
+      "name": "Yarmouth",
+      "state": "MA",
+      "entity_type": "city",
+      "geoid": "2500182525",
+      "geoid_basis": "census-pep-061-state-scoped",
+      "population": 25208
+    }
+  ]
+}

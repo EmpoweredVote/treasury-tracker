@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { createClient } from '@supabase/supabase-js';
+import { maKey, maEntityFor } from './lib/maNames.mjs';
 import { readFileSync, existsSync, createWriteStream, unlinkSync } from 'node:fs';
 import { get as httpsGet } from 'node:https';
 import { tmpdir } from 'node:os';
@@ -111,7 +112,13 @@ async function main() {
     process.exit(1);
   }
 
-  const dbNames = new Map(maMunis.map(m => [m.name, m.id]));
+  // ⚠⚠ KEYED ON squashMa(), NEVER THE RAW NAME. Thirteen MA governments are
+  // stored under a legal name DLS does not print ("Barnstable Town" against
+  // DLS's "Barnstable"), and the census and DLS also disagree about
+  // Manchester-by-the-Sea's punctuation. A raw-name Map misses those rows, and
+  // a miss here is not a crash — it is a government that silently stops being
+  // found. See scripts/lib/maNames.mjs.
+  const dbNames = new Map(maMunis.map(m => [maKey(m.name), m.id]));
   console.log(`DB MA municipalities: ${dbNames.size} (expected 351)`);
 
   // --- Step 2: Download Census CSV if not cached ---
@@ -143,13 +150,16 @@ async function main() {
     if (cols[0] !== '061') continue;
     const dbName = normalizeCensusName(cols[8]);
     const pop = parseInt(cols[15], 10);
-    if (!isNaN(pop) && dbName) cityMap.set(dbName, pop);
+    if (!isNaN(pop) && dbName) cityMap.set(maKey(dbName), pop);
   }
   console.log(`Census SUMLEV=061 rows parsed: ${cityMap.size}`);
 
   // --- Step 4: Sanity check known-good values (warn only — ASSUMED values per RESEARCH §A6) ---
   for (const [name, { min, max }] of Object.entries(KNOWN_VALUES)) {
-    const actual = cityMap.get(name);
+    // ⚠ cityMap is keyed by maKey() now, so the sanity names must be too —
+    // a raw lookup here would report every known value as "not found" and the
+    // guard would pass having checked nothing.
+    const actual = cityMap.get(maKey(name));
     if (actual === undefined) {
       console.warn(`WARNING: ${name} not found in Census CSV — cannot verify known value`);
     } else if (actual < min || actual > max) {
