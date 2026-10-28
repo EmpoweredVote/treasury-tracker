@@ -772,6 +772,71 @@ export const AUDIT_GRADE_REGISTRY = [
     },
   },
   {
+    // Alaska — Anchorage (#298) and the six largest boroughs (#299), graded
+    // 2026-10-28, two PRs after the family loaded. ⚠ It went into
+    // fundScopeRegistry.mjs when it landed and into no sibling registry; this
+    // entry and its reporting_entity and basis twins close that, and the lesson
+    // is in the note on `in-gateway-afr`.
+    //
+    // ⚠⚠ GRADED ON BOTH GATES, as co-springs-epc-acfr-gf below insists.
+    // `verifyCoKsOpinions.py` proves an opinion is PRESENT; it cannot prove the
+    // opinion is CLEAN, because a QUALIFIED opinion also contains "present
+    // fairly, in all material respects". `checkOpinionType.py` reads the
+    // opinion PARAGRAPH and reports any modifier inside it. Both were run over
+    // all 73 Alaska documents and both are re-runnable.
+    //
+    // ⚠ TWO YEAR RANGES IN ONE PATTERN, AND THE ASYMMETRY IS DELIBERATE.
+    // Anchorage is pinned to FY2012-FY2024 and the six boroughs to
+    // FY2016-FY2025, which is EXACTLY the set of documents read. A single
+    // FY2012-FY2025 range would auto-grade an Anchorage FY2025 ACFR the moment
+    // it loaded, off an opinion nobody has opened — the trap spelled out on
+    // co-springs-epc-acfr-gf below.
+    id: 'ak-local-acfr-gf',
+    match: /^(?:Municipality of Anchorage ACFR — General Fund (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[2-9]|2[0-4]) actual, GAAP basis\)|(?:Matanuska-Susitna Borough|Fairbanks North Star Borough|Kenai Peninsula Borough|City and Borough of Juneau|Ketchikan Gateway Borough|Kodiak Island Borough) ACFR — General Fund (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[6-9]|2[0-5]) actual, GAAP basis\))$/,
+    value: AUDIT_GRADE.AUDITED_GAAP,
+    evidence: {
+      document: 'All 73 Alaska ACFRs in the repo, read 2026-10-28 — Municipality of Anchorage '
+        + 'FY2012-FY2024 (13) and the six boroughs FY2016-FY2025 (10 each). Seventy of them '
+        + 'carry the 139 graded rows; the other three (Matanuska-Susitna FY2022 and FY2023, '
+        + 'Fairbanks North Star FY2019) are declared document gaps with no rows to grade, and '
+        + 'were read anyway so the gap stays a parse gap rather than an unknown opinion. '
+        + 'Each document was fetched to the path recorded in its manifest, which is the '
+        + '`source_url` stored on the rows it grades — so the document attested here is the '
+        + 'same one the reader is offered. All 139 rows carry a source_url (70 distinct, and '
+        + '70 x 2 - 1 = 139, the one being the Fairbanks FY2018 revenue gap).',
+      figures: 'OPINION PRESENT — scripts/verifyCoKsOpinions.py over all seven directories: 73 '
+        + 'found in the TEXT layer, 0 recovered by OCR, 0 NOT FOUND. '
+        + '⭐ THE OCR COLUMN READING ZERO IS ITSELF THE FINDING, and it is this family\'s one '
+        + 'real departure from its predecessors. Image-only auditor pages have been the '
+        + 'campaign\'s recurring trap — 8 of 36 Charlotte/Mecklenburg, 17 of 57 Colorado and '
+        + 'Kansas, 13 of 32 at Colorado Springs and El Paso. Alaska has NONE: every one of '
+        + 'these 73 opinion pages is born-digital. Stated because the next reader should not '
+        + 'conclude the OCR path was skipped. '
+        + 'OPINION UNMODIFIED — scripts/checkOpinionType.py over the same 73: 73 clean, 0 '
+        + 'MODIFIED, 0 unreadable, with --selftest passing first so the detector is known to '
+        + 'tell `qualified` from `unqualified`. '
+        + '⚠ FIVE DOCUMENTS CONTAIN MODIFIED-OPINION WORDS SOMEWHERE and none is modified — '
+        + 'Fairbanks North Star FY2016, Juneau FY2020 and FY2023, Ketchikan Gateway FY2023 and '
+        + 'FY2025. The presence gate reports these for review and never downgrades on them, '
+        + 'because the words live in the Single Audit compliance report and in boilerplate '
+        + 'describing what an auditor would do. The paragraph gate, which reads only the window '
+        + 'around the fair-presentation sentence, finds all five clean. That split is exactly '
+        + 'why there are two gates. '
+        + '⚠ "We did not audit the financial statements of the [entity] School District, which '
+        + 'is a discretely presented component unit" appears in several of these and is NOT a '
+        + 'modification — it is the standard group-audit reference to a unit audited by someone '
+        + 'else, the same construction co-springs-epc-acfr-gf warns would downgrade 30 clean '
+        + 'opinions if read as a qualification. Ketchikan Gateway\'s own FY2024 report says so '
+        + 'directly elsewhere in the document: its report "contained an unmodified opinion on '
+        + 'those financial statements". '
+        + '⚠ The heading over a clean opinion is "Opinions", never "Unmodified Opinion" — AU-C '
+        + '700 labels only a modified one — so the clean verdict rests on a positive '
+        + 'fair-presentation sentence plus the ABSENCE of a modifier near it, which is what '
+        + 'checkOpinionType.py measures. Anchorage FY2024 is the one document here that does '
+        + 'carry an explicit unmodified/unqualified heading.',
+    },
+  },
+  {
     // Colorado Springs + El Paso County — the follow-up session 7b filed and
     // deliberately did not take. Loaded in v2.29 (PR #47), `unknown` until now.
     //

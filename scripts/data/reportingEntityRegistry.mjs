@@ -202,6 +202,67 @@ export const REPORTING_ENTITY_REGISTRY = [
     // future North Carolina ACFR load therefore lands `unknown` until it is
     // evidenced, which is the correct failure direction.
     //
+    // Alaska — Anchorage (#298) and the six largest boroughs (#299). 139 rows,
+    // measured 2026-10-28. ⚠ Added two PRs after the family loaded, with its
+    // basis twin: the family went into fundScopeRegistry.mjs and into no
+    // sibling registry, which is the "widened one registry of four" shape the
+    // note on in-gateway-afr below describes for the fifth time.
+    //
+    // ⚠ ANCHORED TO THE SEVEN ENTITY NAMES and byte-identical to the patterns
+    // of this id in fundScopeRegistry.mjs and basisRegistry.mjs, so the three
+    // registries cannot disagree about who is in the family.
+    id: 'ak-local-acfr-gf',
+    match: /^(Municipality of Anchorage|Matanuska-Susitna Borough|Fairbanks North Star Borough|Kenai Peninsula Borough|City and Borough of Juneau|Ketchikan Gateway Borough|Kodiak Island Borough) ACFR — General Fund /,
+    value: REPORTING_ENTITY.PRIMARY,
+    evidence: {
+      document: 'The Reporting Entity note (Note 1.A, variously headed "REPORTING ENTITY" or '
+              + '"Reporting Entity") of all seven FY2024 filings — docs/Anchorage/'
+              + 'anchorage-2024-acfr.pdf and docs/AkBoroughs/{matsu,fnsb,kpb,juneau,kgb,kodiak}/'
+              + '*-2024-acfr.pdf. Read 2026-10-28.',
+      figures: 'The stored figure is the printed General Fund column of the FUND financial '
+             + 'statements. Under GASB 34 a discretely presented component unit appears only in '
+             + 'the government-wide statements, in its own column, so it cannot be inside that '
+             + 'figure — and six of the seven say so in their own words. Matanuska-Susitna: "The '
+             + 'School District is reported in a separate column of the government-wide '
+             + 'financial statements to emphasize..."; Fairbanks North Star, of BOTH its units: '
+             + '"The School District is reported in a separate column in the government-wide '
+             + 'financial statements" and "The IGU is reported in a separate column in the '
+             + 'government-wide financial statements"; Kodiak Island: "The discretely presented '
+             + 'component unit is reported in a separate column in basic financial statements"; '
+             + 'Juneau, of JSD: "It is reported in a separate column to emphasize that it is '
+             + 'legally separate from CBJ"; Kenai Peninsula: "The School District, SPH and CPH '
+             + 'are each discretely presented in a separate column in the basic [statements]". '
+             + '⭐ THE BLENDED SIDE IS WHAT USUALLY NEEDS CHECKING, AND HERE IT BARELY EXISTS. '
+             + 'A blended unit IS a fund of the primary government under GASB 34, so the '
+             + 'question is always whether any of them is the General Fund. FOUR of the seven — '
+             + 'Fairbanks North Star, Juneau, Ketchikan Gateway and Kodiak Island — report ZERO '
+             + 'blended component units; every unit they have is discretely presented. Of the '
+             + 'other three: Anchorage blends exactly one, CIVICVentures (the Dena\'ina and Egan '
+             + 'convention centers), and its own note says "CIVICVentures is accounted for as a '
+             + 'DEBT SERVICE FUND" — not the General Fund. Kenai Peninsula\'s single blended '
+             + 'unit is blended into THE HOSPITAL, itself a discretely presented component unit, '
+             + 'so it is two removes from the primary government\'s General Fund. '
+             + 'Matanuska-Susitna reports none. '
+             + '⭐ ARITHMETIC CORROBORATION, already measured for the fund-scope entry of this '
+             + 'id and re-used here because it answers exactly this question: in every probe the '
+             + 'printed fund columns sum EXACTLY to the printed Total Governmental Funds column '
+             + '(Anchorage FY2024 803,259,435 + 38,362,806 + 1,879,859 + 127,780,750 = '
+             + '971,282,850, and the same at FY2017 and FY2012). A component-unit column inside '
+             + 'the General Fund figure would break that identity. '
+             + '⚠⚠ ANCHORAGE LOOKS LIKE THE EXCEPTION AND IS NOT. Its General Fund carries '
+             + 'Education at 263,714,389 in FY2024, about a third of the fund, which reads like '
+             + 'a consolidated school district. It is the MUNICIPALITY\'S OWN APPROPRIATION to '
+             + 'the Anchorage School District — what the Municipality spends — not ASD\'s '
+             + 'revenues and expenditures, which are discretely presented in their own column. '
+             + 'The same relationship holds at every borough here: each levies the taxes and '
+             + 'appropriates to a school district it does not consolidate. '
+             + '⚠ Contrast mn-osa, the one incl_component_units entry in this registry, where '
+             + 'the OSA RE-AGGREGATES units the city ACFR presents separately (+21.7% on '
+             + 'Bloomington FY2022). Nothing of that kind happens here: the figure is read FROM '
+             + 'the government\'s own fund statement, by TT, with no intermediary.',
+    },
+  },
+  {
     // WARNING this matches the DATA_SOURCE STRING, and "Durham" is also a town
     // in CONNECTICUT and NEW HAMPSHIRE - TT already carries CT entities. The
     // string written here is "City of Durham", which neither town would use,

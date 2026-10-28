@@ -2,9 +2,12 @@ import { describe, it, expect } from 'vitest';
 
 // From the LIB, never from a shebang driver — see the note in coAcfrLoad.test.mjs.
 import {
-  dataSourceLabel, scopeForDataSource, basisForDataSource, axisStampFor,
+  dataSourceLabel, scopeForDataSource, basisForDataSource,
+  reportingEntityForDataSource, auditGradeForDataSource, axisStampFor,
 } from '../scripts/lib/acfrGfLoad.mjs';
-import { BASIS, BASIS_VALUES, classifyAxis } from '../scripts/lib/budgetAxes.mjs';
+import {
+  BASIS, BASIS_VALUES, REPORTING_ENTITY, AUDIT_GRADE, classifyAxis,
+} from '../scripts/lib/budgetAxes.mjs';
 import { BASIS_REGISTRY } from '../scripts/data/basisRegistry.mjs';
 import { SCOPE } from '../scripts/lib/fundScope.mjs';
 
@@ -149,17 +152,87 @@ describe('basisForDataSource — the axis the loader never stamped', () => {
   });
 });
 
+describe('reportingEntityForDataSource / auditGradeForDataSource', () => {
+  it('⭐ stamps primary_government for every entity in the family', () => {
+    // The General Fund column of the FUND statements. A discretely presented
+    // component unit lives only in the government-wide statements under GASB
+    // 34, and four of the seven report no blended unit at all.
+    for (const entity of AK_FAMILY) {
+      for (const mode of MODES) {
+        const label = dataSourceLabel({ entityLabel: entity }, 2024, mode);
+        expect(reportingEntityForDataSource(label), entity).toBe(REPORTING_ENTITY.PRIMARY);
+      }
+    }
+  });
+
+  it('⭐ grades audited_gaap across each entity\'s OWN loaded window', () => {
+    // Anchorage FY2012-FY2024, the six boroughs FY2016-FY2025 — 73 documents,
+    // every opinion present in the text layer and every one unmodified.
+    for (const fy of [2012, 2016, 2020, 2024]) {
+      expect(auditGradeForDataSource(dataSourceLabel(ANCHORAGE, fy, 'revenue')), `Anchorage FY${fy}`)
+        .toBe(AUDIT_GRADE.AUDITED_GAAP);
+    }
+    for (const entity of AK_FAMILY.filter((e) => e !== 'Municipality of Anchorage')) {
+      for (const fy of [2016, 2020, 2025]) {
+        for (const mode of MODES) {
+          const label = dataSourceLabel({ entityLabel: entity }, fy, mode);
+          expect(auditGradeForDataSource(label), `${entity} FY${fy} ${mode}`)
+            .toBe(AUDIT_GRADE.AUDITED_GAAP);
+        }
+      }
+    }
+  });
+
+  it('⭐⭐ refuses to grade a year whose opinion was never read', () => {
+    // ⚠ THE ASYMMETRY IS THE POINT. The two calendars were read over different
+    // windows, so a single FY2012-FY2025 range would auto-grade an Anchorage
+    // FY2025 ACFR the moment it loaded, off an opinion nobody had opened.
+    expect(auditGradeForDataSource(dataSourceLabel(ANCHORAGE, 2025, 'revenue'))).toBe(AUDIT_GRADE.UNKNOWN);
+    expect(auditGradeForDataSource(dataSourceLabel(ANCHORAGE, 2011, 'revenue'))).toBe(AUDIT_GRADE.UNKNOWN);
+    expect(auditGradeForDataSource(dataSourceLabel(KODIAK, 2015, 'revenue'))).toBe(AUDIT_GRADE.UNKNOWN);
+    expect(auditGradeForDataSource(dataSourceLabel(KODIAK, 2026, 'revenue'))).toBe(AUDIT_GRADE.UNKNOWN);
+    // ...while the years that WERE read still grade, so the narrowing has not
+    // simply broken the entry.
+    expect(auditGradeForDataSource(dataSourceLabel(ANCHORAGE, 2024, 'revenue'))).toBe(AUDIT_GRADE.AUDITED_GAAP);
+    expect(auditGradeForDataSource(dataSourceLabel(KODIAK, 2025, 'revenue'))).toBe(AUDIT_GRADE.AUDITED_GAAP);
+  });
+
+  it('leaves an UNRECOGNISED source unknown on both axes', () => {
+    const label = dataSourceLabel({ entityLabel: 'Some Brand New City' }, 2024, 'revenue');
+    expect(reportingEntityForDataSource(label)).toBe(REPORTING_ENTITY.UNKNOWN);
+    expect(auditGradeForDataSource(label)).toBe(AUDIT_GRADE.UNKNOWN);
+    for (const bad of ['', null]) {
+      expect(reportingEntityForDataSource(bad)).toBe(REPORTING_ENTITY.UNKNOWN);
+      expect(auditGradeForDataSource(bad)).toBe(AUDIT_GRADE.UNKNOWN);
+    }
+  });
+});
+
 describe('axisStampFor — an unknown is OMITTED, never written', () => {
-  it('⭐ carries both axes for a classified label', () => {
+  it('⭐ carries all four axes for a fully classified label', () => {
     for (const cfg of [ANCHORAGE, KODIAK]) {
       for (const mode of MODES) {
         const label = dataSourceLabel(cfg, 2024, mode);
         expect(axisStampFor(label), `${cfg.entityLabel} ${mode}`).toEqual({
           fund_scope: SCOPE.GENERAL_FUND,
           basis: BASIS.ACTUAL,
+          reporting_entity: REPORTING_ENTITY.PRIMARY,
+          audit_grade: AUDIT_GRADE.AUDITED_GAAP,
         });
       }
     }
+  });
+
+  it('⭐⭐ drops ONLY the ungradeable axis for an unread year', () => {
+    // Anchorage FY2025: scope, basis and reporting entity hold for the family
+    // whatever the year, but the audit grade is per DOCUMENT and that document
+    // has not been read. Three axes written, one left alone.
+    const label = dataSourceLabel(ANCHORAGE, 2025, 'operating');
+    expect(axisStampFor(label)).toEqual({
+      fund_scope: SCOPE.GENERAL_FUND,
+      basis: BASIS.ACTUAL,
+      reporting_entity: REPORTING_ENTITY.PRIMARY,
+    });
   });
 
   it('⭐⭐ omits a column it cannot classify instead of writing unknown over it', () => {
@@ -173,32 +246,39 @@ describe('axisStampFor — an unknown is OMITTED, never written', () => {
     expect('basis' in patch).toBe(false);
   });
 
-  it('omits ONE axis without suppressing the other', () => {
+  it('omits ONE axis without suppressing the others', () => {
     // The axes are classified independently, so a family evidenced on scope but
     // not yet on basis — which is exactly what Alaska was until this change —
-    // must still get its scope stamped.
+    // must still get its other three stamped.
     const label = dataSourceLabel(KODIAK, 2024, 'operating');
-    const noBasisRegistry = [];
-    expect(axisStampFor(label, undefined, noBasisRegistry)).toEqual({ fund_scope: SCOPE.GENERAL_FUND });
+    expect(axisStampFor(label, { basis: [] })).toEqual({
+      fund_scope: SCOPE.GENERAL_FUND,
+      reporting_entity: REPORTING_ENTITY.PRIMARY,
+      audit_grade: AUDIT_GRADE.AUDITED_GAAP,
+    });
   });
 
-  it('writes nothing but the two axis columns', () => {
+  it('writes nothing but the four axis columns', () => {
     // The caller spreads this into an update beside source_url, source_date,
     // data_source and fiscal_year_start_month. A stray key here would overwrite
     // one of those silently.
     const keys = Object.keys(axisStampFor(dataSourceLabel(KODIAK, 2024, 'revenue'))).sort();
-    expect(keys).toEqual(['basis', 'fund_scope']);
+    expect(keys).toEqual(['audit_grade', 'basis', 'fund_scope', 'reporting_entity']);
   });
 
-  it('agrees with the two single-axis helpers, on every label', () => {
-    for (const entity of [...AK_FAMILY, ...TX_CO_FAMILY, 'Some Brand New City']) {
-      for (const mode of MODES) {
-        const label = dataSourceLabel({ entityLabel: entity }, 2024, mode);
-        const patch = axisStampFor(label);
-        const scope = scopeForDataSource(label);
-        const basis = basisForDataSource(label);
-        expect(patch.fund_scope ?? SCOPE.UNKNOWN).toBe(scope);
-        expect(patch.basis ?? BASIS.UNKNOWN).toBe(basis);
+  it('agrees with every single-axis helper, on every label', () => {
+    const cases = [...AK_FAMILY, ...TX_CO_FAMILY, 'Some Brand New City'];
+    for (const entity of cases) {
+      for (const fy of [2011, 2024, 2025]) {
+        for (const mode of MODES) {
+          const label = dataSourceLabel({ entityLabel: entity }, fy, mode);
+          const patch = axisStampFor(label);
+          expect(patch.fund_scope ?? SCOPE.UNKNOWN).toBe(scopeForDataSource(label));
+          expect(patch.basis ?? BASIS.UNKNOWN).toBe(basisForDataSource(label));
+          expect(patch.reporting_entity ?? REPORTING_ENTITY.UNKNOWN)
+            .toBe(reportingEntityForDataSource(label));
+          expect(patch.audit_grade ?? AUDIT_GRADE.UNKNOWN).toBe(auditGradeForDataSource(label));
+        }
       }
     }
   });

@@ -694,6 +694,22 @@ export const EXPECTED_REPORTING_ENTITY_ROWS = Object.freeze({
   // fund, and its $2,019,288 of revenue and $2,446,254 of expenditure are inside
   // the loaded totals. Loaded as published, flagged, and printed at load time.
   'in-county-acfr-tg': 198,
+  // Alaska — Anchorage (#298) and the six largest boroughs (#299). The same
+  // 139 rows as the basis entry above, MEASURED IN THE TABLE 2026-10-28; one
+  // family, four axes, and they must move together.
+  //
+  // `primary_government` because a discretely presented component unit appears
+  // only in the government-wide statements under GASB 34, which six of the
+  // seven say in their own words, and because the BLENDED side — the one that
+  // can reach a fund — barely exists here: four of the seven report NO blended
+  // unit at all, Anchorage's single one (CIVICVentures) is "accounted for as a
+  // debt service fund", and Kenai Peninsula's is blended into the HOSPITAL,
+  // itself a discrete component unit.
+  //
+  // ⚠ Anchorage's General Fund carries Education at 263,714,389 in FY2024 and
+  // still belongs here: that is the MUNICIPALITY'S APPROPRIATION to a school
+  // district it does not consolidate, not the district's own books.
+  'ak-local-acfr-gf': 139,
   // The sixteen entity-published city/state ACFR families.
   // Evidence: ACFR-GF-CLASSIFICATION-RECON.md §3.
   'or-city-acfr-gf': 106,

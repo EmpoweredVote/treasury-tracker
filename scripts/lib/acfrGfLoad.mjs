@@ -62,13 +62,18 @@
  *    matters: the frozen-figure registry is keyed on it. A post-RPC gate
  *    refuses if a row that existed before comes back under a different id.
  *
- * 6. THE CLASSIFICATION AXES ARE STAMPED FROM THE REGISTRIES, not hardcoded.
- *    `fund_scope` and `basis` are read from `fundScopeRegistry.mjs` and
- *    `basisRegistry.mjs` through the same classifiers the SCOPE-01 and SCOPE-02
- *    sweeps use, so the loader and the sweeps cannot disagree, and an axis
- *    neither registry can classify is LEFT ALONE rather than written `unknown`.
- *    `basis` was missing until 2026-10-28, which is why 139 Alaska rows read
- *    `unknown` while their Texas and Colorado siblings read `actual`.
+ * 6. ALL FOUR CLASSIFICATION AXES ARE STAMPED FROM THE REGISTRIES, not
+ *    hardcoded. `fund_scope`, `basis`, `reporting_entity` and `audit_grade`
+ *    are read from `fundScopeRegistry.mjs`, `basisRegistry.mjs`,
+ *    `reportingEntityRegistry.mjs` and `auditGradeRegistry.mjs` through the
+ *    same classifiers the sweeps use, so the loader and the sweeps cannot
+ *    disagree, and an axis no registry can classify is LEFT ALONE rather than
+ *    written `unknown`. Only `fund_scope` was stamped until 2026-10-28, which
+ *    is why 139 Alaska rows read `unknown` on the other three while their
+ *    Texas and Colorado siblings did not.
+ *    ⚠ `audit_grade` is per DOCUMENT, so it is the one that legitimately comes
+ *    back unknown for a row the other three classify — a newly published
+ *    fiscal year has no opinion read yet.
  *
  * `data_sources` rows are EPHEMERAL: created per dataset_type at the start of a
  * live run and deleted in a `finally` block. `budgets` rows carry the durable
@@ -91,8 +96,12 @@ import { createClient } from '@supabase/supabase-js';
 import { resolvePython } from './pythonBin.mjs';
 import { classify, SCOPE } from './fundScope.mjs';
 import { FUND_SCOPE_REGISTRY } from '../data/fundScopeRegistry.mjs';
-import { BASIS, BASIS_VALUES, classifyAxis } from './budgetAxes.mjs';
+import {
+  BASIS, BASIS_VALUES, REPORTING_ENTITY, REPORTING_ENTITY_VALUES, AUDIT_GRADE, classifyAxis,
+} from './budgetAxes.mjs';
 import { BASIS_REGISTRY } from '../data/basisRegistry.mjs';
+import { REPORTING_ENTITY_REGISTRY } from '../data/reportingEntityRegistry.mjs';
+import { gradeFor } from '../data/auditGradeRegistry.mjs';
 
 const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1')), '..', '..');
 
@@ -413,6 +422,44 @@ export function basisForDataSource(label, registry = BASIS_REGISTRY) {
 }
 
 /**
+ * The `reporting_entity` this loader must stamp — whose books the figure is.
+ *
+ * Classified exactly like the two above, from the registry
+ * `scripts/stampBudgetAxes.mjs` sweeps with, so the loader and the sweep
+ * cannot disagree. Added 2026-10-28 with `auditGradeForDataSource` below.
+ */
+export function reportingEntityForDataSource(label, registry = REPORTING_ENTITY_REGISTRY) {
+  return classifyAxis(label, registry, REPORTING_ENTITY_VALUES, REPORTING_ENTITY.UNKNOWN).value;
+}
+
+/**
+ * The `audit_grade` this loader must stamp — how much assurance stands behind
+ * the figure.
+ *
+ * ⚠⚠ THIS AXIS IS PER DOCUMENT, NOT PER FAMILY, and that is why it is the one
+ * most likely to come back `unknown` for a row the other three classify. A
+ * grade says an opinion was READ, in that specific filing; an entry's pattern
+ * is therefore pinned to the fiscal years actually read, and a newly published
+ * year lands `unknown` until somebody opens it. `ak-local-acfr-gf` carries two
+ * year ranges in one pattern for exactly this reason — Anchorage was read
+ * FY2012-FY2024 and the six boroughs FY2016-FY2025.
+ *
+ * ⚠ `gradeFor` rather than a bare `classifyAxis`: an entry may carry a
+ * `branch()` that resolves a per-entity-year grade, and bypassing it would
+ * silently stamp the family floor. No entry this loader can reach branches
+ * today; calling the registry's own accessor keeps that true if one ever does.
+ *
+ * ⚠ A graded row must carry a `source_url` — `scripts/stampAuditGrade.mjs`
+ * refuses without one and the database enforces it
+ * (`budgets_graded_rows_need_a_source_url`). The caller sets `source_url` in
+ * the SAME update as this column, so the constraint is satisfied by the time
+ * the statement ends.
+ */
+export function auditGradeForDataSource(label) {
+  return gradeFor(label).value;
+}
+
+/**
  * The classification columns to stamp for `label`, as a PATCH to spread into
  * the update — never a full row.
  *
@@ -420,19 +467,31 @@ export function basisForDataSource(label, registry = BASIS_REGISTRY) {
  * classify may already hold a value some other pass put there, and sending a
  * literal `unknown` would overwrite it. That is precisely PR #300's defect —
  * a reload silently downgrading an evidenced row — and there is no reason to
- * reproduce it on a second axis now that there are two. The sweeps write only
- * the rows an entry CLAIMS; this does the same, from the same registries.
+ * reproduce it on three more axes. The sweeps write only the rows an entry
+ * CLAIMS; this does the same, from the same registries.
  *
- * ⚠ Omitting is also harmless for a genuinely new row: the RPC inserts both
- * columns at the table default, which is `unknown` either way. The only
- * behaviour this changes is the destructive one.
+ * ⚠ Omitting is also harmless for a genuinely new row: the RPC inserts every
+ * one of these columns at the table default, which is `unknown` either way.
+ * The only behaviour this changes is the destructive one.
+ *
+ * ⚠ FOUR AXES, FOUR REGISTRIES, AND THEY ARE INDEPENDENT. A family evidenced
+ * on scope but not on basis — which is what Alaska was for two PRs — still
+ * gets its scope stamped, and a fiscal year whose opinion nobody has read
+ * still gets the three axes that are properties of the FAMILY rather than of
+ * the document.
+ *
+ * `registries` is for tests; production always uses the real four.
  */
-export function axisStampFor(label, scopeRegistry = FUND_SCOPE_REGISTRY, basisRegistry = BASIS_REGISTRY) {
+export function axisStampFor(label, registries = {}) {
   const patch = {};
-  const scope = scopeForDataSource(label, scopeRegistry);
+  const scope = scopeForDataSource(label, registries.scope ?? FUND_SCOPE_REGISTRY);
   if (scope !== SCOPE.UNKNOWN) patch.fund_scope = scope;
-  const basis = basisForDataSource(label, basisRegistry);
+  const basis = basisForDataSource(label, registries.basis ?? BASIS_REGISTRY);
   if (basis !== BASIS.UNKNOWN) patch.basis = basis;
+  const entity = reportingEntityForDataSource(label, registries.reportingEntity ?? REPORTING_ENTITY_REGISTRY);
+  if (entity !== REPORTING_ENTITY.UNKNOWN) patch.reporting_entity = entity;
+  const grade = auditGradeForDataSource(label);
+  if (grade !== AUDIT_GRADE.UNKNOWN) patch.audit_grade = grade;
   return patch;
 }
 
@@ -492,12 +551,13 @@ async function loadFiscalYear(supabase, cfg, muniId, dsId, fy, datasetType, tree
     return false;
   }
 
-  // ⚠⚠ `fund_scope` AND `basis` are stamped HERE, with the same label the
-  // registries match on. The RPC inserts both at the column default
-  // (`unknown`), so without this a re-load silently downgrades an
-  // already-classified row. See `scopeForDataSource` and `basisForDataSource`
-  // for why the loader is not a second authority on either, and `axisStampFor`
-  // for why an axis it cannot classify is OMITTED rather than written.
+  // ⚠⚠ ALL FOUR CLASSIFICATION AXES ARE STAMPED HERE, with the same label the
+  // registries match on. The RPC inserts every one of them at the column
+  // default (`unknown`), so without this a re-load silently downgrades an
+  // already-classified row. See `scopeForDataSource`, `basisForDataSource`,
+  // `reportingEntityForDataSource` and `auditGradeForDataSource` for why the
+  // loader is not a second authority on any of them, and `axisStampFor` for
+  // why an axis it cannot classify is OMITTED rather than written.
   const axes = axisStampFor(label);
   const { error: stampErr } = await supabase.schema('treasury').from('budgets').update({
     source_url: sourceUrl,
@@ -507,7 +567,7 @@ async function loadFiscalYear(supabase, cfg, muniId, dsId, fy, datasetType, tree
     ...axes,
   }).eq('id', budgetId);
   if (stampErr) { console.error('    Source stamp failed:', stampErr.message); return false; }
-  const axisLog = ['fund_scope', 'basis']
+  const axisLog = ['fund_scope', 'basis', 'reporting_entity', 'audit_grade']
     .map((k) => `${k}=${axes[k] ?? 'unknown (left as it stood)'}`).join(', ');
   console.log(`    ${priorId ? 'Reused' : 'Created'} budget ${budgetId}; ${rpc?.rows_inserted ?? '?'} line items; `
     + `stamped source_date=${fy}-${cfg.fyEndMonthDay}, ${axisLog}`);
