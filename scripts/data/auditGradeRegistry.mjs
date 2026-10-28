@@ -772,6 +772,73 @@ export const AUDIT_GRADE_REGISTRY = [
     },
   },
   {
+    // Texas — City of Austin and Travis County, graded 2026-10-28. The family
+    // has carried fund_scope, basis and reporting_entity since AUSTIN-TRAVIS-01
+    // and `audit_grade = unknown` ever since; closing it leaves every
+    // entity-published ACFR family in this registry on the same footing.
+    //
+    // ⚠⚠ FOUR OF THE 38 LOADED ENTITY-YEARS ARE DELIBERATELY NOT GRADED, and
+    // the enumerated years below are the mechanism. Travis County FY2004 and
+    // FY2021 publish their auditor's report as an IMAGE, and OCR over the front
+    // matter does not recover a fair-presentation sentence from either, so
+    // nobody has read those two opinions and their 4 rows stay `unknown`.
+    // ⚠ Travis FY2021's MD&A does assert one — "the independent auditor
+    // concluded ... are fairly presented in conformity with GAAP, in all
+    // material respects" — and that is MANAGEMENT'S account of the opinion, not
+    // the auditor's report. It is not evidence under this registry's standard
+    // and was not used.
+    //
+    // ⚠ Austin is pinned to FY2010-FY2025 because that is what is loaded;
+    // docs/Austin also holds FY1998-FY2009, and FY1998-FY2000 have no readable
+    // opinion either. Pinning to the LOADED set keeps this entry from grading
+    // them if they are ever loaded without being read.
+    id: 'tx-local-acfr-gf',
+    // ⚠ Two year sets in one pattern, enumerated rather than wildcarded, for
+    // the same reason as ak-local-acfr-gf above: a wildcard would auto-grade a
+    // newly published year off an opinion nobody had opened, and here it would
+    // ALSO silently grade the two Travis years this entry exists to exclude.
+    match: /^(?:City of Austin ACFR — General Fund (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[0-9]|2[0-5]) actual, GAAP basis\)|Travis County ACFR — General Fund (?:Expenditure by Function|Revenue by Source) \(FY(?:200[5-9]|201[0-9]|202[02345]) actual, GAAP basis\))$/,
+    value: AUDIT_GRADE.AUDITED_GAAP,
+    evidence: {
+      document: 'All 50 Texas ACFRs in the repo, read 2026-10-28 — City of Austin FY1998-FY2025 '
+        + '(28, of which FY2010-FY2025 are loaded) and Travis County FY2004-FY2025 (22, all '
+        + 'loaded). Each was fetched to the path its manifest records, which is the `source_url` '
+        + 'stored on the rows it grades, so the document attested here is the one the reader is '
+        + 'offered. 36 documents are graded and carry 72 of the family\'s 76 rows; the other 4 '
+        + 'are Travis FY2004 and FY2021.',
+      figures: 'OPINION PRESENT — scripts/verifyCoKsOpinions.py: Austin 19 text + 6 OCR + 3 NOT '
+        + 'FOUND (FY1998-FY2000, all OUTSIDE the loaded window); Travis 19 text + 1 OCR + 2 NOT '
+        + 'FOUND (FY2004, FY2021). OPINION UNMODIFIED — scripts/checkOpinionType.py, with '
+        + '--selftest passing first: Austin 25 clean + 3 unreadable (the same FY1998-FY2000); '
+        + 'Travis 20 clean + 2 unreadable (the same FY2004, FY2021). 0 MODIFIED in either. '
+        + '⭐ THE TWO GATES AGREE EXACTLY ON WHICH DOCUMENTS CANNOT BE READ, which is the '
+        + 'property that makes the four ungraded rows a document fact rather than a detector '
+        + 'artifact — and it is a property this family did NOT have at first. '
+        + '⚠⚠ THE GATES DISAGREED ON THREE DOCUMENTS AND THE GATE WAS WRONG, NOT THE FILINGS. '
+        + 'Travis FY2005, FY2006 and FY2007 read NOT FOUND to the presence gate while the type '
+        + 'gate read a clean primary opinion in each. Their auditor writes "in conformity with '
+        + 'accounting STANDARDS generally accepted in the United States" where almost everyone '
+        + 'writes PRINCIPLES — GAAP is principles, so it is the auditor\'s own slip, reproduced '
+        + 'in all three years — and the presence gate\'s conformity pattern knew only the common '
+        + 'wording. Three real audited years were invisible to the gate that decides whether an '
+        + 'opinion exists. The pattern now accepts both words, `--selftest` pins all three '
+        + 'wordings AND the in-relation-to paragraph it must still reject, and the change was '
+        + 're-measured over the 123 documents already graded under the old pattern (73 Alaska, '
+        + '28 Austin, 22 Travis): the ONLY answers that moved were those three, none -> text. '
+        + 'Widening one of three required conjuncts can structurally only turn NOT FOUND into '
+        + 'found. '
+        + '⚠ The opinion sentence here reads "In our opinion, based on our audit AND THE REPORT '
+        + 'OF THE OTHER AUDITORS, the basic financial statements referred to above present '
+        + 'fairly, in all material respects..." — the standard group-audit reference to a '
+        + 'component unit audited by someone else, NOT a modification. Reading it as one would '
+        + 'downgrade most of this family, exactly as co-springs-epc-acfr-gf warns below. '
+        + '⚠ Austin needed OCR on 6 documents (FY2002-FY2007) and none of them is loaded; every '
+        + 'one of the 16 LOADED Austin years has its opinion in the text layer. Austin is the '
+        + 'entity whose statement pages render digits with ciphered glyphs ("September 32, 2222" '
+        + 'for September 30, 2024) — that defect does not reach its auditor\'s page.',
+    },
+  },
+  {
     // Alaska — Anchorage (#298) and the six largest boroughs (#299), graded
     // 2026-10-28, two PRs after the family loaded. ⚠ It went into
     // fundScopeRegistry.mjs when it landed and into no sibling registry; this

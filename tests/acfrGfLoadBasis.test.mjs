@@ -197,6 +197,48 @@ describe('reportingEntityForDataSource / auditGradeForDataSource', () => {
     expect(auditGradeForDataSource(dataSourceLabel(KODIAK, 2025, 'revenue'))).toBe(AUDIT_GRADE.AUDITED_GAAP);
   });
 
+  it('⭐ grades Texas over its own loaded windows, and NOT the four unread years', () => {
+    // ⚠⚠ Travis County FY2004 and FY2021 publish the auditor's report as an
+    // IMAGE and OCR recovers no fair-presentation sentence from either, so
+    // nobody has read those two opinions. Their 4 rows must stay `unknown`
+    // while the 72 around them grade — which is what the enumerated year list
+    // in the registry entry is for, and what a wildcard would quietly undo.
+    for (const fy of [2010, 2015, 2020, 2025]) {
+      expect(auditGradeForDataSource(dataSourceLabel({ entityLabel: 'City of Austin' }, fy, 'revenue')),
+        `Austin FY${fy}`).toBe(AUDIT_GRADE.AUDITED_GAAP);
+    }
+    for (const fy of [2005, 2006, 2007, 2012, 2020, 2022, 2025]) {
+      expect(auditGradeForDataSource(dataSourceLabel({ entityLabel: 'Travis County' }, fy, 'operating')),
+        `Travis FY${fy}`).toBe(AUDIT_GRADE.AUDITED_GAAP);
+    }
+    for (const mode of MODES) {
+      for (const fy of [2004, 2021]) {
+        expect(auditGradeForDataSource(dataSourceLabel({ entityLabel: 'Travis County' }, fy, mode)),
+          `Travis FY${fy} ${mode} — opinion never read`).toBe(AUDIT_GRADE.UNKNOWN);
+      }
+      // Austin's own window opens at FY2010; FY1998-FY2009 sit in the repo and
+      // are not loaded, and FY1998-FY2000 have no readable opinion either.
+      for (const fy of [2009, 2026]) {
+        expect(auditGradeForDataSource(dataSourceLabel({ entityLabel: 'City of Austin' }, fy, mode)),
+          `Austin FY${fy}`).toBe(AUDIT_GRADE.UNKNOWN);
+      }
+    }
+  });
+
+  it('⭐⭐ Travis FY2005-FY2007 grade — the wording the presence gate had never seen', () => {
+    // Those three say "in conformity with accounting STANDARDS generally
+    // accepted" where everyone else says PRINCIPLES. The gate read all three as
+    // NOT FOUND while the second gate read a clean opinion in each; three real
+    // audited years were invisible. Pinned here as well as in the Python
+    // selftest, because the registry entry is what the claim rests on.
+    for (const fy of [2005, 2006, 2007]) {
+      for (const mode of MODES) {
+        expect(auditGradeForDataSource(dataSourceLabel({ entityLabel: 'Travis County' }, fy, mode)))
+          .toBe(AUDIT_GRADE.AUDITED_GAAP);
+      }
+    }
+  });
+
   it('leaves an UNRECOGNISED source unknown on both axes', () => {
     const label = dataSourceLabel({ entityLabel: 'Some Brand New City' }, 2024, 'revenue');
     expect(reportingEntityForDataSource(label)).toBe(REPORTING_ENTITY.UNKNOWN);

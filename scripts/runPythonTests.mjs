@@ -50,6 +50,18 @@ const SUITES = [
   // INSIDE read(), so every pure function it tests — the fragment merge, the
   // column anchor, the continuation rule — runs with no third-party dependency.
   { name: 'nySchoolAcfrGF', file: 'scripts/lib/nySchoolAcfrGF.selftest.py', requires: [] },
+  // ⭐⭐ THE TWO AUDIT-OPINION GATES. `checkOpinionType.py --selftest` has existed
+  // since Knight session 7b and NOTHING HAS EVER RUN IT — the same omission this
+  // file's own header records for the 222 acfrGF tests, for the FOURTH time.
+  // `verifyCoKsOpinions.py --selftest` was written 2026-10-28 after its GAAP
+  // pattern was found to be missing a real wording, and is registered here in
+  // the same change so it cannot repeat the history.
+  //
+  // ⚠ These decide whether a row may claim `audit_grade = audited_gaap`, which
+  // is a public claim about a government's books. Both are stdlib-only and need
+  // no PDF, so they run anywhere.
+  { name: 'opinionPresence', file: 'scripts/verifyCoKsOpinions.py', args: ['--selftest'], requires: [] },
+  { name: 'opinionType', file: 'scripts/checkOpinionType.py', args: ['--selftest'], requires: [] },
 ];
 
 let py;
@@ -79,7 +91,7 @@ for (const s of SUITES) {
     failed += 1;
     continue;
   }
-  const r = spawnSync(py, [s.file], { stdio: 'inherit' });
+  const r = spawnSync(py, [s.file, ...(s.args ?? [])], { stdio: 'inherit' });
   ran += 1;
   if (r.status !== 0) failed += 1;
 }
