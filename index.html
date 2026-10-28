@@ -33,7 +33,15 @@
     <meta property="og:image" content="https://treasurytracker.empowered.vote/og-image.png" />
     <meta name="twitter:card" content="summary_large_image" />
     <script>
-      (function(){var s=localStorage.getItem('ev:color-scheme');if(!s){var m=document.cookie.match(/(?:^|;\s*)ev_theme=([^;]+)/);if(m)s=m[1];}if(s==='dark'||(!s&&!window.matchMedia('(prefers-color-scheme: light)').matches))document.documentElement.classList.add('dark')})();
+      // Resolve the theme before first paint. The ev_theme cookie on .empowered.vote is the
+      // cross-app truth, so it is read FIRST: localStorage is per-origin, and reading it first
+      // let a stale local value beat a newer choice the visitor made on another EV site.
+      //
+      // Dark is the default and the OS is never consulted. A browser reports
+      // prefers-color-scheme: light when the OS has no preference set at all, so reading it
+      // could not tell "never chose" apart from "chose light", and every undecided visitor
+      // got a light page. Only a choice made on an Empowered Vote site counts.
+      (function(){var m=document.cookie.match(/(?:^|;\s*)ev_theme=([^;]+)/);var s=m?m[1]:null;if(!s){try{s=localStorage.getItem('ev:color-scheme')}catch(e){}}if(s!=='light')document.documentElement.classList.add('dark')})();
     </script>
     <script src="https://js.givebutter.com/elements/latest.js" async></script>
   </head>
