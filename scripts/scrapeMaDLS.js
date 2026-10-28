@@ -27,6 +27,7 @@
  */
 
 import { createClient } from '@supabase/supabase-js';
+import { maKey, maEntityFor } from './lib/maNames.mjs';
 import { parseArgs } from 'node:util';
 import { writeFileSync, readFileSync, mkdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
@@ -538,30 +539,48 @@ async function seedMunicipalities(supabase, records) {
   }
 
   console.log(`\n🌱  Seeding ${unique.size} MA municipalities...`);
-  let inserted = 0, skipped = 0, errored = 0;
+  let inserted = 0, skipped = 0, errored = 0, refused = 0;
 
-  for (const [name, dorCode] of unique) {
-    const { data: existing } = await supabase
-      .schema('treasury')
-      .from('municipalities')
-      .select('id')
-      .eq('name', name)
-      .eq('state', 'MA')
-      .maybeSingle();
+  // ⚠⚠ READ EVERY EXISTING MA ROW ONCE AND MATCH ON maKey(). The per-name
+  // `.eq('name', name)` this replaced compared DLS's spelling against the
+  // stored one, which stopped being the same string the moment the thirteen
+  // "... Town" governments were stored under their legal names. A miss there
+  // did not fail — it fell through to the INSERT below and created a SECOND
+  // Barnstable. See scripts/lib/maNames.mjs.
+  const { data: existingRows, error: readErr } = await supabase
+    .schema('treasury').from('municipalities').select('id, name').eq('state', 'MA');
+  if (readErr) { console.log(`    ⚠️  could not read existing MA rows: ${readErr.message}`); return; }
+  const have = new Set(existingRows.map((m) => maKey(m.name)));
 
-    if (existing) { skipped++; continue; }
+  for (const [name] of unique) {
+    if (have.has(maKey(name))) { skipped++; continue; }
+
+    // ⚠⚠ THE TYPE AND THE NAME BOTH COME FROM THE CENSUS ROSTER, NEVER FROM A
+    // DEFAULT. This line used to read `entity_type: 'city'` for all 351, which
+    // is how Massachusetts — 306 of whose municipalities are TOWNS — came to be
+    // typed entirely as cities. A name the roster cannot place is REFUSED:
+    // guessing `city` is precisely the defect being repaired, and an entity
+    // created with the wrong type cannot be corrected later without minting a
+    // duplicate, because treasury_ensure_municipality keys on it.
+    const entry = maEntityFor(name);
+    if (!entry) {
+      console.log(`    ⛔ ${name}: no Massachusetts municipality of that name in the census roster — REFUSING to seed`);
+      refused++;
+      continue;
+    }
 
     const { error } = await supabase.schema('treasury').from('municipalities').insert({
-      name,
+      name: entry.legal,
       state: 'MA',
-      entity_type: 'city',
+      entity_type: entry.entityType,
     });
 
     if (error) { console.log(`    ⚠️  ${name}: ${error.message}`); errored++; }
     else inserted++;
   }
 
-  console.log(`    Inserted: ${inserted} | Skipped (existing): ${skipped} | Errors: ${errored}`);
+  console.log(`    Inserted: ${inserted} | Skipped (existing): ${skipped} | `
+    + `Refused (not in roster): ${refused} | Errors: ${errored}`);
 }
 
 // ── Load to Supabase ─────────────────────────────────────────────────────────
@@ -575,7 +594,13 @@ async function loadToSupabase(supabase, report, fiscalYear, records, headers) {
 
   if (mErr) throw new Error(`Could not fetch municipalities: ${mErr.message}`);
 
-  const municMap = new Map(municipalities.map(m => [m.name, m.id]));
+  // ⚠⚠ KEYED ON squashMa(), NEVER THE RAW NAME. Thirteen MA governments are
+  // stored under a legal name DLS does not print ("Barnstable Town" against
+  // DLS's "Barnstable"), and the census and DLS also disagree about
+  // Manchester-by-the-Sea's punctuation. A raw-name Map misses those rows, and
+  // a miss here is not a crash — it is a government that silently stops being
+  // found. See scripts/lib/maNames.mjs.
+  const municMap = new Map(municipalities.map(m => [maKey(m.name), m.id]));
   // Use report.columnNames override when present (revenue-by-source has misaligned th headers)
   const colNames = report.columnNames || headers;
   const amountCols = colNames.slice(3).filter(h => h && !h.toLowerCase().startsWith('total'));
@@ -596,7 +621,7 @@ async function loadToSupabase(supabase, report, fiscalYear, records, headers) {
       continue;
     }
 
-    const municId = municMap.get(record.municipality);
+    const municId = municMap.get(maKey(record.municipality));
     if (!municId) {
       if (skipped === 0) console.log(`    ⚠️  No DB record for "${record.municipality}" — run --seed first`);
       skipped++;
