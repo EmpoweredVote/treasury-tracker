@@ -47,12 +47,45 @@ import subprocess
 import sys
 import tempfile
 
+# ⚠⚠ A WINDOWS CONSOLE IS cp1252 AND THIS SCRIPT PRINTS ⚠. Without this the
+# run CRASHES with UnicodeEncodeError in the final loop — the loop that names
+# the documents whose opinion could not be read, i.e. the one output a grader
+# must not miss. The measurement had completed; only the report died, which is
+# the worst place to lose it. Hit 2026-10-28 on the Travis County corpus, the
+# first run in which any document was unreadable.
+for _stream in (sys.stdout, sys.stderr):
+    try:
+        _stream.reconfigure(encoding='utf-8', errors='replace')
+    except (AttributeError, ValueError):  # a pipe that cannot be reconfigured
+        pass
+
 TESSERACT = os.environ.get(
     'TT_TESSERACT', r'C:\Program Files\Tesseract-OCR\tesseract.exe')
 
 # The primary opinion: a fair-presentation phrase AND a GAAP conformity phrase.
 FAIR = re.compile(r'presentfairly,?inallmaterialrespects')
-GAAP = re.compile(r'accountingprinciplesgenerallyaccepted|conformitywithaccountingprinciples')
+#
+# ⚠⚠ `standards` IS THE THIRD ALTERNATIVE AND IT WAS ADDED BECAUSE IT WAS
+# MISSING, not for symmetry. Travis County's auditor writes "in conformity with
+# accounting STANDARDS generally accepted in the United States" — GAAP is
+# PRINCIPLES, so this is the auditor's own slip, reproduced verbatim in FY2005,
+# FY2006 and FY2007. With only the two common wordings this gate read all three
+# documents as NOT FOUND while `checkOpinionType.py` read a clean primary
+# opinion in each: three real audited years invisible to the gate that decides
+# whether an opinion exists at all. Found 2026-10-28.
+#
+# ⭐ WIDENING THIS CONJUNCT CAN ONLY EVER TURN `none` INTO `text`/`ocr`. The
+# verdict needs FAIR and GAAP and IN_OUR_OPINION together, so adding an
+# alternative to one of them can never un-find a document that was already
+# found, and it cannot touch which documents are flagged MODIFIED. Measured as
+# well as argued: re-run over the 123 documents already graded under the old
+# pattern (73 Alaska, 28 Austin, 22 Travis), the only answers that moved were
+# Travis FY2005-FY2007, none -> text.
+#
+# ⚠ The pairing itself is load-bearing and must not be loosened further — see
+# the in-relation-to case in `selftest()`.
+GAAP = re.compile(r'accounting(?:principles|standards)generallyaccepted'
+                  r'|conformitywithaccountingprinciples')
 IN_OUR_OPINION = re.compile(r'inouropinion')
 INDEPENDENT = re.compile(r'independentauditor')
 # Reported, never auto-downgraded — see the module docstring.
@@ -145,11 +178,98 @@ def assess(path, ocr_budget=26):
                     'why': 'opinion not found even after OCR'}
 
 
+def selftest():
+    """Pin the three conjuncts, both polarities, and the wording variants.
+
+    ⚠⚠ ADDED 2026-10-28, AND IT WOULD HAVE CAUGHT A LIVE MISS. This gate read
+    Travis County FY2005, FY2006 and FY2007 as NOT FOUND while the second gate
+    read a clean opinion in all three. The documents are fine; the GAAP pattern
+    was not. Their auditor writes "in conformity with accounting STANDARDS
+    generally accepted in the United States" where almost everyone else writes
+    PRINCIPLES, and the pattern knew only the common wording. Three real,
+    clean, primary opinions were therefore invisible to the gate that decides
+    whether an opinion exists at all.
+
+    ⚠ Nothing here needs a PDF, so this runs anywhere and on CI.
+    """
+    ok = True
+
+    def check(label, text, want, pattern=None):
+        nonlocal ok
+        flat = collapse(text)
+        got = bool((pattern or FAIR).search(flat)) if pattern else bool(
+            FAIR.search(flat) and GAAP.search(flat) and IN_OUR_OPINION.search(flat))
+        if got != want:
+            print(f'SELFTEST FAIL: {label} -> {got}, expected {want}')
+            ok = False
+        else:
+            print(f'  {label:<52} -> {got}')
+
+    # The common wording, and the three real variants this corpus contains.
+    for label, phrase in [
+        ('"accounting principles generally accepted"',
+         'in conformity with accounting principles generally accepted in the United States'),
+        ('"accounting STANDARDS generally accepted" (Travis FY2005-07)',
+         'in conformity with accounting standards generally accepted in the United States'),
+        ('"in conformity with accounting principles"',
+         'in conformity with accounting principles'),
+    ]:
+        check(label, 'In our opinion, the financial statements referred to above '
+                     'present fairly, in all material respects, the financial position '
+                     + phrase, True)
+
+    # ⚠ ALL THREE CONJUNCTS ARE REQUIRED. Dropping any one must fail, or the
+    # gate starts finding "opinions" in prose about auditing.
+    check('a fair-presentation sentence with NO conformity phrase',
+          'In our opinion, the statements present fairly, in all material respects, '
+          'the financial position of the County.', False)
+    check('a conformity phrase with NO fair-presentation sentence',
+          'prepared in conformity with accounting principles generally accepted in '
+          'the United States of America, as described in Note 1.', False)
+    check('boilerplate describing an audit, with neither',
+          'An audit includes assessing the accounting principles used and significant '
+          'estimates made by management.', False)
+
+    # ⚠⚠ THE IN-RELATION-TO PARAGRAPH MUST NOT MATCH. Every one of these reports
+    # carries an opinion about the COMBINING SCHEDULES, and grading off it would
+    # attest the wrong thing. It says "fairly stated", never "present fairly, in
+    # all material respects" — which is exactly why the pattern pairs.
+    check('the in-relation-to paragraph on supplementary information',
+          'In our opinion, the combining and individual fund statements are fairly '
+          'stated, in all material respects, in relation to the basic financial '
+          'statements taken as a whole.', False)
+
+    # ⚠ The MODIFIED pattern reports, never downgrades — but it must still not
+    # INVERT. `unqualified` is the clean word.
+    if MODIFIED.search(collapse('rendering unqualified opinions')):
+        print('SELFTEST FAIL: `unqualified opinion` matched the MODIFIED pattern')
+        ok = False
+    else:
+        print('  `unqualified opinions` correctly NOT matched as MODIFIED  -> False')
+    if not MODIFIED.search(collapse('Basis for Qualified Opinion')):
+        print('SELFTEST FAIL: a genuine `Qualified Opinion` did not match MODIFIED')
+        ok = False
+    else:
+        print('  a genuine `Qualified Opinion` matched MODIFIED           -> True')
+
+    # ⚠ Spaces LOST in a text layer (two South Carolina filings) must still match.
+    check('an opinion whose text layer has lost its spaces',
+          'Inouropinion,thefinancialstatementspresentfairly,inallmaterialrespects,'
+          'thefinancialpositioninconformitywithaccountingprinciplesgenerallyaccepted', True)
+
+    print('\nSELFTEST PASSED' if ok else '\nSELFTEST FAILED')
+    return 0 if ok else 1
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument('--dir', default='_acfr-work/coks')
     ap.add_argument('--only')
+    ap.add_argument('--selftest', action='store_true')
     args = ap.parse_args()
+
+    if args.selftest:
+        return selftest()
 
     pdfs = sorted(f for f in os.listdir(args.dir) if f.endswith('.pdf'))
     if args.only:

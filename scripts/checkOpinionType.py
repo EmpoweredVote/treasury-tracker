@@ -49,6 +49,18 @@ import subprocess
 import sys
 import tempfile
 
+# ⚠⚠ A WINDOWS CONSOLE IS cp1252 AND THIS SCRIPT PRINTS ⚠. Without this the
+# run CRASHES with UnicodeEncodeError in the final loop — the loop that names
+# the documents whose opinion could not be read, i.e. the one output a grader
+# must not miss. The measurement had completed; only the report died, which is
+# the worst place to lose it. Hit 2026-10-28 on the Travis County corpus, the
+# first run in which any document was unreadable.
+for _stream in (sys.stdout, sys.stderr):
+    try:
+        _stream.reconfigure(encoding='utf-8', errors='replace')
+    except (AttributeError, ValueError):  # a pipe that cannot be reconfigured
+        pass
+
 TESSERACT = os.environ.get(
     'TT_TESSERACT', r'C:\Program Files\Tesseract-OCR\tesseract.exe')
 
