@@ -555,7 +555,23 @@ export const BASIS_REGISTRY = [
     // Florida entry below: these labels contain "Revenue", and the RLGF is
     // emphatically a closed-year REPORT, not a budget.
     id: 'ga-dca-rlgf',
-    match: /^Georgia DCA Report of Local Government Finances — (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[6-9]|2[0-5]) actual, (?:self-reported|preparer-certified audited|audit status not stated)\)$/,
+    // ⚠⚠ WIDENED TO FY2009 ON 2026-10-28, and the gap it closes is the point.
+    // This pattern opened at FY2016 — the V2 form generation — while PR #273
+    // loaded the V1 generation, FY2009-FY2015, underneath it. Those 9,071 rows
+    // carried `basis = actual` written directly by the loader
+    // (`BASIS_VALUE = 'actual'` in loadGeorgiaRLGF.mjs) with NO entry standing
+    // behind the word, so `stampBudgetAxes.mjs --reset` would have set them to
+    // `unknown` with no sweep able to restore them, while in the meantime the
+    // table asserted a basis nobody had evidenced. Wrong in both directions.
+    //
+    // ⚠ V1 IS A DIFFERENT DOCUMENT, NOT A WIDER LOOP — it keys by the form's own
+    // line numbers where V2 keys by UCOA code, and has its own reader
+    // (scripts/lib/gaRlgfV1.mjs). So the range was widened only after the V1
+    // form was read; the `figures` block records that reading separately.
+    //
+    // ⚠ Still CLOSED at FY2025. An open range would claim a FY2026 filing the
+    // moment it loaded, off a form nobody had opened.
+    match: /^Georgia DCA Report of Local Government Finances — (?:Expenditure by Function|Revenue by Source) \(FY20(?:09|1[0-9]|2[0-5]) actual, (?:self-reported|preparer-certified audited|audit status not stated)\)$/,
     value: BASIS.ACTUAL,
     evidence: {
       document: 'The RLGF is a CLOSED-YEAR filing by rule. Ga. Comp. R. & Regs. 110-3-1 '
@@ -573,7 +589,36 @@ export const BASIS_REGISTRY = [
              + 'and Total Part V. A figure that reconciles to the year-end totals printed on '
              + 'the form itself is an actual, not an appropriation. ⚠ The form also carries a '
              + '`Audited` certification flag, which is about ASSURANCE, not basis, and is '
-             + 'handled on the audit_grade axis instead.',
+             + 'handled on the audit_grade axis instead. '
+             + '── THE V1 GENERATION, FY2009-FY2015 (read 2026-10-28) ── '
+             + 'Measured over a STRATIFIED SAMPLE of 175 of the 4,551 V1 workbooks, 25 per '
+             + 'fiscal year across the whole window, reading the form PAGE sheets rather than '
+             + 'the extract: '
+             + '175/175 carry a "fiscal year ended" caption — page 1 reads "This spreadsheet is '
+             + 'a duplicate of the actual RLGF form submitted by this government FOR THEIR '
+             + 'FISCAL YEAR ENDED in the Month/Year shown below", with the month and year '
+             + 'selected on the page itself. '
+             + '175/175 carry the instruction "* Use audit, if available" — the V1 wording of '
+             + 'the V2 instruction quoted above, and an instruction that can only make sense '
+             + 'for a year that has closed. '
+             + '175/175 are the same form, F-65(GA-1A) — Georgia\'s adaptation of the Census '
+             + 'Bureau F-65 government finance form, which reports a completed year — and '
+             + '175/175 print the same Part V header, "EXPENDITURES FROM ALL FUNDS AND PROGRAMS '
+             + 'OF THE GOVERNMENT". '
+             + '⚠ 158/175 also carry DCA\'s disclaimer "DCA cannot certify the accuracy of the '
+             + 'report figures submitted". The 17 that do not are a PAGE-1 BOILERPLATE VARIANT '
+             + 'concentrated in FY2014, where DCA shipped the blank data-entry instructions '
+             + 'instead ("Make entries only in those cells shaded in green ... in F35, select '
+             + 'the fiscal year end"). The fiscal-year-end caption survives in that variant too, '
+             + 'which is why the first probe is 175/175 and this one is not. The disclaimer is '
+             + 'audit_grade evidence, not basis evidence. '
+             + 'ARITHMETIC CORROBORATION ON V1, measured not assumed: a dry run of '
+             + 'scripts/loadGeorgiaRLGF.mjs over a 1/40 slice of the V1 corpus reports '
+             + '"114 filings · 1026 oracle checks run · 0 filing(s) with a failure" — the same '
+             + 'form-vs-extract oracle, over the same printed subtotal and grand-total rows, as '
+             + 'the V2 figure above. Two anomalies in that slice (Barrow County FY2012, Brooks '
+             + 'County FY2014) are the publisher disagreeing with ITSELF; the printed form is '
+             + 'loaded and the disagreement recorded, per the Milledgeville Rule.',
     },
   },
   {

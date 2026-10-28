@@ -340,7 +340,21 @@ export const AUDIT_GRADE_REGISTRY = [
     // branch is still carried in the source string so the distinction stays
     // visible and re-gradable WITHOUT a reload if that judgement ever changes.
     id: 'ga-dca-rlgf',
-    match: /^Georgia DCA Report of Local Government Finances — (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[6-9]|2[0-5]) actual, (?:self-reported|preparer-certified audited|audit status not stated)\)$/,
+    // ⚠⚠ WIDENED TO FY2009 ON 2026-10-28, with its basis twin. This pattern
+    // opened at FY2016 — the V2 form generation — while PR #273 loaded the V1
+    // generation, FY2009-FY2015, underneath it, so 9,071 rows graded `unknown`
+    // beside V2 siblings reading `self_reported_unaudited`. The same "widened
+    // one registry, and only half of its years" shape as in-gateway-afr below.
+    //
+    // ⭐ UNLIKE A YEAR RANGE ON AN ACFR FAMILY, THIS ONE IS NOT PINNED TO
+    // DOCUMENTS READ ONE BY ONE. The grade rests on the PUBLISHER'S REGIME —
+    // a rule, a form caption and CVIOG's disclaimer — and all three cover the
+    // V1 generation verbatim, as the figures block now records from the V1 form
+    // itself. The same reasoning the in-gateway-afr note below gives for
+    // extending its window down to FY2012.
+    //
+    // ⚠ Still CLOSED at FY2025, so a FY2026 filing lands `unknown`.
+    match: /^Georgia DCA Report of Local Government Finances — (?:Expenditure by Function|Revenue by Source) \(FY20(?:09|1[0-9]|2[0-5]) actual, (?:self-reported|preparer-certified audited|audit status not stated)\)$/,
     value: AUDIT_GRADE.SELF_REPORTED_UNAUDITED,
     evidence: {
       document: 'Georgia Department of Community Affairs, Report of Local Government Finances, '
@@ -367,7 +381,27 @@ export const AUDIT_GRADE_REGISTRY = [
         + 'answered YES in all ten years and Macon-Bibb NO in all but two, which it left '
         + 'blank. That is a first-party claim with nothing behind it, so it does not lift the '
         + 'grade (Chris’s call, 2026-08-29) — but it is the strongest evidence yet '
-        + 'that this axis must live per ROW and not per source.',
+        + 'that this axis must live per ROW and not per source. '
+        + '── THE V1 GENERATION, FY2009-FY2015 (read 2026-10-28) ── '
+        + 'The disclaimer is PRINTED ON THE V1 FORM TOO, in the same place and the same words. '
+        + 'Measured over a stratified sample of 175 of the 4,551 V1 workbooks, 25 per fiscal '
+        + 'year: 158/175 carry "DCA cannot certify the accuracy of the report figures '
+        + 'submitted" on page 1, beside "This spreadsheet is a duplicate of the actual RLGF '
+        + 'form submitted by this government". '
+        + '⚠ THE 17 THAT DO NOT ARE A LAYOUT VARIANT, NOT A DIFFERENT REGIME — a page-1 '
+        + 'boilerplate concentrated in FY2014 where DCA shipped the blank data-entry '
+        + 'instructions instead ("Make entries only in those cells shaded in green"). The rule '
+        + 'and CVIOG\'s disclaimer, which are the load-bearing evidence, are statements about '
+        + 'the PROGRAMME and cover those years unchanged. Nothing about this grade depends on '
+        + 'a particular year\'s page-1 text, and the direction of any doubt is toward the '
+        + 'WEAKER branch, which is the one already claimed. '
+        + 'And the rule\'s encouragement is on the V1 form verbatim as well: 175/175 print '
+        + '"* Use audit, if available" — permissive, never required, which is the whole '
+        + 'reason this family grades self_reported_unaudited rather than audited. '
+        + '⚠ The per-year certification flag exists in V1 too and splits the same three ways: '
+        + 'of the 9,071 V1 rows, FY2009 alone carries 1,253 "self-reported", 8 '
+        + '"preparer-certified audited" and 2 "audit status not stated". All three branches '
+        + 'grade identically, in both generations.',
     },
   },
   {
