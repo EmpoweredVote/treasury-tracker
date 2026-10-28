@@ -1802,3 +1802,80 @@ Fund carries borough-level services — notably **Education at 263,714,389 in
 FY2024, a third of the fund**. The share is a property of the government, not of
 the reading. Recorded here because a future reviewer comparing families would
 otherwise reasonably suspect the column.
+
+### 14.5 `ak-local-acfr-gf` grows to 139 — Alaska's six largest boroughs (2026-10-28)
+
+The family opened by the Municipality of Anchorage now also covers:
+
+| entity | type | rows | window |
+|---|---|---|---|
+| Matanuska-Susitna Borough | `county` | 16 | FY2016–2025 less FY2022/23 |
+| Fairbanks North Star Borough | `county` | 17 | FY2016–2025 less FY2019, less FY2018 revenue |
+| Kenai Peninsula Borough | `county` | 20 | FY2016–2025 |
+| City and Borough of Juneau | `city` | 20 | FY2016–2025 |
+| Ketchikan Gateway Borough | `county` | 20 | FY2016–2025 |
+| Kodiak Island Borough | `county` | 20 | FY2016–2025 |
+
+26 (Anchorage) + 113 = **139**.
+
+An Alaska borough is a census SUMLEV 050 **county-equivalent**, so it is typed
+`county` — never `borough`, which in TT means the 949 Pennsylvania boroughs, a
+city-like unit *beneath* a county. Juneau is a consolidated city-borough and is
+`city`, proved the same way Anchorage was: its population is identical at
+SUMLEV 050, 162 and 157 (31,572). Sitka and Wrangell behave the same way and
+are not loaded here.
+
+#### 14.5.1 The probes
+
+Five FY2024 probes through `scripts/acfrPrintedTotal.py` — pdfplumber glyph
+coordinates, no code shared with the loader — every one matching the stored
+figures exactly:
+
+| entity | page | GF revenue | GF expenditure | GF as % of total governmental |
+|---|---|---|---|---|
+| Matanuska-Susitna | 49 | 173,948,193 | 123,631,412 | ≈69% |
+| Kenai Peninsula | 45 | 106,379,141 | 85,727,138 | 64.3% / 56.5% |
+| Juneau | 42 | 87,688,723 | 127,125,075 | — |
+| Ketchikan Gateway | 67 | 19,339,832 | 17,023,312 | 40.5% / 36.0% |
+| Kodiak Island | 42 | 10,463,649 | 6,724,526 | 27.6% / 21.1% |
+
+The **spread** is what makes the discriminator convincing: a reading that had
+taken the total column would be wrong by between 1.4x and 4.7x depending on the
+borough, never by a margin.
+
+#### 14.5.2 ⚠ Three things a later reader will otherwise re-discover
+
+**Juneau's General Fund spends more than it receives** — 127,125,075 against
+87,688,723 in FY2024 — because its Sales Tax special revenue fund transfers in.
+A real transfer, visible in the printed Excess and Other Financing Sources
+rows, not a sign the wrong column was read.
+
+**Every borough prints a prior-year summarized column last.** Kodiak FY2024
+prints Total Governmental 37,921,546 followed by 33,303,016, the FY2023
+comparative. A total-governmental extraction must not assume
+last-column-is-total — the same trap as the Anchorage FY2012 era.
+
+**Fairbanks is not among the oracle probes.** It prints `Revenues total` /
+`Expenditures total` — the words reversed — which `acfrPrintedTotal.py` does not
+recognise. Its scope rests on the same statement structure as its five siblings;
+its $1–$2 rounding deltas were each verified against the borough's own printed
+`Excess (deficiency)` row, which sides with the component sum rather than with
+the printed total.
+
+#### 14.5.3 Seven declared gaps, none written as $0
+
+All 60 borough documents downloaded from the Federal Audit Clearinghouse and
+passed every fetch guard, so these are extraction failures in the documents, not
+missing files:
+
+* **Mat-Su FY2022 and FY2023** (both modes) — `pdftotext -table` cannot resolve
+  the column grid, so every row whose General Fund cell is a dash takes the next
+  fund's figure. ⚠ Checked against a second publisher: the borough's **own**
+  matsugov.us copies carry the identical collapse, so the damage is in the
+  document as issued.
+* **Fairbanks FY2018 revenue** — the `Revenues` header line absorbs the first
+  data row's value (`Revenues  $108,870,262`, with `Taxes` on the next line
+  carrying nothing). The expenditure side of the same page loads.
+* **Fairbanks FY2019** (both modes) — label and numeric columns occupy separate
+  text blocks, so no single page yields a parseable statement, despite a dense
+  1,250 chars/page text layer.

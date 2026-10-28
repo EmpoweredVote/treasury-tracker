@@ -89,7 +89,24 @@ export const EXPECTED_ROWS = Object.freeze({
   // IMAGE-ONLY SCAN (1-48 chars/page against 2,482-2,805 for FY2012+). Declared
   // in scripts/lib/akAcfrSources.mjs and rejected at fetch time by
   // fetchAnchorage.mjs's chars/page guard. None is written as $0.
-  'ak-local-acfr-gf': 26,
+  // 2026-10-28: GREW from 26 to 139 with Alaska's six largest boroughs — the
+  // same statement and column, so the family grew rather than a lookalike
+  // appearing beside it (the co-local-acfr-gf precedent two entries up).
+  //   Anchorage FY2012-2024                     13 yrs x 2 =  26
+  //   Kenai Peninsula / Juneau / Ketchikan Gateway / Kodiak Island
+  //                      FY2016-2025   4 x 10 yrs x 2 =  80
+  //   Matanuska-Susitna  FY2016-2021, 2024-2025  8 yrs x 2 =  16
+  //   Fairbanks North Star  8 revenue + 9 operating    =  17
+  //                                                      ----
+  //                                                       139
+  // ⚠ THE SEVEN ABSENT ENTITY-YEAR-MODES ARE DOCUMENT GAPS, NOT FETCH
+  // FAILURES — all 60 borough PDFs downloaded and passed every guard. Mat-Su
+  // FY2022/FY2023 lose their column grid (verified identical in the borough's
+  // OWN matsugov.us copies, so the damage is the publisher's); Fairbanks
+  // FY2018 revenue has its section header absorb the first data row's value;
+  // Fairbanks FY2019 splits labels and numbers into separate text blocks. Each
+  // is declared in scripts/extractAkBorough.py with its cause. None is $0.
+  'ak-local-acfr-gf': 139,
   // Knight session 7b — KANSAS'S FIRST LOCAL ENTITIES. A NEW family, so no
   // pre-existing count moved. 84 = 42 entity-years x 2 datasets: City of
   // Wichita FY2000-FY2025 less FY2001 and FY2008 (24 years) and Sedgwick County
