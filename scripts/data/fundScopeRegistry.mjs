@@ -600,6 +600,66 @@ export const FUND_SCOPE_REGISTRY = [
     },
   },
   {
+    // Alaska's FIRST local government. The AK STATE node is claimed separately by
+    // `state-acfr-gf` and is a DIFFERENT document, a different fiscal calendar
+    // (July-June vs calendar) and a different units convention (thousands vs
+    // whole dollars) — so this is its own family, not an extension of that one.
+    //
+    // ⚠ ANCHORED TO THE ONE ENTITY NAME, like co-local-acfr-gf and
+    // tx-local-acfr-gf. A bare /ACFR — General Fund/ claims ~1,850 rows across
+    // families nobody has reconciled, and a future Alaska ACFR load must land
+    // `unknown` until it is evidenced — the correct failure direction.
+    //
+    // ⚠ "Municipality of Anchorage" is the publisher's own cover-page name and is
+    // unique in the table; no other state has an Anchorage row.
+    id: 'ak-local-acfr-gf',
+    match: /^Municipality of Anchorage ACFR — General Fund /,
+    scope: SCOPE.GENERAL_FUND,
+    evidence: {
+      document: 'THREE probes spanning the series, each the governmental-funds Statement of '
+              + 'Revenues, Expenditures and Changes in Fund Balances: FY2024 '
+              + '(docs/Anchorage/anchorage-2024-acfr.pdf p.25, Exhibit B-3), FY2017 (p.42) and '
+              + 'FY2012 (p.43-44). NOTE: these filings ARE the source the loader read, so the '
+              + 'reconciliation is not against a second reporter — it establishes WHICH COLUMN '
+              + 'of the statement the stored figure is, which is the question that decides '
+              + 'scope. Same method as state-acfr-gf, tx-local-acfr-gf and co-local-acfr-gf.',
+      figures: 'All figures WHOLE DOLLARS (no statement page says "in thousands"; the AK STATE '
+             + 'ACFR, in this same repo, IS in thousands — the convention is per filing). Read '
+             + 'by scripts/acfrPrintedTotal.py, which reads only the printed TOTAL cell from '
+             + 'pdfplumber glyph coordinates and shares no code with the loader. '
+             + 'FY2024 — printed General Fund column: Total revenues 803,259,435 and Total '
+             + 'expenditures 802,933,870, matching the stored figures EXACTLY. Total '
+             + 'Governmental 971,282,850 and 977,415,806 (82.7% / 82.1%); the four fund columns '
+             + 'sum exactly on both sides (803,259,435 + 38,362,806 + 1,879,859 + 127,780,750 = '
+             + '971,282,850; 802,933,870 + 959,448 + 36,399,930 + 137,122,558 = 977,415,806). '
+             + 'FY2017 — General Fund 678,095,376 and 704,909,042, stored exactly; Total '
+             + 'Governmental 816,914,541 and 940,106,654 (83.0% / 75.0%); five columns sum '
+             + 'exactly on both sides. '
+             + 'FY2012 — General Fund 644,166,584 and 648,356,553, stored exactly; Total '
+             + 'Governmental 787,795,058 and 811,609,357 (81.8% / 79.9%); four columns sum '
+             + 'exactly (644,166,584 + 16,380,783 + 18,907,279 + 108,340,412 = 787,795,058). '
+             + '⚠⚠ THE FY2012-ERA STATEMENT SPANS TWO PAGES AND CARRIES A PRIOR-YEAR '
+             + 'SUMMARIZED COLUMN — p.44 prints Total Governmental 787,795,058 followed by '
+             + '726,283,136, which is the December 31, 2011 comparative, not a fund. A reader '
+             + 'taking "the last number on the Total row" lands on the PRIOR YEAR. The loader '
+             + 'reads column 0, so it is unaffected, but any future total-governmental '
+             + 'extraction for Anchorage must not assume last-column-is-total. '
+             + 'Candidate scopes rejected: total_governmental is off by 17.3%/17.9% (FY2024), '
+             + '17.0%/25.0% (FY2017) and 18.2%/20.1% (FY2012). all_funds is further still: the '
+             + 'governmental-funds statement contains no proprietary fund, and Anchorage\'s '
+             + 'enterprise operations are reported separately in Exhibit C-2 — FY2024 operating '
+             + 'revenues of 71,550,516 (Water), 68,766,088 (Wastewater), 15,848,265 (Port) and '
+             + '30,401,618 (Solid Waste Disposal), 186,566,487 in all, none of it inside the '
+             + 'stored figure. '
+             + '⚠ Anchorage is a UNIFIED municipality, so this General Fund carries '
+             + 'borough-level services a non-consolidated city would not — notably Education at '
+             + '263,714,389 in FY2024, a third of the fund. That makes the GF an unusually LARGE '
+             + 'share of total governmental (≈82%) compared with the Colorado and Texas '
+             + 'families (≈50-74%). The scope claim is unaffected; the share is a property of '
+             + 'the government, not of the reading.',
+    },
+  },
+  {
     // Knight session 6a. South Carolina's first two cities, and the two entities
     // the SC statewide bulk source structurally cannot produce — RFA publishes
     // each county's municipalities only as a COMBINED "Cities only" block.

@@ -79,6 +79,17 @@ export const EXPECTED_ROWS = Object.freeze({
   // that GREW, which the header permits once explained. A partition count is a
   // measurement with a date, not a constant.
   'co-local-acfr-gf': 88,
+  // ALASKA'S FIRST LOCAL ENTITY (2026-10-27). A NEW family, so no pre-existing
+  // count moved — the AK STATE node's 40 rows stay with `state-acfr-gf`, a
+  // different document, fiscal calendar (July-June) and units convention
+  // (thousands). 26 = 13 entity-years x 2 datasets: Municipality of Anchorage
+  // FY2012-FY2024.
+  // ⚠ THE ELEVEN ABSENT YEARS ARE DOCUMENT GAPS, NOT FETCH FAILURES. muni.org
+  // publishes FY2001-FY2011 as four section PDFs each, and every one is an
+  // IMAGE-ONLY SCAN (1-48 chars/page against 2,482-2,805 for FY2012+). Declared
+  // in scripts/lib/akAcfrSources.mjs and rejected at fetch time by
+  // fetchAnchorage.mjs's chars/page guard. None is written as $0.
+  'ak-local-acfr-gf': 26,
   // Knight session 7b — KANSAS'S FIRST LOCAL ENTITIES. A NEW family, so no
   // pre-existing count moved. 84 = 42 entity-years x 2 datasets: City of
   // Wichita FY2000-FY2025 less FY2001 and FY2008 (24 years) and Sedgwick County
