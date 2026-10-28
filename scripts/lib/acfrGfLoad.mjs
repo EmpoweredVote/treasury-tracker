@@ -55,9 +55,12 @@
  * 4. SANITY CEILING. A per-FY absolute maximum aborts the run rather than
  *    loading an implausible figure from a parse blow-up.
  *
- * 5. IDEMPOTENCE. A pre-load delete on (municipality_id, fiscal_year,
- *    dataset_type) precedes each RPC call, and the RPC itself upserts on the
- *    same key, so a second full run nets zero row-count change.
+ * 5. IDEMPOTENCE, AND IT KEEPS THE ROW. The ephemeral data_source is NAMED with
+ *    the same label the budgets row is stamped with, which is the key
+ *    `treasury_sync_budget_tree` reuses an existing row by — so a second run
+ *    rewrites the same `budgets.id` in place rather than replacing it. The id
+ *    matters: the frozen-figure registry is keyed on it. A post-RPC gate
+ *    refuses if a row that existed before comes back under a different id.
  *
  * `data_sources` rows are EPHEMERAL: created per dataset_type at the start of a
  * live run and deleted in a `finally` block. `budgets` rows carry the durable
@@ -264,16 +267,41 @@ export async function ensureMunicipality(supabase, cfg) {
 }
 
 // ── Ephemeral data_sources lifecycle ─────────────────────────────────────────
-export async function createEphemeralDataSource(supabase, cfg, muniId, datasetType, fys) {
-  const datasetId = `${cfg.datasetIdPrefix}-${datasetType}`;
-  const kind = datasetType === 'revenue' ? 'Revenue' : 'Operating';
-  const payload = {
-    name: `${cfg.entityLabel} General Fund ${kind} Budget`,
+
+/**
+ * The ephemeral `data_sources` row for ONE entity-year-mode.
+ *
+ * ── ⚠⚠ `name` IS THE ROW-REUSE KEY. IT IS NOT A CAPTION ──────────────────
+ *
+ * `treasury_sync_budget_tree` reuses an existing budgets row rather than
+ * inserting a second one, and it finds that row by `data_source = v_ds.name` —
+ * the name of THIS row. So this string has to be byte-identical to the label
+ * `loadFiscalYear` stamps onto `budgets.data_source`, or the RPC can never
+ * match on a second run.
+ *
+ * It used to read `"<entity> General Fund <Kind> Budget"` while the stamp wrote
+ * `"<entity> ACFR — General Fund <Kind> (FY<n> actual, GAAP basis)"`. Two
+ * different strings, so every reload took the RPC's INSERT branch and MINTED A
+ * NEW `budgets.id` for a row whose figures had not moved — breaking the
+ * frozen-figure registry, which is keyed on that id. Found 2026-10-28 by
+ * re-running Kodiak Island Borough as an idempotence test.
+ *
+ * ⭐ `tests/acfrGfLoadReuse.test.mjs` pins the equality, because a future edit
+ * to `dataSourceLabel` could easily change one side only.
+ *
+ * ⚠ The label names ONE fiscal year, so this row covers one fiscal year and
+ * `dataset_id` carries the year too — `treasury.data_sources` is UNIQUE on
+ * (municipality_id, api_type, coalesce(dataset_id,''), dataset_type), and a
+ * shared dataset_id would collide on the second year of the same run.
+ */
+export function ephemeralDataSourcePayload(cfg, muniId, datasetType, fy) {
+  return {
+    name: dataSourceLabel(cfg, fy, datasetType),
     api_type: 'pdf_download',
     dataset_type: datasetType,
-    dataset_id: datasetId,
+    dataset_id: `${cfg.datasetIdPrefix}-${datasetType}-${fy}`,
     base_url: cfg.baseUrl,
-    fiscal_years: fys,
+    fiscal_years: [fy],
     municipality_id: muniId,
     // The RPC propagates v_ds.fiscal_year_start_month into treasury.budgets
     // (migration 20260613120000), and the budgets stamp below sets it again
@@ -285,10 +313,13 @@ export async function createEphemeralDataSource(supabase, cfg, muniId, datasetTy
     // fiscal year that ends in September, so this is config, never a default.
     fiscal_year_start_month: cfg.fiscalYearStartMonth,
   };
-  await supabase.schema('treasury').from('data_sources').delete().eq('dataset_id', datasetId);
+}
+
+export async function createEphemeralDataSource(supabase, cfg, muniId, datasetType, fy) {
+  const payload = ephemeralDataSourcePayload(cfg, muniId, datasetType, fy);
+  await supabase.schema('treasury').from('data_sources').delete().eq('dataset_id', payload.dataset_id);
   const { data, error } = await supabase.schema('treasury').from('data_sources').insert(payload).select().single();
   if (error) { console.error('  data_source insert failed:', error.message); process.exit(2); }
-  console.log(`  data_source created (ephemeral): ${data.id} [${datasetId}]`);
   return data;
 }
 
@@ -307,13 +338,19 @@ export function dataSourceLabel(cfg, fy, datasetType) {
  *
  * ── ⚠⚠ WHY THE LOADER STAMPS SCOPE AT ALL ─────────────────────────────────
  *
- * `loadFiscalYear` DELETES the (municipality, fiscal_year, dataset_type) row
- * and lets the RPC insert a replacement, which arrives at the column DEFAULT —
- * `unknown`. Before this function existed, re-running a load that SCOPE-01 had
- * already classified silently threw the classification away: same row count,
- * same totals, nothing failing, and the table quietly disagreeing with the
- * registry. Found 2026-10-28 by re-running Kodiak Island Borough as an
+ * `loadFiscalYear` used to DELETE the (municipality, fiscal_year, dataset_type)
+ * row and let the RPC insert a replacement, which arrived at the column
+ * DEFAULT — `unknown`. Before this function existed, re-running a load that
+ * SCOPE-01 had already classified silently threw the classification away: same
+ * row count, same totals, nothing failing, and the table quietly disagreeing
+ * with the registry. Found 2026-10-28 by re-running Kodiak Island Borough as an
  * idempotence test.
+ *
+ * ⚠ That delete is gone now and the row is reused in place, so the RPC no
+ * longer resets the column. This stamp STAYS regardless: it is what keeps the
+ * loader and the SCOPE-01 sweep writing the same value, and it is still the
+ * only thing that classifies a brand-new row, which really does insert at
+ * `unknown`.
  *
  * ⚠ This is NOT a second authority on scope. It calls the SAME `classify()`
  * against the SAME registry that `scripts/classifyFundScope.mjs` uses, so the
@@ -337,9 +374,30 @@ export function scopeForDataSource(label, registry = FUND_SCOPE_REGISTRY) {
 
 // ── One fiscal year ──────────────────────────────────────────────────────────
 async function loadFiscalYear(supabase, cfg, muniId, dsId, fy, datasetType, tree, total, rowCount, sourceUrl) {
-  const { error: delErr } = await supabase.schema('treasury').from('budgets')
-    .delete().eq('municipality_id', muniId).eq('fiscal_year', fy).eq('dataset_type', datasetType);
-  if (delErr) { console.error('    Pre-load delete failed:', delErr.message); return false; }
+  const label = dataSourceLabel(cfg, fy, datasetType);
+
+  // ── ⚠⚠ READ THE ID FIRST, SO THE REUSE CAN BE PROVED AFTERWARDS ──────────
+  //
+  // This is the whole point of the change. `treasury_sync_budget_tree` reuses
+  // the row it finds at (municipality, fiscal_year, dataset_type, period_label,
+  // data_source = the ephemeral source's NAME) and inserts only when it finds
+  // none — so naming that source with this exact label is what makes a reload
+  // land on the same `budgets.id`. The assertion below turns that from an
+  // intention into something the run checks.
+  //
+  // ⚠ There used to be a blind DELETE on (municipality_id, fiscal_year,
+  // dataset_type) here, which guaranteed the RPC never found anything and so
+  // guaranteed a new uuid every run. It was also wider than this loader's own
+  // data: that key carries no fund_scope, and treasury.budgets legitimately
+  // holds two scopes under one such key — New York City publishes a General
+  // Fund AND a Total Governmental Funds series for the same 24 entity-years.
+  // Nothing in this family shares a key with those 48 rows, but a config one
+  // line different would have deleted them.
+  const { data: before, error: beforeErr } = await supabase.schema('treasury').from('budgets')
+    .select('id').eq('municipality_id', muniId).eq('fiscal_year', fy)
+    .eq('dataset_type', datasetType).eq('data_source', label).maybeSingle();
+  if (beforeErr) { console.error('    Pre-load lookup failed:', beforeErr.message); return false; }
+  const priorId = before?.id ?? null;
 
   const { data: rpc, error: rpcErr } = await supabase.rpc('treasury_sync_budget_tree', {
     p_data_source_id: dsId,
@@ -353,13 +411,23 @@ async function loadFiscalYear(supabase, cfg, muniId, dsId, fy, datasetType, tree
   if (rpcErr) { console.error('    RPC error:', rpcErr.message); return false; }
   if (rpc?.error) { console.error('    RPC error (returned):', rpc.error); return false; }
 
-  const { data: bud, error: budErr } = await supabase.schema('treasury').from('budgets')
-    .select('id').eq('municipality_id', muniId).eq('fiscal_year', fy).eq('dataset_type', datasetType).maybeSingle();
-  if (budErr || !bud?.id) {
-    console.error('    Could not find budget row to stamp source:', budErr?.message ?? '(no row)');
+  const budgetId = rpc?.budget_id;
+  if (!budgetId) {
+    console.error('    RPC returned no budget_id — nothing to stamp:', JSON.stringify(rpc));
     return false;
   }
-  const label = dataSourceLabel(cfg, fy, datasetType);
+
+  // ⭐ THE CHURN GATE. A row that already existed must come back with the SAME
+  // id. If it does not, the RPC took its INSERT branch and there are now two
+  // rows where there was one — so refuse here rather than stamp the new one and
+  // leave the old behind. The frozen-figure registry is keyed on this id.
+  if (priorId && budgetId !== priorId) {
+    console.error(`    REFUSING: FY${fy} ${datasetType} already existed as ${priorId} but the RPC `
+      + `returned ${budgetId}. The row was REPLACED, not reloaded — the data_source name on the `
+      + 'ephemeral source no longer matches the label this loader stamps.');
+    return false;
+  }
+
   // ⚠⚠ `fund_scope` is stamped HERE, with the same label the registry matches
   // on. The RPC inserts at the column default (`unknown`), so without this a
   // re-load silently downgrades an already-classified row. See
@@ -371,10 +439,10 @@ async function loadFiscalYear(supabase, cfg, muniId, dsId, fy, datasetType, tree
     data_source: label,
     fiscal_year_start_month: cfg.fiscalYearStartMonth,
     fund_scope: fundScope,
-  }).eq('id', bud.id);
+  }).eq('id', budgetId);
   if (stampErr) { console.error('    Source stamp failed:', stampErr.message); return false; }
-  console.log(`    Inserted ${rpc?.rows_inserted ?? '?'} line items; stamped source_date=${fy}-${cfg.fyEndMonthDay}`
-    + `, fund_scope=${fundScope}`);
+  console.log(`    ${priorId ? 'Reused' : 'Created'} budget ${budgetId}; ${rpc?.rows_inserted ?? '?'} line items; `
+    + `stamped source_date=${fy}-${cfg.fyEndMonthDay}, fund_scope=${fundScope}`);
   return true;
 }
 
@@ -464,18 +532,22 @@ export async function processMode(supabase, cfg, muni, { dryRun, mode, targetFY 
   }
   if (!staged.length) return { ok: true, loaded: 0 };
 
-  const ds = await createEphemeralDataSource(supabase, cfg, muni.id, datasetType, staged.map((s) => s.fy));
+  // ⚠ ONE ephemeral data_source PER FISCAL YEAR, because its `name` is now the
+  // key the RPC reuses a budgets row by and that label names a single year. The
+  // `finally` keeps the per-year cleanup guarantee the per-mode version had.
   let loaded = 0;
-  try {
-    for (const s of staged) {
-      console.log(`  FY${s.fy} -> ${datasetType}`);
-      const ok = await loadFiscalYear(supabase, cfg, muni.id, ds.id, s.fy, datasetType,
+  for (const s of staged) {
+    console.log(`  FY${s.fy} -> ${datasetType}`);
+    const ds = await createEphemeralDataSource(supabase, cfg, muni.id, datasetType, s.fy);
+    let ok = false;
+    try {
+      ok = await loadFiscalYear(supabase, cfg, muni.id, ds.id, s.fy, datasetType,
         s.tree, s.total, s.rowCount, s.url);
-      if (!ok) return { ok: false, loaded };
-      loaded++;
+    } finally {
+      await deleteEphemeralDataSource(supabase, ds.id);
     }
-  } finally {
-    await deleteEphemeralDataSource(supabase, ds.id);
+    if (!ok) return { ok: false, loaded };
+    loaded++;
   }
   return { ok: true, loaded };
 }
