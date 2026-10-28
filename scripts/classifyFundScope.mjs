@@ -37,10 +37,13 @@ import { parseArgs } from 'node:util';
 import { classify, validateRegistry, checkPartition, compareTallies, SCOPE, SCOPE_VALUES } from './lib/fundScope.mjs';
 import { FUND_SCOPE_REGISTRY } from './data/fundScopeRegistry.mjs';
 import { EXPECTED_ROWS } from './data/fundScopeExpectations.mjs';
+import { chunkForIn } from './lib/inChunks.mjs';
 
 
-/** Batch size for `data_source IN (...)` updates — 1,448 strings is one family. */
-const IN_CHUNK = 200;
+// ⚠⚠ `data_source IN (...)` updates are chunked by ENCODED LENGTH, not by
+// member count — 1,448 strings is one family, and 200 LONG ones is a request
+// line the server refuses outright. See scripts/lib/inChunks.mjs for the live
+// SCOPE-02 run that died on exactly that.
 
 let _supabase = null;
 async function getSupabase() {
@@ -131,8 +134,7 @@ async function fetchScopeCounts(supabase) {
 
 async function updateScope(supabase, sources, scope) {
   let written = 0;
-  for (let i = 0; i < sources.length; i += IN_CHUNK) {
-    const chunk = sources.slice(i, i + IN_CHUNK);
+  for (const chunk of chunkForIn(sources)) {
     const { error, count } = await supabase
       .schema('treasury').from('budgets')
       .update({ fund_scope: scope }, { count: 'exact' })

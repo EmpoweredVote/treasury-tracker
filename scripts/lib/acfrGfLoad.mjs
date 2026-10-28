@@ -62,6 +62,14 @@
  *    matters: the frozen-figure registry is keyed on it. A post-RPC gate
  *    refuses if a row that existed before comes back under a different id.
  *
+ * 6. THE CLASSIFICATION AXES ARE STAMPED FROM THE REGISTRIES, not hardcoded.
+ *    `fund_scope` and `basis` are read from `fundScopeRegistry.mjs` and
+ *    `basisRegistry.mjs` through the same classifiers the SCOPE-01 and SCOPE-02
+ *    sweeps use, so the loader and the sweeps cannot disagree, and an axis
+ *    neither registry can classify is LEFT ALONE rather than written `unknown`.
+ *    `basis` was missing until 2026-10-28, which is why 139 Alaska rows read
+ *    `unknown` while their Texas and Colorado siblings read `actual`.
+ *
  * `data_sources` rows are EPHEMERAL: created per dataset_type at the start of a
  * live run and deleted in a `finally` block. `budgets` rows carry the durable
  * text-stamp provenance, so a surviving data_sources row is unreferenceable
@@ -83,6 +91,8 @@ import { createClient } from '@supabase/supabase-js';
 import { resolvePython } from './pythonBin.mjs';
 import { classify, SCOPE } from './fundScope.mjs';
 import { FUND_SCOPE_REGISTRY } from '../data/fundScopeRegistry.mjs';
+import { BASIS, BASIS_VALUES, classifyAxis } from './budgetAxes.mjs';
+import { BASIS_REGISTRY } from '../data/basisRegistry.mjs';
 
 const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1')), '..', '..');
 
@@ -372,6 +382,60 @@ export function scopeForDataSource(label, registry = FUND_SCOPE_REGISTRY) {
   return scope ?? SCOPE.UNKNOWN;
 }
 
+/**
+ * The `basis` this loader must stamp for a given `data_source` label — the
+ * SCOPE-02 twin of `scopeForDataSource` above, and classified the same way.
+ *
+ * ── ⚠⚠ WHY IT TOOK A SECOND DEFECT TO ADD THIS ────────────────────────────
+ *
+ * The loader stamped `fund_scope` and nothing else, so `basis` arrived at the
+ * RPC's `COALESCE(p_basis, 'unknown')` and stayed there. The 139 Alaska rows
+ * read `unknown` while the 98 rows of the Texas and Colorado families — loaded
+ * by THIS module, from the same statement of the same kind of document — read
+ * `actual`; every Alaska row carries the word "actual" in its own data_source
+ * string. Found 2026-10-28 while fixing the row-id churn next door.
+ *
+ * ⚠ The cause was not here. It was that `ak-local-acfr-gf` went into
+ * `fundScopeRegistry.mjs` when the family loaded and into no sibling registry,
+ * so `scripts/stampBudgetAxes.mjs` could not have fixed it either — the sweep
+ * had no entry to claim those rows with. The registry entry is the fix; this
+ * function is what keeps a reload from undoing it.
+ *
+ * ⚠ Like its scope twin this is NOT a second authority: it calls the same
+ * `classifyAxis()` against the same `BASIS_REGISTRY` the sweep uses, and
+ * inherits the evidence gate rather than re-implementing it — an entry whose
+ * evidence is missing or a placeholder classifies as `unknown`. `actual` is a
+ * public claim that a figure is a closed-year result, so an unevidenced claim
+ * must not reach the database through this path.
+ */
+export function basisForDataSource(label, registry = BASIS_REGISTRY) {
+  return classifyAxis(label, registry, BASIS_VALUES, BASIS.UNKNOWN).value;
+}
+
+/**
+ * The classification columns to stamp for `label`, as a PATCH to spread into
+ * the update — never a full row.
+ *
+ * ⚠⚠ AN UNKNOWN IS OMITTED, NEVER WRITTEN. A column this loader cannot
+ * classify may already hold a value some other pass put there, and sending a
+ * literal `unknown` would overwrite it. That is precisely PR #300's defect —
+ * a reload silently downgrading an evidenced row — and there is no reason to
+ * reproduce it on a second axis now that there are two. The sweeps write only
+ * the rows an entry CLAIMS; this does the same, from the same registries.
+ *
+ * ⚠ Omitting is also harmless for a genuinely new row: the RPC inserts both
+ * columns at the table default, which is `unknown` either way. The only
+ * behaviour this changes is the destructive one.
+ */
+export function axisStampFor(label, scopeRegistry = FUND_SCOPE_REGISTRY, basisRegistry = BASIS_REGISTRY) {
+  const patch = {};
+  const scope = scopeForDataSource(label, scopeRegistry);
+  if (scope !== SCOPE.UNKNOWN) patch.fund_scope = scope;
+  const basis = basisForDataSource(label, basisRegistry);
+  if (basis !== BASIS.UNKNOWN) patch.basis = basis;
+  return patch;
+}
+
 // ── One fiscal year ──────────────────────────────────────────────────────────
 async function loadFiscalYear(supabase, cfg, muniId, dsId, fy, datasetType, tree, total, rowCount, sourceUrl) {
   const label = dataSourceLabel(cfg, fy, datasetType);
@@ -428,21 +492,25 @@ async function loadFiscalYear(supabase, cfg, muniId, dsId, fy, datasetType, tree
     return false;
   }
 
-  // ⚠⚠ `fund_scope` is stamped HERE, with the same label the registry matches
-  // on. The RPC inserts at the column default (`unknown`), so without this a
-  // re-load silently downgrades an already-classified row. See
-  // `scopeForDataSource` for why the loader is not a second authority.
-  const fundScope = scopeForDataSource(label);
+  // ⚠⚠ `fund_scope` AND `basis` are stamped HERE, with the same label the
+  // registries match on. The RPC inserts both at the column default
+  // (`unknown`), so without this a re-load silently downgrades an
+  // already-classified row. See `scopeForDataSource` and `basisForDataSource`
+  // for why the loader is not a second authority on either, and `axisStampFor`
+  // for why an axis it cannot classify is OMITTED rather than written.
+  const axes = axisStampFor(label);
   const { error: stampErr } = await supabase.schema('treasury').from('budgets').update({
     source_url: sourceUrl,
     source_date: `${fy}-${cfg.fyEndMonthDay}`,
     data_source: label,
     fiscal_year_start_month: cfg.fiscalYearStartMonth,
-    fund_scope: fundScope,
+    ...axes,
   }).eq('id', budgetId);
   if (stampErr) { console.error('    Source stamp failed:', stampErr.message); return false; }
+  const axisLog = ['fund_scope', 'basis']
+    .map((k) => `${k}=${axes[k] ?? 'unknown (left as it stood)'}`).join(', ');
   console.log(`    ${priorId ? 'Reused' : 'Created'} budget ${budgetId}; ${rpc?.rows_inserted ?? '?'} line items; `
-    + `stamped source_date=${fy}-${cfg.fyEndMonthDay}, fund_scope=${fundScope}`);
+    + `stamped source_date=${fy}-${cfg.fyEndMonthDay}, ${axisLog}`);
   return true;
 }
 

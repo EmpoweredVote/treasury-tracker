@@ -31,6 +31,7 @@ import {
 } from './lib/budgetAxes.mjs';
 import { BASIS_REGISTRY } from './data/basisRegistry.mjs';
 import { REPORTING_ENTITY_REGISTRY } from './data/reportingEntityRegistry.mjs';
+import { chunkForIn } from './lib/inChunks.mjs';
 
 /** Measured 2026-08-17. See plan Task 3 Step 1 for the query that produced them. */
 export const EXPECTED_BASIS_ROWS = Object.freeze({
@@ -399,7 +400,66 @@ export const EXPECTED_BASIS_ROWS = Object.freeze({
   // ⚠ This count WILL rise when the FY2009-2015 follow-up or the statewide
   // sweep lands. Re-measure with evidence then; a partition count is a
   // measurement with a date, not a constant.
-  'ga-dca-rlgf': 76,
+  //
+  // ⭐ IT DID, AND NOBODY RE-MEASURED: 76 -> 12,611, RE-MEASURED IN THE TABLE
+  // 2026-10-28. The statewide sweep (#274) landed on 2026-10-19 and this number
+  // was not touched, so THIS GATE HAS BEEN FAILING CLOSED EVER SINCE —
+  // `basis/ga-dca-rlgf: expected 76, got 12611` — which is why it is being
+  // corrected from an unrelated Alaska milestone. A red gate blocks every
+  // family's write, not just its own.
+  //
+  // ⚠ THE PATTERN WAS INTERROGATED BEFORE THIS NUMBER MOVED, which is the rule
+  // this file's header enforces, and it is byte-identical to the one that
+  // measured 76: 12,611 rows over 12,611 DISTINCT ids, 60 source strings
+  // (= 10 fiscal years x 2 datasets x 3 audit-status suffixes), 689 Georgia
+  // entities, 0 rows outside Georgia, exactly 2 dataset types, 0 duplicate
+  // (entity, year, dataset) keys, 0 null-or-non-positive totals, and a single
+  // fund_scope. The rows became more numerous; the pattern did not widen.
+  //
+  // ⚠⚠ AND 9,071 GEORGIA ROWS ARE NOT CLAIMED HERE, THOUGH THE TABLE ALREADY
+  // CALLS THEM `actual`. The v1 generation — FY2009-FY2015, loaded by #273 —
+  // carries the same three audit-status suffixes and the same two dataset
+  // types, but this pattern is anchored at FY2016+, so no entry reaches them.
+  // Their loader wrote `basis = actual` directly, the way loadCoKsAcfrs.mjs
+  // hardcodes `fund_scope`, so all 21,682 Georgia rows read `actual` while only
+  // 12,611 of them have a registry entry standing behind that word.
+  //
+  // ⚠ That is a FINDING, not a count to tidy away, and it points BOTH ways:
+  // `--reset` would set those 9,071 to `unknown` and no sweep would restore
+  // them, and meanwhile the table asserts a basis the registry has not
+  // evidenced. The fix is to read the v1 form's own caption and widen the year
+  // range with evidence — the block below quotes the v2 form's "Fiscal Year
+  // Ended" caption and its "Use Audit figures if available" instruction, and
+  // the v1 form is a DIFFERENT GENERATION whose caption nobody has read.
+  // Widening the range without reading it would assert a basis from a family
+  // resemblance. 12,611 + 9,071 = 21,682, the whole Georgia family.
+  'ga-dca-rlgf': 12611,
+  // Alaska — Anchorage (#298) and the six largest boroughs (#299), one family
+  // across two fiscal calendars. MEASURED IN THE TABLE 2026-10-28, never
+  // derived from the roster: 139 rows over 139 DISTINCT ids and 139 distinct
+  // source strings, 7 entities, 0 rows outside Alaska, exactly 2 dataset types,
+  // 0 duplicate (entity, year, dataset) keys, 0 null-or-non-positive totals,
+  // and uniform general_fund / published.
+  //
+  // ⚠⚠ A NEW ENTRY FOR AN OLD FAMILY. These rows have been loaded since
+  // 2026-10-28 and read `basis = unknown` the whole time, because the family
+  // went into fundScopeRegistry.mjs and into no sibling registry — the same
+  // "widened one registry of four" shape as `in-gateway-afr` above. The 139 is
+  // the count of rows this entry newly claims; no pre-existing count moved.
+  //
+  // ⚠ THE FAMILY IS DELIBERATELY NON-UNIFORM and a uniformity check must not
+  // read that as a defect: entity_type is city AND county (an Alaska borough is
+  // a census SUMLEV 050 county-equivalent; Anchorage and Juneau are unified
+  // city-boroughs), and the fiscal month is 1 for Anchorage and 7 for the six
+  // boroughs. Year counts run 13, 10, 10, 10, 10, 8 and 9/8 — Fairbanks North
+  // Star differs BETWEEN ITS TWO DATASETS, because FY2018 revenue is a declared
+  // document gap while FY2018 expenditure loads. 139 is an odd number for that
+  // reason alone.
+  //
+  // ⚠ 0 of the 139 carry a fiscal year after FY2025, so the unclosed-year rule
+  // has nothing to catch here. Worth stating: two fiscal calendars in one
+  // family is exactly the setting where it would.
+  'ak-local-acfr-gf': 139,
   // Knight session 7a (Michigan Treasury F-65), measured from the ACTUAL
   // post-write count on 2026-08-30. A NEW family, so no pre-existing count
   // moved. 128 = 32 entity-years x 2 dataset types x 2 FUND SCOPES — Detroit and
@@ -645,7 +705,9 @@ export const EXPECTED_REPORTING_ENTITY_ROWS = Object.freeze({
 /** The last fiscal year that has closed. A row after this cannot be an actual. */
 const LAST_CLOSED_FY = 2025;
 
-const IN_CHUNK = 200;
+// ⚠⚠ Chunked by ENCODED LENGTH, not by member count — see scripts/lib/inChunks.mjs
+// for the live run this cost (`write basis for ny-osc-municipal: Bad Request`,
+// twenty-three families in).
 
 let _supabase = null;
 async function getSupabase() {
@@ -751,8 +813,7 @@ function report(axisName, plan, totalRows) {
 
 async function writeAxis(supabase, column, plan) {
   for (const [id, e] of plan.byEntry) {
-    for (let i = 0; i < e.strings.length; i += IN_CHUNK) {
-      const chunk = e.strings.slice(i, i + IN_CHUNK);
+    for (const chunk of chunkForIn(e.strings)) {
       const { error } = await supabase
         .schema('treasury').from('budgets')
         .update({ [column]: e.value })

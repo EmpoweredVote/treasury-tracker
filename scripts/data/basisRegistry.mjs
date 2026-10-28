@@ -230,6 +230,75 @@ export const BASIS_REGISTRY = [
     },
   },
   {
+    // Alaska's local governments — Anchorage (#298) and the six largest
+    // boroughs (#299), one family across two fiscal calendars and two entity
+    // types. 139 rows, measured 2026-10-28.
+    //
+    // ⚠⚠ THIS ENTRY ARRIVED LATE, AND THAT IS THE FINDING. The family went into
+    // `fundScopeRegistry.mjs` when it loaded and into no sibling registry, so
+    // all 139 rows sat `basis = unknown` while the 98 rows of
+    // `tx-local-acfr-gf` and `co-local-acfr-gf` — loaded by the SAME module,
+    // from the same statement of the same kind of document — read `actual`.
+    // Every one of the 139 carries the word "actual" in its own data_source
+    // string. Same "widened one registry of four" shape as the note on
+    // `in-gateway-afr` below.
+    //
+    // ⚠ ANCHORED TO THE SEVEN ENTITY NAMES, like tx-/co-/nc-/sc-local-acfr-gf,
+    // and byte-identical to the pattern of the same id in fundScopeRegistry.mjs
+    // so the two registries cannot disagree about who is in the family. The
+    // bare /ACFR — General Fund / shape claims ~1,850 rows across families
+    // nobody has reconciled; a future Alaska load lands `unknown` until it is
+    // evidenced, which is the correct failure direction.
+    id: 'ak-local-acfr-gf',
+    match: /^(Municipality of Anchorage|Matanuska-Susitna Borough|Fairbanks North Star Borough|Kenai Peninsula Borough|City and Borough of Juneau|Ketchikan Gateway Borough|Kodiak Island Borough) ACFR — General Fund /,
+    value: BASIS.ACTUAL,
+    evidence: {
+      document: 'The seven ACFRs the loader itself read, FY2024 in each case — '
+              + 'docs/Anchorage/anchorage-2024-acfr.pdf and '
+              + 'docs/AkBoroughs/{matsu,fnsb,kpb,juneau,kgb,kodiak}/*-2024-acfr.pdf. Each is an '
+              + 'audited annual comprehensive financial report on a CLOSED fiscal year, carrying '
+              + 'an independent auditor\'s report whose opinion paragraph states that the '
+              + 'statements "present fairly, in all material respects". Read 2026-10-28. Same '
+              + 'method as tx-local-acfr-gf and co-local-acfr-gf above, and the fund-scope entry '
+              + 'of this id establishes WHICH COLUMN the stored figure is, figure by figure, '
+              + 'against an independent oracle.',
+      figures: 'Every stored figure is the printed General Fund column of the governmental-funds '
+             + 'Statement of Revenues, Expenditures and Changes in Fund Balances — a year-end '
+             + 'GAAP actual. NOT an appropriation, and this family is the reason to say so with '
+             + 'evidence rather than by analogy: ALL SEVEN governments also publish a General '
+             + 'Fund BUDGETARY comparison, which is the document a wrong read would land on. '
+             + 'Counted in the FY2024 text of each filing: Juneau prints 26 pages captioned '
+             + '"Schedule of Revenues, Expenditures, and Changes in Fund Balance - Budget and '
+             + 'Actual", Fairbanks North Star 6 (plus a "- Budgetary Basis" schedule), '
+             + 'Matanuska-Susitna 5, and Anchorage, Ketchikan Gateway, Kenai Peninsula and '
+             + 'Kodiak Island each present "Budgetary Comparison Schedule" pages under that '
+             + 'title. '
+             + '⭐ ANCHORAGE SAYS OUTRIGHT THAT THE TWO FIGURES DIFFER, which settles the axis '
+             + 'from the document rather than from the reader: "Estimated appropriations in the '
+             + 'Municipality\'s General Fund Budget do not correspond to the expenditures '
+             + 'reported for the general fund on a GAAP basis. A reconciliation from GAAP to '
+             + 'budgetary basis is provided to present the actual amounts on a budgetary basis '
+             + 'for the budget to actual comparison." (Budgetary Data note, FY2024 ACFR). The '
+             + 'figure TT stores is the GAAP fund-statement one — by the government\'s own '
+             + 'statement, not the budget. '
+             + '⚠ And the budgetary pages are STRUCTURALLY UNREACHABLE, not merely avoided: '
+             + 'scripts/extractAnchorageAK.py and scripts/extractAkBorough.py are both thin '
+             + 'wrappers over scripts/lib/acfrGF.py, whose `_EXCLUDE` tuple drops any page whose '
+             + 'text carries "budgetary" or "budget and actual" before a statement can be '
+             + 'selected from it. Same guard that protects tx-local-acfr-gf and '
+             + 'co-local-acfr-gf. '
+             + '⚠ THE WHOLE WINDOW IS CLOSED: Anchorage FY2012-FY2024 (its year ends December 31, '
+             + 'so FY2024 closed 2024-12-31) and the six boroughs FY2016-FY2025 (June 30, so '
+             + 'FY2025 closed 2025-06-30). 0 of the 139 rows carry a fiscal year after FY2025, '
+             + 'so the stamper\'s unclosed-year rule has nothing to catch here — stated because '
+             + 'two fiscal calendars in one family is exactly the setting where it would. '
+             + '⚠ `basis` on this axis means ACTUAL-vs-ADOPTED. What these figures are measured '
+             + 'ON — modified accrual under GAAP — is the separate `accounting_basis` axis, '
+             + 'which this family does not claim, exactly as tx-local-acfr-gf and '
+             + 'co-local-acfr-gf do not.',
+    },
+  },
+  {
     // Knight session 6a — South Carolina's first two cities.
     // ⚠ See the ambiguity warning on sc-local-acfr-gf in fundScopeRegistry.mjs:
     // `City of Columbia` names governments in at least seven states.
