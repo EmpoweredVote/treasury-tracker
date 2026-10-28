@@ -612,8 +612,20 @@ export const FUND_SCOPE_REGISTRY = [
     //
     // ⚠ "Municipality of Anchorage" is the publisher's own cover-page name and is
     // unique in the table; no other state has an Anchorage row.
+    // ⚠ EXTENDED 2026-10-28 with Alaska's six largest BOROUGHS — the same
+    // statement, the same column, the same state, so this family grows rather
+    // than a lookalike appearing beside it. The alternation stays ANCHORED and
+    // ENUMERATED: a bare /^.* ACFR — General Fund/ would claim every future
+    // Alaska entity sight unseen.
+    //
+    // ⚠⚠ The six boroughs close JUNE 30 while Anchorage closes DECEMBER 31, and
+    // they are typed `county` (an Alaska borough is a census SUMLEV 050
+    // county-equivalent) while Anchorage and Juneau are `city` (both unified
+    // city-boroughs). Neither difference touches SCOPE — every one of these
+    // rows is the General Fund column of a governmental-funds statement — which
+    // is why one family is right and two would be noise.
     id: 'ak-local-acfr-gf',
-    match: /^Municipality of Anchorage ACFR — General Fund /,
+    match: /^(Municipality of Anchorage|Matanuska-Susitna Borough|Fairbanks North Star Borough|Kenai Peninsula Borough|City and Borough of Juneau|Ketchikan Gateway Borough|Kodiak Island Borough) ACFR — General Fund /,
     scope: SCOPE.GENERAL_FUND,
     evidence: {
       document: 'THREE probes spanning the series, each the governmental-funds Statement of '
@@ -656,7 +668,38 @@ export const FUND_SCOPE_REGISTRY = [
              + '263,714,389 in FY2024, a third of the fund. That makes the GF an unusually LARGE '
              + 'share of total governmental (≈82%) compared with the Colorado and Texas '
              + 'families (≈50-74%). The scope claim is unaffected; the share is a property of '
-             + 'the government, not of the reading.',
+             + 'the government, not of the reading. '
+             + '── THE SIX BOROUGHS (added 2026-10-28) — five more probes, same method, same '
+             + 'oracle, all FY2024 and all matching the stored figures EXACTLY: '
+             + 'Matanuska-Susitna (p.49, Exhibit B-3) General Fund 173,948,193 / 123,631,412; '
+             + 'Kenai Peninsula (p.45) 106,379,141 / 85,727,138; City and Borough of Juneau '
+             + '(p.42) 87,688,723 / 127,125,075; Ketchikan Gateway (p.67) 19,339,832 / '
+             + '17,023,312; Kodiak Island (p.42, Exhibit) 10,463,649 / 6,724,526. '
+             + 'total_governmental rejected across a WIDE spread, which is what makes the '
+             + 'discriminator convincing rather than marginal — the General Fund is '
+             + '27.6%/21.1% of total governmental at Kodiak (37,921,546 / 31,876,606), '
+             + '40.5%/36.0% at Ketchikan Gateway (47,808,354 / 47,281,841), 64.3%/56.5% at '
+             + 'Kenai Peninsula (165,494,812 / 151,774,920) and ≈69% at Matanuska-Susitna '
+             + '(251,817,677). A reading that had picked the total column would be wrong by '
+             + 'between 1.4x and 4.7x depending on the borough, never by a margin. '
+             + 'all_funds is further still: none of these governmental-funds statements '
+             + 'contains a proprietary fund. '
+             + '⚠⚠ JUNEAU SPENDS MORE FROM ITS GENERAL FUND THAN THAT FUND RECEIVES '
+             + '(127,125,075 against 87,688,723 in FY2024) because its Sales Tax special '
+             + 'revenue fund transfers in. That is a real transfer, not a sign the wrong '
+             + 'column was read — the printed Excess row and the Other Financing Sources '
+             + 'block both show it, and the independent oracle reproduces both figures. '
+             + '⚠⚠ EVERY BOROUGH IN THIS COHORT PRINTS A PRIOR-YEAR SUMMARIZED COLUMN as the '
+             + 'LAST column of the statement (Kodiak FY2024 prints Total Governmental '
+             + '37,921,546 followed by 33,303,016, the FY2023 comparative). A '
+             + 'total-governmental extraction here must not assume last-column-is-total; it '
+             + 'would silently load the prior year. Same trap as the Anchorage FY2012 era. '
+             + '⚠ Fairbanks North Star is NOT among the oracle probes: it prints its total '
+             + 'rows as `Revenues total` / `Expenditures total`, which scripts/acfrPrintedTotal.py '
+             + 'does not recognise. Its scope rests on the same statement structure as its five '
+             + 'siblings, read from the same printed General Fund column, and its $1–$2 '
+             + 'source-rounding deltas were each verified against the borough\'s own printed '
+             + 'Excess row instead (see scripts/extractAkBorough.py).',
     },
   },
   {

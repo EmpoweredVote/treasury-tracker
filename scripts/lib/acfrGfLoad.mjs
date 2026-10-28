@@ -144,7 +144,14 @@ export function supabaseClient() {
 export function extractPDF(cfg, pdfPath, mode) {
   const python = resolvePython();
   const script = path.join(ROOT, cfg.extractScript);
-  const r = spawnSync(python, [script, pdfPath, '--mode', mode], {
+  // `extractArgs` lets one extractor script serve several entities that share a
+  // document shape — the Alaska boroughs pass `['--entity', '<key>']`. It
+  // defaults to [], so every entity that does not set it invokes the extractor
+  // exactly as before. ⚠ Explicit rather than inferred from the PDF filename:
+  // an extractor that guessed its own config from a path would silently read
+  // one borough's statement with another borough's parents.
+  const extra = Array.isArray(cfg.extractArgs) ? cfg.extractArgs : [];
+  const r = spawnSync(python, [script, pdfPath, ...extra, '--mode', mode], {
     maxBuffer: 64 * 1024 * 1024, encoding: 'utf8',
   });
   if (r.status !== 0) {
@@ -349,7 +356,33 @@ export async function processMode(supabase, cfg, muni, { dryRun, mode, targetFY 
     if (!ex.ok) { console.error(`  FY${fy}: EXTRACT FAILED — ${ex.reason}`); return { ok: false, loaded: 0 }; }
     const d = ex.data;
 
-    if (d.tie_delta !== 0) { console.error(`  FY${fy}: tie_delta ${d.tie_delta} — refusing (gate is $0)`); return { ok: false, loaded: 0 }; }
+    // ⚠⚠ THE GATE IS $0, WITH ONE NARROW EXCEPTION THE EXTRACTOR MUST HAVE
+    // DECIDED FIRST. `source_rounding` is an EXACT per-(fiscal_year, mode)
+    // delta registry for city-years where the ISSUER'S OWN printed total
+    // disagrees with the sum of its OWN printed components — Fairbanks North
+    // Star Borough's statements are off by $1–$2, and that borough's own
+    // `Excess (deficiency)` row agrees with the component sum rather than with
+    // its printed total.
+    //
+    // The extractor owns that decision: it sets `source_rounding_accepted` only
+    // when a registered delta matches tie_delta EXACTLY, and leaves it null
+    // otherwise. This loader re-checks the equality rather than trusting the
+    // flag alone, so a malformed extractor payload cannot widen the gate.
+    //
+    // ⚠ This is NOT a tolerance. An unregistered delta of $1 still refuses, and
+    // the loaded tree total is always the COMPONENT SUM, so every stored row
+    // still ties against its own line items.
+    const roundingOk = d.source_rounding_accepted !== null
+      && d.source_rounding_accepted !== undefined
+      && d.source_rounding_accepted === d.tie_delta;
+    if (d.tie_delta !== 0 && !roundingOk) {
+      console.error(`  FY${fy}: tie_delta ${d.tie_delta} — refusing (gate is $0)`);
+      return { ok: false, loaded: 0 };
+    }
+    if (roundingOk) {
+      console.log(`  FY${fy}: source rounding ${d.tie_delta > 0 ? '+' : ''}${d.tie_delta} accepted `
+        + '(issuer total disagrees with its own components; tree total is the component sum)');
+    }
     if (d.fiscal_year !== fy) {
       console.error(`  FY${fy}: extractor parsed fiscal_year=${d.fiscal_year} — filename/statement disagree, refusing`);
       return { ok: false, loaded: 0 };
@@ -410,10 +443,18 @@ export async function run(cfg) {
   loadEnv();
   const argv = process.argv.slice(2);
   const arg = (k) => { const i = argv.indexOf(k); return i >= 0 ? argv[i + 1] : null; };
-  const dryRun = argv.includes('--dry-run');
-  const targetFY = arg('--fy') ? Number(arg('--fy')) : null;
+  // ⚠ A CONFIG VALUE WINS OVER argv, and only when the driver supplies one.
+  // Every existing driver passes none of these, so they keep reading the CLI
+  // exactly as before. The Alaska boroughs need it because their two modes have
+  // DIFFERENT year windows — Fairbanks FY2018 revenue is a declared document
+  // gap while FY2018 operating loads — which one shared `fys` list cannot
+  // express, so that driver calls run() once per mode.
+  const dryRun = cfg.dryRun !== undefined ? Boolean(cfg.dryRun) : argv.includes('--dry-run');
+  const targetFY = cfg.targetFY !== undefined && cfg.targetFY !== null
+    ? Number(cfg.targetFY)
+    : (arg('--fy') ? Number(arg('--fy')) : null);
   const modeArg = arg('--mode');
-  const modes = modeArg ? [modeArg] : ['revenue', 'operating'];
+  const modes = cfg.mode ? [cfg.mode] : (modeArg ? [modeArg] : ['revenue', 'operating']);
 
   console.log(`=== ${cfg.entityLabel} — General Fund ACFR load${dryRun ? ' [DRY RUN]' : ''}`);
   const supabase = supabaseClient();

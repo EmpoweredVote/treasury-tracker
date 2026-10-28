@@ -1,0 +1,434 @@
+{
+ "matsu": {
+  "2016": {
+   "report_id": "2016-06-CENSUS-0000203027",
+   "name": "MATANUSKA-SUSITNA BOROUGH, ALASKA",
+   "fy_end": "2016-06-30",
+   "ein": "920030816",
+   "uei": "GSA_MIGRATION"
+  },
+  "2017": {
+   "report_id": "2017-06-CENSUS-0000203027",
+   "name": "MATANUSKA-SUSITNA BOROUGH, ALASKA",
+   "fy_end": "2017-06-30",
+   "ein": "920030816",
+   "uei": "GSA_MIGRATION"
+  },
+  "2018": {
+   "report_id": "2018-06-CENSUS-0000203027",
+   "name": "MATANUSKA-SUSITNA BOROUGH, ALASKA",
+   "fy_end": "2018-06-30",
+   "ein": "920030816",
+   "uei": "GSA_MIGRATION"
+  },
+  "2019": {
+   "report_id": "2019-06-CENSUS-0000203027",
+   "name": "MATANUSKA-SUSITNA BOROUGH, ALASKA",
+   "fy_end": "2019-06-30",
+   "ein": "920030816",
+   "uei": "GSA_MIGRATION"
+  },
+  "2020": {
+   "report_id": "2020-06-CENSUS-0000203027",
+   "name": "MATANUSKA-SUSITNA BOROUGH, ALASKA",
+   "fy_end": "2020-06-30",
+   "ein": "920030816",
+   "uei": "GSA_MIGRATION"
+  },
+  "2021": {
+   "report_id": "2021-06-CENSUS-0000203027",
+   "name": "MATANUSKA-SUSITNA BOROUGH, ALASKA",
+   "fy_end": "2021-06-30",
+   "ein": "920030816",
+   "uei": "GSA_MIGRATION"
+  },
+  "2022": {
+   "report_id": "2022-06-CENSUS-0000203027",
+   "name": "MATANUSKA-SUSITNA BOROUGH, ALASKA",
+   "fy_end": "2022-06-30",
+   "ein": "920030816",
+   "uei": "QRK7LJ2Y3RJ1"
+  },
+  "2023": {
+   "report_id": "2023-06-GSAFAC-0000017189",
+   "name": "MATANUSKA-SUSITNA BOROUGH, ALASKA",
+   "fy_end": "2023-06-30",
+   "ein": "920030816",
+   "uei": "QRK7LJ2Y3RJ1"
+  },
+  "2024": {
+   "report_id": "2024-06-GSAFAC-0000348812",
+   "name": "MAT-SU BOROUGH",
+   "fy_end": "2024-06-30",
+   "ein": "920030816",
+   "uei": "QRK7LJ2Y3RJ1"
+  },
+  "2025": {
+   "report_id": "2025-06-GSAFAC-0000402000",
+   "name": "MATANUSKA-SUSITNA BOROUGH",
+   "fy_end": "2025-06-30",
+   "ein": "920030816",
+   "uei": "QRK7LJ2Y3RJ1"
+  }
+ },
+ "fnsb": {
+  "2016": {
+   "report_id": "2016-06-CENSUS-0000129811",
+   "name": "FAIRBANKS NORTH STAR BOROUGH",
+   "fy_end": "2016-06-30",
+   "ein": "920030612",
+   "uei": "GSA_MIGRATION"
+  },
+  "2017": {
+   "report_id": "2017-06-CENSUS-0000129811",
+   "name": "FAIRBANKS NORTH STAR BOROUGH",
+   "fy_end": "2017-06-30",
+   "ein": "920030612",
+   "uei": "GSA_MIGRATION"
+  },
+  "2018": {
+   "report_id": "2018-06-CENSUS-0000129811",
+   "name": "FAIRBANKS NORTH STAR BOROUGH",
+   "fy_end": "2018-06-30",
+   "ein": "920030612",
+   "uei": "GSA_MIGRATION"
+  },
+  "2019": {
+   "report_id": "2019-06-CENSUS-0000129811",
+   "name": "FAIRBANKS NORTH STAR BOROUGH",
+   "fy_end": "2019-06-30",
+   "ein": "920030612",
+   "uei": "GSA_MIGRATION"
+  },
+  "2020": {
+   "report_id": "2020-06-CENSUS-0000129811",
+   "name": "FAIRBANKS NORTH STAR BOROUGH",
+   "fy_end": "2020-06-30",
+   "ein": "920030612",
+   "uei": "GSA_MIGRATION"
+  },
+  "2021": {
+   "report_id": "2021-06-CENSUS-0000129811",
+   "name": "FAIRBANKS NORTH STAR BOROUGH",
+   "fy_end": "2021-06-30",
+   "ein": "920030612",
+   "uei": "GSA_MIGRATION"
+  },
+  "2022": {
+   "report_id": "2022-06-CENSUS-0000129811",
+   "name": "FAIRBANKS NORTH STAR BOROUGH",
+   "fy_end": "2022-06-30",
+   "ein": "920030612",
+   "uei": "KBLKNWKWRAX5"
+  },
+  "2023": {
+   "report_id": "2023-06-GSAFAC-0000022091",
+   "name": "Fairbanks North Star Borough",
+   "fy_end": "2023-06-30",
+   "ein": "920030612",
+   "uei": "KBLKNWKWRAX5"
+  },
+  "2024": {
+   "report_id": "2024-06-GSAFAC-0000347960",
+   "name": "Fairbanks North Star Borough",
+   "fy_end": "2024-06-30",
+   "ein": "920143182",
+   "uei": "KBLKNWKWRAX5"
+  },
+  "2025": {
+   "report_id": "2025-06-GSAFAC-0000401715",
+   "name": "Fairbanks North Star Borough",
+   "fy_end": "2025-06-30",
+   "ein": "920030612",
+   "uei": "KBLKNWKWRAX5"
+  }
+ },
+ "kpb": {
+  "2016": {
+   "report_id": "2016-06-CENSUS-0000129814",
+   "name": "KENAI PENINSULA BOROUGH",
+   "fy_end": "2016-06-30",
+   "ein": "920030894",
+   "uei": "GSA_MIGRATION"
+  },
+  "2017": {
+   "report_id": "2017-06-CENSUS-0000129814",
+   "name": "KENAI PENINSULA BOROUGH",
+   "fy_end": "2017-06-30",
+   "ein": "920030894",
+   "uei": "GSA_MIGRATION"
+  },
+  "2018": {
+   "report_id": "2018-06-CENSUS-0000129814",
+   "name": "KENAI PENINSULA BOROUGH",
+   "fy_end": "2018-06-30",
+   "ein": "920030894",
+   "uei": "GSA_MIGRATION"
+  },
+  "2019": {
+   "report_id": "2019-06-CENSUS-0000129814",
+   "name": "KENAI PENINSULA BOROUGH",
+   "fy_end": "2019-06-30",
+   "ein": "920030894",
+   "uei": "GSA_MIGRATION"
+  },
+  "2020": {
+   "report_id": "2020-06-CENSUS-0000129814",
+   "name": "KENAI PENINSULA BOROUGH, ALASKA",
+   "fy_end": "2020-06-30",
+   "ein": "920030894",
+   "uei": "GSA_MIGRATION"
+  },
+  "2021": {
+   "report_id": "2021-06-CENSUS-0000129814",
+   "name": "KENAI PENINSULA BOROUGH, ALASKA",
+   "fy_end": "2021-06-30",
+   "ein": "920030894",
+   "uei": "GSA_MIGRATION"
+  },
+  "2022": {
+   "report_id": "2022-06-CENSUS-0000129814",
+   "name": "KENAI PENINSULA BOROUGH, ALASKA",
+   "fy_end": "2022-06-30",
+   "ein": "920030894",
+   "uei": "LFJ1BSEYK6H3"
+  },
+  "2023": {
+   "report_id": "2023-06-GSAFAC-0000067973",
+   "name": "Kenai Peninsula Borough, Alaska",
+   "fy_end": "2023-06-30",
+   "ein": "920030894",
+   "uei": "LFJ1BSEYK6H3"
+  },
+  "2024": {
+   "report_id": "2024-06-GSAFAC-0000067995",
+   "name": "Kenai Peninsula Borough, Alaska",
+   "fy_end": "2024-06-30",
+   "ein": "920030894",
+   "uei": "LFJ1BSEYK6H3"
+  },
+  "2025": {
+   "report_id": "2025-06-GSAFAC-0000390339",
+   "name": "Kenai Peninsula Borough, Alaska",
+   "fy_end": "2025-06-30",
+   "ein": "920030894",
+   "uei": "LFJ1BSEYK6H3"
+  }
+ },
+ "juneau": {
+  "2016": {
+   "report_id": "2016-06-CENSUS-0000129864",
+   "name": "CITY AND BOROUGH OF JUNEAU, ALASKA",
+   "fy_end": "2016-06-30",
+   "ein": "920038816",
+   "uei": "GSA_MIGRATION"
+  },
+  "2017": {
+   "report_id": "2017-06-CENSUS-0000129864",
+   "name": "CITY AND BOROUGH OF JUNEAU, ALASKA",
+   "fy_end": "2017-06-30",
+   "ein": "920038816",
+   "uei": "GSA_MIGRATION"
+  },
+  "2018": {
+   "report_id": "2018-06-CENSUS-0000129864",
+   "name": "CITY AND BOROUGH OF JUNEAU, ALASKA",
+   "fy_end": "2018-06-30",
+   "ein": "920038816",
+   "uei": "GSA_MIGRATION"
+  },
+  "2019": {
+   "report_id": "2019-06-CENSUS-0000129864",
+   "name": "CITY AND BOROUGH OF JUNEAU, ALASKA",
+   "fy_end": "2019-06-30",
+   "ein": "920038816",
+   "uei": "GSA_MIGRATION"
+  },
+  "2020": {
+   "report_id": "2020-06-CENSUS-0000129864",
+   "name": "CITY AND BOROUGH OF JUNEAU, ALASKA",
+   "fy_end": "2020-06-30",
+   "ein": "920038816",
+   "uei": "GSA_MIGRATION"
+  },
+  "2021": {
+   "report_id": "2021-06-CENSUS-0000129864",
+   "name": "CITY AND BOROUGH OF JUNEAU, ALASKA",
+   "fy_end": "2021-06-30",
+   "ein": "920038816",
+   "uei": "GSA_MIGRATION"
+  },
+  "2022": {
+   "report_id": "2022-06-CENSUS-0000129864",
+   "name": "CITY AND BOROUGH OF JUNEAU, ALASKA",
+   "fy_end": "2022-06-30",
+   "ein": "920038816",
+   "uei": "D3A1DKUM8X91"
+  },
+  "2023": {
+   "report_id": "2023-06-GSAFAC-0000033514",
+   "name": "City and Borough of Juneau, Alaska",
+   "fy_end": "2023-06-30",
+   "ein": "920038816",
+   "uei": "D3A1DKUM8X91"
+  },
+  "2024": {
+   "report_id": "2024-06-GSAFAC-0000360140",
+   "name": "City and Borough of Juneau, Alaska",
+   "fy_end": "2024-06-30",
+   "ein": "920038816",
+   "uei": "D3A1DKUM8X91"
+  },
+  "2025": {
+   "report_id": "2025-06-GSAFAC-0000410502",
+   "name": "City and Borough of Juneau, Alaska",
+   "fy_end": "2025-06-30",
+   "ein": "920038816",
+   "uei": "D3A1DKUM8X91"
+  }
+ },
+ "kgb": {
+  "2016": {
+   "report_id": "2016-06-CENSUS-0000129816",
+   "name": "KETCHIKAN GATEWAY BOROUGH",
+   "fy_end": "2016-06-30",
+   "ein": "920084626",
+   "uei": "GSA_MIGRATION"
+  },
+  "2017": {
+   "report_id": "2017-06-CENSUS-0000129816",
+   "name": "KETCHIKAN GATEWAY BOROUGH",
+   "fy_end": "2017-06-30",
+   "ein": "920084626",
+   "uei": "GSA_MIGRATION"
+  },
+  "2018": {
+   "report_id": "2018-06-CENSUS-0000129816",
+   "name": "KETCHIKAN GATEWAY BOROUGH",
+   "fy_end": "2018-06-30",
+   "ein": "920084626",
+   "uei": "GSA_MIGRATION"
+  },
+  "2019": {
+   "report_id": "2019-06-CENSUS-0000129816",
+   "name": "KETCHIKAN GATEWAY BOROUGH",
+   "fy_end": "2019-06-30",
+   "ein": "920084626",
+   "uei": "GSA_MIGRATION"
+  },
+  "2020": {
+   "report_id": "2020-06-CENSUS-0000129816",
+   "name": "KETCHIKAN GATEWAY BOROUGH",
+   "fy_end": "2020-06-30",
+   "ein": "920084626",
+   "uei": "GSA_MIGRATION"
+  },
+  "2021": {
+   "report_id": "2021-06-CENSUS-0000129816",
+   "name": "KETCHIKAN GATEWAY BOROUGH",
+   "fy_end": "2021-06-30",
+   "ein": "920084626",
+   "uei": "GSA_MIGRATION"
+  },
+  "2022": {
+   "report_id": "2022-06-CENSUS-0000129816",
+   "name": "KETCHIKAN GATEWAY BOROUGH, ALASKA",
+   "fy_end": "2022-06-30",
+   "ein": "920084626",
+   "uei": "NT7HKWKL2P35"
+  },
+  "2023": {
+   "report_id": "2023-06-GSAFAC-0000059580",
+   "name": "Ketchikan Gateway Borough",
+   "fy_end": "2023-06-30",
+   "ein": "920084626",
+   "uei": "NT7HKWKL2P35"
+  },
+  "2024": {
+   "report_id": "2024-06-GSAFAC-0000354665",
+   "name": "Ketchikan Gateway Borough",
+   "fy_end": "2024-06-30",
+   "ein": "920084626",
+   "uei": "NT7HKWKL2P35"
+  },
+  "2025": {
+   "report_id": "2025-06-GSAFAC-0000419491",
+   "name": "KETCHIKAN GATEWAY BOROUGH",
+   "fy_end": "2025-06-30",
+   "ein": "920084626",
+   "uei": "NT7HKWKL2P35"
+  }
+ },
+ "kodiak": {
+  "2016": {
+   "report_id": "2016-06-CENSUS-0000129820",
+   "name": "KODIAK ISLAND BOROUGH",
+   "fy_end": "2016-06-30",
+   "ein": "920030845",
+   "uei": "GSA_MIGRATION"
+  },
+  "2017": {
+   "report_id": "2017-06-CENSUS-0000129820",
+   "name": "KODIAK ISLAND BOROUGH",
+   "fy_end": "2017-06-30",
+   "ein": "920030845",
+   "uei": "GSA_MIGRATION"
+  },
+  "2018": {
+   "report_id": "2018-06-CENSUS-0000129820",
+   "name": "KODIAK ISLAND BOROUGH",
+   "fy_end": "2018-06-30",
+   "ein": "920030845",
+   "uei": "GSA_MIGRATION"
+  },
+  "2019": {
+   "report_id": "2019-06-CENSUS-0000129820",
+   "name": "KODIAK ISLAND BOROUGH",
+   "fy_end": "2019-06-30",
+   "ein": "920030845",
+   "uei": "GSA_MIGRATION"
+  },
+  "2020": {
+   "report_id": "2020-06-CENSUS-0000129820",
+   "name": "KODIAK ISLAND BOROUGH",
+   "fy_end": "2020-06-30",
+   "ein": "920030845",
+   "uei": "GSA_MIGRATION"
+  },
+  "2021": {
+   "report_id": "2021-06-CENSUS-0000129820",
+   "name": "KODIAK ISLAND BOROUGH",
+   "fy_end": "2021-06-30",
+   "ein": "920030845",
+   "uei": "GSA_MIGRATION"
+  },
+  "2022": {
+   "report_id": "2022-06-CENSUS-0000129820",
+   "name": "KODIAK ISLAND BOROUGH",
+   "fy_end": "2022-06-30",
+   "ein": "920030845",
+   "uei": "WT6NU1MLXNW7"
+  },
+  "2023": {
+   "report_id": "2023-06-GSAFAC-0000015534",
+   "name": "KODIAK ISLAND BOROUGH",
+   "fy_end": "2023-06-30",
+   "ein": "920030845",
+   "uei": "WT6NU1MLXNW7"
+  },
+  "2024": {
+   "report_id": "2024-06-GSAFAC-0000346678",
+   "name": "KODIAK ISLAND BOROUGH",
+   "fy_end": "2024-06-30",
+   "ein": "920030845",
+   "uei": "WT6NU1MLXNW7"
+  },
+  "2025": {
+   "report_id": "2025-06-GSAFAC-0000394185",
+   "name": "KODIAK ISLAND BOROUGH",
+   "fy_end": "2025-06-30",
+   "ein": "920030845",
+   "uei": "WT6NU1MLXNW7"
+  }
+ }
+}

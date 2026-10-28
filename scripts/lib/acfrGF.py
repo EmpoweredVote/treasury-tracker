@@ -559,6 +559,7 @@ class CityConfig:
                  revenue_parents=(), revenue_group_members=(),
                  statement_anchor=None, section_header_mode='exact',
                  fy_end=('June', 30), revenue_total_labels=('total revenues',),
+                 expenditure_total_labels=('total expenditures',),
                  empty_rows=(), exclude_ignore=(),
                  # ⚠ The literal, not `_SEC_REVENUES`: that constant is defined
                  # further down this module and a default argument is evaluated
@@ -630,6 +631,45 @@ class CityConfig:
             raise ValueError('revenue_total_labels contains an empty label: %r'
                              % (revenue_total_labels,))
         self.revenue_total_labels = tuple(lbl.lower() for lbl in revenue_total_labels)
+        # ── expenditure_total_labels — the asymmetry, narrowed (2026-10-28) ──
+        #
+        # This used to be a hard literal at FIVE sites, and the docstring above
+        # explained why: requiring the literal `'total expenditures'` is what
+        # stops a PROPRIETARY-funds statement — which prints `Total Operating
+        # Revenues` beside `Total Operating EXPENSES` — from ever qualifying as
+        # the governmental-funds statement.
+        #
+        # The Fairbanks North Star Borough, AK breaks the literal without
+        # breaking the GUARD: it prints the words in the other order,
+        # `Revenues total` and `Expenditures total`. With the literal hard-coded
+        # its statement page could not be found at all.
+        #
+        # ⚠⚠ So the label is now configurable but the GUARD IS ENFORCED
+        # STRUCTURALLY: every label must contain 'expenditure' and must NOT
+        # contain 'expense'. A proprietary statement therefore still cannot be
+        # named by any legal value of this parameter, which is exactly the
+        # invariant the old literal provided — it is now checked rather than
+        # merely implied.
+        if isinstance(expenditure_total_labels, str):
+            raise ValueError(
+                'expenditure_total_labels must be a tuple of labels, not a bare string %r — '
+                'a string becomes a tuple of single characters' % expenditure_total_labels)
+        expenditure_total_labels = tuple(expenditure_total_labels)
+        if not expenditure_total_labels:
+            raise ValueError('expenditure_total_labels must name at least one label; '
+                             '() matches almost any line')
+        if any(not str(lbl).strip() for lbl in expenditure_total_labels):
+            raise ValueError('expenditure_total_labels contains an empty label: %r'
+                             % (expenditure_total_labels,))
+        for lbl in expenditure_total_labels:
+            low = str(lbl).lower()
+            if 'expenditure' not in low or 'expense' in low:
+                raise ValueError(
+                    'expenditure_total_labels entry %r must contain "expenditure" and must not '
+                    'contain "expense". A proprietary-funds statement prints "Total Operating '
+                    'Expenses"; requiring the word "expenditure" is what keeps such a page from '
+                    'qualifying as the governmental-funds statement.' % (lbl,))
+        self.expenditure_total_labels = tuple(lbl.lower() for lbl in expenditure_total_labels)
         self.revenue_section_header = str(revenue_section_header).lower()
         self.expenditures_follow_revenue_total = bool(expenditures_follow_revenue_total)
         self.empty_rows = tuple(r.lower() for r in empty_rows)
@@ -1273,7 +1313,7 @@ def select_statement_for_fy(pages, fiscal_year):
 
 
 def find_statement_page(pages, statement_anchor=None, revenue_total_labels=('total revenues',),
-                        exclude_ignore=()):
+                        exclude_ignore=(), expenditure_total_labels=('total expenditures',)):
     """(page_index, page_text) for the primary governmental-funds statement —
     the earliest qualifying page, since basic statements precede supplementary
     schedules. (None, None) if not found.
@@ -1300,13 +1340,14 @@ def find_statement_page(pages, statement_anchor=None, revenue_total_labels=('tot
 
 
 def _statement_candidates(pages, statement_anchor, revenue_total_labels,
-                          exclude_ignore, target_column_header=None):
+                          exclude_ignore, target_column_header=None,
+                          expenditure_total_labels=('total expenditures',)):
     """Every page qualifying as the primary statement, in document order."""
     anchor = re.compile(statement_anchor, re.I | re.M) if statement_anchor else None
     cands = []
     # ⚠ Every literal is squashed the same way the page is — see _squash.
     want_rev = [_squash(lbl) for lbl in revenue_total_labels]
-    want_exp = _squash('total expenditures')
+    want_exp = [_squash(lbl) for lbl in expenditure_total_labels]
     # ⚠ Squashed too, so a column header WRAPPED across lines still matches:
     # `-table` renders Duvall's as `001 General` on one line and `Fund` on the
     # next, which no one-line regex can see.
@@ -1316,7 +1357,7 @@ def _statement_candidates(pages, statement_anchor, revenue_total_labels,
         low = _squash(pg)
         if not (_TITLE.search(pg) or (anchor and anchor.search(pg))):
             continue
-        if not any(lbl in low for lbl in want_rev) or want_exp not in low:
+        if not any(lbl in low for lbl in want_rev) or not any(e in low for e in want_exp):
             continue
         if 'general' not in low or 'fund' not in low:
             continue
@@ -1339,7 +1380,8 @@ def find_statement_pages(pages, cfg):
     """
     return _statement_candidates(pages, cfg.statement_anchor, cfg.revenue_total_labels,
                                  cfg.exclude_ignore,
-                                 getattr(cfg, 'target_column_header', None))
+                                 getattr(cfg, 'target_column_header', None),
+                                 cfg.expenditure_total_labels)
 
 
 # ⚠ The BASENAME only. A path can carry a year of its own — an archive folder,
@@ -1461,11 +1503,11 @@ def find_statement_span(pages, cfg):
         # module's own history (see `_is_section_end`) records that fixing
         # one site of this literal and not the others only RELOCATES the failure.
         want_rev = [_squash(lbl) for lbl in cfg.revenue_total_labels]
-        want_exp = _squash('total expenditures')
+        want_exp = [_squash(lbl) for lbl in cfg.expenditure_total_labels]
 
         def _has_both(text):
             sq = _squash(text)
-            return any(lbl in sq for lbl in want_rev) and want_exp in sq
+            return any(lbl in sq for lbl in want_rev) and any(e in sq for e in want_exp)
 
         for j in range(i + 1, min(i + cfg.multipage_max, len(pages))):
             if _has_both(joined):
@@ -1936,8 +1978,20 @@ _SEC_EXPENDITURES = 'expenditures'
 assert _SEC_REVENUES == 'revenues', (
     'CityConfig.revenue_section_header duplicates this literal as its default; '
     'change both or neither.')
-# The FIFTH site of the same literal — see `_is_section_end` below.
+# Was the FIFTH site of this literal. The expenditure-total label is now
+# per-entity (`CityConfig.expenditure_total_labels`), because the Fairbanks
+# North Star Borough prints `Expenditures total` — the words in the other
+# order — and the hard literal could not find its statement page at all.
+#
+# ⚠ The constant REMAINS as the single source of the config default, and the
+# assertion below is what keeps the two from drifting. That is the same device
+# `_SEC_REVENUES` uses six lines up, and it exists because this module's own
+# history records that fixing one site of a duplicated literal and not the
+# others only RELOCATES the failure.
 _END_EXPENDITURE_LABELS = ('total expenditures',)
+assert CityConfig(city='_', parents=()).expenditure_total_labels == _END_EXPENDITURE_LABELS, (
+    'CityConfig.expenditure_total_labels duplicates this literal as its default; '
+    'change both or neither.')
 
 
 def _is_section_end(line, labels):
@@ -2181,9 +2235,36 @@ def _is_section_header(line, want, mode='exact'):
         return s == want
 
     low = line.strip().lower()
-    if not low.startswith(want):
-        return False
-    rest = low[len(want):]
+    if low.startswith(want):
+        rest = low[len(want):]
+    else:
+        # ⚠ LETTER-SPACED HEADER, and the one asymmetry between the two modes.
+        # 'exact' above de-spaces the WHOLE line, so it already accepts the
+        # City and Borough of Juneau's `REV ENUES`; 'prefix' matched the RAW
+        # line and therefore did not. Juneau FY2016-FY2020 print the split
+        # header AND the fund column names on the same line
+        # (`REV ENUES   General   Sales Tax`), which needs both behaviours at
+        # once — so find the SHORTEST prefix whose de-spaced form is exactly
+        # `want` and hand the RAW remainder to the column-gap layers below,
+        # which measure real character positions and must not see a collapsed
+        # string.
+        #
+        # This can only ADD matches that previously returned False, and only
+        # where the de-spaced prefix equals `want` exactly; every layer after
+        # this point is unchanged, including the tie gate that catches a
+        # wrongly-opened section loudly.
+        acc, cut = '', None
+        for i, ch in enumerate(low):
+            if not ch.isspace():
+                acc += ch
+            if acc == want:
+                cut = i + 1
+                break
+            if len(acc) > len(want):
+                break
+        if cut is None:
+            return False
+        rest = low[cut:]
 
     if rest.startswith(','):
         return False
@@ -2253,7 +2334,7 @@ def _expenditure_lines(lines, cfg):
     block — transfers and debt proceeds counted as spending, which is the LA
     TRAN defect. Both boundary rows must be found or this raises.
     """
-    rows = list(_section(lines, _SEC_EXPENDITURES, _END_EXPENDITURE_LABELS,
+    rows = list(_section(lines, _SEC_EXPENDITURES, cfg.expenditure_total_labels,
                          cfg.section_header_mode))
     if rows or not cfg.expenditures_follow_revenue_total:
         return rows
@@ -2262,7 +2343,7 @@ def _expenditure_lines(lines, cfg):
     start = next((i for i, l in enumerate(lines)
                   if any(_squash(l).startswith(w) for w in want_rev)), None)
     end = next((i for i, l in enumerate(lines)
-                if _is_section_end(l.strip(), _END_EXPENDITURE_LABELS)), None)
+                if _is_section_end(l.strip(), cfg.expenditure_total_labels)), None)
     if start is None or end is None or end <= start:
         raise ValueError(
             'acfrGF: expenditures_follow_revenue_total is set and no '
@@ -2910,11 +2991,12 @@ def extract(pdf_path, mode, cfg):
     # ⚠ The MATCH is squashed; the LINE passed on is the ORIGINAL, because
     # `anchors()` measures the column grid from its character positions.
     _rev_want = [_squash(lbl) for lbl in cfg.revenue_total_labels]
-    _exp_want = _squash('total expenditures')
+    _exp_want = [_squash(lbl) for lbl in cfg.expenditure_total_labels]
     rev_line = next((l for l in lines
                      if any(_squash(l).startswith(lbl) for lbl in _rev_want)),
                     None)
-    exp_line = next((l for l in lines if _squash(l).startswith(_exp_want)), None)
+    exp_line = next((l for l in lines
+                     if any(_squash(l).startswith(lbl) for lbl in _exp_want)), None)
     if not rev_line or not exp_line:
         print('  ERROR: Total revenues/expenditures rows not found', file=sys.stderr)
         sys.exit(3)
