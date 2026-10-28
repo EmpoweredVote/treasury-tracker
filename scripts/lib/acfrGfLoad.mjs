@@ -467,4 +467,8 @@ export async function run(cfg) {
     total += r.loaded;
   }
   console.log(`\n${cfg.entityLabel}: ${total} budgets row(s) loaded.`);
+  // Returned so a driver that calls run() more than once — the Alaska boroughs
+  // call it per entity AND per mode — can report a real cohort total instead of
+  // printing a confident zero.
+  return total;
 }
