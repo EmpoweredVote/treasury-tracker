@@ -9,11 +9,29 @@
  * Chris, 2026-08-29: *"It is not our job to hide bad data"* — reflect what is
  * ACCURATE, and flag what looks inconsistent, saying why.
  *
- * **Nothing in this file is withheld from the product.** Every figure recorded
- * here is LOADED exactly as the borough published it. Neither entry below is a
+ * **No FIGURE in this file is withheld from the product.** Every one is LOADED
+ * and published exactly as the borough reported it. Neither entry below is a
  * data defect: in both cases the stored figures were verified to the dollar
- * against the printed statement by two independent readers. What is recorded
- * is why a READER CHARTING THE SERIES would be misled without the explanation.
+ * against the printed statement by two independent readers.
+ *
+ * ── ⚠⚠ THIS REGISTER IS A DEVELOPMENT RECORD, NOT A PRODUCT SURFACE ────────
+ *
+ * Chris's call, 2026-10-28: **these notes stay in development and do not reach
+ * readers.** `readerFacing` is false on every entry and a test holds it there.
+ *
+ * ⚠ THAT IS NOT THE MILLEDGEVILLE RULE BEING OVERRIDDEN, and the distinction is
+ * worth keeping straight because the two look alike from a distance. That rule
+ * forbids hiding or editing a verified FIGURE — suppressing an outlier creates
+ * a blind spot for exactly the thing TT exists to surface. Nothing of the kind
+ * happens here: every figure renders in full, as published, unannotated. What
+ * is being kept internal is TT'S OWN COMMENTARY about those figures, which is a
+ * different thing from the data and carries a different risk — a note is an
+ * editorial claim, and the bar for publishing one under TT's name is ours to
+ * set. ⚠ If a future case involves WITHHOLDING OR ALTERING A FIGURE, this
+ * precedent does not cover it; go back to [[feedback_milledgeville_rule]].
+ *
+ * What each entry records is why a reader charting the series might misread it
+ * — kept so that WE know, and so nobody re-derives it from scratch.
  *
  * ⚠⚠ BOTH ENTRIES WERE CORROBORATED BY INDEPENDENT AGENTS BEFORE BEING
  * RECORDED — Chris's standing requirement for any flag of this nature, and the
@@ -64,11 +82,12 @@ export const AK_FIGURE_FLAGS = Object.freeze([
     label: 'Local education moved out of the General Fund',
     severity: 'not-comparable',
     loaded: true,
-    readerFacing: true,
-    // ⚠ NOT a warning. Nothing is wrong with either figure, and rendering this
-    // as a caution would imply a defect where there is a disclosed accounting
-    // change. It is a comparability note.
-    rendersAs: 'comparability-note',
+    // ⚠⚠ INTERNAL. Chris's call, 2026-10-28: TT's own commentary stays in
+    // development and does not reach readers. See the header for why this is
+    // NOT the Milledgeville Rule being overridden — the figures are published
+    // in full; what is withheld is our note ABOUT them.
+    readerFacing: false,
+    rendersAs: null,
     what:
       'The borough stopped funding local education from the General Fund in FY2017. '
       + 'Ordinance 1793-A (adopted 18 April 2016) dedicated the entire 5.0-mill areawide '
