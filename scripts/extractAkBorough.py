@@ -108,6 +108,26 @@ KNOWN_DOCUMENT_GAPS = {
         "map, so all 177 pages extract as wrong characters at a healthy ~1,900 "
         "chars/page. Caught by the fetcher's auditee-identity guard, not by its "
         "density guard. The borough's own copy is behind an Akamai WAF (403).",
+    # ⚠⚠ TWO MORE OF THE SAME DEFECT, FOUND IN WAVE 2. That makes THREE ciphered
+    # text layers in the Alaska corpus, and they do not share a year, an issuer
+    # or an auditor.
+    #
+    # ⚠⚠⚠ PDF PRODUCER METADATA DOES NOT PREDICT THEM, and it looks as though it
+    # should: all three are `PScript5.dll` + `Acrobat Distiller`. So are clean
+    # files — Sitka FY2019 carries the IDENTICAL producer string to its own
+    # ciphered FY2018 and extracts perfectly. A producer-based detector would be
+    # false on both sides. The fetcher's AUDITEE-IDENTITY guard remains the only
+    # reliable one, which is precisely why it reads the document's own text
+    # rather than trusting the index.
+    ('bristolbay', 2024, None):
+        "Ciphered text layer — 119 pages at ~1,750 chars/page in which the word "
+        "`Bristol` appears ZERO times. The density guard passes it; the "
+        "auditee-identity guard rejected it, so no PDF is on disk.",
+    ('yakutat', 2018, None):
+        "Ciphered text layer — 99 pages at ~1,650 chars/page in which `Yakutat` "
+        "appears ZERO times, though the PDF's own title is \"City and Borough of "
+        "Yakutat 18 Final (s).pdf\". The density guard passes it; the "
+        "auditee-identity guard rejected it, so no PDF is on disk.",
 }
 
 CONFIGS = {
@@ -420,6 +440,84 @@ CONFIGS = {
         revenue_parents=('intergovernmental',),
         revenue_group_members=('federal', 'state of alaska'),
         exclude_ignore=('combining',),
+        fy_end=JUNE_30,
+    ),
+
+    # ── WAVE 2 ────────────────────────────────────────────────────────────
+
+    # Flat revenue, `Current:` the only group, `Capital outlay` a valued root
+    # leaf. `debt service` is declared because later years print it and an
+    # undeclared parent silently reparents its children; in FY2023 it simply
+    # never matches, which costs nothing.
+    'bristolbay': CityConfig(
+        city='Bristol Bay Borough, AK',
+        parents=('current', 'debt service'),
+        root_leaves=('capital outlay',),
+        fy_end=JUNE_30,
+    ),
+
+    # ⚠ A DIFFERENT TEMPLATE FROM THE REST OF ALASKA — all-caps section
+    # headings (`REVENUES`, `EXPENDITURES`) and BOTH revenue sides grouped:
+    # `Taxes` over Property/Sales, and `Intergovernmental` over three grant
+    # lines. `Current` and `Debt service` print WITHOUT colons here.
+    #
+    # ⚠⚠ `members`, NOT `next_heading`. The revenue section is NOT exhaustive:
+    # `Rentals, Service and admission fees`, `Licenses and permits`,
+    # `Investment earnings (loss)` and `Contributions and other` all sit
+    # ungrouped AFTER the two headings, so `next_heading` would swallow four
+    # ungrouped sources into Intergovernmental — and still tie at $0.
+    #
+    # ⚠⚠⚠ AND ITS TITLE IS PLURAL — `STATEMENTS OF REVENUES, EXPENDITURES, AND
+    # CHANGES IN FUND BALANCES`. The shared `_TITLE` in acfrGF.py requires the
+    # SINGULAR `Statement of`, so NONE of Haines's nine years could find their
+    # own statement page: all 18 extractions failed loudly with "primary GF
+    # statement not found", which is the design working.
+    #
+    # ⭐ FIXED PER ENTITY, NOT BY WIDENING THE SHARED REGEX. `_TITLE` is read by
+    # ~25 entities and `find_statement_page` returns the EARLIEST qualifying
+    # page, so admitting the plural globally could only ADD candidate pages —
+    # and a newly-qualifying page EARLIER than the right one silently moves
+    # another entity's figures. `statement_anchor` is OR'd with the title for
+    # exactly this kind of per-issuer variation, and the other filters (both
+    # printed totals, `general` + `fund`, `_EXCLUDE`) still have to pass.
+    # Measured: pages 1, 8 and 9 of the FY2024 filing carry the plural title and
+    # only page 8 survives those filters.
+    'haines': CityConfig(
+        city='Haines Borough, AK',
+        parents=('current', 'debt service'),
+        root_leaves=('capital outlay',),
+        statement_anchor=r'statements\s+of\s+revenues',
+        revenue_parents=('taxes', 'intergovernmental'),
+        revenue_group_members=('property', 'sales', 'grants and contracts',
+                               'payments in lieu of taxes'),
+        fy_end=JUNE_30,
+    ),
+
+    # Flat revenue, `Current:` and `Capital outlay` at root.
+    # ⚠ `Education -` is printed on its own line with its value on the NEXT
+    # line (`contribution to School District`), so the default forward-wrap
+    # welds them into `Education - contribution to School District`. That is
+    # the label the borough prints; nothing is invented.
+    'yakutat': CityConfig(
+        city='City and Borough of Yakutat, AK',
+        parents=('current', 'debt service'),
+        root_leaves=('capital outlay',),
+        fy_end=JUNE_30,
+    ),
+
+    # ⚠ The Northwest Arctic revenue shape: `Local sources:` and
+    # `Intergovernmental:` over everything, exhaustively, with members sharing
+    # no usable suffix (`Taxes`, `Permit fees`, `Charges for services`,
+    # `Investment earnings (loss)`, `Other`). Hence `next_heading`.
+    # ⚠ Expenditures are DEPARTMENTAL (Assembly, Administration, Planning
+    # commission, Elections …) under `Current:`, with `Debt service:` beside
+    # it and no capital root leaf.
+    'lakepen': CityConfig(
+        city='Lake and Peninsula Borough, AK',
+        parents=('current', 'debt service'),
+        root_leaves=('capital outlay',),
+        revenue_parents=('local sources', 'intergovernmental'),
+        revenue_group_close='next_heading',
         fy_end=JUNE_30,
     ),
 }

@@ -74,6 +74,10 @@ const IDENTITY = {
   sitka: /city\s*(?:and|&)\s*borough\s+of\s+sitka/i,
   wrangell: /city\s*(?:and|&)\s*borough\s+of\s+wrangell/i,
   aleutianseast: /aleutians\s+east\s+borough/i,
+  bristolbay: /bristol\s+bay\s+borough/i,
+  haines: /haines\s+borough/i,
+  yakutat: /city\s*(?:and|&)\s*borough\s+of\s+yakutat|yakutat\s+city\s*(?:and|&)\s*borough/i,
+  lakepen: /lake\s+and\s+peninsula\s+borough/i,
 };
 
 /** Text that means we landed on a DIFFERENT government with a similar name. */

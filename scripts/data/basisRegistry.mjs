@@ -253,7 +253,7 @@ export const BASIS_REGISTRY = [
     // ⚠ EXTENDED 2026-10-28 with the six WAVE 1 boroughs, and kept
     // byte-identical to the same id's pattern in fundScopeRegistry.mjs and
     // reportingEntityRegistry.mjs.
-    match: /^(Municipality of Anchorage|Matanuska-Susitna Borough|Fairbanks North Star Borough|Kenai Peninsula Borough|City and Borough of Juneau|Ketchikan Gateway Borough|Kodiak Island Borough|North Slope Borough|Northwest Arctic Borough|Petersburg Borough|City and Borough of Sitka|City and Borough of Wrangell|Aleutians East Borough) ACFR — General Fund /,
+    match: /^(Municipality of Anchorage|Matanuska-Susitna Borough|Fairbanks North Star Borough|Kenai Peninsula Borough|City and Borough of Juneau|Ketchikan Gateway Borough|Kodiak Island Borough|North Slope Borough|Northwest Arctic Borough|Petersburg Borough|City and Borough of Sitka|City and Borough of Wrangell|Aleutians East Borough|Bristol Bay Borough|Haines Borough|City and Borough of Yakutat|Lake and Peninsula Borough) ACFR — General Fund /,
     value: BASIS.ACTUAL,
     evidence: {
       document: 'The seven ACFRs the loader itself read, FY2024 in each case — '
@@ -320,7 +320,25 @@ export const BASIS_REGISTRY = [
              + 'eleven. '
              + '⚠ THE WHOLE WINDOW STAYS CLOSED: the wave-1 boroughs run FY2016-FY2025 on a '
              + 'June 30 year end, so FY2025 closed 2025-06-30 and none of the 114 new rows '
-             + 'carries a fiscal year after FY2025.',
+             + 'carries a fiscal year after FY2025. '
+             + '── WAVE 2 (added 2026-10-29) — four more filings read the same way: '
+             + 'docs/AkBoroughs/{bristolbay,haines,yakutat,lakepen}/*-202{3,4}-acfr.pdf. Each '
+             + 'is an audited ACFR on a CLOSED fiscal year carrying an unmodified independent '
+             + 'auditor\'s report, verified by the two opinion gates recorded under this id in '
+             + 'auditGradeRegistry.mjs. '
+             + '⚠ ALL FOUR ALSO PUBLISH A GENERAL FUND BUDGETARY COMPARISON — the document a '
+             + 'wrong read lands on — so the actual-vs-adopted distinction is evidenced rather '
+             + 'than assumed. Lines captioned "Budgetary Comparison" or "Budget and Actual": '
+             + 'Yakutat 19, Bristol Bay 14, Haines 6, Lake and Peninsula 5. Every one of those '
+             + 'pages is STRUCTURALLY UNREACHABLE to this loader: acfrGF.py\'s `_EXCLUDE` drops '
+             + 'any page carrying "budgetary" or "budget and actual" before a statement can be '
+             + 'selected from it, and none of the wave-2 configs touches those two terms. '
+             + '⚠⚠ HAINES IS PINNED BY A `statement_anchor`, NOT BY A WIDENED TITLE, and that '
+             + 'matters on THIS axis: its anchor (`statements of revenues`) is OR\'d with the '
+             + 'title test only, so every `_EXCLUDE` term — budgetary included — still applies '
+             + 'to it in full. '
+             + '⚠ The window stays closed here too: FY2016-FY2025 on a June 30 year end, and '
+             + 'none of the 56 new rows carries a fiscal year after FY2025.',
     },
   },
   {

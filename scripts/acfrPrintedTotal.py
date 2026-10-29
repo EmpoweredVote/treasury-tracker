@@ -54,8 +54,26 @@ import pdfplumber
 # the whole coordinate family (this reader, acfrGfComponents, acfrGfCoords) then
 # has nothing to say about that year. Same reasoning as the `June\s*30` fix in
 # the fiscal-year regexes, which exists because pdftotext drops that space too.
+# ⚠ `Statements?` — THE PLURAL IS THE SAME STATEMENT. The Haines Borough titles
+# its primary governmental-funds page "STATEMENTS OF REVENUES, EXPENDITURES,
+# AND CHANGES IN FUND BALANCES", and with the singular literal this oracle read
+# NONE of that borough's nine filings — so the one tool that can check the
+# extractor from the outside had nothing to say about 18 of its rows.
+#
+# ⭐ SAFE HERE IN A WAY IT IS NOT IN acfrGF.py. This module and
+# `acfrGfComponents.py` (which imports this regex) are READ-ONLY verification
+# tools: they produce EVIDENCE and never write a row. Widening a title can only
+# ADD candidate pages, so the risk is resolving an earlier page than before —
+# which is why it was measured rather than argued. Re-run over every document
+# cited in fundScopeRegistry.mjs and basisRegistry.mjs (Anchorage, all eleven
+# loaded boroughs, Austin, Travis, El Paso County), EVERY ONE returns the
+# IDENTICAL statement page and identical figures.
+#
+# ⚠ The loader-side `_TITLE` in scripts/lib/acfrGF.py is deliberately NOT
+# widened: it is read by ~25 entities on the write path, and Haines is handled
+# there by its own `statement_anchor` instead.
 _TITLE = re.compile(
-    r'Statement\s*of\s*Revenues\s*,?\s*Expenditures\s*,?\s*and\s*Changes\s*in\s*Fund\s*Balances?',
+    r'Statements?\s*of\s*Revenues\s*,?\s*Expenditures\s*,?\s*and\s*Changes\s*in\s*Fund\s*Balances?',
     re.I)
 _NOSPACE = re.compile(r'\s+')
 _EXCLUDE = ('combining', 'reconciliation', 'budgetary', 'budget and actual',
