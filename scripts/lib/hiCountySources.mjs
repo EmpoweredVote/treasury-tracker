@@ -204,7 +204,13 @@ export const FAC_ROSTER = Object.freeze({
     2021: { report_id: '2021-06-CENSUS-0000137893', name: 'COUNTY OF HAWAII', ein: '996000567', uei: 'GSA_MIGRATION', fy_end: '2021-06-30' },
     2022: { report_id: '2022-06-CENSUS-0000137893', name: 'COUNTY OF HAWAII', ein: '996000567', uei: 'F7S9S5D2CSP3', fy_end: '2022-06-30' },
     2023: { report_id: '2023-06-GSAFAC-0000039486', name: 'COUNTY OF HAWAII', ein: '996000567', uei: 'F7S9S5D2CSP3', fy_end: '2023-06-30' },
-    2024: { report_id: '2024-06-GSAFAC-0000375935', name: 'County of Hawaii', ein: '996000567', uei: 'F7S9S5D2CSP3', fy_end: '2024-06-30' },
+    // ⚠⚠⚠ RESUBMITTED — THE BULK CSV'S ID IS DEAD. The Sep-3 snapshot carries
+    // `2024-06-GSAFAC-0000375935`, whose PDF endpoint returns HTTP 500 on
+    // every attempt (three tried). The live API reports this id instead, and
+    // it serves 6,267,428 bytes. A FAC report_id is NOT stable across a
+    // resubmission, and a dead id looks exactly like a county that never
+    // filed. Corrected live 2026-10-29.
+    2024: { report_id: '2024-06-GSAFAC-0000432974', name: 'County of Hawaii', ein: '996000567', uei: 'F7S9S5D2CSP3', fy_end: '2024-06-30' },
   }),
   maui: Object.freeze({
     2016: { report_id: '2016-06-CENSUS-0000137895', name: 'COUNTY OF MAUI', ein: '996000618', uei: 'GSA_MIGRATION', fy_end: '2016-06-30' },

@@ -78,6 +78,19 @@ describe('the Hawaii county roster', () => {
     expect(countyByKey('kauai')).toMatchObject({ population: 73840, geoid: '15007' });
   });
 
+  // ⚠⚠⚠ A FAC `report_id` IS NOT STABLE. Hawaii County's FY2024 filing was
+  // RESUBMITTED: the Sep-3 bulk CSV carries `2024-06-GSAFAC-0000375935`, whose
+  // PDF endpoint now returns HTTP 500 on every attempt, while the live API
+  // reports `2024-06-GSAFAC-0000432974`, which serves 6,267,428 bytes.
+  //
+  // The id transcribed from a bulk snapshot can therefore be DEAD while the
+  // filing is perfectly available — and a dead id looks exactly like a county
+  // that never filed. Verified live 2026-10-29.
+  it('carries the reissued Hawaii County FY2024 report id, not the stale one', () => {
+    expect(FAC_ROSTER.hawaii['2024'].report_id).toBe('2024-06-GSAFAC-0000432974');
+    expect(JSON.stringify(FAC_ROSTER)).not.toContain('2024-06-GSAFAC-0000375935');
+  });
+
   it('names each county as TT will store it', () => {
     expect(countyByKey('honolulu').name).toBe('Honolulu');
     expect(countyByKey('hawaii').name).toBe('Hawaii County');
