@@ -118,6 +118,18 @@ CONFIGS = {
         # rejected and the extractor reports "primary GF statement not found" —
         # a loud failure, not a wrong tree, which is the design working.
         exclude_ignore=('proprietary',),
+        # ⚠⚠ A WRONG TREE THAT TIED AT $0 IN THREE OF TEN YEARS. Maui prints
+        # `Current:`, `Capital outlay` and `Debt Service:` at ONE x-position
+        # (79.6 on FY2020 p50) with only the colon marking a heading, and in
+        # FY2020-FY2022 it prints `Capital outlay` in the MIDDLE of the current
+        # functions — confirmed against glyph coordinates (FY2020: `Capital` at
+        # y=260.0, between `Public safety` 251.7 and `Social welfare` 268.4),
+        # so it is the document and not the reader. A closing root leaf threw
+        # the five functions printed after it out to the root, leaving
+        # `Current` with two children while every figure stayed correct and the
+        # statement tied at exactly $0.
+        # ⚠ `Debt Service:` still closes `Current`, because a PARENT closes it.
+        root_leaf_closes_parent=False,
         units=1,
         fy_end=JUNE_30,
     ),

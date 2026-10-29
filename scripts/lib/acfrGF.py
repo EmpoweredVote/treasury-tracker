@@ -575,7 +575,8 @@ class CityConfig:
                  revenue_subparents=(), revenue_group_close='members',
                  subtotal_prefixes=(), leading_account_code=False,
                  target_column_label=None, target_column_header=None,
-                 select_fiscal_year=False, trailing_label_continuations=()):
+                 select_fiscal_year=False, trailing_label_continuations=(),
+                 root_leaf_closes_parent=True):
         if not isinstance(units, int) or isinstance(units, bool):
             raise TypeError(
                 'CityConfig.units must be an int, got %r (%s). A float would '
@@ -597,6 +598,7 @@ class CityConfig:
         self.city = city
         self.parents = tuple(p.lower() for p in parents)
         self.root_leaves = tuple(r.lower() for r in root_leaves)
+        self.root_leaf_closes_parent = bool(root_leaf_closes_parent)
         self.source_rounding = dict(source_rounding or {})
         self.label_fixes = dict(label_fixes or {})
         self.units = units
@@ -2776,9 +2778,19 @@ def build_operating(lines, col_anchors, cfg):
         node = {'n': full, 'a': val}
         _last_emitted = node
         if any(flow.startswith(pfx) for pfx in cfg.root_leaves):
-            root_children.append(node)   # root-level peer; closes both levels
-            parent = None
-            subparent = None
+            root_children.append(node)   # root-level peer
+            # ⚠⚠ CLOSING THE PARENT IS THE DEFAULT AND IS USUALLY RIGHT, because
+            # a root leaf normally follows the last child of the group it ends
+            # (Wichita, Sedgwick). Maui is the exception: it prints `Current:`,
+            # `Capital outlay` and `Debt Service:` at ONE x-position, with only
+            # the colon marking a heading, and in FY2020-FY2022 it prints
+            # `Capital outlay` in the MIDDLE of the current functions —
+            # confirmed against glyph coordinates, not pdftotext row order.
+            # Closing there threw the five functions printed after it out to
+            # the root while the statement still tied at exactly $0.
+            if cfg.root_leaf_closes_parent:
+                parent = None
+                subparent = None
         elif subparent is not None:
             # 'next_heading': every row belongs to the sub-group until another
             #   DECLARED heading (parent, subparent, root leaf or subtotal)
