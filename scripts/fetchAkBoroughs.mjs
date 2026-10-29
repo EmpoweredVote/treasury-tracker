@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Alaska's six largest boroughs — ACFR fetcher (Federal Audit Clearinghouse).
+ * Alaska's organized boroughs — ACFR fetcher (Federal Audit Clearinghouse).
  *
  * Downloads each borough's audited annual report into the gitignored
  * `docs/AkBoroughs/<key>/`, and writes a per-borough `manifest.json` recording
@@ -40,7 +40,7 @@ import crypto from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { parseArgs } from 'node:util';
 
-import { AK_BOROUGHS, FAC_ROSTER, boroughByKey, fysFor, documentUrlFor } from './lib/akBoroughSources.mjs';
+import { AK_BOROUGHS, FAC_ROSTER, boroughByKey, fysFor, documentUrlFor, assertCitable } from './lib/akBoroughSources.mjs';
 
 const MIN_BYTES = 300_000;
 const MIN_PAGES = 40;
@@ -65,6 +65,15 @@ const IDENTITY = {
   juneau: /city\s+and\s+borough\s+of\s+juneau/i,
   kgb: /ketchikan\s+gateway\s+borough/i,
   kodiak: /kodiak\s+island\s+borough/i,
+  northslope: /north\s+slope\s+borough/i,
+  nwarctic: /northwest\s+arctic\s+borough/i,
+  petersburg: /petersburg\s+borough/i,
+  // ⚠ `and` OR `&`: Wrangell's FY2025 filing is indexed as "CITY & BOROUGH OF
+  // WRANGELL" while every earlier year spells it out. Sitka takes the same
+  // allowance so one issuer's house style cannot reject a good document.
+  sitka: /city\s*(?:and|&)\s*borough\s+of\s+sitka/i,
+  wrangell: /city\s*(?:and|&)\s*borough\s+of\s+wrangell/i,
+  aleutianseast: /aleutians\s+east\s+borough/i,
 };
 
 /** Text that means we landed on a DIFFERENT government with a similar name. */
@@ -127,13 +136,36 @@ function assertFiscalYear(text, fy) {
   return { ok: true, note: 'MISS — no fiscal-year caption found (not proof of a wrong year)' };
 }
 
+/**
+ * ⚠⚠ THE MANIFEST RECORDS THE URL WE REQUESTED, NOT `res.url`.
+ *
+ * Everywhere else in this repo the fetcher records the URL that ACTUALLY
+ * SERVED the bytes, because a URL rebuilt from a naming rule can be wrong
+ * (Travis County's filenames switch from `-cafr.pdf` to `-acfr.pdf` mid-series).
+ * That rule is right there and WRONG HERE, and it shipped a dead link on every
+ * Alaska borough row:
+ *
+ *   app.fac.gov/dissemination/report/pdf/<report_id>
+ *     -> 302 -> s3-us-gov-west-1.amazonaws.com/...?X-Amz-Expires=30&X-Amz-Signature=...
+ *
+ * `res.url` after `redirect: 'follow'` is that PRESIGNED S3 OBJECT, and its own
+ * query string says `X-Amz-Expires=30`. Thirty SECONDS. It was stamped onto 139
+ * rows in #299 as `source_url` and was unusable to a reader before the load
+ * that wrote it had finished.
+ *
+ * The requested URL is not a guess: `documentUrlFor()` builds it from the
+ * report_id the roster carries, it is the exact string this function fetched,
+ * and the fetch succeeding is the proof that it resolves. The served URL is
+ * kept as `servedUrl` for the record and is NEVER what a reader is offered.
+ */
 async function download(url, dest) {
   const res = await fetch(url, { headers: { 'User-Agent': UA }, redirect: 'follow' });
   if (!res.ok) return { ok: false, reason: `HTTP ${res.status}` };
   const buf = Buffer.from(await res.arrayBuffer());
   fs.writeFileSync(dest, buf);
-  return { ok: true, servedUrl: res.url || url, bytes: buf.length };
+  return { ok: true, requestedUrl: url, servedUrl: res.url || url, bytes: buf.length };
 }
+
 
 async function fetchYear(ent, fy, { probe }) {
   const dir = path.join(ROOT, BASE_DIR, ent.key);
@@ -177,7 +209,10 @@ async function fetchYear(ent, fy, { probe }) {
   console.log(`    FY${fy}  ok  ${String(got.bytes).padStart(9)}b ${String(pages).padStart(3)}p `
     + `${String(cpp).padStart(5)} c/p  ${rec.report_id}${year.note ? `  (${year.note})` : ''}`);
   return {
-    fy, url: got.servedUrl, report_id: rec.report_id, auditee_name: rec.name,
+    // ⚠ `url` is what the loader stamps as `source_url`, so it is the CITABLE
+    // FAC endpoint. See `download`'s note: `servedUrl` expires in 30 seconds.
+    fy, url: assertCitable(got.requestedUrl), servedUrl: got.servedUrl,
+    report_id: rec.report_id, auditee_name: rec.name,
     bytes: got.bytes, pages, charsPerPage: cpp, sha256: sha256(dest),
   };
 }

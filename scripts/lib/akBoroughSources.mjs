@@ -1,7 +1,14 @@
 /**
- * Alaska's six largest boroughs — entity registry and document provenance.
+ * Alaska's organized boroughs — entity registry and document provenance.
  *
  * NO SHEBANG — library module; tests import it.
+ *
+ * TWELVE entities in two waves: the six LARGEST (#299, 2026-10-27) and the six
+ * CLEAN ones added 2026-10-28 (North Slope, Northwest Arctic, Petersburg,
+ * Sitka, Wrangell, Aleutians East). One route, one extractor, one calendar.
+ * ⚠ Alaska has 19 organized boroughs; with Anchorage that leaves 6 unloaded —
+ * Skagway (which CHANGED ITS FISCAL YEAR), Yakutat, Lake and Peninsula, Haines,
+ * Bristol Bay (five FAC name spellings) and Denali (an image-only scan).
  *
  * Extends the `ak-local-acfr-gf` family opened by the Municipality of Anchorage.
  * The AK STATE node (`processAKAcfr.js`) belongs to `state-acfr-gf` and is a
@@ -39,10 +46,10 @@
  *
  * Run that test before typing any further Alaska government.
  *
- * ── ⚠ FISCAL YEAR: ALL SIX END JUNE 30 — UNLIKE ANCHORAGE ────────────────
+ * ── ⚠ FISCAL YEAR: ALL TWELVE END JUNE 30 — UNLIKE ANCHORAGE ─────────────
  *
  * Every borough here closes June 30 (`fiscalYearStartMonth: 7`), confirmed by
- * `fy_end_date` on all 60 FAC filings. ⚠⚠ ANCHORAGE, loaded in the same family,
+ * `fy_end_date` on all 118 FAC filings. ⚠⚠ ANCHORAGE, loaded in the same family,
  * closes DECEMBER 31. Two fiscal calendars inside one family — never carry the
  * month between entities.
  *
@@ -176,6 +183,128 @@ export const AK_BOROUGHS = Object.freeze([
     fiscalYearStartMonth: 7,
     sourcePage: 'https://www.kodiakak.us/148/Finance',
   }),
+
+  // ── WAVE 1 — six more boroughs, same route, same statement, same calendar ──
+  //
+  // Added 2026-10-28. All six close June 30 (`fy_end_date` on all 58 FAC
+  // filings), all are born-digital at 1,605–2,442 chars/page, and all are read
+  // by the same `extractAkBorough.py`. Nothing above this line changed.
+  //
+  // ⚠⚠ THE UNIFIED TEST WAS RUN ON ALL SIX, AND IT MOVED ONE OF THEM. Census
+  // vintage 2024, SUMLEV 050 (county-equivalent) vs 162 (whole place) vs 157
+  // (place part), from `co-est2024-alldata.csv` and `sub-est2024_2.csv`:
+  //
+  //   Sitka       050/162/157 all 8,355   -> UNIFIED -> `city`
+  //   Wrangell    050/162/157 all 2,064   -> UNIFIED -> `city`
+  //   Petersburg  050 3,436, NO 162 row, 157 = Kupreanof city 19
+  //                                        + Balance 3,417   -> `county`
+  //   North Slope        10,663 = 7 cities (Utqiagvik 4,668 …) + balance 3,205
+  //   Northwest Arctic    7,134 = 10 cities (Kotzebue 2,889 …) + balance   754
+  //   Aleutians East      3,632 = cities + balance 58
+  //
+  // ⭐ PETERSBURG IS THE ONE THAT LOOKS UNIFIED AND IS NOT. The City of
+  // Petersburg dissolved into the borough in 2013, so the borough's own seat is
+  // unincorporated "balance" today and the name reads like Sitka's. But
+  // **Kupreanof city (pop 19) is a separate incorporated government inside it**,
+  // which is exactly what the 157 rows show and what the unified test is for.
+  // A name-based guess would have typed it `city` and buried a real government.
+  Object.freeze({
+    key: 'northslope',
+    name: 'North Slope Borough',
+    state: 'AK',
+    entityType: 'county',
+    facEin: '920042378',
+    facUei: 'C9NWKJZ37GX3',
+    population: 10663,
+    fiscalYearStartMonth: 7,
+    sourcePage: 'https://www.north-slope.org/departments/finance/',
+    /**
+     * ⚠⚠ THE ONLY PER-CAPITA OVERRIDE IN THE COHORT, AND IT IS REAL MONEY.
+     *
+     * The shared loader's units guard caps a General Fund at $20,000/capita.
+     * North Slope's runs far above that, because the borough levies property
+     * tax on the Prudhoe Bay oil and gas infrastructure inside its boundaries:
+     * the tax base is industrial, the population is not. MEASURED off its own
+     * ACFRs, General Fund revenue per resident (pop 10,663):
+     *
+     *   FY2016 $40,078   FY2020 $43,124   FY2024 $47,683
+     *   FY2018 $40,804   FY2022 $39,037   FY2025 $52,990  <- highest
+     *
+     * ⚠ This raises the ceiling for ONE entity, on evidence, rather than
+     * widening it for everyone, and `perCapitaMaxFor` refuses an override that
+     * would LOWER the band. The guard exists to catch a 1000x units slip, and
+     * at 1000x this borough would land near $53M/capita — 660x over the raised
+     * ceiling, still caught. Measured per-capita values print on every load
+     * line, so a drift inside the widened band stays visible.
+     */
+    perCapitaMax: 80_000,
+  }),
+  Object.freeze({
+    key: 'nwarctic',
+    name: 'Northwest Arctic Borough',
+    state: 'AK',
+    entityType: 'county',
+    facEin: '920116661',
+    facUei: 'X9BGKCFEV966',
+    population: 7134,
+    fiscalYearStartMonth: 7,
+    sourcePage: 'https://www.nwabor.org/departments/finance/',
+  }),
+  Object.freeze({
+    key: 'petersburg',
+    /** ⚠ `county`, NOT `city` — Kupreanof city sits inside it. See above. */
+    name: 'Petersburg Borough',
+    state: 'AK',
+    entityType: 'county',
+    facEin: '926000142',
+    facUei: 'HREXPN6H9B74',
+    population: 3436,
+    fiscalYearStartMonth: 7,
+    sourcePage: 'https://www.petersburgak.gov/finance',
+  }),
+  Object.freeze({
+    key: 'sitka',
+    /** ⚠ UNIFIED city-borough — typed `city`, like Juneau and Anchorage. */
+    name: 'City and Borough of Sitka',
+    state: 'AK',
+    entityType: 'city',
+    facEin: '920041163',
+    facUei: 'M916NLPJH1K4',
+    population: 8355,
+    fiscalYearStartMonth: 7,
+    /** ⚠ cityofsitka.com returns 403 to non-browser clients; the page is real. */
+    sourcePage: 'https://www.cityofsitka.com/departments/Finance',
+  }),
+  Object.freeze({
+    key: 'wrangell',
+    /** ⚠ UNIFIED city-borough — typed `city`. */
+    name: 'City and Borough of Wrangell',
+    state: 'AK',
+    entityType: 'city',
+    facEin: '926000144',
+    facUei: 'EKXKZEKSQCN1',
+    population: 2064,
+    fiscalYearStartMonth: 7,
+    sourcePage: 'https://www.wrangell.com/finance',
+  }),
+  Object.freeze({
+    key: 'aleutianseast',
+    name: 'Aleutians East Borough',
+    state: 'AK',
+    entityType: 'county',
+    facEin: '920124066',
+    facUei: 'R1T5FLNFFEP4',
+    population: 3632,
+    fiscalYearStartMonth: 7,
+    /**
+     * ⚠ EIGHT FILINGS, NOT TEN — FAC holds no FY2017 or FY2018 for this
+     * borough. A single audit is only filed in a year the auditee spends
+     * enough federal money to require one, so a missing year here means NO
+     * FILING EXISTS at this source, not a failed fetch and not a $0. Recorded
+     * as a coverage limit; the borough's own site remains a later route.
+     */
+    sourcePage: 'https://www.aleutianseast.org/departments/finance/',
+  }),
 ]);
 
 export function boroughByKey(key) {
@@ -191,4 +320,28 @@ export function fysFor(key) {
 export function documentUrlFor(key, fiscalYear) {
   const rec = FAC_ROSTER[key]?.[String(fiscalYear)];
   return rec ? `${FAC_PDF_BASE}${rec.report_id}` : null;
+}
+
+/**
+ * ⚠⚠ A `source_url` IS A LINK A READER CLICKS, SO IT MUST STILL RESOLVE.
+ *
+ * FAC answers `documentUrlFor()` with a 302 to a PRESIGNED S3 OBJECT carrying
+ * `X-Amz-Expires=30` — thirty SECONDS. `fetchAkBoroughs.mjs` recorded that
+ * redirect target (`res.url`), following this repo's usual and usually-correct
+ * rule of citing the URL that actually served the bytes, and so stamped a dead
+ * link onto 227 Alaska borough rows across two loads.
+ *
+ * Nothing else could catch it. Not one of the five load guards, the frozen
+ * invariant, the tie gate or the scope sweep reads a URL; every figure was
+ * right and the only broken thing was the citation. So the check lives here,
+ * at the point the manifest is written.
+ *
+ * Repaired in place by `scripts/repairAkBoroughSourceUrls.mjs`.
+ */
+export function assertCitable(url) {
+  if (/[?&]X-Amz-(Expires|Signature)=/i.test(url)) {
+    throw new Error(`source_url would be a PRESIGNED, EXPIRING link: ${String(url).slice(0, 80)}… `
+      + 'Record the requested FAC URL, not the S3 object it redirects to.');
+  }
+  return url;
 }

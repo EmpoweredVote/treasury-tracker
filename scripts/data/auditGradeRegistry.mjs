@@ -893,7 +893,10 @@ export const AUDIT_GRADE_REGISTRY = [
     // it loaded, off an opinion nobody has opened — the trap spelled out on
     // co-springs-epc-acfr-gf below.
     id: 'ak-local-acfr-gf',
-    match: /^(?:Municipality of Anchorage ACFR — General Fund (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[2-9]|2[0-4]) actual, GAAP basis\)|(?:Matanuska-Susitna Borough|Fairbanks North Star Borough|Kenai Peninsula Borough|City and Borough of Juneau|Ketchikan Gateway Borough|Kodiak Island Borough) ACFR — General Fund (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[6-9]|2[0-5]) actual, GAAP basis\))$/,
+    // ⚠ EXTENDED 2026-10-28 with the six WAVE 1 boroughs, into the SAME
+    // FY2016-FY2025 alternative, because that is exactly the window of
+    // documents read for them too — 57 filings, every one opened by both gates.
+    match: /^(?:Municipality of Anchorage ACFR — General Fund (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[2-9]|2[0-4]) actual, GAAP basis\)|(?:Matanuska-Susitna Borough|Fairbanks North Star Borough|Kenai Peninsula Borough|City and Borough of Juneau|Ketchikan Gateway Borough|Kodiak Island Borough|North Slope Borough|Northwest Arctic Borough|Petersburg Borough|City and Borough of Sitka|City and Borough of Wrangell|Aleutians East Borough) ACFR — General Fund (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[6-9]|2[0-5]) actual, GAAP basis\))$/,
     value: AUDIT_GRADE.AUDITED_GAAP,
     evidence: {
       document: 'All 73 Alaska ACFRs in the repo, read 2026-10-28 — Municipality of Anchorage '
@@ -934,7 +937,41 @@ export const AUDIT_GRADE_REGISTRY = [
         + '700 labels only a modified one — so the clean verdict rests on a positive '
         + 'fair-presentation sentence plus the ABSENCE of a modifier near it, which is what '
         + 'checkOpinionType.py measures. Anchorage FY2024 is the one document here that does '
-        + 'carry an explicit unmodified/unqualified heading.',
+        + 'carry an explicit unmodified/unqualified heading. '
+        + '── WAVE 1 (added 2026-10-28) — 57 MORE ALASKA ACFRs, read the same day, BOTH GATES '
+        + 'RUN OVER EVERY ONE: North Slope, Northwest Arctic, Petersburg and City and Borough '
+        + 'of Wrangell FY2016-FY2025 (10 each), City and Borough of Sitka FY2016-FY2025 less '
+        + 'FY2018 (9), Aleutians East FY2016 and FY2019-FY2025 (8). They carry all 114 new '
+        + 'graded rows — 57 x 2, with no mode-level gaps in this wave. '
+        + 'OPINION PRESENT — verifyCoKsOpinions.py: 57 found in the TEXT layer, 0 recovered by '
+        + 'OCR, 0 NOT FOUND. Alaska\'s born-digital record continues: 130 opinion pages across '
+        + 'the state now, not one of them an image. '
+        + 'OPINION UNMODIFIED — checkOpinionType.py: 57 clean, 0 MODIFIED, 0 unreadable, with '
+        + '--selftest passing first. '
+        + '⚠⚠ THIS WAVE FORCED A FIX TO THE PRESENCE GATE, AND THE MISS WAS TOTAL: all TEN '
+        + 'North Slope filings read NOT FOUND while the paragraph gate read a clean opinion in '
+        + 'each. Its auditor inverts the conformity phrase — "in accordance with U.S. GENERALLY '
+        + 'ACCEPTED ACCOUNTING PRINCIPLES" rather than "accounting principles generally '
+        + 'accepted in the United States" — and the gate knew three wordings, not four. The '
+        + 'Travis County FY2005-FY2007 miss, one wording further out. A fourth alternative was '
+        + 'added, pinned in that script\'s selftest, and MEASURED: re-asking which documents '
+        + 'the new alternative finds that the old did not, across every text layer already '
+        + 'graded (73 Alaska, 28 Austin, 22 Travis, 57 CO/KS, 32 Colorado Springs/El Paso), the '
+        + 'answer is exactly those ten and nothing else. '
+        + '⚠ ONE WAVE-1 DOCUMENT IS FLAGGED BY THE PRESENCE GATE AND IS NOT MODIFIED: North '
+        + 'Slope FY2020 carries a genuine "Qualified Opinion on Research and Development '
+        + 'Cluster" — a FEDERAL PROGRAM COMPLIANCE opinion inside the Single Audit, not an '
+        + 'opinion on the financial statements. Identical in kind to Wichita FY2021\'s WIFIA '
+        + 'qualification, and exactly why that pattern reports and never downgrades. The '
+        + 'paragraph gate reads the FY2020 financial-statement opinion clean. '
+        + '⚠ SITKA FY2018 HAS NO ROW AND NO GRADE, and the reason is not an unreadable '
+        + 'opinion: the whole document has a CIPHERED TEXT LAYER (declared in '
+        + 'scripts/extractAkBorough.py). It is absent from this count because no PDF was kept '
+        + '— the fetcher\'s auditee-identity guard rejected it — so there is nothing to grade '
+        + 'rather than something graded unknown. '
+        + '⚠ ALEUTIANS EAST FY2017 AND FY2018 ARE NOT GAPS EITHER: the Federal Audit '
+        + 'Clearinghouse holds no filing for those years, because a single audit is filed only '
+        + 'in a year the auditee spends enough federal money to require one.',
     },
   },
   {

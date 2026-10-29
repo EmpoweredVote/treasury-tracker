@@ -84,8 +84,30 @@ FAIR = re.compile(r'presentfairly,?inallmaterialrespects')
 #
 # ⚠ The pairing itself is load-bearing and must not be loosened further — see
 # the in-relation-to case in `selftest()`.
+#
+# ⚠⚠ `generallyacceptedaccountingprinciples` IS THE FOURTH ALTERNATIVE, AND IT
+# WAS ALSO ADDED BECAUSE IT WAS MISSING. The North Slope Borough's auditor
+# inverts the phrase — "...for the year then ended in accordance with **U.S.
+# generally accepted accounting principles**" — where everyone else writes
+# "accounting principles generally accepted in the United States". With only the
+# first three alternatives this gate read ALL TEN of that borough's documents as
+# NOT FOUND while `checkOpinionType.py` read a clean primary opinion in each:
+# the Travis County miss again, one wording further out. Found 2026-10-28.
+#
+# ⭐ Re-measured, not just argued, exactly as the note above requires. The
+# measurement asks the narrow question directly — which documents does the NEW
+# alternative find that the OLD one did not — over every text layer already
+# graded under the old pattern (73 Alaska + 114 new wave-1 Alaska, 28 Austin,
+# 22 Travis, 57 CO/KS, 32 Colorado Springs/El Paso). THE ANSWER IS EXACTLY THE
+# TEN NORTH SLOPE DOCUMENTS, none -> text, and nothing else anywhere.
+#
+# ⚠ That sweep reads TEXT LAYERS only, so it cannot speak for the image-only
+# opinion pages that reach this gate through OCR. It does not need to: the
+# verdict is a CONJUNCTION, so adding an alternative to one conjunct can only
+# ever turn `none` into `text`/`ocr`, never the reverse, on either path.
 GAAP = re.compile(r'accounting(?:principles|standards)generallyaccepted'
-                  r'|conformitywithaccountingprinciples')
+                  r'|conformitywithaccountingprinciples'
+                  r'|generallyacceptedaccountingprinciples')
 IN_OUR_OPINION = re.compile(r'inouropinion')
 INDEPENDENT = re.compile(r'independentauditor')
 # Reported, never auto-downgraded — see the module docstring.
@@ -213,6 +235,8 @@ def selftest():
          'in conformity with accounting standards generally accepted in the United States'),
         ('"in conformity with accounting principles"',
          'in conformity with accounting principles'),
+        ('"U.S. GENERALLY ACCEPTED accounting principles" (North Slope FY2016-25)',
+         'in accordance with U.S. generally accepted accounting principles'),
     ]:
         check(label, 'In our opinion, the financial statements referred to above '
                      'present fairly, in all material respects, the financial position '

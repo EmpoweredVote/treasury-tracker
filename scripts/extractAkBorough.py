@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
 """
-Alaska's six largest boroughs — General Fund extractor.
+Alaska's organized boroughs — General Fund extractor.
 
 Thin wrapper over `scripts/lib/acfrGF.py` (`pdftotext -table`), holding one
 `CityConfig` per borough and selected with `--entity`.
 
-⚠ WHY ONE FILE AND NOT SIX. The repo's convention is one wrapper per entity
+⚠ WHY ONE FILE AND NOT TWELVE. The repo's convention is one wrapper per entity
 (`extractWichitaKS.py`, `extractBoulderCO.py`, ...), and that convention earns
-its keep when each entity's document is genuinely different. These six are a
+its keep when each entity's document is genuinely different. These twelve are a
 single cohort — same state, same statement, same fiscal year end, all fetched
-through one route on the same day — and six files would be six copies of the
-same twelve lines. The per-entity FACTS still live in their own CONFIGS entry
-with their own comments, which is what the convention actually protects.
+through one route — and twelve files would be twelve copies of the same twelve
+lines. The per-entity FACTS still live in their own CONFIGS entry with their own
+comments, which is what the convention actually protects.
 
 ── ⚠⚠ EVERY BOROUGH PRINTS A PRIOR-YEAR SUMMARIZED COLUMN ─────────────────
 
@@ -88,6 +88,26 @@ KNOWN_DOCUMENT_GAPS = {
         "total` appear in a whole-document extraction with no adjacent numbers, "
         "and no single page yields them at all. 1,250 chars/page, so the text "
         "layer is dense — this is a layout defect, not a scan.",
+    # ⚠⚠ THE MOST DANGEROUS DEFECT IN THIS COHORT, AND THE DENSITY GUARD
+    # PASSES IT. Sitka's FY2018 filing has a CIPHERED TEXT LAYER: the embedded
+    # fonts carry a broken ToUnicode map, so every glyph extracts as a wrong
+    # character on all 177 pages. The word `Sitka` appears ZERO times in a
+    # whole-document extraction of a document whose own PDF title is
+    # "Formatted City and Bor...heets and CAFR Footnotes FY2018".
+    #
+    # It reads at ~1,900 chars/page, so `fetchAkBoroughs.mjs`'s image-scan
+    # guard (<400 c/p) sees a healthy text layer. The AUDITEE IDENTITY guard is
+    # what caught it, which is the reason that guard exists: a ciphered page
+    # yields spurious NUMBERS, not an empty tree.
+    #
+    # ⚠ The borough's own copy was checked, per the Mat-Su precedent, and is
+    # unreachable: cityofsitka.com sits behind an Akamai WAF that returns 403
+    # to every non-browser client, including full browser headers.
+    ('sitka', 2018, None):
+        "Ciphered text layer — the PDF's embedded fonts have a broken ToUnicode "
+        "map, so all 177 pages extract as wrong characters at a healthy ~1,900 "
+        "chars/page. Caught by the fetcher's auditee-identity guard, not by its "
+        "density guard. The borough's own copy is behind an Akamai WAF (403).",
 }
 
 CONFIGS = {
@@ -245,6 +265,161 @@ CONFIGS = {
         root_leaves=(),
         revenue_parents=('intergovernmental',),
         revenue_group_members=('sources',),
+        fy_end=JUNE_30,
+    ),
+
+    # ── WAVE 1 ────────────────────────────────────────────────────────────
+    #
+    # Six more boroughs, added 2026-10-28. Every shape below was read off the
+    # printed page with `pdftotext -layout` across ALL of that borough's years,
+    # not inferred from one year and not copied from a sibling — the Juneau
+    # lesson in this same file is that a borrowed `root_leaves` reparents a real
+    # row silently while the statement still ties at $0.
+
+    # ⚠ `Capital projects` (Juneau's spelling), not `Capital outlay`, and
+    # FY2016 adds a SECOND root leaf: `Special revenues` sits beside
+    # `Capital projects` as a peer of Current/Debt service that year only. Both
+    # are dashes in the General Fund column in every year, so neither changes a
+    # dollar — they are declared because the alternative is that a year where
+    # one DOES carry money files it inside Debt service at a $0 tie.
+    # ⚠ Revenue is flat: property taxes, intergovernmental, charges for
+    # services, investment earnings, economic impact assistance and other all
+    # sit at root with no heading over them.
+    'northslope': CityConfig(
+        city='North Slope Borough, AK',
+        parents=('current', 'debt service'),
+        root_leaves=('capital projects', 'special revenues'),
+        fy_end=JUNE_30,
+    ),
+
+    # ⚠⚠ THE ONLY THREE-LEVEL EXPENDITURE TREE IN ALASKA. Northwest Arctic
+    # prints `Education:` as a sub-heading INSIDE `Current:`, with `Payments to
+    # School District` (and in FY2016 an `Other`) under it. Without
+    # `subparents` those grandchildren flatten up into Current and the
+    # Education grouping the borough published disappears — at a $0 tie.
+    #
+    # ⚠⚠ `capital outlay` IS BOTH A PARENT AND A ROOT LEAF, because this
+    # borough prints it both ways in its own series: FY2016 renders
+    # `Capital outlay:` as a heading over `Payments to School District` and
+    # `Design and construction`, while FY2021 prints `Capital outlay` as a
+    # valued row at root. `parents` matches LABEL-ONLY lines and `root_leaves`
+    # matches VALUED ones, so declaring both reads each year as printed.
+    #
+    # ⚠ `revenue_group_close='next_heading'`, not the default `members`: the
+    # revenue section is exhaustive — every source sits under `Local sources:`
+    # or `Intergovernmental:` — and the members of Local sources share no
+    # usable suffix (`Payment in lieu of taxes`, `Borough usage fee`,
+    # `Investment income`, `Other`). Brown County's shape.
+    'nwarctic': CityConfig(
+        city='Northwest Arctic Borough, AK',
+        parents=('current', 'debt service', 'capital outlay'),
+        root_leaves=('capital outlay',),
+        subparents=('education',),
+        subparent_member_prefixes=('payments to school district', 'other'),
+        # ⚠⚠ `'intergovernmental: .'` IS THE SAME HEADING, DAMAGED. In FY2016 a
+        # stray dot sits in the Debt Service column on the heading's own row, so
+        # `-table` renders the line as `Intergovernmental:` followed by a lone
+        # `.` and the label arrives as `Intergovernmental: .`. Undeclared, the
+        # heading is read as a wrapped label and welded onto its first child
+        # (`Intergovernmental: . Direct federal sources`), BOTH intergovernmental
+        # sources then nest under `Local sources:` — and the revenue tree still
+        # ties at $0. The St. Joseph County `Curren t :` shape, in this cohort.
+        #
+        # ⚠ The MATCH is made against the damaged string, and `label_fixes`
+        # decides what the node is CALLED. Two declarations because they answer
+        # two questions; see `CityConfig.label_fixes`.
+        revenue_parents=('local sources', 'intergovernmental', 'intergovernmental: .'),
+        label_fixes={'Intergovernmental: .': 'Intergovernmental'},
+        revenue_group_close='next_heading',
+        fy_end=JUNE_30,
+    ),
+
+    # Plainest of the six: `Current:` and `Debt service:` as parents,
+    # `Capital outlay` as a valued root leaf, flat revenue.
+    'petersburg': CityConfig(
+        city='Petersburg Borough, AK',
+        parents=('current', 'debt service'),
+        root_leaves=('capital outlay',),
+        fy_end=JUNE_30,
+    ),
+
+    # ⚠ Sitka groups ONLY its tax lines. `Taxes:` opens over `Commercial
+    # passenger excise tax`, `Real and personal property`, `Sales and bed` and
+    # `Tobacco` (`Tobacco and marijuana` from FY2022), and the group must close
+    # on `State sources`, which follows immediately.
+    #
+    # ⚠⚠ The members share NO common suffix, so each is named. `personal
+    # property` is deliberately the suffix rather than `property`: the ungrouped
+    # `Uses of property` four rows later would otherwise stay inside the tax
+    # group, and the statement would still tie at $0.
+    'sitka': CityConfig(
+        city='City and Borough of Sitka, AK',
+        parents=('current', 'debt service'),
+        root_leaves=('capital outlay',),
+        revenue_parents=('taxes',),
+        revenue_group_members=('excise tax', 'personal property', 'sales and bed',
+                               'tobacco', 'marijuana'),
+        fy_end=JUNE_30,
+    ),
+
+    # Flat revenue, `Current:` + `Debt service:`, `Capital outlay` at root.
+    'wrangell': CityConfig(
+        city='City and Borough of Wrangell, AK',
+        parents=('current', 'debt service'),
+        root_leaves=('capital outlay',),
+        fy_end=JUNE_30,
+    ),
+
+    # ⚠⚠ TWO ISSUER TEMPLATES IN ONE SERIES. FY2016 is a different statement
+    # from FY2019+ and the gap between them is where the auditor changed:
+    #
+    #   FY2016   `Combining Statement of Revenues, Expenditures and Changes in
+    #            Fund Balance`, departmental expenditure lines (Mayor's office,
+    #            Assembly, Clerk and planning management, Finance, Resource
+    #            department …) under `Current:`, and `Capital outlays`,
+    #            `Principle`, `Interest`, `Trust fund` as root-level peers.
+    #   FY2019+  the cohort's standard Exhibit B-3: `General government`,
+    #            `Infrastructure`, `Education`, `Community services`, `Health
+    #            and welfare` under `Current:`, `Debt service` as a parent.
+    #
+    # ⭐ ONE CONFIG STILL READS BOTH, AND THAT WAS CHECKED RATHER THAN HOPED:
+    # FY2016's four root-level peers are ALL DASHES in the General Fund column
+    # (they belong to the Capital Improvements, Debt Service and Trust funds),
+    # so they drop as $0 rows and never contend for a parent. Declaring
+    # `interest` or `principle` as a root leaf to suit FY2016 would have been
+    # the wrong fix — in FY2019+ those two carry real General Fund money as
+    # children of `Debt service`, and a root-leaf declaration would have lifted
+    # them out of it in every one of those years.
+    #
+    # ⚠ `Intergovernmental:` only appears from FY2023; the earlier years print
+    # `Federal government` / `State of Alaska` flat at root. A revenue parent
+    # that never matches is inert, so one config covers both.
+    # ⚠⚠⚠ AND IN FY2016 THE ISSUER CALLS ITS PRIMARY STATEMENT A COMBINING
+    # ONE. `_EXCLUDE` carries `'combining'` because a combining schedule is
+    # normally a SUPPLEMENTARY nonmajor-funds page, and loading one would
+    # publish the wrong funds. This borough breaks that assumption the way
+    # Buncombe County breaks `'reconciliation'`: its FY2016 Exhibit B-3 is
+    # titled "Combining Statement of Revenues, Expenditures, and Changes in
+    # Fund Balance", and the report's own MD&A says "The next statements
+    # (Exhibits B-1 through B-5) are fund financial statements" — B-3 IS a
+    # basic financial statement.
+    #
+    # ⚠ The document also carries a genuine supplementary combining schedule at
+    # **Exhibit J-2**, which this widening lets qualify too. It is harmless
+    # here and the reason is structural, not luck: `find_statement_page`
+    # returns the EARLIEST qualifying page, basic statements precede
+    # supplementary schedules, and B-3 sits ~37 pages ahead of J-2.
+    #
+    # ⭐ The widening was checked, not assumed: FY2019-FY2025 extract
+    # BYTE-IDENTICAL totals with and without it, so it buys FY2016 and moves
+    # nothing else.
+    'aleutianseast': CityConfig(
+        city='Aleutians East Borough, AK',
+        parents=('current', 'debt service'),
+        root_leaves=('capital outlay',),
+        revenue_parents=('intergovernmental',),
+        revenue_group_members=('federal', 'state of alaska'),
+        exclude_ignore=('combining',),
         fy_end=JUNE_30,
     ),
 }
