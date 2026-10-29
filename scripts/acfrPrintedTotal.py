@@ -189,7 +189,14 @@ def lines_of(page, gap=ROW_GAP, left_margin=None, ocr_leading_one=False,
     return rows_from_words(
         _inked(page).extract_words(
             use_text_flow=False, keep_blank_chars=False,
-            return_chars=split_leader_dots,
+            # ⚠⚠ EITHER split needs per-character coordinates, not just the
+            # leader one. `_split_fused_money` without `chars` apportions by
+            # character count, which on Honolulu FY2020 put the split at 276.9
+            # instead of the true column edge 259.5 and dropped `Public safety`
+            # and all of `Debt service`. The two knobs are independent in
+            # `CoordsConfig`, so an entity with touching columns and no leaders
+            # would otherwise get the degraded path in silence.
+            return_chars=split_leader_dots or split_fused_money,
             # ⚠ `x_tolerance` — an issuer that sets its labels tightly. Honolulu
             # draws no space glyphs between a label's words and leaves gaps
             # under pdfplumber's default 3.0, so `Licenses and permits` came

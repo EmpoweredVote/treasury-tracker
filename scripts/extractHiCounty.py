@@ -29,8 +29,11 @@ magnitude of the printed figures.
 
 Confirmed by `fy_end_date` on all 38 FAC filings.
 
+⚠⚠ HONOLULU IS NOT HERE. It needs the coordinate reader; see
+`scripts/extractHonoluluCoords.py` and the note above the CONFIGS table.
+
 Usage:
-  python scripts/extractHiCounty.py --entity honolulu path/to.pdf --mode revenue
+  python scripts/extractHiCounty.py --entity maui path/to.pdf --mode revenue
 """
 
 import argparse
@@ -44,66 +47,20 @@ from acfrGF import CityConfig, extract  # noqa: E402
 
 JUNE_30 = ('June', 30)
 
-# ── DOCUMENT GAPS — published, audited, and NOT EXTRACTABLE ────────────────
-#
-# Keyed (entity, fiscal_year, mode); `None` as the mode means both sides. Each
-# entry records the CAUSE. These are reported at load time and NEVER written as
-# $0 — the Sedgwick County FY2019 precedent, where a born-digital document
-# simply would not yield its numbers.
-#
-# ⚠ Hawaii County's own site (hawaiicounty.gov) returns 403 to every client
-# tried, browser headers included, so the Mat-Su second-publisher check has the
-# Sitka/Akamai outcome: no second copy of these two is reachable.
-KNOWN_DOCUMENT_GAPS = {
-    ('hawaii', 2018, None):
-        "Image-only scan — 238 chars/page against a healthy band of 1,779-2,208 "
-        "across the other 36 filings. Rejected by the fetcher's density guard, "
-        "so no PDF is on disk.",
-    ('hawaii', 2023, None):
-        "Image-only scan — 250 chars/page. Same cause and same guard as FY2018.",
-}
-
 CONFIGS = {
-    # ⚠⚠ HONOLULU IS THE ONLY ONE IN THOUSANDS. Its statement page is captioned
-    # "( Amounts in thousands )" and its General Fund revenue prints 2,088,725
-    # — $2.09 BILLION for a city-county of 998,747. Read off the page, not
-    # carried from a sibling.
+    # ⚠⚠⚠ HONOLULU IS NOT HERE, AND MUST NOT BE. It is read by the COORDINATE
+    # extractor, scripts/extractHonoluluCoords.py, because its dot leaders touch
+    # the digits and defeat the "-table" character grid completely: every
+    # revenue row lands in zero_rows, the tree comes back EMPTY and the printed
+    # total reads 2000.
     #
-    # ⚠⚠⚠ LABELS ARE NOT UNIQUE ACROSS PARENTS HERE. `Miscellaneous:` is
-    # printed TWICE — once as a revenue group (Recoveries, Interest, Other) and
-    # once UNDER `Current:` (Retirement and health benefits, Other) — and
-    # `Other` is a child of both. `Capital Outlay:` then repeats five function
-    # names that already appear under `Current:` (General government, Public
-    # safety, Highways and streets, Human services, Culture-recreation).
-    # Parenting by label alone produces a wrong tree that ties at $0.
-    'honolulu': CityConfig(
-        city='City and County of Honolulu, HI',
-        parents=('current', 'capital outlay', 'debt service'),
-        root_leaves=(),
-        # `Current:` > `Miscellaneous:` > {Retirement and health benefits, Other}
-        # ⚠ REQUIRED, and the library refuses without it: a sub-group with no
-        # declared members closes after its FIRST child and the rest reparent
-        # silently, while the statement still ties. The two members are the
-        # only rows between the heading and `Capital Outlay:`, which closes the
-        # group by being a parent.
-        subparents=('miscellaneous',),
-        subparent_member_prefixes=('retirement', 'other'),
-        # Revenues > `Miscellaneous:` > {Recoveries, Interest, Other}. The three
-        # share no usable suffix, and the group is closed by `Total Revenues`.
-        revenue_parents=('miscellaneous',),
-        revenue_group_close='next_heading',
-        units=1000,
-        fy_end=JUNE_30,
-    ),
-
-    # ⚠ WHOLE DOLLARS despite "(Dollars in Thousands)" appearing elsewhere in
-    # the document: the statement prints Taxes 508,927,947 for a county of
-    # 163,688. In thousands that would be $508 billion.
-    #
-    # Revenue carries a `Taxes` group — Property, Transient accommodations,
-    # Franchise, Fuel, Public service company, General excise — every member of
-    # which ends in "tax" or "taxes", and the next source
-    # (`Licenses and permits`) does not.
+    # A "honolulu" CityConfig lived here briefly and was DEAD:
+    # processHiCounties.js routes Honolulu elsewhere, so nothing used it, while
+    # "extractHiCounty.py --entity honolulu <pdf>" stayed a
+    # supported invocation that returned a silently empty tree. Worse, the
+    # selftest asserted units=1000 and target_column=0 against it, so the pin for
+    # the one entity that prints IN THOUSANDS was guarding an object production
+    # never touched. The live pin is TestShippedHonoluluCoordsConfig.
     'maui': CityConfig(
         city='County of Maui, HI',
         parents=('current', 'debt service'),

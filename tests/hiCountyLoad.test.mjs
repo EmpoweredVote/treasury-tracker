@@ -76,6 +76,46 @@ describe('the Hawaii county load configs', () => {
     }
   });
 
+  // ⚠⚠⚠ THE GAPS TABLE IS THE ENTIRE BASIS FOR 67 ROWS RATHER THAN 72, AND IT
+  // WAS PINNED BY NOTHING. Every other assertion here calls `runConfigFor(key)`
+  // with NO options, so `mode` is undefined, `GAPS.hawaii[undefined]` is
+  // undefined, and `cfg.fys` comes back entirely UNFILTERED — the test above
+  // asserting `fys.at(-1) === 2024` was checking a list no gap had touched.
+  //
+  // A typo (`revenues:` for `revenue:`, or a dropped year) would silently
+  // re-admit Hawaii County FY2017 and FY2020, whose DIGITS are misread
+  // (`4. 1] 7.] 53`). The only thing standing between that and publication is
+  // a tie gate that already came within 331 dollars of passing on a $300M
+  // statement.
+  it('drops exactly the Hawaii County gap years, per mode', () => {
+    expect(runConfigFor('hawaii', { mode: 'revenue' }).fys).toEqual([2016, 2021, 2022, 2024]);
+    expect(runConfigFor('hawaii', { mode: 'operating' }).fys).toEqual([2016, 2019, 2021, 2022, 2024]);
+  });
+
+  // FY2019 is the asymmetric one: its revenue side prints `Other` as
+  // `2,506 ,7 91` in three fragments, while the expenditure side of the SAME
+  // page is clean and loads.
+  it('keeps FY2019 operating while dropping FY2019 revenue', () => {
+    expect(runConfigFor('hawaii', { mode: 'operating' }).fys).toContain(2019);
+    expect(runConfigFor('hawaii', { mode: 'revenue' }).fys).not.toContain(2019);
+  });
+
+  it('leaves the other three counties ungapped', () => {
+    for (const mode of ['revenue', 'operating']) {
+      expect(runConfigFor('honolulu', { mode }).fys).toHaveLength(10);
+      expect(runConfigFor('maui', { mode }).fys).toHaveLength(10);
+      expect(runConfigFor('kauai', { mode }).fys).toHaveLength(9);
+    }
+  });
+
+  // The row count the whole load is reconciled against.
+  it('sums to the 67 rows the registry expects', () => {
+    const total = HI_COUNTIES.reduce((n, c) => n
+      + runConfigFor(c.key, { mode: 'revenue' }).fys.length
+      + runConfigFor(c.key, { mode: 'operating' }).fys.length, 0);
+    expect(total).toBe(67);
+  });
+
   it('refuses a key that is not one of the four governments', () => {
     expect(() => runConfigFor('kalawao')).toThrow();
   });

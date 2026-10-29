@@ -3512,8 +3512,15 @@ class TestShippedHiCountyConfigs(unittest.TestCase):
     # from each other -- Boulder city prints thousands while Boulder COUNTY,
     # twenty miles away, prints whole dollars. Each value below was read off
     # that county's own caption block, never carried from a sibling.
-    def test_honolulu_is_in_thousands(self):
-        self.assertEqual(extractHiCounty.CONFIGS['honolulu'].units, 1000)
+    def test_honolulu_has_no_table_config_at_all(self):
+        # ⚠⚠⚠ HONOLULU IS READ BY THE COORDINATE EXTRACTOR. A `honolulu` entry
+        # here was DEAD — processHiCounties.js routes Honolulu elsewhere — yet
+        # `--entity honolulu` stayed a supported invocation returning a
+        # silently empty tree, and this class asserted units=1000 against it.
+        # That made the pin for the ONE entity printing IN THOUSANDS guard an
+        # object production never touched. The live pin is
+        # TestShippedHonoluluCoordsConfig in acfrGfCoords.selftest.py.
+        self.assertNotIn('honolulu', extractHiCounty.CONFIGS)
 
     def test_the_three_counties_units_are_read_per_entity(self):
         for key, expected in (('hawaii', 1), ('maui', 1), ('kauai', 1)):
@@ -3529,14 +3536,7 @@ class TestShippedHiCountyConfigs(unittest.TestCase):
     def test_exactly_the_four_governments_have_configs(self):
         # Kalawao has no government; the Department of Water is a component
         # unit. Neither may acquire a config by drift.
-        self.assertEqual(sorted(extractHiCounty.CONFIGS), ['hawaii', 'honolulu', 'kauai', 'maui'])
-
-    def test_honolulu_reads_the_general_fund_column(self):
-        # target_column 0 is the General Fund. Honolulu's statement also prints
-        # a Total Governmental Funds column; reading 'last' would publish
-        # 2,874,684 under a General Fund label -- the LA TRAN shape, tying at
-        # $0 with every figure correct and only the scope claim false.
-        self.assertEqual(extractHiCounty.CONFIGS['honolulu'].target_column, 0)
+        self.assertEqual(sorted(extractHiCounty.CONFIGS), ['hawaii', 'kauai', 'maui'])
 
 
 if __name__ == '__main__':

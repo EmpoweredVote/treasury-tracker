@@ -1,5 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { identityPattern, assertFiscalYear, manifestEntryFor } from '../scripts/fetchHiCounties.mjs';
+import {
+  identityPattern, assertFiscalYear, manifestEntryFor, isOwnCover,
+} from '../scripts/fetchHiCounties.mjs';
 import { documentUrlFor } from '../scripts/lib/hiCountySources.mjs';
 
 describe('the auditee-identity guard', () => {
@@ -21,6 +23,36 @@ describe('the auditee-identity guard', () => {
   // "county of kauai" claims it. The guard must anchor at a line start.
   it('rejects the Kauai component unit for its parent county', () => {
     expect(identityPattern('kauai').test('DEPARTMENT OF WATER, COUNTY OF KAUAI')).toBe(false);
+  });
+
+  // ⚠⚠⚠ A CENTRED COVER PAGE BREAKS ONTO SEPARATE LINES. `pdftotext -table`
+  // routinely renders the component unit's own cover as
+  //     DEPARTMENT OF WATER
+  //     COUNTY OF KAUAI
+  // and the second line satisfies the line-anchored identity pattern, so the
+  // anchor alone does NOT separate the county from its own utility — which is
+  // exactly what this guard's header claimed it did.
+  //
+  // The old second check (`NOT_IDENTITY.test(head) && !identity.test(head
+  // .slice(0, 4000))`) could only fire when the county's own name appeared
+  // AFTER character 4000, i.e. never for a document that had already passed
+  // the first check on its cover. It was dead code asserting protection it
+  // did not provide.
+  it('rejects a component unit whose cover page wraps onto two lines', () => {
+    const cover = 'DEPARTMENT OF WATER\nCOUNTY OF KAUAI\nANNUAL COMPREHENSIVE FINANCIAL REPORT';
+    expect(isOwnCover('kauai', cover)).toBe(false);
+  });
+
+  it('accepts the county whose own cover wraps the same way', () => {
+    const cover = "COUNTY OF KAUA`I, HAWAI`I\nANNUAL COMPREHENSIVE FINANCIAL REPORT\n"
+      + 'Department of Water is a discretely presented component unit';
+    expect(isOwnCover('kauai', cover)).toBe(true);
+  });
+
+  it('still accepts a county that merely mentions its component unit later', () => {
+    const cover = 'CITY AND COUNTY OF HONOLULU\nANNUAL COMPREHENSIVE FINANCIAL REPORT\n'
+      + 'Board of Water Supply\nOahu Transit Services, Inc.';
+    expect(isOwnCover('honolulu', cover)).toBe(true);
   });
 
   // ⚠⚠⚠ THE ʻOKINA IS A BACKTICK IN THE SOURCE DOCUMENTS. Kaua'i's own ACFR

@@ -28,7 +28,7 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 from acfrGfComponents import (  # noqa: E402
     collect, establish_column, EXP_BANNER, EXP_TOTAL,
 )
-from acfrPrintedTotal import rows_from_words, merge_split_numbers  # noqa: E402
+from acfrPrintedTotal import rows_from_words, merge_split_numbers, lines_of  # noqa: E402
 
 
 def row(label, indent, amount, cell='number'):
@@ -779,6 +779,55 @@ class TestSplitFusedMoney(unittest.TestCase):
         # edge parses as 8,850,551 and is published. Prefer the split.
         self.assertEqual(self._texts('885,0551', split_fused_money=True),
                          ['885,055', '1'])
+
+
+class TestCharsAreRequestedWheneverASplitNeedsThem(unittest.TestCase):
+    """⚠⚠ `lines_of` asked pdfplumber for per-character coordinates only when
+    `split_leader_dots` was on.
+
+    `_split_fused_money` needs them just as much: without `chars` it apportions
+    by character count, which is measured on Honolulu FY2020 as splitting the
+    fused `463,25934,149` at 276.9 instead of its true column edge 259.5 —
+    `Public safety` then misses the General Fund column and the whole
+    `Debt service` parent goes with it, an operating delta of -463,259,000.
+
+    `CoordsConfig` accepts the two knobs independently, so the next entity with
+    TOUCHING MONEY COLUMNS BUT NO DOT LEADERS would set `split_fused_money`
+    alone and silently get the degraded path. Nothing coupled them.
+    """
+
+    class _StubPage:
+        """Records the kwargs `lines_of` passes to extract_words."""
+
+        def __init__(self):
+            self.kwargs = None
+
+        def filter(self, _fn):
+            return self
+
+        def extract_words(self, **kwargs):
+            self.kwargs = kwargs
+            return []
+
+    def _kwargs_for(self, **knobs):
+        page = self._StubPage()
+        lines_of(page, **knobs)
+        return page.kwargs
+
+    def test_neither_knob_asks_for_characters(self):
+        self.assertFalse(self._kwargs_for()['return_chars'])
+
+    def test_the_leader_split_asks_for_characters(self):
+        self.assertTrue(self._kwargs_for(split_leader_dots=True)['return_chars'])
+
+    def test_the_fused_split_ALONE_also_asks_for_characters(self):
+        self.assertTrue(self._kwargs_for(split_fused_money=True)['return_chars'])
+
+    def test_x_tolerance_is_omitted_unless_declared(self):
+        # Omitted means pdfplumber's own default, so every shipped entity is
+        # untouched; passing None explicitly would not be the same thing.
+        self.assertNotIn('x_tolerance', self._kwargs_for())
+        self.assertEqual(self._kwargs_for(x_tolerance=2.0)['x_tolerance'], 2.0)
 
 
 class TestMergeKeepsCharsInStep(unittest.TestCase):

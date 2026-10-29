@@ -29,12 +29,23 @@
  *       the roster claims. A MISS is reported, never treated as proof of a
  *       wrong year; a positive hit on a DIFFERENT plausible year is fatal.
  *
- * ⚠⚠⚠ (e) IS THE ONLY GUARD THAT CATCHES A CIPHERED TEXT LAYER. Alaska had
- * three — Sitka FY2018, Bristol Bay FY2024, Yakutat FY2018 — whose embedded
- * fonts carry a broken ToUnicode map, so every glyph extracts as a wrong
- * character. They read at ~1,650-1,900 chars/page, so (d) sees a healthy text
- * layer and waves them through. A ciphered page yields spurious NUMBERS, not
- * an empty tree. PDF producer metadata does NOT predict them.
+ * ⚠⚠ (e) CATCHES A WHOLLY CIPHERED TEXT LAYER — Alaska had three (Sitka
+ * FY2018, Bristol Bay FY2024, Yakutat FY2018) whose embedded fonts carry a
+ * broken ToUnicode map, so every glyph extracts as a wrong character while the
+ * page still reads ~1,650-1,900 chars/page and sails past (d).
+ *
+ * ⚠⚠⚠ BUT IT DOES NOT CATCH A PARTIALLY DEGRADED ONE, AND THIS COHORT PROVES
+ * IT. Hawaii County FY2017 and FY2020 PASSED ALL SIX GUARDS and are on disk.
+ * Their text layers are degraded OCR — `COLTNTYOF HAWAII`, `Property taxe$`,
+ * commas rendered as periods (`268. 517. 397`), digits as brackets
+ * (`4. 1] 7.] 53`) — yet enough of the cover survives for (e) to match. What
+ * stopped them was the TIE GATE at extraction, and only just: FY2017 revenue
+ * missed by 331 dollars on a $300M statement, 0.0001%. A document misread
+ * slightly differently would have tied.
+ *
+ * So the protection against degraded OCR here is the hand-maintained GAPS
+ * table in `scripts/processHiCounties.js`, not a guard. Treat a passing (e) as
+ * evidence the right ENTITY was fetched, never as evidence the text is sound.
  *
  * Usage:
  *   node scripts/fetchHiCounties.mjs                  # all four, all years
@@ -109,6 +120,40 @@ export function identityPattern(key) {
   const re = IDENTITY[key];
   if (!re) throw new Error(`No identity pattern for '${key}' — not a Hawaii county government.`);
   return re;
+}
+
+/**
+ * Guard (e). True when `text` is THIS county's own cover, not a component
+ * unit's cover that merely names its parent.
+ *
+ * ⚠⚠⚠ THE LINE ANCHOR ALONE IS NOT ENOUGH, which an earlier version of this
+ * guard claimed it was. A centred cover page breaks onto separate lines, so
+ * `pdftotext -table` renders the Department of Water's own cover as
+ *
+ *     DEPARTMENT OF WATER
+ *     COUNTY OF KAUAI
+ *
+ * and the second line satisfies `^\s*county\s+of\s+kauai`. The anchor only
+ * defeats the single-line form.
+ *
+ * ⚠ The previous second check — `NOT_IDENTITY.test(head) && !identity.test(
+ * head.slice(0, 4000))` — could fire ONLY where the county's own name appeared
+ * after character 4000, i.e. never for a document that had already passed the
+ * first check on its cover page. It was dead code.
+ *
+ * The rule instead: find where this county is NAMED, and reject when a
+ * component-unit phrase sits in the text immediately BEFORE that name, which
+ * is where a wrapped cover puts it. A county's ACFR legitimately mentions its
+ * own water board — but LATER, in the reporting-entity note, never as the
+ * words leading into its own title.
+ */
+const LEAD_IN = 80;
+
+export function isOwnCover(key, text) {
+  const m = identityPattern(key).exec(text);
+  if (!m) return false;
+  const before = text.slice(Math.max(0, m.index - LEAD_IN), m.index);
+  return !NOT_IDENTITY.test(before);
 }
 
 /**
@@ -252,11 +297,10 @@ async function fetchYear(ent, fy, { probe }) {
   if (!identityPattern(ent.key).test(head)) {
     return drop(`cover text does not name ${ent.name} (ciphered text layer, or the wrong document)`);
   }
-  // ⚠ A county's ACFR legitimately MENTIONS its water department (a component
-  // unit), so this only fires when the identity stem is ALSO absent from the
-  // opening pages — i.e. we landed on the component unit's own filing.
-  if (NOT_IDENTITY.test(head) && !identityPattern(ent.key).test(head.slice(0, 4000))) {
-    return drop('cover text names a different government (water/housing/school)');
+  // ⚠ Rejects a component unit whose cover page names its parent county —
+  // including the WRAPPED form, which the line anchor alone does not catch.
+  if (!isOwnCover(ent.key, head)) {
+    return drop('cover text names a component unit of this county, not the county');
   }
 
   const year = fiscalYearVerdict(head, fy);
