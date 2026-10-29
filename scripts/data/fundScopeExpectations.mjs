@@ -106,7 +106,23 @@ export const EXPECTED_ROWS = Object.freeze({
   // FY2018 revenue has its section header absorb the first data row's value;
   // Fairbanks FY2019 splits labels and numbers into separate text blocks. Each
   // is declared in scripts/extractAkBorough.py with its cause. None is $0.
-  'ak-local-acfr-gf': 139,
+  //
+  // ⭐ WAVE 1 (2026-10-28) adds 114 = 57 entity-years x 2 datasets:
+  //   North Slope / Northwest Arctic / Petersburg / Wrangell
+  //                      FY2016-2025   4 x 10 yrs x 2 =  80
+  //   City and Borough of Sitka  FY2016-2025 less FY2018  9 yrs x 2 =  18
+  //   Aleutians East     FY2016, FY2019-2025   8 yrs x 2 =  16
+  //                                                      ----
+  //                                               139 + 114 = 253
+  // ⚠ ALEUTIANS EAST FY2017 AND FY2018 ARE NOT GAPS — the Federal Audit
+  // Clearinghouse holds NO FILING for those years, because a single audit is
+  // only filed in a year the auditee spends enough federal money to require
+  // one. A year with no document is a coverage limit, not a failed read.
+  // ⚠⚠ SITKA FY2018 IS A GAP, and the most dangerous kind: a CIPHERED TEXT
+  // LAYER that extracts ~1,900 chars/page of wrong characters, so the fetcher's
+  // image-scan density guard passes it and its AUDITEE-IDENTITY guard is what
+  // rejected it. Declared in scripts/extractAkBorough.py. Not $0.
+  'ak-local-acfr-gf': 253,
   // Knight session 7b — KANSAS'S FIRST LOCAL ENTITIES. A NEW family, so no
   // pre-existing count moved. 84 = 42 entity-years x 2 datasets: City of
   // Wichita FY2000-FY2025 less FY2001 and FY2008 (24 years) and Sedgwick County

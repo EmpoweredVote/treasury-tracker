@@ -212,7 +212,9 @@ export const REPORTING_ENTITY_REGISTRY = [
     // of this id in fundScopeRegistry.mjs and basisRegistry.mjs, so the three
     // registries cannot disagree about who is in the family.
     id: 'ak-local-acfr-gf',
-    match: /^(Municipality of Anchorage|Matanuska-Susitna Borough|Fairbanks North Star Borough|Kenai Peninsula Borough|City and Borough of Juneau|Ketchikan Gateway Borough|Kodiak Island Borough) ACFR — General Fund /,
+    // ⚠ EXTENDED 2026-10-28 with the six WAVE 1 boroughs, byte-identical to the
+    // same id's pattern in fundScopeRegistry.mjs and basisRegistry.mjs.
+    match: /^(Municipality of Anchorage|Matanuska-Susitna Borough|Fairbanks North Star Borough|Kenai Peninsula Borough|City and Borough of Juneau|Ketchikan Gateway Borough|Kodiak Island Borough|North Slope Borough|Northwest Arctic Borough|Petersburg Borough|City and Borough of Sitka|City and Borough of Wrangell|Aleutians East Borough) ACFR — General Fund /,
     value: REPORTING_ENTITY.PRIMARY,
     evidence: {
       document: 'The Reporting Entity note (Note 1.A, variously headed "REPORTING ENTITY" or '
@@ -259,7 +261,39 @@ export const REPORTING_ENTITY_REGISTRY = [
              + '⚠ Contrast mn-osa, the one incl_component_units entry in this registry, where '
              + 'the OSA RE-AGGREGATES units the city ACFR presents separately (+21.7% on '
              + 'Bloomington FY2022). Nothing of that kind happens here: the figure is read FROM '
-             + 'the government\'s own fund statement, by TT, with no intermediary.',
+             + 'the government\'s own fund statement, by TT, with no intermediary. '
+             + '── WAVE 1 (added 2026-10-28) — Note 1 Reporting Entity of all six FY2024 '
+             + 'filings, docs/AkBoroughs/{northslope,nwarctic,petersburg,sitka,wrangell,'
+             + 'aleutianseast}/*-2024-acfr.pdf, read 2026-10-28. '
+             + '⭐ THE BLENDED SIDE IS EMPTY ON ALL SIX, and this time the documents were '
+             + 'searched for the word rather than read for a summary: the string "blended" '
+             + 'appears ZERO times in five of the six filings, and exactly ONCE in Sitka\'s — '
+             + 'in the sentence "The City and Borough has no blended component units." Since a '
+             + 'blended unit IS a fund of the primary government under GASB 34, an empty '
+             + 'blended list closes the only route by which a component unit could be inside a '
+             + 'General Fund column. '
+             + 'Every component unit these six report is DISCRETELY PRESENTED, i.e. a separate '
+             + 'column of the government-wide statements and therefore structurally outside the '
+             + 'fund statement the stored figure comes from: North Slope — the North Slope '
+             + 'Borough School District and Ilisagvik College, which its auditor states are '
+             + '"100% of the aggregate discretely presented component units"; Petersburg — the '
+             + 'Petersburg School District and Petersburg Medical Center; Sitka — the Sitka '
+             + 'School District; Wrangell — Wrangell Public Schools, "the Borough\'s only '
+             + 'discretely presented component unit"; Northwest Arctic — the Northwest Arctic '
+             + 'Borough School District; Aleutians East — the Aleutians East Borough School '
+             + 'District. '
+             + '⭐ ARITHMETIC CORROBORATION, measured for the fund-scope entry of this id and '
+             + 're-used because it answers this question too: on all six the printed FUND '
+             + 'columns sum EXACTLY to the printed Total column on both sides (Aleutians East '
+             + 'FY2024 revenue 8,477,244 + 4,447,626 + 1,098,921 + 2,530,976 + 172,642 + '
+             + '190,259 = 16,917,668). A component-unit column folded into the General Fund '
+             + 'figure would break that identity. '
+             + '⚠ Several of these boroughs appropriate to their school district out of the '
+             + 'General Fund — Petersburg prints "Education - contribution to school district" '
+             + 'at 3,000,000 in FY2024 — and that is the BOROUGH\'S OWN SPENDING, not the '
+             + 'district\'s revenues and expenditures, which sit in the district\'s own '
+             + 'discretely presented column. Same relationship Anchorage\'s Education line has, '
+             + 'described above.',
     },
   },
   {

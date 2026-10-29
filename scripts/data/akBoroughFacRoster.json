@@ -430,5 +430,423 @@
    "ein": "920030845",
    "uei": "WT6NU1MLXNW7"
   }
+ },
+ "northslope": {
+  "2016": {
+   "report_id": "2016-06-CENSUS-0000194391",
+   "name": "NORTH SLOPE BOROUGH",
+   "fy_end": "2016-06-30",
+   "ein": "920042378",
+   "uei": "GSA_MIGRATION"
+  },
+  "2017": {
+   "report_id": "2017-06-CENSUS-0000194391",
+   "name": "NORTH SLOPE BOROUGH",
+   "fy_end": "2017-06-30",
+   "ein": "920042378",
+   "uei": "GSA_MIGRATION"
+  },
+  "2018": {
+   "report_id": "2018-06-CENSUS-0000194391",
+   "name": "NORTH SLOPE BOROUGH",
+   "fy_end": "2018-06-30",
+   "ein": "920042378",
+   "uei": "GSA_MIGRATION"
+  },
+  "2019": {
+   "report_id": "2019-06-CENSUS-0000194391",
+   "name": "NORTH SLOPE BOROUGH",
+   "fy_end": "2019-06-30",
+   "ein": "920042378",
+   "uei": "GSA_MIGRATION"
+  },
+  "2020": {
+   "report_id": "2020-06-CENSUS-0000194391",
+   "name": "NORTH SLOPE BOROUGH",
+   "fy_end": "2020-06-30",
+   "ein": "920042378",
+   "uei": "GSA_MIGRATION"
+  },
+  "2021": {
+   "report_id": "2021-06-CENSUS-0000194391",
+   "name": "NORTH SLOPE BOROUGH",
+   "fy_end": "2021-06-30",
+   "ein": "920042378",
+   "uei": "GSA_MIGRATION"
+  },
+  "2022": {
+   "report_id": "2022-06-CENSUS-0000194391",
+   "name": "NORTH SLOPE BOROUGH",
+   "fy_end": "2022-06-30",
+   "ein": "920042378",
+   "uei": "C9NWKJZ37GX3"
+  },
+  "2023": {
+   "report_id": "2023-06-GSAFAC-0000013323",
+   "name": "North Slope Borough",
+   "fy_end": "2023-06-30",
+   "ein": "920042378",
+   "uei": "C9NWKJZ37GX3"
+  },
+  "2024": {
+   "report_id": "2024-06-GSAFAC-0000352007",
+   "name": "North Slope Borough",
+   "fy_end": "2024-06-30",
+   "ein": "920042378",
+   "uei": "C9NWKJZ37GX3"
+  },
+  "2025": {
+   "report_id": "2025-06-GSAFAC-0000390920",
+   "name": "North Slope Borough",
+   "fy_end": "2025-06-30",
+   "ein": "920042378",
+   "uei": "C9NWKJZ37GX3"
+  }
+ },
+ "nwarctic": {
+  "2016": {
+   "report_id": "2016-06-CENSUS-0000129818",
+   "name": "NORTHWEST ARCTIC BOROUGH",
+   "fy_end": "2016-06-30",
+   "ein": "920116661",
+   "uei": "GSA_MIGRATION"
+  },
+  "2017": {
+   "report_id": "2017-06-CENSUS-0000129818",
+   "name": "NORTHWEST ARCTIC BOROUGH",
+   "fy_end": "2017-06-30",
+   "ein": "920116661",
+   "uei": "GSA_MIGRATION"
+  },
+  "2018": {
+   "report_id": "2018-06-CENSUS-0000129818",
+   "name": "NORTHWEST ARCTIC BOROUGH",
+   "fy_end": "2018-06-30",
+   "ein": "920116661",
+   "uei": "GSA_MIGRATION"
+  },
+  "2019": {
+   "report_id": "2019-06-CENSUS-0000129818",
+   "name": "NORTHWEST ARCTIC BOROUGH, ALASKA",
+   "fy_end": "2019-06-30",
+   "ein": "920116661",
+   "uei": "GSA_MIGRATION"
+  },
+  "2020": {
+   "report_id": "2020-06-CENSUS-0000129818",
+   "name": "NORTHWEST ARCTIC BOROUGH, ALASKA",
+   "fy_end": "2020-06-30",
+   "ein": "920116661",
+   "uei": "GSA_MIGRATION"
+  },
+  "2021": {
+   "report_id": "2021-06-CENSUS-0000129818",
+   "name": "NORTHWEST ARCTIC BOROUGH, ALASKA",
+   "fy_end": "2021-06-30",
+   "ein": "920116661",
+   "uei": "GSA_MIGRATION"
+  },
+  "2022": {
+   "report_id": "2022-06-CENSUS-0000129818",
+   "name": "NORTHWEST ARCTIC BOROUGH, ALASKA",
+   "fy_end": "2022-06-30",
+   "ein": "920116661",
+   "uei": "X9BGKCFEV966"
+  },
+  "2023": {
+   "report_id": "2023-06-GSAFAC-0000035207",
+   "name": "NORTHWEST ARCTIC BOROUGH",
+   "fy_end": "2023-06-30",
+   "ein": "920116661",
+   "uei": "X9BGKCFEV966"
+  },
+  "2024": {
+   "report_id": "2024-06-GSAFAC-0000363626",
+   "name": "NORTHWEST ARCTIC BOROUGH",
+   "fy_end": "2024-06-30",
+   "ein": "920116661",
+   "uei": "X9BGKCFEV966"
+  },
+  "2025": {
+   "report_id": "2025-06-GSAFAC-0000404255",
+   "name": "NORTHWEST ARCTIC BOROUGH",
+   "fy_end": "2025-06-30",
+   "ein": "920116661",
+   "uei": "X9BGKCFEV966"
+  }
+ },
+ "petersburg": {
+  "2016": {
+   "report_id": "2016-06-CENSUS-0000129946",
+   "name": "PETERSBURG BOROUGH, ALASKA",
+   "fy_end": "2016-06-30",
+   "ein": "926000142",
+   "uei": "GSA_MIGRATION"
+  },
+  "2017": {
+   "report_id": "2017-06-CENSUS-0000129946",
+   "name": "PETERSBURG BOROUGH, ALASKA",
+   "fy_end": "2017-06-30",
+   "ein": "926000142",
+   "uei": "GSA_MIGRATION"
+  },
+  "2018": {
+   "report_id": "2018-06-CENSUS-0000129946",
+   "name": "PETERSBURG BOROUGH, ALASKA",
+   "fy_end": "2018-06-30",
+   "ein": "926000142",
+   "uei": "GSA_MIGRATION"
+  },
+  "2019": {
+   "report_id": "2019-06-CENSUS-0000129946",
+   "name": "PETERSBURG BOROUGH, ALASKA",
+   "fy_end": "2019-06-30",
+   "ein": "926000142",
+   "uei": "GSA_MIGRATION"
+  },
+  "2020": {
+   "report_id": "2020-06-CENSUS-0000129946",
+   "name": "PETERSBURG BOROUGH, ALASKA",
+   "fy_end": "2020-06-30",
+   "ein": "926000142",
+   "uei": "GSA_MIGRATION"
+  },
+  "2021": {
+   "report_id": "2021-06-CENSUS-0000129946",
+   "name": "PETERSBURG BOROUGH, ALASKA",
+   "fy_end": "2021-06-30",
+   "ein": "926000142",
+   "uei": "GSA_MIGRATION"
+  },
+  "2022": {
+   "report_id": "2022-06-CENSUS-0000129946",
+   "name": "PETERSBURG BOROUGH, ALASKA",
+   "fy_end": "2022-06-30",
+   "ein": "926000142",
+   "uei": "HREXPN6H9B74"
+  },
+  "2023": {
+   "report_id": "2023-06-GSAFAC-0000022449",
+   "name": "Petersburg Borough, Alaska",
+   "fy_end": "2023-06-30",
+   "ein": "926000142",
+   "uei": "HREXPN6H9B74"
+  },
+  "2024": {
+   "report_id": "2024-06-GSAFAC-0000355280",
+   "name": "Petersburg Borough, Alaska",
+   "fy_end": "2024-06-30",
+   "ein": "926000142",
+   "uei": "HREXPN6H9B74"
+  },
+  "2025": {
+   "report_id": "2025-06-GSAFAC-0000390336",
+   "name": "Petersburg Borough, Alaska",
+   "fy_end": "2025-06-30",
+   "ein": "926000142",
+   "uei": "HREXPN6H9B74"
+  }
+ },
+ "sitka": {
+  "2016": {
+   "report_id": "2016-06-CENSUS-0000129917",
+   "name": "CITY AND BOROUGH OF SITKA, ALASKA",
+   "fy_end": "2016-06-30",
+   "ein": "920041163",
+   "uei": "GSA_MIGRATION"
+  },
+  "2017": {
+   "report_id": "2017-06-CENSUS-0000129917",
+   "name": "CITY AND BOROUGH OF SITKA, ALASKA",
+   "fy_end": "2017-06-30",
+   "ein": "920041163",
+   "uei": "GSA_MIGRATION"
+  },
+  "2018": {
+   "report_id": "2018-06-CENSUS-0000129917",
+   "name": "CITY AND BOROUGH OF SITKA, ALASKA",
+   "fy_end": "2018-06-30",
+   "ein": "920041163",
+   "uei": "GSA_MIGRATION"
+  },
+  "2019": {
+   "report_id": "2019-06-CENSUS-0000129917",
+   "name": "CITY AND BOROUGH OF SITKA, ALASKA",
+   "fy_end": "2019-06-30",
+   "ein": "920041163",
+   "uei": "GSA_MIGRATION"
+  },
+  "2020": {
+   "report_id": "2020-06-CENSUS-0000129917",
+   "name": "CITY AND BOROUGH OF SITKA, ALASKA",
+   "fy_end": "2020-06-30",
+   "ein": "920041163",
+   "uei": "GSA_MIGRATION"
+  },
+  "2021": {
+   "report_id": "2021-06-CENSUS-0000129917",
+   "name": "CITY AND BOROUGH OF SITKA, ALASKA",
+   "fy_end": "2021-06-30",
+   "ein": "920041163",
+   "uei": "GSA_MIGRATION"
+  },
+  "2022": {
+   "report_id": "2022-06-CENSUS-0000129917",
+   "name": "CITY AND BOROUGH OF SITKA, ALASKA",
+   "fy_end": "2022-06-30",
+   "ein": "920041163",
+   "uei": "M916NLPJH1K4"
+  },
+  "2023": {
+   "report_id": "2023-06-GSAFAC-0000019922",
+   "name": "City and Borough of Sitka, Alaska",
+   "fy_end": "2023-06-30",
+   "ein": "920041163",
+   "uei": "M916NLPJH1K4"
+  },
+  "2024": {
+   "report_id": "2024-06-GSAFAC-0000355282",
+   "name": "City and Borough of Sitka, Alaska",
+   "fy_end": "2024-06-30",
+   "ein": "920041163",
+   "uei": "M916NLPJH1K4"
+  },
+  "2025": {
+   "report_id": "2025-06-GSAFAC-0000407073",
+   "name": "City and Borough of Sitka, Alaska",
+   "fy_end": "2025-06-30",
+   "ein": "920041163",
+   "uei": "M916NLPJH1K4"
+  }
+ },
+ "wrangell": {
+  "2016": {
+   "report_id": "2016-06-CENSUS-0000129948",
+   "name": "CITY AND BOROUGH OF WRANGELL, ALASKA",
+   "fy_end": "2016-06-30",
+   "ein": "926000144",
+   "uei": "GSA_MIGRATION"
+  },
+  "2017": {
+   "report_id": "2017-06-CENSUS-0000129948",
+   "name": "CITY AND BOROUGH OF WRANGELL, ALASKA",
+   "fy_end": "2017-06-30",
+   "ein": "926000144",
+   "uei": "GSA_MIGRATION"
+  },
+  "2018": {
+   "report_id": "2018-06-CENSUS-0000129948",
+   "name": "CITY AND BOROUGH OF WRANGELL, ALASKA",
+   "fy_end": "2018-06-30",
+   "ein": "926000144",
+   "uei": "GSA_MIGRATION"
+  },
+  "2019": {
+   "report_id": "2019-06-CENSUS-0000129948",
+   "name": "CITY AND BOROUGH OF WRANGELL, ALASKA",
+   "fy_end": "2019-06-30",
+   "ein": "926000144",
+   "uei": "GSA_MIGRATION"
+  },
+  "2020": {
+   "report_id": "2020-06-CENSUS-0000129948",
+   "name": "CITY AND BOROUGH OF WRANGELL, ALASKA",
+   "fy_end": "2020-06-30",
+   "ein": "926000144",
+   "uei": "GSA_MIGRATION"
+  },
+  "2021": {
+   "report_id": "2021-06-CENSUS-0000129948",
+   "name": "CITY AND BOROUGH OF WRANGELL, ALASKA",
+   "fy_end": "2021-06-30",
+   "ein": "926000144",
+   "uei": "GSA_MIGRATION"
+  },
+  "2022": {
+   "report_id": "2022-06-CENSUS-0000129948",
+   "name": "CITY AND BOROUGH OF WRANGELL, ALASKA",
+   "fy_end": "2022-06-30",
+   "ein": "926000144",
+   "uei": "EKXKZEKSQCN1"
+  },
+  "2023": {
+   "report_id": "2023-06-GSAFAC-0000035249",
+   "name": "City and Borough of Wrangell, Alaska",
+   "fy_end": "2023-06-30",
+   "ein": "926000144",
+   "uei": "EKXKZEKSQCN1"
+  },
+  "2024": {
+   "report_id": "2024-06-GSAFAC-0000359317",
+   "name": "City and Borough of Wrangell, Alaska",
+   "fy_end": "2024-06-30",
+   "ein": "926000144",
+   "uei": "EKXKZEKSQCN1"
+  },
+  "2025": {
+   "report_id": "2025-06-GSAFAC-0000429188",
+   "name": "CITY & BOROUGH OF WRANGELL",
+   "fy_end": "2025-06-30",
+   "ein": "926000144",
+   "uei": "EKXKZEKSQCN1"
+  }
+ },
+ "aleutianseast": {
+  "2016": {
+   "report_id": "2016-06-CENSUS-0000129826",
+   "name": "ALEUTIANS EAST BOROUGH",
+   "fy_end": "2016-06-30",
+   "ein": "920124066",
+   "uei": "GSA_MIGRATION"
+  },
+  "2019": {
+   "report_id": "2019-06-CENSUS-0000129826",
+   "name": "ALEUTIANS EAST BOROUGH",
+   "fy_end": "2019-06-30",
+   "ein": "920124066",
+   "uei": "GSA_MIGRATION"
+  },
+  "2020": {
+   "report_id": "2020-06-CENSUS-0000129826",
+   "name": "ALEUTIANS EAST BOROUGH",
+   "fy_end": "2020-06-30",
+   "ein": "920124066",
+   "uei": "GSA_MIGRATION"
+  },
+  "2021": {
+   "report_id": "2021-06-CENSUS-0000129826",
+   "name": "ALEUTIANS EAST BOROUGH",
+   "fy_end": "2021-06-30",
+   "ein": "920124066",
+   "uei": "GSA_MIGRATION"
+  },
+  "2022": {
+   "report_id": "2022-06-CENSUS-0000129826",
+   "name": "ALEUTIANS EAST BOROUGH",
+   "fy_end": "2022-06-30",
+   "ein": "920124066",
+   "uei": "R1T5FLNFFEP4"
+  },
+  "2023": {
+   "report_id": "2023-06-GSAFAC-0000036162",
+   "name": "Aleutians East Borough",
+   "fy_end": "2023-06-30",
+   "ein": "920124066",
+   "uei": "R1T5FLNFFEP4"
+  },
+  "2024": {
+   "report_id": "2024-06-GSAFAC-0000359402",
+   "name": "Aleutians East Borough",
+   "fy_end": "2024-06-30",
+   "ein": "920124066",
+   "uei": "R1T5FLNFFEP4"
+  },
+  "2025": {
+   "report_id": "2025-06-GSAFAC-0000407245",
+   "name": "Aleutians East Borough",
+   "fy_end": "2025-06-30",
+   "ein": "920124066",
+   "uei": "R1T5FLNFFEP4"
+  }
  }
 }

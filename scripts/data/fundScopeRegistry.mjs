@@ -625,7 +625,12 @@ export const FUND_SCOPE_REGISTRY = [
     // rows is the General Fund column of a governmental-funds statement — which
     // is why one family is right and two would be noise.
     id: 'ak-local-acfr-gf',
-    match: /^(Municipality of Anchorage|Matanuska-Susitna Borough|Fairbanks North Star Borough|Kenai Peninsula Borough|City and Borough of Juneau|Ketchikan Gateway Borough|Kodiak Island Borough) ACFR — General Fund /,
+    // ⚠ EXTENDED AGAIN 2026-10-28 with the six WAVE 1 boroughs (North Slope,
+    // Northwest Arctic, Petersburg, City and Borough of Sitka, City and Borough
+    // of Wrangell, Aleutians East). Same statement, same column, same route,
+    // and each one carries its OWN oracle probe below — enumerated, never
+    // widened to a bare pattern.
+    match: /^(Municipality of Anchorage|Matanuska-Susitna Borough|Fairbanks North Star Borough|Kenai Peninsula Borough|City and Borough of Juneau|Ketchikan Gateway Borough|Kodiak Island Borough|North Slope Borough|Northwest Arctic Borough|Petersburg Borough|City and Borough of Sitka|City and Borough of Wrangell|Aleutians East Borough) ACFR — General Fund /,
     scope: SCOPE.GENERAL_FUND,
     evidence: {
       document: 'THREE probes spanning the series, each the governmental-funds Statement of '
@@ -699,7 +704,40 @@ export const FUND_SCOPE_REGISTRY = [
              + 'does not recognise. Its scope rests on the same statement structure as its five '
              + 'siblings, read from the same printed General Fund column, and its $1–$2 '
              + 'source-rounding deltas were each verified against the borough\'s own printed '
-             + 'Excess row instead (see scripts/extractAkBorough.py).',
+             + 'Excess row instead (see scripts/extractAkBorough.py). '
+             + '── WAVE 1 (added 2026-10-28) — SIX MORE PROBES, SAME METHOD, SAME ORACLE, ALL '
+             + 'FY2024, ALL MATCHING THE STORED FIGURES EXACTLY, and this time EVERY entity in '
+             + 'the wave is probed rather than five of six: '
+             + 'North Slope (p.34) General Fund 508,438,523 / 451,469,276; Northwest Arctic '
+             + '(p.14) 40,641,990 / 18,071,751; Petersburg (p.34) 12,759,245 / 11,668,955; '
+             + 'City and Borough of Sitka (p.35) 37,334,950 / 31,207,303; City and Borough of '
+             + 'Wrangell (p.17) 8,650,666 / 7,474,966; Aleutians East (p.14) 8,477,244 / '
+             + '4,009,722. '
+             + 'On all six the printed FUND columns sum EXACTLY to the printed Total column on '
+             + 'both sides — e.g. Wrangell revenue 8,650,666 + 1,000,819 + 1,348,603 + 883,816 '
+             + '+ 1,132,814 = 13,016,718 and expenditures 7,474,966 + 1,593 + 1,457,673 + '
+             + '1,895,332 + 1,672,990 + 1,673,954 = 14,176,508 — so the stored figure is '
+             + 'identified as one named column of a statement that reconciles, not as a number '
+             + 'that merely appears on the page. '
+             + 'total_governmental rejected across an even WIDER spread than the first wave: '
+             + 'the General Fund is 50.1%/41.7% of total governmental at Aleutians East '
+             + '(16,917,668 / 9,615,551), 66.5%/52.7% at Wrangell (13,016,718 / 14,176,508), '
+             + '72.4%/54.3% at Northwest Arctic (56,136,370 / 33,273,849), 75.3%/81.6% at '
+             + 'North Slope (675,447,815 / 553,356,933), 78.1%/86.2% at Sitka (47,824,171 / '
+             + '36,201,562) and 79.9%/82.8% at Petersburg (15,978,177 / 14,092,916). A reading '
+             + 'that had taken the total column would be wrong by 1.16x to 2.4x here and by up '
+             + 'to 4.7x in the first wave — never by a margin that could be mistaken for '
+             + 'rounding. all_funds is further still: none of these governmental-funds '
+             + 'statements contains a proprietary fund. '
+             + '⚠ NORTH SLOPE IS THE OUTLIER ON SIZE, NOT ON SCOPE: a ~$500M General Fund for '
+             + '10,663 residents (~$47,000/capita) is the Prudhoe Bay oil and gas tax base, '
+             + 'not a units error — the oracle reads the same whole-dollar figures the '
+             + 'extractor does, and the fund columns above reconcile. It is the one entity in '
+             + 'the family carrying a raised per-capita ceiling '
+             + '(scripts/lib/akBoroughSources.mjs). '
+             + '⚠ Aleutians East FY2024 prints a NEGATIVE Bond Construction expenditure column '
+             + '(-384,660); the columns still sum exactly. That is the issuer\'s own figure, '
+             + 'in a fund outside the General Fund, and it does not touch the stored row.',
     },
   },
   {

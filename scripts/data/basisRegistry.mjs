@@ -250,7 +250,10 @@ export const BASIS_REGISTRY = [
     // nobody has reconciled; a future Alaska load lands `unknown` until it is
     // evidenced, which is the correct failure direction.
     id: 'ak-local-acfr-gf',
-    match: /^(Municipality of Anchorage|Matanuska-Susitna Borough|Fairbanks North Star Borough|Kenai Peninsula Borough|City and Borough of Juneau|Ketchikan Gateway Borough|Kodiak Island Borough) ACFR — General Fund /,
+    // ⚠ EXTENDED 2026-10-28 with the six WAVE 1 boroughs, and kept
+    // byte-identical to the same id's pattern in fundScopeRegistry.mjs and
+    // reportingEntityRegistry.mjs.
+    match: /^(Municipality of Anchorage|Matanuska-Susitna Borough|Fairbanks North Star Borough|Kenai Peninsula Borough|City and Borough of Juneau|Ketchikan Gateway Borough|Kodiak Island Borough|North Slope Borough|Northwest Arctic Borough|Petersburg Borough|City and Borough of Sitka|City and Borough of Wrangell|Aleutians East Borough) ACFR — General Fund /,
     value: BASIS.ACTUAL,
     evidence: {
       document: 'The seven ACFRs the loader itself read, FY2024 in each case — '
@@ -295,7 +298,29 @@ export const BASIS_REGISTRY = [
              + '⚠ `basis` on this axis means ACTUAL-vs-ADOPTED. What these figures are measured '
              + 'ON — modified accrual under GAAP — is the separate `accounting_basis` axis, '
              + 'which this family does not claim, exactly as tx-local-acfr-gf and '
-             + 'co-local-acfr-gf do not.',
+             + 'co-local-acfr-gf do not. '
+             + '── WAVE 1 (added 2026-10-28), SAME METHOD, SIX MORE FY2024 FILINGS READ: '
+             + 'docs/AkBoroughs/{northslope,nwarctic,petersburg,sitka,wrangell,aleutianseast}/'
+             + '*-2024-acfr.pdf. Each is an audited ACFR on a CLOSED fiscal year and each '
+             + 'carries an independent auditor\'s report stating the statements "present '
+             + 'fairly, in all material respects" — confirmed on all six and verified clean by '
+             + 'the two opinion gates recorded under the same id in auditGradeRegistry.mjs. '
+             + '⚠ ALL SIX ALSO PUBLISH A GENERAL FUND BUDGETARY COMPARISON, which is the '
+             + 'document a wrong read lands on, so the distinction is evidenced rather than '
+             + 'assumed. Lines captioned "Budgetary Comparison" or "Budget and Actual" in each '
+             + 'FY2024 filing: Petersburg 31, North Slope 24, Wrangell 17, Northwest Arctic 12, '
+             + 'Sitka 9, Aleutians East 7. Every one of those pages is STRUCTURALLY UNREACHABLE '
+             + 'to this loader — scripts/extractAkBorough.py reads through '
+             + 'scripts/lib/acfrGF.py, whose `_EXCLUDE` tuple drops any page carrying '
+             + '"budgetary" or "budget and actual" before a statement can be chosen from it. '
+             + '⚠⚠ AND THE ALEUTIANS EAST CONFIG WIDENS `_EXCLUDE` — by exactly ONE term, '
+             + '`combining`, because that borough titles its FY2016 PRIMARY statement a '
+             + 'combining one. `budgetary` and `budget and actual` are untouched, so the guard '
+             + 'that protects THIS axis is exactly as strong for that entity as for the other '
+             + 'eleven. '
+             + '⚠ THE WHOLE WINDOW STAYS CLOSED: the wave-1 boroughs run FY2016-FY2025 on a '
+             + 'June 30 year end, so FY2025 closed 2025-06-30 and none of the 114 new rows '
+             + 'carries a fiscal year after FY2025.',
     },
   },
   {

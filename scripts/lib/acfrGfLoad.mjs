@@ -115,6 +115,38 @@ const PER_CAPITA_MIN = 100;
 const PER_CAPITA_MAX = 20_000;
 
 /**
+ * ⚠⚠ A PER-ENTITY CEILING, AND IT MAY ONLY GO UP (optional `cfg.perCapitaMax`).
+ *
+ * The band above describes a government funded by the people who live in it.
+ * Some are not: the North Slope Borough taxes the Prudhoe Bay oil and gas
+ * infrastructure inside its boundaries and runs a ~$500M General Fund for
+ * 10,663 residents — ~$47,000/capita, measured across FY2016-FY2025, with its
+ * own ACFRs as the source. The default ceiling rejects every one of its years.
+ *
+ * This guard is the ONLY one that can see a wrong `units`, so it is widened
+ * per entity, on stated evidence, rather than relaxed for everybody:
+ *
+ *   * the override is REFUSED if it would LOWER the band — a config may only
+ *     admit figures the default rejects, never tighten the guard into silently
+ *     dropping a legitimate year;
+ *   * it leaves `PER_CAPITA_MIN` alone, so a 1000x-DOWN slip still fails;
+ *   * it stays far below a 1000x-UP slip (North Slope at units=1000 would land
+ *     near $47M/capita against a ceiling of $80k);
+ *   * every load line prints the measured per-capita figure, so a drift inside
+ *     the widened band is still visible to a reader of the log.
+ */
+function perCapitaMaxFor(cfg) {
+  const override = cfg.perCapitaMax;
+  if (override === undefined || override === null) return PER_CAPITA_MAX;
+  if (!Number.isFinite(override) || override <= PER_CAPITA_MAX) {
+    throw new Error(`perCapitaMax must be a number ABOVE the ${PER_CAPITA_MAX} default `
+      + `(got ${JSON.stringify(override)}). This override exists to admit a government whose `
+      + 'tax base is not its population — it must never narrow the units guard.');
+  }
+  return override;
+}
+
+/**
  * Fail before touching the network or the database if a driver omits a field
  * whose wrong value would be SILENT. A missing `state` would resolve the wrong
  * entity (or none); a missing fiscal-calendar field would mislabel the period
@@ -137,6 +169,9 @@ export function assertConfig(cfg) {
     throw new Error(`fiscalYearStartMonth ${cfg.fiscalYearStartMonth} contradicts fyEndMonthDay `
       + `${cfg.fyEndMonthDay} (a year ending in month ${endMonth} starts in month ${expectedStart})`);
   }
+  // ⚠ Validated HERE too, so a bad override fails at startup rather than on the
+  // first fiscal year — after the fetch, the extraction and the database read.
+  perCapitaMaxFor(cfg);
   return cfg;
 }
 
@@ -190,11 +225,11 @@ export function extractPDF(cfg, pdfPath, mode) {
  * Map the extractor's nested {n,a,c:[...]} tree to the RPC's
  * {n,a,i:[{d,a,aa,f,e}]} shape.
  *
- *   revenue (flat)      each root child -> one category with a single leaf item.
- *   operating (2-level) a root child WITH `.c` (Current, Debt service) ->
- *                       its children become the drill-down leaf items;
- *                       a root child WITHOUT `.c` (Capital outlay, Austin's
- *                       lease/IT-subscription lines) -> single-item leaf.
+ * ONE RULE FOR BOTH MODES: a root child WITH `.c` (Current, Debt service, or a
+ * grouped revenue heading such as `Taxes:` or `Intergovernmental:`) becomes a
+ * category whose drill-down items are its children; a root child WITHOUT `.c`
+ * (a flat revenue source, Capital outlay, Austin's lease/IT-subscription
+ * lines) becomes a single-item leaf category.
  *
  * This is the established contract for a 2-level RPC tree (processTucson.js,
  * processPortland.js, loadFederalAgencies.js).
@@ -216,8 +251,9 @@ export function extractPDF(cfg, pdfPath, mode) {
  * checks the projection arithmetically. That is a deliberate choice a loader
  * makes; this function must not make it by accident.
  */
-export function toBudgetTree(extractorTree, mode) {
+export function toBudgetTree(extractorTree, mode, flattenThirdLevel = false) {
   const rootChildren = extractorTree?.c || [];
+  if (flattenThirdLevel) return flattenToBudgetTree(rootChildren);
   for (const child of rootChildren) {
     const deep = (child.c || []).filter((gc) => Array.isArray(gc.c) && gc.c.length);
     if (deep.length) {
@@ -232,16 +268,106 @@ export function toBudgetTree(extractorTree, mode) {
     n: child.n, a: child.a,
     i: [{ d: child.n, a: child.a, aa: null, f: null, e: null }],
   });
-  const mapped = mode === 'revenue'
-    ? rootChildren.map(single)
-    : rootChildren.map((child) => (Array.isArray(child.c) && child.c.length
-      ? { n: child.n, a: child.a, i: child.c.map((gc) => ({ d: gc.n, a: gc.a, aa: null, f: null, e: null })) }
-      : single(child)));
+  // ⚠⚠ `mode` IS NO LONGER CONSULTED, AND REMOVING IT FIXED A SILENT DROP.
+  //
+  // This branched on mode, mapping EVERY revenue root child through `single()`
+  // on the assumption that a revenue tree is flat. It usually is — but
+  // `CityConfig.revenue_parents` exists precisely because some issuers group it,
+  // and for those the group's children were discarded: the category was
+  // published with its correct group TOTAL and a single item repeating the
+  // group's own name. Found live 2026-10-28 on Kodiak Island Borough FY2024,
+  // whose stored `Intergovernmental` category carries 4,060,437 and
+  // `item_count` 1 where the borough prints TWO sources under that heading.
+  //
+  // Nothing downstream could see it. The amounts roll up, so the total, the tie
+  // and the per-capita guard are all unaffected — the same shape as the
+  // three-level drop refused above, arriving one level higher.
+  //
+  // The two modes now share one rule: a child WITH children contributes those
+  // children as items; a child WITHOUT them is its own single item. A genuinely
+  // flat revenue tree is byte-identical under both versions, which is why every
+  // entity outside this family is unmoved.
+  //
+  // ⚠ ROWS ALREADY LOADED DO NOT CHANGE UNTIL THEIR LOADER RE-RUNS, and
+  // re-running is deliberately controlled here (it re-mints `budgets.id` and
+  // stales the frozen-figure registry). Kodiak Island and Kenai Peninsula carry
+  // a flattened `Intergovernmental` group today and will gain the split
+  // whenever they are next loaded.
+  const mapped = rootChildren.map((child) => (Array.isArray(child.c) && child.c.length
+    ? { n: child.n, a: child.a, i: child.c.map((gc) => ({ d: gc.n, a: gc.a, aa: null, f: null, e: null })) }
+    : single(child)));
   return {
     tree: mapped,
     total: mapped.reduce((s, n) => s + n.a, 0),
     rowCount: mapped.reduce((s, n) => s + n.i.length, 0),
   };
+}
+
+/** Every LEAF under `node`, in printed order. A leaf is a node with no children. */
+function leavesOf(node) {
+  if (!Array.isArray(node.c) || node.c.length === 0) return [node];
+  return node.c.flatMap(leavesOf);
+}
+
+/**
+ * ⚠⚠ THE OPT-IN THIRD-LEVEL PROJECTION (`cfg.flattenThirdLevel`).
+ *
+ * The refusal above is the default BECAUSE a silent drop is the hazard, not
+ * because a third level is unreadable. Where an issuer genuinely prints three
+ * tiers, this is the same projection `toBudgetTree3` already makes in
+ * scripts/loadS8Acfrs.mjs and scripts/loadSdAcfrs.mjs for Brown County SD, and
+ * it is a DELIBERATE CHOICE a driver makes rather than an accident the mapper
+ * makes for it.
+ *
+ * The TOP function stays the category and every DESCENDANT LEAF becomes an
+ * item. The Northwest Arctic Borough prints `Current:` > `Education:` >
+ * `Payments to School District` (and, in FY2016, an `Other`), so:
+ *
+ *     Current  ->  General government, Planning, Economic development,
+ *                  Payments to School District, Other, Public services
+ *
+ * ⚠ WHAT IS LOST IS THE MIDDLE HEADING, AND IT IS THE RIGHT THING TO LOSE.
+ * `Education` carries no figure of its own — its amount is the sum of its
+ * children — so the alternative, keeping the heading as the item, would discard
+ * the actual spending lines, which are what a reader came for.
+ *
+ * ⚠⚠ NOTHING IS INVENTED AND NOTHING IS DOUBLE-COUNTED, and that is ASSERTED,
+ * not asserted-by-comment: the caller runs `assertProjection` on the result, so
+ * a flatten that dropped or duplicated a leaf fails the load instead of
+ * publishing a plausible-looking tree. The tie gate cannot see this — it runs
+ * upstream of the transformation.
+ */
+function flattenToBudgetTree(rootChildren) {
+  const mapped = rootChildren.map((child) => ({
+    n: child.n,
+    a: child.a,
+    i: leavesOf(child).map((lf) => ({ d: lf.n, a: lf.a, aa: null, f: null, e: null })),
+  }));
+  return {
+    tree: mapped,
+    total: mapped.reduce((s, n) => s + n.a, 0),
+    rowCount: mapped.reduce((s, n) => s + n.i.length, 0),
+  };
+}
+
+/**
+ * ⚠⚠ THE PROJECTION IS ARITHMETIC, SO IT IS CHECKED ARITHMETICALLY. Both
+ * directions, the same two `loadS8Acfrs.mjs` enforces:
+ *   - every category's items sum to that category
+ *   - the categories sum to the extractor's own verified total
+ */
+export function assertProjection(projected, extractedTree, label) {
+  for (const cat of projected.tree) {
+    const itemSum = cat.i.reduce((s, it) => s + it.a, 0);
+    if (itemSum !== cat.a) {
+      throw new Error(`${label}: category "${cat.n}" is ${cat.a} but its ${cat.i.length} `
+        + `items sum to ${itemSum} (delta ${itemSum - cat.a})`);
+    }
+  }
+  if (projected.total !== extractedTree.a) {
+    throw new Error(`${label}: projected total ${projected.total} != extracted `
+      + `${extractedTree.a} (delta ${projected.total - extractedTree.a})`);
+  }
 }
 
 // ── Provenance manifest (written by scripts/fetchAustinTravis.mjs) ───────────
@@ -627,7 +753,11 @@ export async function processMode(supabase, cfg, muni, { dryRun, mode, targetFY 
       return { ok: false, loaded: 0 };
     }
 
-    const { tree, total, rowCount } = toBudgetTree(d.tree, mode);
+    const projected = toBudgetTree(d.tree, mode, cfg.flattenThirdLevel === true);
+    // ⚠ Only meaningful for a flattened tree, but run either way: it costs
+    // nothing and it is the only check that can see a projection defect.
+    assertProjection(projected, d.tree, `FY${fy} ${mode}`);
+    const { tree, total, rowCount } = projected;
     if (total !== d.computed_total) {
       console.error(`  FY${fy}: mapped tree total ${total} != extractor computed_total ${d.computed_total}`);
       return { ok: false, loaded: 0 };
@@ -636,9 +766,10 @@ export async function processMode(supabase, cfg, muni, { dryRun, mode, targetFY 
       console.error(`  FY${fy}: total ${total} outside (0, ${SANITY_MAX}] — refusing`);
       return { ok: false, loaded: 0 };
     }
+    const perCapitaMax = perCapitaMaxFor(cfg);
     const perCapita = total / muni.population;
-    if (perCapita < PER_CAPITA_MIN || perCapita > PER_CAPITA_MAX) {
-      console.error(`  FY${fy}: $${perCapita.toFixed(0)}/capita outside [${PER_CAPITA_MIN}, ${PER_CAPITA_MAX}] `
+    if (perCapita < PER_CAPITA_MIN || perCapita > perCapitaMax) {
+      console.error(`  FY${fy}: $${perCapita.toFixed(0)}/capita outside [${PER_CAPITA_MIN}, ${perCapitaMax}] `
         + '— this is the UNITS guard (the tie gate cannot see a 1000x error). Refusing.');
       return { ok: false, loaded: 0 };
     }

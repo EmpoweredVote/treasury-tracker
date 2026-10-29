@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { toBudgetTree } from '../scripts/lib/acfrGfLoad.mjs';
+import { toBudgetTree, assertProjection } from '../scripts/lib/acfrGfLoad.mjs';
 // From the LIB, not from scripts/fetchAustinTravis.mjs: that file starts with a
 // shebang, and tests/waSao.test.mjs forbids a test from importing any module
 // that does (a CRLF checkout turns `#!/usr/bin/env node\r` into an
@@ -81,6 +81,97 @@ describe('toBudgetTree — operating (2-level)', () => {
   it('returns an empty tree rather than throwing on a childless extract', () => {
     expect(toBudgetTree({ n: 'General Fund', a: 0 }, 'operating')).toEqual({ tree: [], total: 0, rowCount: 0 });
     expect(toBudgetTree(null, 'revenue')).toEqual({ tree: [], total: 0, rowCount: 0 });
+  });
+});
+
+describe('toBudgetTree — GROUPED revenue', () => {
+  // ⚠⚠ THE REGRESSION THIS PINS SHIPPED, AND NOTHING DOWNSTREAM COULD SEE IT.
+  // The mapper branched on `mode` and ran every revenue root child through the
+  // single-item path, on the assumption that revenue is always flat. It is not:
+  // `CityConfig.revenue_parents` exists because some issuers group it, and for
+  // those the group's CHILDREN were discarded — the category kept its correct
+  // group total and published ONE item repeating the group's own name.
+  //
+  // Measured live on Kodiak Island Borough FY2024: the stored `Intergovernmental`
+  // category carries 4,060,437 with `item_count` 1, where the borough's own
+  // statement prints two sources under that heading. The total, the tie and the
+  // per-capita guard were all green, because the amounts roll up.
+  const grouped = {
+    n: 'General Fund', a: 300,
+    c: [
+      { n: 'Intergovernmental', a: 200, c: [{ n: 'Federal', a: 120 }, { n: 'State', a: 80 }] },
+      { n: 'Charges for services', a: 100 },
+    ],
+  };
+
+  it('keeps a revenue GROUP\'s children as its drill-down items', () => {
+    const { tree, total, rowCount } = toBudgetTree(grouped, 'revenue');
+    expect(tree[0].n).toBe('Intergovernmental');
+    expect(tree[0].i.map((i) => i.d)).toEqual(['Federal', 'State']);
+    expect(tree[0].i.reduce((s, i) => s + i.a, 0)).toBe(200);
+    expect(total).toBe(300);
+    expect(rowCount).toBe(3);
+  });
+
+  it('leaves an UNGROUPED revenue source as its own single-item category', () => {
+    const { tree } = toBudgetTree(grouped, 'revenue');
+    expect(tree[1]).toEqual({
+      n: 'Charges for services', a: 100,
+      i: [{ d: 'Charges for services', a: 100, aa: null, f: null, e: null }],
+    });
+  });
+});
+
+describe('toBudgetTree — opt-in third-level flattening', () => {
+  // Northwest Arctic Borough prints `Current:` > `Education:` > `Payments to
+  // School District`. The RPC shape holds two levels, so a driver that wants
+  // the third one must say so; the default still refuses (pinned above).
+  const threeLevel = {
+    n: 'General Fund', a: 100,
+    c: [{
+      n: 'Current', a: 100,
+      c: [
+        { n: 'General government', a: 40 },
+        { n: 'Education', a: 60, c: [{ n: 'Payments to School District', a: 50 }, { n: 'Other', a: 10 }] },
+      ],
+    }],
+  };
+
+  it('lifts every DESCENDANT LEAF into the top category and loses only the heading', () => {
+    const { tree, total, rowCount } = toBudgetTree(threeLevel, 'operating', true);
+    expect(tree).toHaveLength(1);
+    expect(tree[0].n).toBe('Current');
+    expect(tree[0].i.map((i) => i.d))
+      .toEqual(['General government', 'Payments to School District', 'Other']);
+    // ⚠ The middle tier carries no figure of its own, so dropping it cannot
+    // move money — the leaves still sum to the category.
+    expect(tree[0].i.reduce((s, i) => s + i.a, 0)).toBe(100);
+    expect(total).toBe(100);
+    expect(rowCount).toBe(3);
+  });
+
+  it('still refuses the same tree when the driver has NOT opted in', () => {
+    expect(() => toBudgetTree(threeLevel, 'operating')).toThrow(/three levels|toBudgetTree3/i);
+  });
+});
+
+describe('assertProjection', () => {
+  it('rejects a category whose items do not sum to it', () => {
+    const projected = {
+      tree: [{ n: 'Current', a: 100, i: [{ d: 'A', a: 40 }, { d: 'B', a: 50 }] }],
+      total: 100, rowCount: 2,
+    };
+    expect(() => assertProjection(projected, { n: 'General Fund', a: 100 }, 'FY2024 operating'))
+      .toThrow(/items sum to 90/);
+  });
+
+  it('rejects a projection whose categories do not sum to the extracted total', () => {
+    const projected = {
+      tree: [{ n: 'Current', a: 90, i: [{ d: 'A', a: 90 }] }],
+      total: 90, rowCount: 1,
+    };
+    expect(() => assertProjection(projected, { n: 'General Fund', a: 100 }, 'FY2024 operating'))
+      .toThrow(/projected total 90 != extracted 100/);
   });
 });
 
