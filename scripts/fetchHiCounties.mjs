@@ -1,5 +1,8 @@
-#!/usr/bin/env node
 /**
+ * NO SHEBANG — a test imports this module for its pure helpers, and the repo
+ * forbids a shebang on anything a test imports (tests/waSao.test.mjs). It is
+ * still run directly: `node scripts/<name>` needs no shebang on Windows.
+ *
  * Hawaii's four counties — ACFR fetcher (Federal Audit Clearinghouse).
  *
  * Downloads each county's audited annual report into the gitignored

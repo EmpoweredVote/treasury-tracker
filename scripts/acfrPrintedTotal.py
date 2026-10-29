@@ -161,7 +161,8 @@ def _inked(page):
     )
 
 
-def lines_of(page, gap=ROW_GAP, left_margin=None, ocr_leading_one=False):
+def lines_of(page, gap=ROW_GAP, left_margin=None, ocr_leading_one=False,
+              split_leader_dots=False, x_tolerance=None, split_fused_money=False):
     """Group words into visual rows by clustering their vertical midpoints.
 
     NOT a fixed grid. The first version of this function bucketed by
@@ -186,11 +187,23 @@ def lines_of(page, gap=ROW_GAP, left_margin=None, ocr_leading_one=False):
     sits an order of magnitude clear of both.
     """
     return rows_from_words(
-        _inked(page).extract_words(use_text_flow=False, keep_blank_chars=False),
-        gap=gap, left_margin=left_margin, ocr_leading_one=ocr_leading_one)
+        _inked(page).extract_words(
+            use_text_flow=False, keep_blank_chars=False,
+            return_chars=split_leader_dots,
+            # ⚠ `x_tolerance` — an issuer that sets its labels tightly. Honolulu
+            # draws no space glyphs between a label's words and leaves gaps
+            # under pdfplumber's default 3.0, so `Licenses and permits` came
+            # back as `Licensesandpermits` — correct money under a name the
+            # issuer never printed. 2.0 separates every word on that page while
+            # still keeping each figure whole. Opt-in; omitted means the
+            # library default, so every shipped entity is unchanged.
+            **({} if x_tolerance is None else {'x_tolerance': x_tolerance})),
+        gap=gap, left_margin=left_margin, ocr_leading_one=ocr_leading_one,
+        split_leader_dots=split_leader_dots, split_fused_money=split_fused_money)
 
 
-def rows_from_words(words, gap=ROW_GAP, left_margin=None, ocr_leading_one=False):
+def rows_from_words(words, gap=ROW_GAP, left_margin=None, ocr_leading_one=False,
+                    split_leader_dots=False, split_fused_money=False):
     """The pure half of `lines_of` — clustering over plain word dicts.
 
     Split out so the three per-entity knobs below can be tested without a PDF.
@@ -233,6 +246,8 @@ def rows_from_words(words, gap=ROW_GAP, left_margin=None, ocr_leading_one=False)
     money is left exactly as printed. Opt-in, because it is safe only where an
     independent sum can confirm it.
     """
+    if split_leader_dots:
+        words = _split_leader_dots(words)
     if left_margin is not None:
         words = [w for w in words if w['x0'] >= left_margin]
     if not words:
@@ -250,9 +265,169 @@ def rows_from_words(words, gap=ROW_GAP, left_margin=None, ocr_leading_one=False)
         else:
             current.append(w)
     rows.append(current)
-    return [merge_split_numbers(_join_leading_one(sorted(ws, key=lambda w: w['x0'])))
-            if ocr_leading_one else merge_split_numbers(sorted(ws, key=lambda w: w['x0']))
-            for ws in rows]
+
+    def _finish(ws):
+        ws = sorted(ws, key=lambda w: w['x0'])
+        if ocr_leading_one:
+            ws = _join_leading_one(ws)
+        ws = merge_split_numbers(ws)
+        # ⚠⚠ AFTER the merge, never before. `merge_split_numbers` rejoins
+        # number fragments whose glyphs are touching, and its own guard assumes
+        # "adjacent fund COLUMNS in this corpus are 50-90pt apart". Honolulu
+        # breaks that assumption — its General Fund and Highway columns abut —
+        # so a split applied first is immediately undone by the merge.
+        if split_fused_money:
+            ws = _split_fused_money(ws)
+        return ws
+
+    return [_finish(ws) for ws in rows]
+
+
+_LEADER_RUN = re.compile(r'\.{2,}')
+
+
+def _split_leader_dots(ws):
+    """Split a word whose DOT LEADER runs into its own figure. See
+    `TestSplitLeaderDots` in scripts/lib/acfrGfCoords.selftest.py.
+
+    The City and County of Honolulu sets its statement with leaders that touch
+    the digits, so `extract_words` returns ONE word:
+
+        Taxes..........................$.....1..,.8.42,801
+
+    Both readers lose the General Fund that way — the `-table` grid because
+    `1..,.8.42,801` is not a money token, and the coordinate reader because
+    `establish_column` then finds the HIGHWAY fund's figure as the first free
+    money word on the printed total rows and ties at $0 on the wrong fund.
+
+    ⭐ EXACT WHERE IT COUNTS. The figure sits at the END of the welded word, so
+    its RIGHT edge is the word's own `x1`, which is what `establish_column`
+    aligns on; the label's LEFT edge, which sets the indent, is likewise the
+    word's own. Only the label's `x1` and the figure's `x0` are apportioned by
+    character count, and neither carries a decision.
+
+    ⚠ REFUSES unless the tail reduces to something with a DIGIT in it. A
+    leader run with nothing after it (`Bond issuance costs .........`) and a
+    dash cell (`Highways and streets.......-.-.....`) are both left exactly as
+    printed, so the existing blank/dash handling still sees them. One dot is
+    never a leader, so `U.S.` is untouched.
+    """
+    out = []
+    for w in ws:
+        text = w['text']
+        m = _LEADER_RUN.search(text)
+        if not m or m.start() == 0:
+            out.append(w)
+            continue
+        label = text[:m.start()]
+        money = re.sub(r'[.\s$]', '', text[m.end():])
+        if not re.search(r'\d', money) or parse_money(money) is None:
+            # No figure welded on. The leaders are still typographic filler and
+            # must still go: where the issuer separates the figure by a SPACE,
+            # a label that keeps its dots runs to within ~6pt of the figure and
+            # SWALLOWS it, dropping the row with no error. See
+            # `test_a_leader_run_with_no_figure_still_loses_the_dots`.
+            tail = _LEADER_RUN.sub('', text[m.start():])
+            if tail:
+                out.append(w)           # dots are interior, not a trailing run
+                continue
+            trimmed = dict(w)
+            trimmed['text'] = label
+            chars = w.get('chars')
+            if chars and len(chars) == len(text):
+                trimmed['x1'] = chars[m.start() - 1]['x1']
+                trimmed['chars'] = chars[:m.start()]
+            else:
+                trimmed['x1'] = w['x0'] + (w['x1'] - w['x0']) * (m.start() / len(text))
+            out.append(trimmed)
+            continue
+        span = w['x1'] - w['x0']
+        lab = dict(w)
+        lab['text'] = label
+        num = dict(w)
+        num['text'] = money
+        chars = w.get('chars')
+        if chars and len(chars) == len(text):
+            # ⚠⚠ THE SLICES MATTER AS MUCH AS THE EDGES. Leaving the ORIGINAL
+            # word's `chars` on the two new words makes every later consumer's
+            # `len(chars) == len(text)` check fail, so `_split_fused_money`
+            # silently fell back to apportioned coordinates and put Honolulu's
+            # FY2019 General Fund edge 16pt off its own column. `establish_column`
+            # then gave up on the right edge, chose LEFT alignment, and every
+            # data row missed the column: an EMPTY tree and a delta equal to the
+            # whole printed total.
+            lab['chars'] = chars[:m.start()]
+            # the same characters `money` kept, so the lengths stay in step
+            num['chars'] = [c for c in chars[m.end():] if c['text'] not in '.$ ']
+            # ⚠⚠ EXACT, AND IT HAS TO BE. Honolulu prints TRAILING dots after
+            # the figure on its expenditure total row but not on its revenue
+            # total row, so the WORD's right edge differs between the two by
+            # the width of that run — measured 294.3 vs 308.4 on FY2025, which
+            # made `establish_column` refuse the page ("the two total rows
+            # agree on neither edge"). The last DIGIT's own edge agrees.
+            digits = [i for i, c in enumerate(text) if c.isdigit() or c == ')']
+            lab['x1'] = chars[m.start() - 1]['x1']
+            num['x0'] = chars[m.end()]['x0']
+            num['x1'] = chars[digits[-1]]['x1']
+        else:
+            # Fallback for callers holding plain word dicts (the selftest, and
+            # any reader that does not request characters). Apportioned by
+            # character count, which is good enough for an indent and is never
+            # used to establish a column.
+            lab['x1'] = w['x0'] + span * (m.start() / len(text))
+            num['x0'] = w['x0'] + span * (m.end() / len(text))
+        out.append(lab)
+        out.append(num)
+    return out
+
+
+_WELL_FORMED_MONEY = re.compile(r'^\(?-?\$?\d{1,3}(?:,\d{3})*\)?$')
+_MONEY_PREFIX = re.compile(r'^\(?-?\$?\d{1,3}(?:,\d{3})*')
+
+
+def _split_fused_money(ws):
+    """Split two adjacent column figures printed with no gap between them.
+
+    See `TestSplitFusedMoney` in scripts/lib/acfrGfCoords.selftest.py.
+
+    Honolulu's FY2016-FY2020 statements set the General Fund and Highway Fund
+    columns touching, so `extract_words` returns one token — `885,055105,532`,
+    `1,068,640121,109` — and `_MONEY` (digits and commas) accepts it. FY2019
+    operating tied at -1,068,640,121,109,000 because of it.
+
+    ⭐ DETECTABLE FROM THE TOKEN ALONE: US comma grouping puts EXACTLY three
+    digits in every group after the first, so an interior group of six cannot
+    be one number. The split is the longest well-formed prefix, and the
+    remainder must itself be well-formed or NOTHING is split — a token this
+    cannot resolve is left exactly as printed rather than guessed at.
+    """
+    out = []
+    for w in ws:
+        text = w['text']
+        if ',' not in text or _WELL_FORMED_MONEY.match(text):
+            out.append(w)
+            continue
+        m = _MONEY_PREFIX.match(text)
+        if not m or m.end() == len(text):
+            out.append(w)
+            continue
+        head, tail = text[:m.end()], text[m.end():]
+        if not _WELL_FORMED_MONEY.match(tail):
+            out.append(w)
+            continue
+        chars = w.get('chars')
+        span = w['x1'] - w['x0']
+        first, second = dict(w), dict(w)
+        first['text'], second['text'] = head, tail
+        if chars and len(chars) == len(text):
+            first['x1'] = chars[m.end() - 1]['x1']
+            second['x0'] = chars[m.end()]['x0']
+        else:
+            first['x1'] = w['x0'] + span * (m.end() / len(text))
+            second['x0'] = first['x1']
+        out.append(first)
+        out.append(second)
+    return out
 
 
 _LEADING_ONE = ('I', 'l', '|')
@@ -353,17 +528,32 @@ def merge_split_numbers(ws):
         Adjacent fund COLUMNS in this corpus are 50-90pt apart, so no real
         column boundary is anywhere near this threshold.
     """
+    def _joined(prev, w):
+        # ⚠⚠ `chars` MUST BE CONCATENATED TOO. Every consumer guards with
+        # `len(chars) == len(text)` before trusting a per-character
+        # coordinate; carrying only `prev`'s chars onto the longer text fails
+        # that guard and silently downgrades the consumer to apportioning by
+        # character count. Measured on Honolulu FY2020: the fused
+        # `463,25934,149` then split at an apportioned 276.9 rather than its
+        # true column edge of 259.5, the `Public safety` row missed the
+        # General Fund column, and `Debt service` went with it — an operating
+        # delta of -463,259,000.
+        merged = {**prev, 'text': prev['text'] + w['text'], 'x1': w['x1']}
+        if prev.get('chars') is not None and w.get('chars') is not None:
+            merged['chars'] = list(prev['chars']) + list(w['chars'])
+        else:
+            merged.pop('chars', None)
+        return merged
+
     out = []
     for w in ws:
         if (out and _is_money_fragment(out[-1]['text']) and _is_money_fragment(w['text'])
                 and w['x0'] - out[-1]['x1'] < MERGE_GAP):
-            prev = out[-1]
-            out[-1] = {**prev, 'text': prev['text'] + w['text'], 'x1': w['x1']}
+            out[-1] = _joined(out[-1], w)
         elif (out and _is_lone_open_paren(out[-1]['text']) and _is_money_fragment(w['text'])
                 and w['x0'] - out[-1]['x1'] < MERGE_GAP):
             # A NEGATIVE whose opening parenthesis was split off its digits.
-            prev = out[-1]
-            out[-1] = {**prev, 'text': prev['text'] + w['text'], 'x1': w['x1']}
+            out[-1] = _joined(out[-1], w)
         else:
             out.append(w)
     return out

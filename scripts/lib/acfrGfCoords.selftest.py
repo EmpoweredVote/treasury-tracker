@@ -28,7 +28,7 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 from acfrGfComponents import (  # noqa: E402
     collect, establish_column, EXP_BANNER, EXP_TOTAL,
 )
-from acfrPrintedTotal import rows_from_words  # noqa: E402
+from acfrPrintedTotal import rows_from_words, merge_split_numbers  # noqa: E402
 
 
 def row(label, indent, amount, cell='number'):
@@ -577,6 +577,272 @@ class TestCleanLabel(unittest.TestCase):
         # break (Portland ships 'Debt Ser-'), so Charlotte's `Current-` is fixed
         # by a declared label_fixes entry instead of by widening this.
         self.assertEqual(clean_label('Current-'), 'Current-')
+
+
+
+
+class TestSplitLeaderDots(unittest.TestCase):
+    """⚠⚠⚠ DOT LEADERS WELD A FIGURE TO ITS LABEL, AND BOTH READERS LOSE IT.
+
+    The City and County of Honolulu sets its governmental-funds statement with
+    dot leaders that run right up to the digits. There is no space between the
+    label and its General Fund figure, so `extract_words` returns ONE word and
+    `pdftotext -table` returns one unparseable token:
+
+        Taxes...............................................$.....1..,.8.42,801
+        Total Revenues........................................2..,.0..8..8..,.7..2.5
+
+    Measured consequences, both silent in their own way:
+
+      * `acfrGF.py` (-table): `1..,.8.42,801` is not a money token, so every
+        revenue row landed in `zero_rows`, the tree came back EMPTY and the
+        printed total read 2000 — the stray `2` of the Sanitation row.
+      * `acfrGfCoords.py` (glyphs): `establish_column` derives the General Fund
+        column from the two printed TOTAL rows. With the GF figure welded to
+        the label, the first free money word on those rows is the HIGHWAY
+        fund's, so the reader established Highway as the General Fund column
+        and tied at EXACTLY $0 on 315,247 thousand — a real number from the
+        wrong fund. That is the whole failure class this module exists to
+        avoid, arriving by a new route.
+
+    ⭐ THE SPLIT IS EXACT WHERE IT MATTERS. The figure sits at the END of the
+    welded word, so the figure's RIGHT edge is the word's own `x1` — and right
+    edge is what `establish_column` aligns on. Only the label's `x1` and the
+    figure's `x0` are apportioned, and neither is used for column identity;
+    the label's `x0`, which sets the indent, is likewise the word's own.
+
+    ⚠ OPT-IN. Default off, so every shipped entity is byte-identical.
+    """
+
+    WELDED = {'text': 'Taxes...............................................$.....1..,.8.42,801',
+              'x0': 65.0, 'x1': 300.0, 'top': 10.0, 'bottom': 20.0}
+
+    def _texts(self, w, **kw):
+        return [x['text'] for r in rows_from_words([dict(w)], **kw) for x in r]
+
+    def test_off_by_default_the_welded_word_is_left_alone(self):
+        self.assertEqual(self._texts(self.WELDED), [self.WELDED['text']])
+
+    def test_it_splits_the_label_from_its_figure(self):
+        self.assertEqual(self._texts(self.WELDED, split_leader_dots=True),
+                         ['Taxes', '1,842,801'])
+
+    def test_the_figure_keeps_the_words_own_right_edge(self):
+        rows = rows_from_words([dict(self.WELDED)], split_leader_dots=True)
+        money = rows[0][-1]
+        self.assertEqual(money['x1'], 300.0)
+
+    def test_the_label_keeps_the_words_own_left_edge(self):
+        rows = rows_from_words([dict(self.WELDED)], split_leader_dots=True)
+        self.assertEqual(rows[0][0]['x0'], 65.0)
+
+    def test_a_total_row_splits_the_same_way(self):
+        w = {'text': 'Revenues........................2..,.0..8..8..,.7..2.5',
+             'x0': 65.0, 'x1': 300.0, 'top': 10.0, 'bottom': 20.0}
+        self.assertEqual(self._texts(w, split_leader_dots=True), ['Revenues', '2,088,725'])
+
+    def test_a_leader_run_with_no_figure_still_loses_the_dots(self):
+        # CORRECTED BY EVIDENCE. This first asserted the word was left ENTIRELY
+        # alone, which was a guess and was wrong.
+        #
+        # Where Honolulu separates the figure from its leaders by a SPACE,
+        # extract_words already splits the row — but the label keeps its dots
+        # and so runs to x1=260.9 while the figure starts at x0=266.8. A 5.9pt
+        # gap reads as one continued label, the figure is absorbed into it, and
+        # THE ROW VANISHES WITH NO ERROR REPORTED. Measured: Recoveries 12,661,
+        # Human services 28,912 and Principal 11,872 all disappeared that way,
+        # giving a revenue delta of exactly -12,661,000 and an operating delta
+        # of exactly -40,784,000.
+        #
+        # Leaders are typographic filler; they are never part of the name.
+        w = {'text': 'Recoveries..................', 'x0': 75.4, 'x1': 260.9,
+             'top': 10.0, 'bottom': 20.0}
+        self.assertEqual(self._texts(w, split_leader_dots=True), ['Recoveries'])
+
+    def test_trimming_a_bare_leader_run_pulls_the_labels_right_edge_back(self):
+        # The 5.9pt gap above is the whole defect, so the trimmed label must
+        # also give up the width those dots occupied.
+        chars = [{'text': c, 'x0': 75.0 + i, 'x1': 76.0 + i}
+                 for i, c in enumerate('Recoveries..................')]
+        w = {'text': 'Recoveries..................', 'x0': 75.0, 'x1': 102.0,
+             'top': 10.0, 'bottom': 20.0, 'chars': chars}
+        rows = rows_from_words([w], split_leader_dots=True)
+        self.assertEqual(rows[0][0]['x1'], 85.0)
+
+    def test_a_dash_cell_is_not_turned_into_a_figure(self):
+        w = {'text': 'Highways and streets...........................................-.-.....',
+             'x0': 65.0, 'x1': 300.0, 'top': 10.0, 'bottom': 20.0}
+        self.assertEqual(self._texts(w, split_leader_dots=True), [w['text']])
+
+    def test_an_ordinary_word_is_untouched(self):
+        w = {'text': '1,842,801', 'x0': 270.0, 'x1': 300.0, 'top': 10.0, 'bottom': 20.0}
+        self.assertEqual(self._texts(w, split_leader_dots=True), ['1,842,801'])
+
+
+    def test_trailing_leader_dots_do_not_become_the_figures_right_edge(self):
+        # ⚠⚠ Honolulu prints trailing dots AFTER the figure on its expenditure
+        # total row but not on its revenue total row:
+        #     TotalRevenues.........2..,.0..8..8..,.7..2.5
+        #     TotalExpenditures.....1..,.5..1..9..,.8..1..5.......   <- 7 trailing
+        # Taking the WORD right edge made the two rows disagree by 14.1pt
+        # (294.3 vs 308.4) and  refused the page outright.
+        # With per-character coordinates the digit edge is exact and the two
+        # rows agree. Measured on FY2025 page 69.
+        chars = ([{'text': c, 'x0': 75.0 + i, 'x1': 76.0 + i}
+                  for i, c in enumerate('Total.....1,519,815')]
+                 + [{'text': '.', 'x0': 94.0 + i, 'x1': 95.0 + i} for i in range(7)])
+        w = {'text': 'Total.....1,519,815.......', 'x0': 75.0, 'x1': 101.0,
+             'top': 10.0, 'bottom': 20.0, 'chars': chars}
+        rows = rows_from_words([w], split_leader_dots=True)
+        texts = [x['text'] for x in rows[0]]
+        self.assertEqual(texts, ['Total', '1,519,815'])
+        # the LAST DIGIT's right edge, not the trailing dot run's
+        self.assertEqual(rows[0][-1]['x1'], 94.0)
+
+    def test_a_single_dot_is_not_a_leader(self):
+        # "U.S. Department transfers" must survive: one dot is never a leader,
+        # the rule `acfrGF.norm_label` already records.
+        w = {'text': 'U.S.', 'x0': 65.0, 'x1': 100.0, 'top': 10.0, 'bottom': 20.0}
+        self.assertEqual(self._texts(w, split_leader_dots=True), ['U.S.'])
+
+
+class TestSplitFusedMoney(unittest.TestCase):
+    """⚠⚠⚠ TWO ADJACENT COLUMNS PRINTED WITH NO GAP FUSE INTO ONE NUMBER, AND
+    `parse_money` ACCEPTS THE RESULT.
+
+    Honolulu's FY2016-FY2020 statements set the General Fund and Highway Fund
+    columns touching, so `extract_words` returns ONE token:
+
+        Total Expenditures    885,055105,532      <- 885,055 and 105,532
+        Total Expenditures  1,068,640121,109      <- FY2019
+
+    `_MONEY` is `^\\(?\\$?\\d[\\d,]*\\)?$` — digits and commas — so the fused
+    token is WELL-FORMED to it and parses as 885,055,105,532. Measured
+    consequence on FY2019 operating: a tie delta of -1,068,640,121,109,000.
+    Loud there, but the same fusion on a non-total row would simply inflate one
+    category and still tie.
+
+    ⭐ THE DEFECT IS DETECTABLE FROM THE TOKEN ALONE. US comma grouping puts
+    EXACTLY three digits in every group after the first, so an interior group
+    of six digits (`055105`) cannot be one number. The split point is the end
+    of the longest well-formed prefix, and the remainder must itself be
+    well-formed or nothing is split.
+
+    ⚠ OPT-IN, and it never guesses: a token it cannot resolve into two
+    well-formed numbers is left exactly as printed.
+    """
+
+    @staticmethod
+    def _chars(text, x0=250.0, w=8.0):
+        return [{'text': c, 'x0': x0 + i * w, 'x1': x0 + (i + 1) * w}
+                for i, c in enumerate(text)]
+
+    def _texts(self, text, **kw):
+        w = {'text': text, 'x0': 250.0, 'x1': 250.0 + 8.0 * len(text),
+             'top': 10.0, 'bottom': 20.0, 'chars': self._chars(text)}
+        return [x['text'] for r in rows_from_words([w], **kw) for x in r]
+
+    def test_off_by_default(self):
+        self.assertEqual(self._texts('885,055105,532'), ['885,055105,532'])
+
+    def test_it_splits_two_fused_figures(self):
+        self.assertEqual(self._texts('885,055105,532', split_fused_money=True),
+                         ['885,055', '105,532'])
+
+    def test_it_splits_the_fy2019_case(self):
+        self.assertEqual(self._texts('1,068,640121,109', split_fused_money=True),
+                         ['1,068,640', '121,109'])
+
+    def test_a_well_formed_number_is_untouched(self):
+        self.assertEqual(self._texts('1,842,801', split_fused_money=True), ['1,842,801'])
+        self.assertEqual(self._texts('8', split_fused_money=True), ['8'])
+
+    def test_the_first_figure_keeps_an_exact_right_edge(self):
+        w = {'text': '885,055105,532', 'x0': 250.0, 'x1': 250.0 + 8.0 * 14,
+             'top': 10.0, 'bottom': 20.0, 'chars': self._chars('885,055105,532')}
+        rows = rows_from_words([w], split_fused_money=True)
+        # '885,055' is 7 characters, so its right edge is the 7th char's x1.
+        self.assertEqual(rows[0][0]['x1'], 250.0 + 7 * 8.0)
+
+    def test_it_refuses_a_token_it_cannot_resolve(self):
+        # A remainder that is not itself well-formed means the reading is not
+        # established, so nothing is split and the row fails loudly elsewhere
+        # rather than publishing a guess. `,53` is not a comma group.
+        self.assertEqual(self._texts('885,055105,53', split_fused_money=True),
+                         ['885,055105,53'])
+
+    def test_a_lone_trailing_digit_still_splits(self):
+        # CORRECTED BY REASONING, not by the implementation: this first
+        # asserted refusal. Splitting is the safer reading. The column is
+        # chosen by x-edge, so a spurious small token at ANOTHER column's
+        # position is harmless, while a FUSED token sitting at the General Fund
+        # edge parses as 8,850,551 and is published. Prefer the split.
+        self.assertEqual(self._texts('885,0551', split_fused_money=True),
+                         ['885,055', '1'])
+
+
+class TestMergeKeepsCharsInStep(unittest.TestCase):
+    """⚠⚠ A MERGE THAT LEAVES `chars` STALE SILENTLY DOWNGRADES EVERY LATER
+    EXACT CALCULATION TO AN APPROXIMATION.
+
+    `merge_split_numbers` rebuilds the word with `{**prev, 'text': ..., 'x1':
+    ...}`, which carries the FIRST fragment's `chars` onto a text that is now
+    longer. Every consumer guards with `len(chars) == len(text)`, so the guard
+    fails and the consumer falls back to apportioning by character count.
+
+    Measured on Honolulu FY2020: the fused `463,25934,149` split at an
+    apportioned x1 of 276.9 instead of its true column edge of 259.5, so the
+    `Public safety` row missed the General Fund column entirely and the whole
+    `Debt service` parent went with it — an operating delta of -463,259,000.
+    """
+
+    @staticmethod
+    def _w(text, x0, x1):
+        return {'text': text, 'x0': x0, 'x1': x1, 'top': 10.0, 'bottom': 20.0,
+                'chars': [{'text': c, 'x0': x0 + i, 'x1': x0 + 1 + i}
+                          for i, c in enumerate(text)]}
+
+    def test_merging_two_fragments_concatenates_their_chars(self):
+        ws = merge_split_numbers([self._w('6', 295.0, 296.0), self._w('27,129', 296.1, 302.0)])
+        self.assertEqual(len(ws), 1)
+        self.assertEqual(ws[0]['text'], '627,129')
+        self.assertEqual(len(ws[0]['chars']), len('627,129'))
+
+    def test_a_merge_without_chars_stays_without_chars(self):
+        a = {'text': '6', 'x0': 295.0, 'x1': 296.0, 'top': 10.0, 'bottom': 20.0}
+        b = {'text': '27,129', 'x0': 296.1, 'x1': 302.0, 'top': 10.0, 'bottom': 20.0}
+        ws = merge_split_numbers([a, b])
+        self.assertEqual(ws[0]['text'], '627,129')
+        self.assertIsNone(ws[0].get('chars'))
+
+
+class TestShippedHonoluluCoordsConfig(unittest.TestCase):
+    """The real, shipped CONFIG object — not a local rebuild.
+
+    A version of this that constructed an equivalent `CoordsConfig` here would
+    pass forever no matter what the wrapper said, which is the hole
+    `TestShippedBainbridgeConfigsAreWholeDollars` exists to close in the
+    sibling suite.
+    """
+
+    def _cfg(self):
+        import extractHonoluluCoords
+        return extractHonoluluCoords.CONFIG
+
+    def test_units_is_thousands(self):
+        # "( Amounts in thousands )" on the statement page; General Fund
+        # revenue prints 2,088,725 and is $2.09 BILLION. The tie gate scales
+        # computed and printed alike and cannot see this.
+        self.assertEqual(self._cfg().units, 1000)
+
+    def test_it_splits_leader_dots(self):
+        # Without it `establish_column` lands on the HIGHWAY fund and ties at
+        # exactly $0 on 315,247 thousand — a real number from the wrong fund.
+        self.assertTrue(self._cfg().split_leader_dots)
+
+    def test_it_declares_the_tight_word_spacing(self):
+        # Without it every multi-word label welds: `Licensesandpermits`.
+        self.assertEqual(self._cfg().x_tolerance, 2.0)
 
 
 if __name__ == '__main__':

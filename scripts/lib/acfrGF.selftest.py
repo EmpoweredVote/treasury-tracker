@@ -38,6 +38,10 @@ import extractDuvall              # noqa: E402
 # non-vacuous: if the refusal is ever widened, these two fail at import.
 import extractAberdeenSD          # noqa: E402
 import extractBrownCountySD       # noqa: E402
+# ⚠ Hawaii's four counties. Imported for TestShippedHiCountyConfigs at the
+# bottom: Honolulu prints IN THOUSANDS and the three counties do not, which is
+# the one error class a green tie cannot see.
+import extractHiCounty            # noqa: E402
 
 # Transcribed from King County FY2020-era GF statement (values thousands-scale
 # in the real document; kept as bare ints here since these tests exercise
@@ -3423,6 +3427,45 @@ class TestUnderlineRuleStripping(unittest.TestCase):
         opted = CityConfig(city='New York City', parents=('debt service',),
                            underscore_rules=True)
         self.assertTrue(opted.underscore_rules)
+
+
+class TestShippedHiCountyConfigs(unittest.TestCase):
+    # ⚠⚠⚠ HONOLULU PRINTS "( Amounts in thousands )". Its General Fund revenue
+    # reads 2,088,725 on the page and is $2.09 BILLION. Nothing else in this
+    # repo can catch a wrong multiplier: the tie gate is unit-invariant,
+    # because computed and printed are BOTH scaled by cfg.units, so a 1000x
+    # error ships behind a green $0 tie. Only the loader's per-capita ceiling
+    # and this assertion stand in the way.
+    #
+    # ⚠ The three COUNTY documents are a separate question from Honolulu's and
+    # from each other -- Boulder city prints thousands while Boulder COUNTY,
+    # twenty miles away, prints whole dollars. Each value below was read off
+    # that county's own caption block, never carried from a sibling.
+    def test_honolulu_is_in_thousands(self):
+        self.assertEqual(extractHiCounty.CONFIGS['honolulu'].units, 1000)
+
+    def test_the_three_counties_units_are_read_per_entity(self):
+        for key, expected in (('hawaii', 1), ('maui', 1), ('kauai', 1)):
+            self.assertEqual(extractHiCounty.CONFIGS[key].units, expected,
+                             '%s: units must come from its own caption block' % key)
+
+    def test_every_hawaii_county_closes_june_30(self):
+        # Confirmed by fy_end_date on all 38 FAC filings. Unlike the Alaska
+        # family, which carried two calendars in one registry family.
+        for key, cfg in extractHiCounty.CONFIGS.items():
+            self.assertEqual(cfg.fy_end, ('June', 30), key)
+
+    def test_exactly_the_four_governments_have_configs(self):
+        # Kalawao has no government; the Department of Water is a component
+        # unit. Neither may acquire a config by drift.
+        self.assertEqual(sorted(extractHiCounty.CONFIGS), ['hawaii', 'honolulu', 'kauai', 'maui'])
+
+    def test_honolulu_reads_the_general_fund_column(self):
+        # target_column 0 is the General Fund. Honolulu's statement also prints
+        # a Total Governmental Funds column; reading 'last' would publish
+        # 2,874,684 under a General Fund label -- the LA TRAN shape, tying at
+        # $0 with every figure correct and only the scope claim false.
+        self.assertEqual(extractHiCounty.CONFIGS['honolulu'].target_column, 0)
 
 
 if __name__ == '__main__':
