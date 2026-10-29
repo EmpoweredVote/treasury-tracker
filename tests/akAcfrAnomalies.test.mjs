@@ -17,9 +17,20 @@ import { AK_FIGURE_FLAGS, akFlagsFor } from '../scripts/data/akAcfrAnomalies.mjs
  * should fail loudly.
  */
 
-describe('the register records, and never withholds', () => {
+describe('the register records, and never withholds a FIGURE', () => {
   it('⭐ loads every flagged figure', () => {
     for (const f of AK_FIGURE_FLAGS) expect(f.loaded, f.id).toBe(true);
+  });
+
+  it('⚠⚠ is a DEVELOPMENT record — no entry reaches readers', () => {
+    // Chris's call, 2026-10-28. ⚠ This asserts that TT's COMMENTARY stays
+    // internal. It must never be read as licence to withhold or alter a
+    // FIGURE: `loaded` above is the invariant that protects the data, and the
+    // two tests exist side by side so neither is mistaken for the other.
+    for (const f of AK_FIGURE_FLAGS) {
+      expect(f.readerFacing, f.id).toBe(false);
+      expect(f.rendersAs, f.id).toBeNull();
+    }
   });
 
   it('carries the evidence a reader would need to check it', () => {
@@ -53,12 +64,13 @@ describe('Ketchikan FY2017 — the seam', () => {
     expect(akFlagsFor('Ketchikan Gateway Borough', 2017)).toHaveLength(1);
   });
 
-  it('⚠ is a comparability note, NOT a warning', () => {
-    // Both figures are correct and the change was disclosed a year in advance.
-    // Rendering it as a caution would imply a defect where there is none.
+  it('⚠⚠ stays INTERNAL — the note does not reach readers', () => {
+    // Chris's call, 2026-10-28. The figures publish in full and unannotated;
+    // what stays in development is TT's commentary about them. See the
+    // register header for why that is not the Milledgeville Rule inverted.
     expect(ket.severity).toBe('not-comparable');
-    expect(ket.rendersAs).toBe('comparability-note');
-    expect(ket.readerFacing).toBe(true);
+    expect(ket.readerFacing).toBe(false);
+    expect(ket.rendersAs).toBeNull();
   });
 
   it('does not reach the years either side of the seam', () => {
