@@ -305,6 +305,133 @@ export const AK_BOROUGHS = Object.freeze([
      */
     sourcePage: 'https://www.aleutianseast.org/departments/finance/',
   }),
+
+  // ── WAVE 2 — the four with no novel loader mechanics ──────────────────────
+  //
+  // Added 2026-10-29. Bristol Bay, Haines, Yakutat and Lake and Peninsula. All
+  // close June 30, all born-digital, all read by `extractAkBorough.py`.
+  // ⚠ SKAGWAY IS DELIBERATELY NOT HERE: it CHANGED ITS FISCAL YEAR and FAC
+  // carries both 06-30 and 12-31 year ends plus a filing literally named
+  // "MUNICIPALITY OF SKAGWAY-6 MONTH AUDIT". This family has no
+  // fiscal-year-change handling, and a half-year loaded as a full one moves
+  // real money while tying at $0. It gets its own pass.
+  // ⚠ DENALI IS NOT HERE EITHER: 137 chars/page, an image-only scan.
+  //
+  // ── ⚠⚠⚠ THE CENSUS CANNOT TYPE THESE THREE, AND WAVE 1'S TEST SAYS SO ────
+  //
+  // Wave 1 typed on an identical population at SUMLEV 050 / 162 / 157, which
+  // proves a government is ALSO an incorporated place and therefore unified.
+  // That test needs a 162 row to exist. Vintage 2024 prints NONE for Bristol
+  // Bay (884), Haines (2,104) or Yakutat (690) — and no 157 rows either:
+  //
+  //   Bristol Bay Borough      050 884    no 162, no 157 at all
+  //   Haines Borough           050 2,104  no 162, no 157 at all
+  //   Yakutat City and Borough 050 690    no 162, no 157 at all
+  //   Lake and Peninsula       050 1,315  6 cities + Balance 780  -> `county`
+  //
+  // Only Lake and Peninsula is settled by the census alone, so all four were
+  // typed from THE ISSUER'S OWN NOTE 1 — and that read CORRECTED a provisional
+  // `city` on Yakutat before anything was seeded.
+  //
+  // ⭐⭐ THE TWO SOURCES AGREE, AND TOGETHER THEY EXPLAIN WHY WAVE 1'S TEST
+  // WORKED. Alaska distinguishes a unified home rule MUNICIPALITY from a home
+  // rule BOROUGH, and the census tracks that distinction exactly:
+  //
+  //   UNIFIED HOME RULE MUNICIPALITY -> census prints a 162 PLACE row -> `city`
+  //     Anchorage, Juneau, Sitka, Wrangell
+  //   HOME RULE BOROUGH              -> no 162 row                    -> `county`
+  //     Petersburg, Haines, Yakutat, Lake and Peninsula, and the rest
+  //
+  // ⚠⚠⚠ AND A BOROUGH THAT SWALLOWED ITS CITY IS STILL A BOROUGH. Three of
+  // these say so in their own words:
+  //   Haines   "created in October 2002, when the public voted to combine the
+  //             Haines Borough with the City of Haines ... incorporated under
+  //             the laws of the State of Alaska as a Home Rule borough"
+  //   Yakutat  "The City of Yakutat was incorporated in 1948. On September 8,
+  //             1992, the voters elected to create a 'home rule borough' and
+  //             simultaneously DISSOLVE the City of Yakutat"
+  //   Petersburg (wave 1) — the same shape, via Kupreanof
+  //
+  // ⚠⚠ YAKUTAT IS THE SHARPEST TRAP IN THE WHOLE COHORT: its legal name is
+  // "City and Borough of Yakutat", which is the SAME CONSTRUCTION as Sitka's
+  // and Wrangell's, and it is a `county`. The name carries no information
+  // about the form of government. Read Note 1 before typing any Alaska
+  // government — `entity_type` is identity-load-bearing, and a later retype
+  // MINTS A DUPLICATE rather than moving the row.
+  Object.freeze({
+    key: 'bristolbay',
+    name: 'Bristol Bay Borough',
+    state: 'AK',
+    entityType: 'county',
+    /** ⚠⚠ FIVE FAC NAME SPELLINGS, incl. the FY2025 "BRISTOL BAY BOROUGH OF". */
+    facEin: '920029832',
+    facUei: 'N7DKJNBTYGE3',
+    population: 884,
+    fiscalYearStartMonth: 7,
+    sourcePage: 'https://www.bristolbayboroughak.us/finance',
+    /**
+     * ⚠⚠ THE SECOND PER-CAPITA OVERRIDE, AND THE SAME STORY AS NORTH SLOPE IN
+     * A DIFFERENT INDUSTRY. Naknek is the hub of the Bristol Bay salmon
+     * fishery, and the borough taxes the catch: its own statements name a
+     * "Sales tax on raw fish" and a "Local fish tax", and the Taxes line is
+     * 12,800,215 of FY2023's 17,885,914 General Fund revenue — 72%.
+     *
+     * The tax base is a seasonal industry; the 884 is YEAR-ROUND residents, so
+     * per-capita is measuring the wrong denominator rather than the wrong
+     * units. MEASURED across its own ACFRs, General Fund revenue per resident:
+     *
+     *   FY2016 $11,978   FY2020 $16,848   FY2023 $20,233
+     *   FY2018 $14,663   FY2022 $20,342 <- highest   FY2025 $16,033
+     *
+     * ⚠ FY2022 and FY2023 are the only years over the shared $20,000 ceiling,
+     * and both are independently confirmed: the oracle reads FY2023's printed
+     * General Fund column as 17,885,914 and its five fund columns sum exactly
+     * to the printed total. At 1000x this borough would land near $20M/capita,
+     * ~680x over the raised ceiling and still caught.
+     */
+    perCapitaMax: 30_000,
+  }),
+  Object.freeze({
+    key: 'haines',
+    name: 'Haines Borough',
+    state: 'AK',
+    entityType: 'county',
+    /** ⚠ The only wave-2 EIN that is not 92-prefixed. */
+    facEin: '470888706',
+    facUei: 'E9E5AVP1J6R1',
+    population: 2104,
+    fiscalYearStartMonth: 7,
+    sourcePage: 'https://www.hainesalaska.gov/finance',
+  }),
+  Object.freeze({
+    key: 'yakutat',
+    /**
+     * ⚠⚠⚠ `county` DESPITE THE NAME. "City and Borough of Yakutat" reads
+     * exactly like Sitka's and Wrangell's, which ARE `city`. It is a HOME RULE
+     * BOROUGH: its own Note 1 says the voters created one in 1992 and
+     * "simultaneously dissolve[d] the City of Yakutat". The census agrees by
+     * printing no 162 place row. This entry said `city` until Note 1 was read.
+     */
+    name: 'City and Borough of Yakutat',
+    state: 'AK',
+    entityType: 'county',
+    facEin: '926001319',
+    facUei: 'C2UMLFJ9XP25',
+    population: 690,
+    fiscalYearStartMonth: 7,
+    sourcePage: 'https://www.yakutatak.gov/finance',
+  }),
+  Object.freeze({
+    key: 'lakepen',
+    name: 'Lake and Peninsula Borough',
+    state: 'AK',
+    entityType: 'county',
+    facEin: '920128922',
+    facUei: 'C5PJP3YDHSE5',
+    population: 1315,
+    fiscalYearStartMonth: 7,
+    sourcePage: 'https://www.lakeandpen.gov/finance',
+  }),
 ]);
 
 export function boroughByKey(key) {

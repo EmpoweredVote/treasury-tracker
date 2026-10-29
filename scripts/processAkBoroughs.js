@@ -117,6 +117,14 @@ const GAPS = {
   // missing file as a failure. Cause and the second-publisher check are in
   // `scripts/extractAkBorough.py`'s KNOWN_DOCUMENT_GAPS.
   sitka: { revenue: [2018], operating: [2018] },
+  // ⚠⚠ THE SAME CIPHERED-TEXT-LAYER DEFECT, TWICE MORE (wave 2). Neither has a
+  // PDF on disk — the fetcher's auditee-identity guard rejected both — so the
+  // loader would otherwise report "no PDF ... skipped", which reads exactly
+  // like a failed fetch. Declaring them keeps a KNOWN, CAUSED gap visually
+  // distinct from a thing that went wrong. Causes in
+  // `scripts/extractAkBorough.py`'s KNOWN_DOCUMENT_GAPS.
+  bristolbay: { revenue: [2024], operating: [2024] },
+  yakutat: { revenue: [2018], operating: [2018] },
 };
 
 const { values } = parseArgs({

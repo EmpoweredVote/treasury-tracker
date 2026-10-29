@@ -39,8 +39,10 @@ describe('the Alaska borough roster', () => {
     }
   });
 
-  it('holds twelve boroughs, each with exactly one EIN', () => {
-    expect(AK_BOROUGHS).toHaveLength(12);
+  it('holds sixteen boroughs, each with exactly one EIN', () => {
+    // 19 organized boroughs in Alaska; Anchorage is loaded separately and
+    // Skagway (fiscal-year change) and Denali (image-only scan) are not loaded.
+    expect(AK_BOROUGHS).toHaveLength(16);
     // ⚠ The FAC auditee NAME is not stable (Mat-Su files under three spellings,
     // Bristol Bay under five) and its EIN can even belong to another entity.
     // The roster is keyed on the borough, and the fetcher verifies the document
@@ -79,12 +81,33 @@ describe('the Alaska borough roster', () => {
     }
   });
 
-  it('raises the per-capita ceiling for North Slope ONLY, and only upward', () => {
-    // Its General Fund is funded by the Prudhoe Bay oil and gas tax base, not
-    // by its 10,663 residents, so it runs ~$47,000/capita against a shared
-    // $20,000 default. Every other borough must leave the guard alone.
+  it('raises the per-capita ceiling for exactly two boroughs, and only upward', () => {
+    // Both have an INDUSTRIAL tax base and a tiny resident population, so
+    // per-capita measures the wrong denominator rather than the wrong units:
+    // North Slope taxes Prudhoe Bay oil and gas (~$47,000/capita against
+    // 10,663 residents), and Bristol Bay taxes the salmon catch — a "Sales tax
+    // on raw fish" that is 72% of its General Fund revenue, ~$20,300/capita
+    // against 884. Every other borough must leave the shared $20,000 alone.
     const raised = AK_BOROUGHS.filter((b) => b.perCapitaMax !== undefined);
-    expect(raised.map((b) => b.key)).toEqual(['northslope']);
-    expect(raised[0].perCapitaMax).toBeGreaterThan(20_000);
+    expect(raised.map((b) => b.key).sort()).toEqual(['bristolbay', 'northslope']);
+    for (const b of raised) expect(b.perCapitaMax).toBeGreaterThan(20_000);
+  });
+
+  it('types the home rule BOROUGHS `county` however their names read', () => {
+    // ⚠⚠⚠ YAKUTAT IS THE TRAP. "City and Borough of Yakutat" is the SAME NAME
+    // CONSTRUCTION as Sitka's and Wrangell's, which are `city` — and it is a
+    // `county`. Its own Note 1: the voters created a "home rule borough" in
+    // 1992 and "simultaneously dissolve[d] the City of Yakutat". Haines says
+    // the same of itself ("a Home Rule borough", after absorbing the City of
+    // Haines in 2002). Alaska distinguishes a unified home rule MUNICIPALITY
+    // from a home rule BOROUGH, and only the former is `city`.
+    const byKey = Object.fromEntries(AK_BOROUGHS.map((b) => [b.key, b.entityType]));
+    expect(byKey.yakutat).toBe('county');
+    expect(byKey.haines).toBe('county');
+    expect(byKey.bristolbay).toBe('county');
+    expect(byKey.lakepen).toBe('county');
+    // Exactly three `city` entries here; Anchorage is seeded elsewhere.
+    const cities = AK_BOROUGHS.filter((b) => b.entityType === 'city').map((b) => b.key).sort();
+    expect(cities).toEqual(['juneau', 'sitka', 'wrangell']);
   });
 });

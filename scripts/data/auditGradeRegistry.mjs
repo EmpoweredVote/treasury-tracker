@@ -896,7 +896,7 @@ export const AUDIT_GRADE_REGISTRY = [
     // ⚠ EXTENDED 2026-10-28 with the six WAVE 1 boroughs, into the SAME
     // FY2016-FY2025 alternative, because that is exactly the window of
     // documents read for them too — 57 filings, every one opened by both gates.
-    match: /^(?:Municipality of Anchorage ACFR — General Fund (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[2-9]|2[0-4]) actual, GAAP basis\)|(?:Matanuska-Susitna Borough|Fairbanks North Star Borough|Kenai Peninsula Borough|City and Borough of Juneau|Ketchikan Gateway Borough|Kodiak Island Borough|North Slope Borough|Northwest Arctic Borough|Petersburg Borough|City and Borough of Sitka|City and Borough of Wrangell|Aleutians East Borough) ACFR — General Fund (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[6-9]|2[0-5]) actual, GAAP basis\))$/,
+    match: /^(?:Municipality of Anchorage ACFR — General Fund (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[2-9]|2[0-4]) actual, GAAP basis\)|(?:Matanuska-Susitna Borough|Fairbanks North Star Borough|Kenai Peninsula Borough|City and Borough of Juneau|Ketchikan Gateway Borough|Kodiak Island Borough|North Slope Borough|Northwest Arctic Borough|Petersburg Borough|City and Borough of Sitka|City and Borough of Wrangell|Aleutians East Borough|Bristol Bay Borough|Haines Borough|City and Borough of Yakutat|Lake and Peninsula Borough) ACFR — General Fund (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[6-9]|2[0-5]) actual, GAAP basis\))$/,
     value: AUDIT_GRADE.AUDITED_GAAP,
     evidence: {
       document: 'All 73 Alaska ACFRs in the repo, read 2026-10-28 — Municipality of Anchorage '
@@ -971,7 +971,41 @@ export const AUDIT_GRADE_REGISTRY = [
         + 'rather than something graded unknown. '
         + '⚠ ALEUTIANS EAST FY2017 AND FY2018 ARE NOT GAPS EITHER: the Federal Audit '
         + 'Clearinghouse holds no filing for those years, because a single audit is filed only '
-        + 'in a year the auditee spends enough federal money to require one.',
+        + 'in a year the auditee spends enough federal money to require one. '
+        + '── WAVE 2 (added 2026-10-29) — 28 MORE ALASKA ACFRs, BOTH GATES OVER EVERY ONE: '
+        + 'Bristol Bay FY2016-FY2025 less FY2024 (9), Haines FY2016-FY2025 less FY2017 (9), '
+        + 'City and Borough of Yakutat FY2020/21/23/24/25 (5), Lake and Peninsula '
+        + 'FY2016/17/21/22/23 (5). They carry all 56 new graded rows, 28 x 2, no mode-level '
+        + 'gaps. '
+        + 'OPINION PRESENT — verifyCoKsOpinions.py: 28 found in the TEXT layer, 0 OCR, 0 NOT '
+        + 'FOUND. Alaska now stands at 158 opinion pages read and NOT ONE of them an image. '
+        + 'OPINION UNMODIFIED — checkOpinionType.py: 28 clean, 0 MODIFIED, 0 unreadable. '
+        + '⚠⚠ THIS WAVE FORCED A SECOND FIX TO THE PRESENCE GATE, AND THE CAUSE IS HUMAN, NOT '
+        + 'TECHNICAL: the Haines Borough is audited by a SOLE PRACTITIONER who writes "In MY '
+        + 'opinion, based on MY audit and the report of other auditors". The gate required '
+        + '"in our opinion", so EIGHT of that borough\'s nine filings read NOT FOUND — FY2016, '
+        + 'audited by a firm, was the only one it saw. A one-person audit firm is ordinary for '
+        + 'a borough of 2,104 people and there is nothing wrong with those documents. The '
+        + 'conjunct now accepts `our` or `my`, is pinned in that script\'s selftest, and was '
+        + 'MEASURED the same way as the FY2025 GAAP widening: across every text layer already '
+        + 'graded, exactly those eight moved and nothing else. '
+        + '⚠ FIVE WAVE-2 DOCUMENTS ARE FLAGGED BY THE PRESENCE GATE AND NONE IS MODIFIED — '
+        + 'Bristol Bay FY2022, FY2023 and FY2025 carry a "Qualified Opinion on Health Center '
+        + 'Program Cluster", and Lake and Peninsula FY2016 and FY2017 a "Qualified Opinion on '
+        + 'the Iguigig Bulk Fuel Repair (CFDA #14.228) and Payment in Lieu of Taxes". Both sit '
+        + 'under "Report on Compliance for Each Major Federal Program" — FEDERAL PROGRAM '
+        + 'COMPLIANCE opinions inside the Single Audit, not opinions on the financial '
+        + 'statements. Same class as North Slope FY2020 and Wichita FY2021, and exactly why '
+        + 'that pattern reports and never downgrades. The paragraph gate reads all five clean. '
+        + '⚠⚠ TWO WAVE-2 DOCUMENTS HAVE NO ROW AND NO GRADE, AND BOTH ARE CIPHERED TEXT '
+        + 'LAYERS, not scans: Bristol Bay FY2024 and Yakutat FY2018 extract ~1,700 chars/page '
+        + 'of WRONG CHARACTERS, so the fetcher\'s density guard passes them and its '
+        + 'auditee-identity guard is what rejected them. With Sitka FY2018 that is three in the '
+        + 'Alaska corpus. ⚠ PDF producer does NOT predict them — Sitka FY2019 carries the '
+        + 'IDENTICAL producer string to its ciphered FY2018 and extracts cleanly — so the '
+        + 'identity guard remains the only reliable detector. '
+        + '⚠ Haines FY2017, Yakutat FY2016/17/19/22 and Lake and Peninsula FY2018/19/20/24/25 '
+        + 'are NOT gaps: FAC holds no filing for those years.',
     },
   },
   {

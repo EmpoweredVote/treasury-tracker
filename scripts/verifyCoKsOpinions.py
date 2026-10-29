@@ -108,7 +108,18 @@ FAIR = re.compile(r'presentfairly,?inallmaterialrespects')
 GAAP = re.compile(r'accounting(?:principles|standards)generallyaccepted'
                   r'|conformitywithaccountingprinciples'
                   r'|generallyacceptedaccountingprinciples')
-IN_OUR_OPINION = re.compile(r'inouropinion')
+# ⚠⚠ `my` AS WELL AS `our` — A SOLE PRACTITIONER WRITES IN THE FIRST PERSON
+# SINGULAR. The Haines Borough's auditor opens "In MY opinion, based on MY
+# audit and the report of other auditors, the accompanying financial statements
+# present fairly...", and with `our` alone this gate read EIGHT of that
+# borough's nine filings as NOT FOUND — FY2016, audited by a firm, was the only
+# one it saw. Nothing is wrong with those eight documents; a one-person audit
+# firm is ordinary for a borough of 2,104 people.
+#
+# ⭐ Measured the same way as the GAAP widening above: asking which documents
+# the new alternative finds that the old did not, across every text layer
+# already graded, the answer is exactly those eight Haines filings.
+IN_OUR_OPINION = re.compile(r'in(?:our|my)opinion')
 INDEPENDENT = re.compile(r'independentauditor')
 # Reported, never auto-downgraded — see the module docstring.
 #
@@ -241,6 +252,13 @@ def selftest():
         check(label, 'In our opinion, the financial statements referred to above '
                      'present fairly, in all material respects, the financial position '
                      + phrase, True)
+
+    # ⚠⚠ A SOLE PRACTITIONER SAYS "IN MY OPINION" (Haines FY2018-FY2025).
+    check('"In MY opinion" from a one-person audit firm',
+          'In my opinion, based on my audit and the report of other auditors, the '
+          'accompanying financial statements present fairly, in all material respects, '
+          'the financial position in accordance with accounting principles generally '
+          'accepted in the United States of America.', True)
 
     # ⚠ ALL THREE CONJUNCTS ARE REQUIRED. Dropping any one must fail, or the
     # gate starts finding "opinions" in prose about auditing.

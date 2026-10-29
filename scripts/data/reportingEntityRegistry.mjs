@@ -214,7 +214,7 @@ export const REPORTING_ENTITY_REGISTRY = [
     id: 'ak-local-acfr-gf',
     // ⚠ EXTENDED 2026-10-28 with the six WAVE 1 boroughs, byte-identical to the
     // same id's pattern in fundScopeRegistry.mjs and basisRegistry.mjs.
-    match: /^(Municipality of Anchorage|Matanuska-Susitna Borough|Fairbanks North Star Borough|Kenai Peninsula Borough|City and Borough of Juneau|Ketchikan Gateway Borough|Kodiak Island Borough|North Slope Borough|Northwest Arctic Borough|Petersburg Borough|City and Borough of Sitka|City and Borough of Wrangell|Aleutians East Borough) ACFR — General Fund /,
+    match: /^(Municipality of Anchorage|Matanuska-Susitna Borough|Fairbanks North Star Borough|Kenai Peninsula Borough|City and Borough of Juneau|Ketchikan Gateway Borough|Kodiak Island Borough|North Slope Borough|Northwest Arctic Borough|Petersburg Borough|City and Borough of Sitka|City and Borough of Wrangell|Aleutians East Borough|Bristol Bay Borough|Haines Borough|City and Borough of Yakutat|Lake and Peninsula Borough) ACFR — General Fund /,
     value: REPORTING_ENTITY.PRIMARY,
     evidence: {
       document: 'The Reporting Entity note (Note 1.A, variously headed "REPORTING ENTITY" or '
@@ -293,7 +293,30 @@ export const REPORTING_ENTITY_REGISTRY = [
              + 'at 3,000,000 in FY2024 — and that is the BOROUGH\'S OWN SPENDING, not the '
              + 'district\'s revenues and expenditures, which sit in the district\'s own '
              + 'discretely presented column. Same relationship Anchorage\'s Education line has, '
-             + 'described above.',
+             + 'described above. '
+             + '── WAVE 2 (added 2026-10-29) — Note 1 of Bristol Bay FY2023, Haines FY2024, '
+             + 'Yakutat FY2024 and Lake and Peninsula FY2023, read 2026-10-29. '
+             + '⭐ THE BLENDED SIDE IS EMPTY ON ALL FOUR, and again the documents were searched '
+             + 'for the word rather than read for a summary: "blended" appears ZERO times in '
+             + 'every one of them. A blended unit IS a fund of the primary government under '
+             + 'GASB 34, so an empty blended list closes the only route by which a component '
+             + 'unit could sit inside a General Fund column. '
+             + 'Every unit these four report is DISCRETELY PRESENTED: Bristol Bay — the Bristol '
+             + 'Bay Borough School District; Yakutat — the Yakutat School District; Lake and '
+             + 'Peninsula — the school district it is required to operate under Alaska Statute '
+             + '29.43.030, "reported in a separate column in the basic financial statements to '
+             + 'emphasize that it is legally separate from the government"; Haines — TWO units, '
+             + 'the Haines Borough School District AND the Klehini Valley Volunteer Fire '
+             + 'Department, both presented in its Component Units Combining Statement of Net '
+             + 'Position. '
+             + '⭐ ARITHMETIC CORROBORATION, measured for the fund-scope entry of this id: on '
+             + 'all four the printed FUND columns sum EXACTLY to the printed Total column on '
+             + 'both sides (Bristol Bay FY2023 revenue 17,885,914 + 33,087 + 42,828 + 1,873,395 '
+             + '+ 52,374 = 19,887,598). A component-unit column folded into the General Fund '
+             + 'figure would break that identity. '
+             + '⚠ HAINES IS THE ONE TO RE-CHECK IF ITS SHAPE EVER CHANGES: a volunteer fire '
+             + 'department is exactly the kind of small, service-providing unit an issuer could '
+             + 'later decide to BLEND. Today it is discrete and named as such.',
     },
   },
   {

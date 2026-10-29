@@ -848,5 +848,223 @@
    "ein": "920124066",
    "uei": "R1T5FLNFFEP4"
   }
+ },
+ "bristolbay": {
+  "2016": {
+   "report_id": "2016-06-CENSUS-0000129809",
+   "name": "BRISTOL BAY BOROUGH",
+   "fy_end": "2016-06-30",
+   "ein": "920029832",
+   "uei": "GSA_MIGRATION"
+  },
+  "2017": {
+   "report_id": "2017-06-CENSUS-0000129809",
+   "name": "BRISTOL BAY BOROUGH",
+   "fy_end": "2017-06-30",
+   "ein": "920029832",
+   "uei": "GSA_MIGRATION"
+  },
+  "2018": {
+   "report_id": "2018-06-CENSUS-0000129809",
+   "name": "BRISTOL BAY BOROUGH",
+   "fy_end": "2018-06-30",
+   "ein": "920029832",
+   "uei": "GSA_MIGRATION"
+  },
+  "2019": {
+   "report_id": "2019-06-CENSUS-0000129809",
+   "name": "BRISTOL BAY BOROUGH, ALASKA",
+   "fy_end": "2019-06-30",
+   "ein": "920029832",
+   "uei": "GSA_MIGRATION"
+  },
+  "2020": {
+   "report_id": "2020-06-CENSUS-0000129809",
+   "name": "BRISTOL BAY BOROUGH, ALASKA",
+   "fy_end": "2020-06-30",
+   "ein": "920029832",
+   "uei": "GSA_MIGRATION"
+  },
+  "2021": {
+   "report_id": "2021-06-GSAFAC-0000005059",
+   "name": "Bristol Bay Borough, Alaska",
+   "fy_end": "2021-06-30",
+   "ein": "920029832",
+   "uei": "N7DKJNBTYGE3"
+  },
+  "2022": {
+   "report_id": "2022-06-GSAFAC-0000054527",
+   "name": "Bristol Bay Borough, Alaska",
+   "fy_end": "2022-06-30",
+   "ein": "920029832",
+   "uei": "N7DKJNBTYGE3"
+  },
+  "2023": {
+   "report_id": "2023-06-GSAFAC-0000377007",
+   "name": "Bristol Bay Borough",
+   "fy_end": "2023-06-30",
+   "ein": "920029832",
+   "uei": "N7DKJNBTYGE3"
+  },
+  "2024": {
+   "report_id": "2024-06-GSAFAC-0000398590",
+   "name": "Bristol Bay Borough",
+   "fy_end": "2024-06-30",
+   "ein": "920029832",
+   "uei": "N7DKJNBTYGE3"
+  },
+  "2025": {
+   "report_id": "2025-06-GSAFAC-0000429140",
+   "name": "BRISTOL BAY BOROUGH OF",
+   "fy_end": "2025-06-30",
+   "ein": "920029832",
+   "uei": "N7DKJNBTYGE3"
+  }
+ },
+ "haines": {
+  "2016": {
+   "report_id": "2016-06-CENSUS-0000198111",
+   "name": "HAINES BOROUGH",
+   "fy_end": "2016-06-30",
+   "ein": "470888706",
+   "uei": "GSA_MIGRATION"
+  },
+  "2018": {
+   "report_id": "2018-06-CENSUS-0000198111",
+   "name": "HAINES BOROUGH",
+   "fy_end": "2018-06-30",
+   "ein": "470888706",
+   "uei": "GSA_MIGRATION"
+  },
+  "2019": {
+   "report_id": "2019-06-CENSUS-0000198111",
+   "name": "HAINES BOROUGH",
+   "fy_end": "2019-06-30",
+   "ein": "470888706",
+   "uei": "GSA_MIGRATION"
+  },
+  "2020": {
+   "report_id": "2020-06-CENSUS-0000198111",
+   "name": "HAINES BOROUGH",
+   "fy_end": "2020-06-30",
+   "ein": "470888706",
+   "uei": "GSA_MIGRATION"
+  },
+  "2021": {
+   "report_id": "2021-06-CENSUS-0000198111",
+   "name": "HAINES BOROUGH",
+   "fy_end": "2021-06-30",
+   "ein": "470888706",
+   "uei": "GSA_MIGRATION"
+  },
+  "2022": {
+   "report_id": "2022-06-CENSUS-0000198111",
+   "name": "HAINES BOROUGH",
+   "fy_end": "2022-06-30",
+   "ein": "470888706",
+   "uei": "E9E5AVP1J6R1"
+  },
+  "2023": {
+   "report_id": "2023-06-GSAFAC-0000012318",
+   "name": "Haines Borough",
+   "fy_end": "2023-06-30",
+   "ein": "470888706",
+   "uei": "E9E5AVP1J6R1"
+  },
+  "2024": {
+   "report_id": "2024-06-GSAFAC-0000350327",
+   "name": "Haines Borough",
+   "fy_end": "2024-06-30",
+   "ein": "470888706",
+   "uei": "E9E5AVP1J6R1"
+  },
+  "2025": {
+   "report_id": "2025-06-GSAFAC-0000395488",
+   "name": "Haines Borough",
+   "fy_end": "2025-06-30",
+   "ein": "470888706",
+   "uei": "E9E5AVP1J6R1"
+  }
+ },
+ "yakutat": {
+  "2018": {
+   "report_id": "2018-06-CENSUS-0000182599",
+   "name": "CITY AND BOROUGH OF YAKUTAT, ALASKA",
+   "fy_end": "2018-06-30",
+   "ein": "926001319",
+   "uei": "GSA_MIGRATION"
+  },
+  "2020": {
+   "report_id": "2020-06-CENSUS-0000182599",
+   "name": "CITY AND BOROUGH OF YAKUTAT, ALASKA",
+   "fy_end": "2020-06-30",
+   "ein": "926001319",
+   "uei": "GSA_MIGRATION"
+  },
+  "2021": {
+   "report_id": "2021-06-CENSUS-0000182599",
+   "name": "CITY AND BOROUGH OF YAKUTAT, ALASKA",
+   "fy_end": "2021-06-30",
+   "ein": "926001319",
+   "uei": "GSA_MIGRATION"
+  },
+  "2023": {
+   "report_id": "2023-06-GSAFAC-0000027025",
+   "name": "City and Borough of Yakutat, Alaska",
+   "fy_end": "2023-06-30",
+   "ein": "926001319",
+   "uei": "C2UMLFJ9XP25"
+  },
+  "2024": {
+   "report_id": "2024-06-GSAFAC-0000348902",
+   "name": "City and Borough of Yakutat, Alaska",
+   "fy_end": "2024-06-30",
+   "ein": "926001319",
+   "uei": "C2UMLFJ9XP25"
+  },
+  "2025": {
+   "report_id": "2025-06-GSAFAC-0000391376",
+   "name": "City and Borough of Yakutat",
+   "fy_end": "2025-06-30",
+   "ein": "926001319",
+   "uei": "C2UMLFJ9XP25"
+  }
+ },
+ "lakepen": {
+  "2016": {
+   "report_id": "2016-06-CENSUS-0000215669",
+   "name": "LAKE AND PENINSULA BOROUGH",
+   "fy_end": "2016-06-30",
+   "ein": "920128922",
+   "uei": "GSA_MIGRATION"
+  },
+  "2017": {
+   "report_id": "2017-06-CENSUS-0000215669",
+   "name": "LAKE AND PENINSULA BOROUGH",
+   "fy_end": "2017-06-30",
+   "ein": "920128922",
+   "uei": "GSA_MIGRATION"
+  },
+  "2021": {
+   "report_id": "2021-06-CENSUS-0000215669",
+   "name": "LAKE AND PENINSULA BOROUGH",
+   "fy_end": "2021-06-30",
+   "ein": "920128922",
+   "uei": "GSA_MIGRATION"
+  },
+  "2022": {
+   "report_id": "2022-06-CENSUS-0000215669",
+   "name": "LAKE AND PENINSULA BOROUGH",
+   "fy_end": "2022-06-30",
+   "ein": "920128922",
+   "uei": "C5PJP3YDHSE5"
+  },
+  "2023": {
+   "report_id": "2023-06-GSAFAC-0000018280",
+   "name": "LAKE AND PENINSULA BOROUGH",
+   "fy_end": "2023-06-30",
+   "ein": "920128922",
+   "uei": "C5PJP3YDHSE5"
+  }
  }
 }

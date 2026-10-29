@@ -630,7 +630,7 @@ export const FUND_SCOPE_REGISTRY = [
     // of Wrangell, Aleutians East). Same statement, same column, same route,
     // and each one carries its OWN oracle probe below — enumerated, never
     // widened to a bare pattern.
-    match: /^(Municipality of Anchorage|Matanuska-Susitna Borough|Fairbanks North Star Borough|Kenai Peninsula Borough|City and Borough of Juneau|Ketchikan Gateway Borough|Kodiak Island Borough|North Slope Borough|Northwest Arctic Borough|Petersburg Borough|City and Borough of Sitka|City and Borough of Wrangell|Aleutians East Borough) ACFR — General Fund /,
+    match: /^(Municipality of Anchorage|Matanuska-Susitna Borough|Fairbanks North Star Borough|Kenai Peninsula Borough|City and Borough of Juneau|Ketchikan Gateway Borough|Kodiak Island Borough|North Slope Borough|Northwest Arctic Borough|Petersburg Borough|City and Borough of Sitka|City and Borough of Wrangell|Aleutians East Borough|Bristol Bay Borough|Haines Borough|City and Borough of Yakutat|Lake and Peninsula Borough) ACFR — General Fund /,
     scope: SCOPE.GENERAL_FUND,
     evidence: {
       document: 'THREE probes spanning the series, each the governmental-funds Statement of '
@@ -737,7 +737,35 @@ export const FUND_SCOPE_REGISTRY = [
              + '(scripts/lib/akBoroughSources.mjs). '
              + '⚠ Aleutians East FY2024 prints a NEGATIVE Bond Construction expenditure column '
              + '(-384,660); the columns still sum exactly. That is the issuer\'s own figure, '
-             + 'in a fund outside the General Fund, and it does not touch the stored row.',
+             + 'in a fund outside the General Fund, and it does not touch the stored row. '
+             + '── WAVE 2 (added 2026-10-29) — Bristol Bay, Haines, Yakutat and Lake and '
+             + 'Peninsula, same method, same oracle, every entity probed and every probe '
+             + 'matching the stored figures EXACTLY: Bristol Bay FY2023 (p.17) General Fund '
+             + '17,885,914 / 13,672,716; Haines FY2024 (p.9) 8,139,400 / 7,777,729, plus '
+             + 'FY2020 (p.8) 5,988,296 / 6,331,665 and FY2016 (p.8) 5,939,480 / 5,849,825; '
+             + 'City and Borough of Yakutat FY2024 (p.15) 3,752,753 / 3,259,533 and FY2020 '
+             + '(p.15) 3,154,657 / 2,545,539; Lake and Peninsula FY2023 (p.12) 5,864,478 / '
+             + '1,775,148. The printed FUND columns sum EXACTLY to the printed Total column on '
+             + 'both sides of every one. '
+             + '⚠⚠ HAINES COULD NOT BE PROBED AT ALL UNTIL THE ORACLE WAS FIXED. It titles its '
+             + 'primary statement in the PLURAL — "STATEMENTS OF REVENUES, EXPENDITURES, AND '
+             + 'CHANGES IN FUND BALANCES" — which neither scripts/acfrPrintedTotal.py nor the '
+             + 'loader-side reader recognised. The oracle now accepts `Statements?` (measured: '
+             + 'every document cited in this registry resolves to the IDENTICAL page and '
+             + 'figures), while the loader keeps the singular literal and Haines is pinned '
+             + 'there by its own `statement_anchor` — a per-entity fact, not a widened guard. '
+             + 'total_governmental rejected across the widest spread in the family yet: the '
+             + 'General Fund is 43.4%/46.6% of total governmental at Haines (18,768,002 / '
+             + '16,693,991), 63.7%/54.6% at Lake and Peninsula (9,203,818 / 3,250,866), '
+             + '78.4%/77.9% at Yakutat (4,785,267 / 4,183,804) and 89.9%/83.8% at Bristol Bay '
+             + '(19,887,598 / 16,307,117). Across all three waves the share runs 21% to 90%, '
+             + 'so a reading that had taken the total column would be wrong by 1.1x to 4.7x '
+             + 'depending on the borough — never by a margin mistakable for rounding. '
+             + '⚠ LAKE AND PENINSULA SPENDS A THIRD OF WHAT ITS GENERAL FUND RECEIVES '
+             + '(1,775,148 against 5,864,478 in FY2023) because it transfers out to its school '
+             + 'district and capital funds. Real, and visible in the printed Other Financing '
+             + 'Uses block — not a sign the wrong column was read; the oracle reproduces both '
+             + 'figures independently.',
     },
   },
   {

@@ -122,7 +122,24 @@ export const EXPECTED_ROWS = Object.freeze({
   // LAYER that extracts ~1,900 chars/page of wrong characters, so the fetcher's
   // image-scan density guard passes it and its AUDITEE-IDENTITY guard is what
   // rejected it. Declared in scripts/extractAkBorough.py. Not $0.
-  'ak-local-acfr-gf': 253,
+  //
+  // ⭐⭐ WAVE 2 (2026-10-29) adds 56 = 28 entity-years x 2 datasets, COMPLETING
+  // ALASKA'S COUNTY-EQUIVALENT LAYER — all 19 organized boroughs plus Anchorage:
+  //   Bristol Bay Borough          FY2016-2025 less FY2024   9 yrs x 2 =  18
+  //   Haines Borough               FY2016-2025 less FY2017   9 yrs x 2 =  18
+  //   City and Borough of Yakutat  FY2020/21/23/24/25        5 yrs x 2 =  10
+  //   Lake and Peninsula Borough   FY2016/17/21/22/23        5 yrs x 2 =  10
+  //                                                            ----
+  //                                                     253 + 56 = 309
+  // ⚠⚠ TWO MORE CIPHERED TEXT LAYERS — Bristol Bay FY2024 and Yakutat FY2018,
+  // the same defect as Sitka FY2018: ~1,700 chars/page of WRONG characters, so
+  // the density guard passes and the auditee-identity guard is what rejects.
+  // Declared, never $0.
+  // ⚠ The other absent years are NOT gaps. FAC holds no filing for Haines
+  // FY2017, Yakutat FY2016/17/19/22, or Lake and Peninsula FY2018/19/20/24/25.
+  // ⏭ Alaska's CITY layer is a different question and is NOT in this count:
+  // ~145 cities exist and FAC covers ~43 of them, with ragged year ranges.
+  'ak-local-acfr-gf': 309,
   // Knight session 7b — KANSAS'S FIRST LOCAL ENTITIES. A NEW family, so no
   // pre-existing count moved. 84 = 42 entity-years x 2 datasets: City of
   // Wichita FY2000-FY2025 less FY2001 and FY2008 (24 years) and Sedgwick County
