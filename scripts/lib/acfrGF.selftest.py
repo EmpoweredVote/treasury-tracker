@@ -38,6 +38,10 @@ import extractDuvall              # noqa: E402
 # non-vacuous: if the refusal is ever widened, these two fail at import.
 import extractAberdeenSD          # noqa: E402
 import extractBrownCountySD       # noqa: E402
+# ⚠ Hawaii's four counties. Imported for TestShippedHiCountyConfigs at the
+# bottom: Honolulu prints IN THOUSANDS and the three counties do not, which is
+# the one error class a green tie cannot see.
+import extractHiCounty            # noqa: E402
 
 # Transcribed from King County FY2020-era GF statement (values thousands-scale
 # in the real document; kept as bare ints here since these tests exercise
@@ -3423,6 +3427,116 @@ class TestUnderlineRuleStripping(unittest.TestCase):
         opted = CityConfig(city='New York City', parents=('debt service',),
                            underscore_rules=True)
         self.assertTrue(opted.underscore_rules)
+
+
+MAUI_EXP_LINES = [
+    "EXPENDITURES:",
+    "Current:",
+    "General government            32,662,466",
+    "Public safety                  6,470,074",
+    "Capital outlay                   457,058",
+    "Social welfare                23,403,542",
+    "Sanitation                       590,290",
+    "Legislative                    6,940,511",
+    "Debt Service:",
+    "Principal                      9,223,458",
+    "Interest                         531,534",
+    "Total Expenditures            80,278,933",
+]
+MAUI_EXP_ANCHOR = "Total Expenditures            80,278,933"
+
+
+class TestRootLeafNeedNotClose(unittest.TestCase):
+    """WRONG TREE THAT TIES AT $0 — Maui FY2020, FY2021 and FY2022.
+
+    Maui prints "Current:", "Capital outlay" and "Debt Service:" all at the
+    SAME x0 (79.6 on FY2020 p50), with only the COLON marking a heading. In
+    seven of its ten years "Capital outlay" follows the last current function;
+    in FY2020-FY2022 the issuer prints it in the MIDDLE of them. Verified
+    against true glyph coordinates, not pdftotext row order: on FY2020
+    "Capital" sits at y=260.0, between "Public safety" (251.7) and
+    "Social welfare" (268.4). It is the document, not the reader.
+
+    A root leaf closes the open parent, so the five functions printed AFTER it
+    escaped "Current" and became root categories. Every figure stayed correct
+    and the statement tied at exactly $0 — the Boulder defect, which is why
+    the module keeps saying a tie proves the READ and never the SHAPE.
+    """
+
+    @staticmethod
+    def _cfg(**kw):
+        return CityConfig(city="County of Maui, HI", parents=("current", "debt service"),
+                          root_leaves=("capital outlay",), column_strategy="ordinal", **kw)
+
+    def test_by_default_a_root_leaf_closes_the_parent(self):
+        tree, _, _ = build_operating(MAUI_EXP_LINES, anchors(MAUI_EXP_ANCHOR), self._cfg())
+        self.assertEqual([c["n"] for c in tree["c"]],
+                         ["Current", "Capital outlay", "Social welfare",
+                          "Sanitation", "Legislative", "Debt Service"])
+
+    def test_opted_out_the_functions_stay_inside_current(self):
+        tree, _, _ = build_operating(MAUI_EXP_LINES, anchors(MAUI_EXP_ANCHOR),
+                                     self._cfg(root_leaf_closes_parent=False))
+        self.assertEqual([c["n"] for c in tree["c"]],
+                         ["Current", "Capital outlay", "Debt Service"])
+        current = tree["c"][0]
+        self.assertEqual([c["n"] for c in current["c"]],
+                         ["General government", "Public safety", "Social welfare",
+                          "Sanitation", "Legislative"])
+
+    def test_a_later_parent_still_closes_the_earlier_one(self):
+        #  must still close , or Principal and
+        # Interest would land inside it.
+        tree, _, _ = build_operating(MAUI_EXP_LINES, anchors(MAUI_EXP_ANCHOR),
+                                     self._cfg(root_leaf_closes_parent=False))
+        debt = tree["c"][-1]
+        self.assertEqual(debt["n"], "Debt Service")
+        self.assertEqual([c["n"] for c in debt["c"]], ["Principal", "Interest"])
+
+    def test_the_total_is_unchanged_by_the_reparenting(self):
+        a, ta, _ = build_operating(MAUI_EXP_LINES, anchors(MAUI_EXP_ANCHOR), self._cfg())
+        b, tb, _ = build_operating(MAUI_EXP_LINES, anchors(MAUI_EXP_ANCHOR),
+                                   self._cfg(root_leaf_closes_parent=False))
+        self.assertEqual(ta, tb)
+
+
+class TestShippedHiCountyConfigs(unittest.TestCase):
+    # ⚠⚠⚠ HONOLULU PRINTS "( Amounts in thousands )". Its General Fund revenue
+    # reads 2,088,725 on the page and is $2.09 BILLION. Nothing else in this
+    # repo can catch a wrong multiplier: the tie gate is unit-invariant,
+    # because computed and printed are BOTH scaled by cfg.units, so a 1000x
+    # error ships behind a green $0 tie. Only the loader's per-capita ceiling
+    # and this assertion stand in the way.
+    #
+    # ⚠ The three COUNTY documents are a separate question from Honolulu's and
+    # from each other -- Boulder city prints thousands while Boulder COUNTY,
+    # twenty miles away, prints whole dollars. Each value below was read off
+    # that county's own caption block, never carried from a sibling.
+    def test_honolulu_has_no_table_config_at_all(self):
+        # ⚠⚠⚠ HONOLULU IS READ BY THE COORDINATE EXTRACTOR. A `honolulu` entry
+        # here was DEAD — processHiCounties.js routes Honolulu elsewhere — yet
+        # `--entity honolulu` stayed a supported invocation returning a
+        # silently empty tree, and this class asserted units=1000 against it.
+        # That made the pin for the ONE entity printing IN THOUSANDS guard an
+        # object production never touched. The live pin is
+        # TestShippedHonoluluCoordsConfig in acfrGfCoords.selftest.py.
+        self.assertNotIn('honolulu', extractHiCounty.CONFIGS)
+
+    def test_the_three_counties_units_are_read_per_entity(self):
+        for key, expected in (('hawaii', 1), ('maui', 1), ('kauai', 1)):
+            self.assertEqual(extractHiCounty.CONFIGS[key].units, expected,
+                             '%s: units must come from its own caption block' % key)
+
+    def test_every_hawaii_county_closes_june_30(self):
+        # Confirmed by fy_end_date on all 38 FAC filings. Unlike the Alaska
+        # family, which carried two calendars in one registry family.
+        for key, cfg in extractHiCounty.CONFIGS.items():
+            self.assertEqual(cfg.fy_end, ('June', 30), key)
+
+    def test_exactly_the_four_governments_have_configs(self):
+        # Kalawao has no government; the Department of Water is a component
+        # unit. Neither may acquire a config by drift.
+        self.assertEqual(sorted(extractHiCounty.CONFIGS), ['hawaii', 'kauai', 'maui'])
 
 
 if __name__ == '__main__':

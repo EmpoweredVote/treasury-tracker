@@ -242,7 +242,8 @@ class CoordsConfig:
 
     def __init__(self, city, units=1, weld=None, exclude_ignore=(), title_anchor=None,
                  indent_tol=None, label_fixes=None, collapse_children=(),
-                 row_gap=None, left_margin=None, ocr_leading_one=False):
+                 row_gap=None, left_margin=None, ocr_leading_one=False,
+                 split_leader_dots=False, x_tolerance=None, split_fused_money=False):
         if not isinstance(units, int) or isinstance(units, bool):
             raise TypeError(
                 'CoordsConfig.units must be an int, got %r (%s). A float would '
@@ -268,6 +269,9 @@ class CoordsConfig:
                              % (left_margin,))
         self.left_margin = None if left_margin is None else float(left_margin)
         self.ocr_leading_one = bool(ocr_leading_one)
+        self.split_leader_dots = bool(split_leader_dots)
+        self.x_tolerance = x_tolerance
+        self.split_fused_money = bool(split_fused_money)
         for observed, corrected in self.label_fixes.items():
             if not observed or not corrected:
                 raise ValueError('CoordsConfig.label_fixes entries must both be non-empty, '
@@ -505,7 +509,10 @@ def run_cli(cfg):
             print('  ERROR: primary GF statement not found in %s' % args.pdf_path, file=sys.stderr)
             sys.exit(3)
         rows_all = lines_of(page, gap=cfg.row_gap, left_margin=cfg.left_margin,
-                            ocr_leading_one=cfg.ocr_leading_one)
+                            ocr_leading_one=cfg.ocr_leading_one,
+                            split_leader_dots=cfg.split_leader_dots,
+                            x_tolerance=cfg.x_tolerance,
+                            split_fused_money=cfg.split_fused_money)
         alignment, edge = establish_column(rows_all)
         if alignment is None:
             print('  ERROR: General Fund column not established: %s' % edge, file=sys.stderr)

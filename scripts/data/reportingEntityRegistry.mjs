@@ -17,6 +17,31 @@ import { REPORTING_ENTITY } from '../lib/budgetAxes.mjs';
 /** @type {import('../lib/budgetAxes.mjs').AxisEntry[]} */
 export const REPORTING_ENTITY_REGISTRY = [
   {
+    id: 'hi-local-acfr-gf',
+    // ⚠ Byte-identical to this id's pattern in fundScopeRegistry.mjs and
+    // basisRegistry.mjs.
+    match: /^(Honolulu|Hawaii County|Maui County|Kauai County) ACFR — General Fund /,
+    value: REPORTING_ENTITY.PRIMARY,
+    evidence: {
+      document: 'The Reporting Entity note (Note 1, variously headed "REPORTING ENTITY" or '
+              + '"THE REPORTING ENTITY AND ITS SERVICES") of one filing per county: '
+              + 'honolulu-2025, maui-2024, hawaii-2024 and kauai-2024. Read 2026-10-29 — the '
+              + 'same read that confirmed the entity typing before seeding.',
+      figures: 'Each note names the primary government and lists its component units '
+             + 'separately. Honolulu: "The ACFR presents the financial status of the City (the '
+             + 'primary government) and its discretely presented component units, the Board of '
+             + 'Water Supply (BWS) and Oahu Transit Services, Inc. (OTS)", reported "in a '
+             + 'single column in the government-wide financial statements to emphasize their '
+             + 'legal separation from the primary government". Kaua\'i names its Board of Water '
+             + 'Supply as a component unit — the same body that files its own Single Audit '
+             + 'under EIN 472810526, which this family deliberately excludes. '
+             + 'Under GASB 34 a discretely presented component unit appears only in the '
+             + 'GOVERNMENT-WIDE statements, in its own column, so it cannot be inside the '
+             + 'stored figure, which is the General Fund column of the FUND statements. '
+             + 'The stored figure is therefore the primary government\'s own General Fund.',
+    },
+  },
+  {
     id: 'mn-osa',
     match: /^Minnesota Office of the State Auditor/,
     value: REPORTING_ENTITY.INCL_COMPONENT_UNITS,
