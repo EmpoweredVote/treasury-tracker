@@ -18,6 +18,36 @@ import { BASIS } from '../lib/budgetAxes.mjs';
 /** @type {import('../lib/budgetAxes.mjs').AxisEntry[]} */
 export const BASIS_REGISTRY = [
   {
+    id: 'hi-local-acfr-gf',
+    // ⚠ Byte-identical to this id's pattern in fundScopeRegistry.mjs and
+    // reportingEntityRegistry.mjs. Anchored so it cannot claim the HI STATE
+    // node (`Hawaii State ACFR — ...`), which belongs to state-acfr-gf.
+    match: /^(Honolulu|Hawaii County|Maui County|Kauai County) ACFR — General Fund /,
+    value: BASIS.ACTUAL,
+    evidence: {
+      document: 'All 36 filings the loader read — docs/HiCounties/{honolulu,hawaii,maui,kauai}'
+              + '/*-20??-acfr.pdf, FY2016-FY2025. Each is an audited annual comprehensive '
+              + 'financial report on a CLOSED fiscal year, filed with the Federal Audit '
+              + 'Clearinghouse under federal penalty. Read 2026-10-29.',
+      figures: 'scripts/verifyCoKsOpinions.py over all 36: 35 carry an unmodified independent '
+             + 'auditor\'s opinion found in the TEXT layer, 0 needed OCR, 1 NOT FOUND '
+             + '(hawaii-2017, whose text layer is degraded OCR and which is NOT LOADED — see '
+             + 'the GAPS table in scripts/processHiCounties.js). The opinion paragraph pairs '
+             + '"present fairly, in all material respects" with a GAAP conformity phrase; '
+             + 'Honolulu FY2024 reads "...in accordance with accounting principles generally '
+             + 'accepted in the United States of America". '
+             + '⚠ Eight Honolulu filings contain modified-opinion WORDS and were reviewed '
+             + 'rather than auto-downgraded: in FY2024 they occur only at "Qualified Opinion '
+             + 'on Emergency Solutions Grant Program" in the SINGLE AUDIT compliance report, '
+             + 'which is a federal-programme opinion and not an opinion on the basic financial '
+             + 'statements. '
+             + 'Every figure is a closed-year result, not a budget: the loader reads the ACTUAL '
+             + 'column of the governmental-funds statement, and each county also prints a '
+             + 'separate "Budget and Actual (Non-GAAP Budgetary Basis)" schedule that '
+             + 'acfrGF._EXCLUDE keeps off the statement search.',
+    },
+  },
+  {
     id: 'ny-osc-school',
     // ⚠ A SEPARATE publisher stream from `ny-osc-city` below, and the two
     // patterns are anchored at both ends so neither can claim the other's

@@ -721,6 +721,14 @@ def main():
     ap.add_argument('--column', choices=('general_fund', 'total_governmental'),
                     default='general_fund',
                     help='which printed fund column to report (default: general_fund)')
+    # Honolulu sets its statement with DOT LEADERS that touch the digits, so
+    # the General Fund figure is not a free word on the printed total rows and
+    # this oracle reports 'printed total row not located'. Same opt-in knob the
+    # coordinate reader uses; it changes only WORD SEGMENTATION, so the value
+    # and its column still come from the PDF's own glyph coordinates and the
+    # read stays independent of the loader's tree builder.
+    ap.add_argument('--split-leader-dots', action='store_true')
+    ap.add_argument('--x-tolerance', type=float, default=None)
     args = ap.parse_args()
 
     with pdfplumber.open(args.pdf_path) as pdf:
@@ -733,7 +741,8 @@ def main():
         if page is None:
             print(json.dumps({'error': 'primary GF statement page not found'}))
             sys.exit(3)
-        rows = lines_of(page)
+        rows = lines_of(page, split_leader_dots=args.split_leader_dots,
+                        x_tolerance=args.x_tolerance)
         rev_re = re.compile(r'^(?:Total|Net)\s+(operating\s+)?revenues\b', re.I)
         exp_re = re.compile(r'^Total\s+expenditures\b', re.I)
         rev_cells, rev_row = money_cells(rows, rev_re)

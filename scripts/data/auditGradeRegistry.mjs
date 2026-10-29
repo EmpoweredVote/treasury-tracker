@@ -156,6 +156,49 @@ const NYC_ACFR_EVIDENCE = {
 
 export const AUDIT_GRADE_REGISTRY = [
   {
+    id: 'hi-local-acfr-gf',
+    // ⚠⚠ YEARS ENUMERATED, NOT A RANGE, for the reason recorded on
+    // ak-local-acfr-gf and tx-local-acfr-gf: a range would auto-grade a newly
+    // published year the moment it loaded, off an opinion nobody had opened.
+    // ⚠ Hawaii County lists ONLY the five fiscal years whose opinions were
+    // read AND whose statements are extractable. FY2017 is excluded because
+    // scripts/verifyCoKsOpinions.py reports NOT FOUND on it — its text layer is
+    // degraded OCR — and FY2018/FY2020/FY2023 are document gaps. None of them
+    // is loaded, and if one were recovered later it would stay `unknown` until
+    // its own opinion is read, which is the correct failure direction.
+    match: /^(?:(?:Honolulu|Maui County) ACFR — General Fund (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[6-9]|2[0-5]) actual, GAAP basis\)|Kauai County ACFR — General Fund (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[6-9]|2[0-4]) actual, GAAP basis\)|Hawaii County ACFR — General Fund (?:Expenditure by Function|Revenue by Source) \(FY(?:2016|2019|2021|2022|2024) actual, GAAP basis\))$/,
+    value: AUDIT_GRADE.AUDITED_GAAP,
+    evidence: {
+      document: 'All 36 Hawaii county filings in the repo, read 2026-10-29 — '
+              + 'docs/HiCounties/{honolulu,hawaii,maui,kauai}/*-20??-acfr.pdf. Each was '
+              + 'fetched to the path its manifest records, and the manifest\'s `url` is the '
+              + '`source_url` stored on the rows this entry grades, so the document attested '
+              + 'here is the one the reader is offered.',
+      figures: 'OPINION PRESENT — scripts/verifyCoKsOpinions.py over all 36: 35 found in the '
+             + 'TEXT layer, 0 recovered by OCR, 1 NOT FOUND (hawaii-2017, degraded OCR text '
+             + 'layer, not loaded and not graded here). The script identifies the PRIMARY '
+             + 'opinion positively — "present fairly, in all material respects" paired with a '
+             + 'GAAP conformity phrase — rather than taking the first "in our opinion", which '
+             + 'in these reports is the in-relation-to paragraph about supplementary '
+             + 'information. '
+             + '⚠⚠ EIGHT HONOLULU FILINGS CONTAIN MODIFIED-OPINION WORDS AND WERE REVIEWED BY '
+             + 'EYE RATHER THAN AUTO-DOWNGRADED (FY2016-FY2021, FY2023, FY2024). In FY2024 the '
+             + 'only occurrences are "Qualified Opinion on Emergency Solutions Grant Program" '
+             + 'and "Matters Giving Rise to Qualified Opinion on Emergency Solutions Grant '
+             + 'Program", both inside the SINGLE AUDIT compliance report — an opinion on a '
+             + 'federal programme, not on the basic financial statements. Honolulu\'s own '
+             + 'opinion paragraph reads "In our opinion, based on our audit and the report of '
+             + 'other auditors, the financial statements referred to above present fairly, in '
+             + 'all material respects ... in accordance with accounting principles generally '
+             + 'accepted in the United States of America". '
+             + '⚠ The gate has known blind spots this cohort was checked against: an INVERTED '
+             + 'GAAP phrase (all 10 North Slope filings in ak-local-acfr-gf), "In MY opinion" '
+             + 'from a sole practitioner (8 Haines), and a PLURAL statement title that hid all '
+             + '18 Haines reads. Honolulu, Maui, Kaua\'i and Hawaii County all use the '
+             + 'conventional singular wording and a plural-safe title.',
+    },
+  },
+  {
     id: 'ny-osc-school',
     // ⚠ NOT `ny-osc-city` below and NOT `nyc-acfr`. Three distinct New York
     // streams: this one is the 717 SCHOOL DISTRICTS' own unaudited AFR filing,

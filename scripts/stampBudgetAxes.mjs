@@ -459,7 +459,17 @@ export const EXPECTED_BASIS_ROWS = Object.freeze({
   // ⚠ 0 of the 139 carry a fiscal year after FY2025, so the unclosed-year rule
   // has nothing to catch here. Worth stating: two fiscal calendars in one
   // family is exactly the setting where it would.
-  'ak-local-acfr-gf': 139,
+  // ⚠ 139 -> 309 on 2026-10-29. NOT a pattern change: Alaska's wave 1 and wave 2
+  // loads (#309, #310) added 170 rows and updated fundScopeExpectations.mjs
+  // without updating THIS file, so the number here had been stale since. The
+  // live count is 309 and matches scripts/data/fundScopeExpectations.mjs.
+  'ak-local-acfr-gf': 309,
+  // Hawaii's whole local layer — four counties, the state has no
+  // municipalities at all. 67 = Honolulu 20 + Maui 20 + Kaua'i 18 + Hawaii
+  // County 9. Hawaii County is 9 and not 18 because five of its FY-modes are
+  // DOCUMENT GAPS (image-only scans and degraded OCR text layers), each
+  // declared with its measured cause in scripts/processHiCounties.js.
+  'hi-local-acfr-gf': 67,
   // Knight session 7a (Michigan Treasury F-65), measured from the ACTUAL
   // post-write count on 2026-08-30. A NEW family, so no pre-existing count
   // moved. 128 = 32 entity-years x 2 dataset types x 2 FUND SCOPES — Detroit and
@@ -709,7 +719,17 @@ export const EXPECTED_REPORTING_ENTITY_ROWS = Object.freeze({
   // ⚠ Anchorage's General Fund carries Education at 263,714,389 in FY2024 and
   // still belongs here: that is the MUNICIPALITY'S APPROPRIATION to a school
   // district it does not consolidate, not the district's own books.
-  'ak-local-acfr-gf': 139,
+  // ⚠ 139 -> 309 on 2026-10-29. NOT a pattern change: Alaska's wave 1 and wave 2
+  // loads (#309, #310) added 170 rows and updated fundScopeExpectations.mjs
+  // without updating THIS file, so the number here had been stale since. The
+  // live count is 309 and matches scripts/data/fundScopeExpectations.mjs.
+  'ak-local-acfr-gf': 309,
+  // Hawaii's whole local layer — four counties, the state has no
+  // municipalities at all. 67 = Honolulu 20 + Maui 20 + Kaua'i 18 + Hawaii
+  // County 9. Hawaii County is 9 and not 18 because five of its FY-modes are
+  // DOCUMENT GAPS (image-only scans and degraded OCR text layers), each
+  // declared with its measured cause in scripts/processHiCounties.js.
+  'hi-local-acfr-gf': 67,
   // The sixteen entity-published city/state ACFR families.
   // Evidence: ACFR-GF-CLASSIFICATION-RECON.md §3.
   'or-city-acfr-gf': 106,

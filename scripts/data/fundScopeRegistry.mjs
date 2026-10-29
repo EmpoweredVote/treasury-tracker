@@ -37,6 +37,57 @@ import { SCOPE } from '../lib/fundScope.mjs';
 /** @type {import('../lib/fundScope.mjs').RegistryEntry[]} */
 export const FUND_SCOPE_REGISTRY = [
   {
+    // ⚠⚠ A NEW FAMILY LANDS `unknown` UNTIL IT IS REGISTERED HERE, and the
+    // loader stamps what this registry says. Hawaii's 67 rows loaded reading
+    // `unknown` on all three axes for exactly that reason — the same omission
+    // `basisRegistry.mjs` records for `ak-local-acfr-gf`, second occurrence.
+    // Found by verifying the loaded rows, not by any gate.
+    id: 'hi-local-acfr-gf',
+    // ⚠ ENUMERATED, never a bare `ACFR — General Fund` pattern, and anchored at
+    // `^` so it cannot claim the HI STATE node, whose label reads
+    // `Hawaii State ACFR — General Fund (...)` and which belongs to
+    // `state-acfr-gf`. `Hawaii County` and `Hawaii` differ by one word.
+    // ⚠ Byte-identical to this id's pattern in basisRegistry.mjs and
+    // reportingEntityRegistry.mjs, so the three cannot disagree about who is in
+    // the family.
+    match: /^(Honolulu|Hawaii County|Maui County|Kauai County) ACFR — General Fund /,
+    scope: SCOPE.GENERAL_FUND,
+    evidence: {
+      document: 'One probe per county, each the governmental-funds Statement of Revenues, '
+              + 'Expenditures and Changes in Fund Balances the loader itself read: '
+              + 'docs/HiCounties/honolulu/honolulu-2025-acfr.pdf p.69, '
+              + 'docs/HiCounties/maui/maui-2024-acfr.pdf p.52, '
+              + 'docs/HiCounties/kauai/kauai-2024-acfr.pdf p.47 and '
+              + 'docs/HiCounties/hawaii/hawaii-2024-acfr.pdf. These filings ARE the source, so '
+              + 'this is not a second reporter — it establishes WHICH COLUMN of the statement '
+              + 'the stored figure is, which is the question that decides scope. Same method as '
+              + 'ak-local-acfr-gf and tx-local-acfr-gf. Read 2026-10-29.',
+      figures: 'Read by scripts/acfrPrintedTotal.py, which takes only the printed TOTAL cell '
+             + 'from pdfplumber glyph coordinates and shares no tree-building code with the '
+             + 'loader. Every General Fund figure below matches the stored row EXACTLY. '
+             + '⚠⚠ UNITS ARE PER ENTITY: Honolulu prints "( Amounts in thousands )" and the '
+             + 'other three print WHOLE DOLLARS, which is why each was read with its own '
+             + '--units. All four documents mention "thousands" somewhere, but in the '
+             + 'STATISTICAL section (Kaua\'i: "LAST TEN FISCAL YEARS (VALUED IN THOUSANDS - '
+             + 'UNAUDITED)"), not on the statement. '
+             + 'Honolulu FY2025 — General Fund 2,088,725,000 revenue / 1,519,815,000 '
+             + 'expenditure; Total Governmental 2,874,684,000 / 2,624,674,000, so the stored '
+             + 'figure is 72.7% / 57.9% of total governmental. '
+             + 'Maui FY2024 — General Fund 677,916,900 / 471,831,548; Total Governmental '
+             + '931,469,671 / 846,254,433 (72.8% / 55.8%). '
+             + 'Kaua\'i FY2024 — General Fund 267,387,158 / 175,059,616; Total Governmental '
+             + '414,433,910 / 340,215,172 (64.5% / 51.5%). '
+             + 'Hawaii County FY2024 — General Fund 637,947,279 / 536,589,855; Total '
+             + 'Governmental 862,690,586 / 896,392,247 (73.9% / 59.9%). '
+             + 'Candidate scopes rejected: total_governmental is off by 27-48% on every one of '
+             + 'the four. all_funds is further still — the governmental-funds statement '
+             + 'contains no proprietary fund, and each county reports its enterprise '
+             + 'operations separately (Honolulu\'s Board of Water Supply and Oahu Transit '
+             + 'Services are DISCRETELY PRESENTED component units per its Note 1 Reporting '
+             + 'Entity, so neither is inside the stored figure).',
+    },
+  },
+  {
     id: 'ny-osc-school-general-fund',
     match: /^New York OSC School District Annual Financial Report — (Revenues|Expenditures), General Fund \(FY\d{4} actual, self-reported\)$/,
     scope: SCOPE.GENERAL_FUND,

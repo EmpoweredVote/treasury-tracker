@@ -140,6 +140,25 @@ export const EXPECTED_ROWS = Object.freeze({
   // ⏭ Alaska's CITY layer is a different question and is NOT in this count:
   // ~145 cities exist and FAC covers ~43 of them, with ragged year ranges.
   'ak-local-acfr-gf': 309,
+  // HAWAII'S WHOLE LOCAL LAYER — the state has no municipalities at all, so
+  // these four counties are all of it. 67 = Honolulu 20 (FY2016-FY2025 x 2) +
+  // Maui 20 (FY2016-FY2025 x 2) + Kaua'i 18 (FY2016-FY2024 x 2) + Hawaii
+  // County 9.
+  // ⚠ HAWAII COUNTY IS 9, NOT 18, AND EVERY ABSENCE IS A DOCUMENT GAP rather
+  // than a fetch failure — each declared with its measured cause in the GAPS
+  // table of scripts/processHiCounties.js. FY2018 and FY2023 are IMAGE-ONLY
+  // SCANS (238 and 250 chars/page against a healthy 1,779-2,208 across the
+  // other 36 filings); FY2017 and FY2020 have DEGRADED OCR TEXT LAYERS that
+  // the density guard passes (`COLTNTYOF HAWAII`, commas rendered as periods,
+  // digits as brackets) and whose digits are misread, so repairing punctuation
+  // would publish confident wrong money; FY2019 loses its REVENUE side only,
+  // where `Other` prints `2,506 ,7 91` in three fragments. None is written as
+  // $0, and the county's own site is 403 to every client so no second
+  // publisher is reachable.
+  // ⚠ Kaua'i and Hawaii County stop at FY2024 because they have NOT FILED
+  // FY2025 — confirmed live against api.fac.gov on 2026-10-29, not inferred
+  // from a stale bulk snapshot.
+  'hi-local-acfr-gf': 67,
   // Knight session 7b — KANSAS'S FIRST LOCAL ENTITIES. A NEW family, so no
   // pre-existing count moved. 84 = 42 entity-years x 2 datasets: City of
   // Wichita FY2000-FY2025 less FY2001 and FY2008 (24 years) and Sedgwick County
