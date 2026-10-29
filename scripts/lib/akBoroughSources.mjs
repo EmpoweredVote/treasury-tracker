@@ -111,7 +111,13 @@ export const FAC_ROSTER = Object.freeze(
   JSON.parse(readFileSync(path.join(ROOT, 'scripts/data/akBoroughFacRoster.json'), 'utf8')),
 );
 
-export const FAC_PDF_BASE = 'https://app.fac.gov/dissemination/report/pdf/';
+// ⚠ Moved to `facCitable.mjs` when Hawaii became the second FAC-sourced state
+// family — the expiring-link defect is the publisher's, not Alaska's, so one
+// definition serves both. Re-exported here so every existing importer of this
+// module keeps working unchanged.
+import { FAC_PDF_BASE, assertCitable } from './facCitable.mjs';
+
+export { FAC_PDF_BASE, assertCitable };
 
 export const AK_BOROUGHS = Object.freeze([
   Object.freeze({
@@ -449,26 +455,6 @@ export function documentUrlFor(key, fiscalYear) {
   return rec ? `${FAC_PDF_BASE}${rec.report_id}` : null;
 }
 
-/**
- * ⚠⚠ A `source_url` IS A LINK A READER CLICKS, SO IT MUST STILL RESOLVE.
- *
- * FAC answers `documentUrlFor()` with a 302 to a PRESIGNED S3 OBJECT carrying
- * `X-Amz-Expires=30` — thirty SECONDS. `fetchAkBoroughs.mjs` recorded that
- * redirect target (`res.url`), following this repo's usual and usually-correct
- * rule of citing the URL that actually served the bytes, and so stamped a dead
- * link onto 227 Alaska borough rows across two loads.
- *
- * Nothing else could catch it. Not one of the five load guards, the frozen
- * invariant, the tie gate or the scope sweep reads a URL; every figure was
- * right and the only broken thing was the citation. So the check lives here,
- * at the point the manifest is written.
- *
- * Repaired in place by `scripts/repairAkBoroughSourceUrls.mjs`.
- */
-export function assertCitable(url) {
-  if (/[?&]X-Amz-(Expires|Signature)=/i.test(url)) {
-    throw new Error(`source_url would be a PRESIGNED, EXPIRING link: ${String(url).slice(0, 80)}… `
-      + 'Record the requested FAC URL, not the S3 object it redirects to.');
-  }
-  return url;
-}
+// `assertCitable` lives in `facCitable.mjs` and is re-exported at the top of
+// this file. The defect it guards — FAC's 302 to a presigned S3 object with
+// `X-Amz-Expires=30` — is documented there.
