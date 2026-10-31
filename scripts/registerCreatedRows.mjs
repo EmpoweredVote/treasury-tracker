@@ -30,6 +30,13 @@
  *   node scripts/registerCreatedRows.mjs --milestone la-city-sco-fy2025 \
  *     --ids c9a78d2f-...,eacbbae4-...
  *
+ *   # --fy NARROWS --match to one or more fiscal years. This is how a FLEET-scale
+ *   # series extension is registered: --ids cannot carry 1,080 ids (~39 KB of
+ *   # argv) and the loader cannot emit them — treasury_sync_city_budget returns
+ *   # rows_inserted, never the row id.
+ *   node scripts/registerCreatedRows.mjs --milestone ca-sco-fy2025 \
+ *     --match "CA State Controller" --fy 2025
+ *
  * ⚠ It registers whatever is currently unaccounted for. Run it right after YOUR
  * load, not after someone else's — otherwise you file their rows under your name.
  * It always prints the breakdown by entity and source first so you can check that
@@ -38,6 +45,7 @@
 
 import { readFileSync, writeFileSync } from 'node:fs';
 import { getSupabase, fetchScopeRows } from './lib/scopeDb.mjs';
+import { rowKey, selectCreatedRows } from './lib/createdRowSelection.mjs';
 
 const BASELINE = 'scripts/data/scopeBaseline.json';
 
@@ -47,6 +55,55 @@ async function main() {
   const milestone = process.argv.includes('--milestone')
     ? process.argv[process.argv.indexOf('--milestone') + 1]
     : null;
+
+  // ⚠⚠ PARSED AND VALIDATED BEFORE THE DATABASE IS TOUCHED. fetchScopeRows
+  // reads every scope row and takes minutes; a typo in --fy used to fail after
+  // that wait, or not at all when the deficit was already zero.
+  const matchArgs = process.argv.reduce(
+    (acc, a, i) => (a === '--match' && process.argv[i + 1] ? [...acc, process.argv[i + 1]] : acc), [],
+  );
+  // ⚠ REPEATABLE, and the ONLY selector that can name rows EXACTLY. `--match`
+  // keys on `name, state :: data_source`, which carries NO fiscal year. That is
+  // enough for a new entity, where the entity or the source is itself new — but
+  // not for a load that EXTENDS an existing series by a year: the entity and
+  // the source are already there for every prior year, so no substring selects
+  // the new rows and nothing else. LA City's FY2025 State Controller pair was
+  // the first such load, and `--match` could not register it at any width.
+  //
+  // ⚠ This does NOT relax the reconciliation guard below: the union must still
+  // equal the deficit EXACTLY. `--ids` only lets the operator name rows
+  // precisely instead of by substring, and every id must be a real, not-yet-
+  // registered row — so a typo refuses outright rather than quietly selecting
+  // fewer rows than the operator meant.
+  const idArgs = process.argv.reduce(
+    (acc, a, i) => (a === '--ids' && process.argv[i + 1] ? [...acc, ...process.argv[i + 1].split(',')] : acc), [],
+  ).map((s) => s.trim()).filter(Boolean);
+  // ⭐⭐ REPEATABLE, and it NARROWS `--match` — it never widens anything.
+  //
+  // `--ids` could technically register a series extension, but not at fleet
+  // scale: the CA FY2025 load extends ~1,080 series at once, which is ~39 KB of
+  // argv, and `treasury_sync_city_budget` returns `rows_inserted` and never the
+  // row id, so the loader cannot produce the list in the first place. Measured
+  // on the live database 2026-10-31 — 10,425 of 10,453 `CA State Controller -
+  // Expenditures` rows are FROZEN, so the substring selects ten thousand rows
+  // against a deficit of one thousand and this tool refuses, correctly.
+  //
+  // ⚠ It filters MATCHES ONLY, never `--ids`. See scripts/lib/createdRowSelection.mjs.
+  const fyArgs = process.argv.reduce(
+    (acc, a, i) => (a === '--fy' && process.argv[i + 1] ? [...acc, ...process.argv[i + 1].split(',')] : acc), [],
+  ).map((s) => s.trim()).filter(Boolean);
+  if (fyArgs.some((y) => !/^\d{4}$/.test(y))) {
+    console.error(`\n✗ --fy takes four-digit fiscal years, got: ${fyArgs.join(', ')}`);
+    process.exit(1);
+  }
+  // ⚠ A year filter with nothing to filter would select every unregistered row
+  // of that year, whoever loaded it — the "you filed their rows under your
+  // name" failure this tool warns about, with a narrower-looking flag.
+  if (fyArgs.length && !matchArgs.length) {
+    console.error('\n✗ --fy narrows --match and cannot select on its own. Add the --match that');
+    console.error('  identifies YOUR rows, e.g. --match "CA State Controller" --fy 2025');
+    process.exit(1);
+  }
 
   const baseline = JSON.parse(readFileSync(BASELINE, 'utf8'));
   const excluded = new Set((baseline.excluded_ids_files ?? [])
@@ -95,6 +152,8 @@ async function main() {
   console.error('  Add a --match filter (entity or data_source substring) identifying YOUR rows,');
   console.error('  or --ids with their exact ids when the load extended an existing series,');
   console.error('  e.g. --milestone nc-charlotte --match "Charlotte, NC"');
+  console.error('  For a series extended across a whole fleet, narrow a --match by year:');
+  console.error('    --milestone ca-sco-fy2025 --match "CA State Controller" --fy 2025');
   // ⚠ REPEATABLE. A milestone is not always one entity: the Knight campaign
   // loads Charlotte AND Mecklenburg County together, and its Florida session
   // loads four cities at once. With a single --match such a milestone cannot be
@@ -107,59 +166,29 @@ async function main() {
   // still equal the deficit exactly, and each match is reported separately so an
   // over-broad one is visible rather than hidden inside a total that happens to
   // add up.
-  const matchArgs = process.argv.reduce(
-    (acc, a, i) => (a === '--match' && process.argv[i + 1] ? [...acc, process.argv[i + 1]] : acc), [],
-  );
-  // ⚠ REPEATABLE, and the ONLY selector that can name a single fiscal year.
-  // `--match` keys on `name, state :: data_source`, which carries NO fiscal
-  // year. That is enough for a new entity, where the entity or the source is
-  // itself new — but not for a load that EXTENDS an existing series by a year:
-  // the entity and the source are already there for every prior year, so no
-  // substring selects the new rows and nothing else. LA City's FY2025 State
-  // Controller pair was the first such load, and `--match` could not register
-  // it at any width. The only ways through were hand-writing the ids file and
-  // hand-editing scopeBaseline.json — the three-step chore this tool exists to
-  // replace, and the one that broke the invariant four times.
-  //
-  // ⚠ This does NOT relax the reconciliation guard below: the union must still
-  // equal the deficit EXACTLY. `--ids` only lets the operator name rows
-  // precisely instead of by substring, and every id must be a real, not-yet-
-  // registered row — so a typo refuses outright rather than quietly selecting
-  // fewer rows than the operator meant.
-  const idArgs = process.argv.reduce(
-    (acc, a, i) => (a === '--ids' && process.argv[i + 1] ? [...acc, ...process.argv[i + 1].split(',')] : acc), [],
-  ).map((s) => s.trim()).filter(Boolean);
   if (!matchArgs.length && !idArgs.length) process.exit(1);
 
-  const key = (r) => `${r.name}, ${r.state} :: ${r.data_source}`;
-  const seen = new Map();
-  for (const m of matchArgs) {
-    const hits = nonExcluded.filter((r) => key(r).includes(m));
-    console.log(`\n--match "${m}" selects ${hits.length} row(s).`);
-    for (const r of hits) seen.set(r.id, r);
+  const { selected: mine, perMatch, unknownIds, overlap } = selectCreatedRows({
+    rows: nonExcluded, matches: matchArgs, ids: idArgs, fiscalYears: fyArgs,
+  });
+
+  const inYears = fyArgs.length ? ` in FY${fyArgs.join(', FY')}` : '';
+  for (const { match, count } of perMatch) {
+    console.log(`\n--match "${match}"${inYears} selects ${count} row(s).`);
+  }
+  if (unknownIds.length) {
+    console.error(`\n✗ --ids names ${unknownIds.length} id(s) that are not unregistered rows:`);
+    for (const id of unknownIds) console.error(`    ${id}`);
+    console.error('  Each is mistyped, already registered, or not a budget row. Refusing to write.');
+    process.exit(1);
   }
   if (idArgs.length) {
-    const byId = new Map(nonExcluded.map((r) => [r.id, r]));
-    const unknown = idArgs.filter((id) => !byId.has(id));
-    if (unknown.length) {
-      console.error(`\n✗ --ids names ${unknown.length} id(s) that are not unregistered rows:`);
-      for (const id of unknown) console.error(`    ${id}`);
-      console.error('  Each is mistyped, already registered, or not a budget row. Refusing to write.');
-      process.exit(1);
-    }
     console.log(`\n--ids selects ${idArgs.length} row(s):`);
     for (const id of idArgs) {
-      const r = byId.get(id);
-      console.log(`    ${id}  ${key(r)}  FY${r.fiscal_year ?? '?'}`);
-      seen.set(id, r);
+      const r = mine.find((x) => x.id === id);
+      console.log(`    ${id}  ${rowKey(r)}  FY${r.fiscal_year ?? '?'}`);
     }
   }
-  const mine = [...seen.values()];
-  // ⚠ Count the --ids selections too. Without them this subtraction goes
-  // NEGATIVE on an ids-only run (0 match hits − 2 selected rows), and the line
-  // below would report "-2 row(s) matched more than one filter".
-  const overlap = matchArgs.reduce((n, m) => n + nonExcluded.filter((r) => key(r).includes(m)).length, 0)
-    + idArgs.length - mine.length;
   if (overlap) console.log(`  (${overlap} row(s) matched more than one filter; counted once)`);
   console.log(`\nunion selects ${mine.length} row(s); deficit is ${deficit}.`);
   if (mine.length !== deficit) {
