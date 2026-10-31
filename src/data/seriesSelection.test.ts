@@ -579,3 +579,48 @@ describe('resolveClampNote', () => {
       .toEqual({ note: null, movedTo: null });
   });
 });
+
+/**
+ * AUDIT-GRADE §5.1 — the grade is a PROPERTY of a series, never part of its
+ * identity.
+ *
+ * ⚠⚠ `seriesId()` stays `${fundScope}|${basis}`. This module already says why
+ * for `derivation`: "two epistemically-different labels would split one series
+ * into two pills". The same reasoning binds here — an entity whose operating
+ * side is audited and whose revenue side is not has ONE all-funds series, with
+ * something to disclose, not two.
+ */
+describe('audit grade on a series', () => {
+  it('carries the grade without splitting the series', () => {
+    const series = listSeries([
+      { fiscal_year: 2024, dataset_type: 'operating', fund_scope: 'all_funds', basis: 'actual', audit_grade: 'self_reported_unaudited' },
+      { fiscal_year: 2024, dataset_type: 'revenue', fund_scope: 'all_funds', basis: 'actual', audit_grade: 'audited_gaap' },
+    ]);
+    expect(series).toHaveLength(1);
+    expect(series[0].id).toBe('all_funds|actual');
+    // Over-disclose: the weaker of the two, never the stronger.
+    expect(series[0].auditGrade).toBe('self_reported_unaudited');
+  });
+
+  it('keeps two different series on their own grades', () => {
+    const series = listSeries([
+      { fiscal_year: 2024, dataset_type: 'operating', fund_scope: 'all_funds', basis: 'actual', audit_grade: 'self_reported_unaudited' },
+      { fiscal_year: 2024, dataset_type: 'operating', fund_scope: 'general_fund', basis: 'actual', audit_grade: 'audited_gaap' },
+    ]);
+    expect(series).toHaveLength(2);
+    const byId = Object.fromEntries(series.map((s) => [s.id, s.auditGrade]));
+    expect(byId['all_funds|actual']).toBe('self_reported_unaudited');
+    expect(byId['general_fund|actual']).toBe('audited_gaap');
+  });
+
+  // ⚠ An API build predating the column omits it entirely. Absent is `unknown`,
+  // never a grade — the opposite direction from normalizeDerivation, and
+  // deliberately so: defaulting to any graded value would have Treasury Tracker
+  // assert an audit it never read.
+  it('reads a series with no grade at all as unknown', () => {
+    const series = listSeries([
+      { fiscal_year: 2024, dataset_type: 'operating', fund_scope: 'all_funds', basis: 'actual' },
+    ]);
+    expect(series[0].auditGrade).toBe('unknown');
+  });
+});

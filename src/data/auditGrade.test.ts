@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  normalizeAuditGrade, isAudited, AUDIT_GRADE_VALUES,
+  normalizeAuditGrade, isAudited, weakestGrade, AUDIT_GRADE_VALUES,
   AUDIT_GRADE_COPY, AUDIT_GRADE_EXPLAINER,
   type AuditGrade,
 } from './auditGrade';
@@ -45,6 +45,39 @@ describe('isAudited', () => {
   // opinion we have READ; this has no opinion to read.
   it('is false for a record that is not a financial statement', () => {
     expect(isAudited('not_applicable')).toBe(false);
+  });
+});
+
+describe('weakestGrade', () => {
+  // ⚠⚠ OVER-DISCLOSURE, NOT A RANKING. A series is one pill, and its entries
+  // can in principle carry different grades. If they do, the pill must state the
+  // WEAKER of them: the failure this guards against is a reader seeing "audited"
+  // over a figure only half of which is. Same one-directional rule as
+  // AvailableSeries.derivation, and the same rule the loader applies to a mixed
+  // source ("mixed takes the weaker branch").
+  //
+  // ⚠ This is about which copy gets CHOSEN. It is not a reader-facing rank and
+  // no string here is rendered — the "no value ranks itself" contract above is
+  // untouched.
+  it('takes the weaker grade when a series disagrees with itself', () => {
+    expect(weakestGrade(['audited_gaap', 'self_reported_unaudited'])).toBe('self_reported_unaudited');
+    expect(weakestGrade(['self_reported_unaudited', 'unknown'])).toBe('unknown');
+    expect(weakestGrade(['compiled_from_audited', 'audited_gaap'])).toBe('compiled_from_audited');
+  });
+
+  it('returns the only grade when a series agrees with itself', () => {
+    expect(weakestGrade(['audited_gaap'])).toBe('audited_gaap');
+    expect(weakestGrade(['unknown', 'unknown'])).toBe('unknown');
+  });
+
+  // ⚠ Empty is UNKNOWN, never a grade — the same direction normalizeAuditGrade
+  // takes. Nothing to disclose is not a licence to assert.
+  it('reads an empty series as unknown, never as a grade', () => {
+    expect(weakestGrade([])).toBe('unknown');
+  });
+
+  it('reads an unrecognised value as unknown rather than ignoring it', () => {
+    expect(weakestGrade(['audited_gaap', 'garbage' as AuditGrade])).toBe('unknown');
   });
 });
 

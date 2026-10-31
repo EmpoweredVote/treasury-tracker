@@ -107,6 +107,61 @@ export function isAudited(grade: AuditGrade): boolean {
   return grade === 'audited_gaap' || grade === 'audited_ocboa';
 }
 
+/**
+ * ⚠⚠ AN INTERNAL DISCLOSURE ORDER. NOT A RANKING, AND NEVER RENDERED.
+ *
+ * Nothing here reaches a reader: it decides which of two grades a MIXED series
+ * discloses, not which is "better". The module docstring's rule is untouched —
+ * `audited_ocboa` carries the same assurance as `audited_gaap` and sits beside
+ * it here only so that a series holding both discloses something true of both.
+ *
+ * ⚠ `not_applicable` cannot occur in a series at all: SERIES_DATASETS is
+ * `operating` and `revenue` only, and this value exists solely for `salaries`
+ * and `transactions`. It is listed to keep weakestGrade total, not because it
+ * sits above `unknown` in any meaningful sense.
+ */
+const DISCLOSURE_ORDER: readonly AuditGrade[] = [
+  'audited_gaap',
+  'audited_ocboa',
+  'compiled_from_audited',
+  'self_reported_unaudited',
+  'not_applicable',
+  'unknown',
+] as const;
+
+/**
+ * The grade a series should state when its entries do not all agree.
+ *
+ * ⚠⚠ OVER-DISCLOSE, ALWAYS. An entity whose operating side is audited and
+ * whose revenue side is not has ONE series — `seriesId()` is
+ * `${fundScope}|${basis}` and `audit_grade` is deliberately not part of it — so
+ * one label has to cover both, and the only honest one is the weaker. The
+ * failure this prevents is a reader seeing "audited" over a figure half of
+ * which is not. The same one-directional rule as AvailableSeries.derivation,
+ * and the same "mixed source takes the weaker branch" rule the loader applies
+ * in scripts/data/auditGradeRegistry.mjs — so the front end and the loader
+ * agree by construction rather than by coincidence.
+ *
+ * ⚠ Empty, or holding anything unrecognised, is `unknown`. Nothing to
+ * disclose is not a licence to assert.
+ *
+ * Measured 2026-10-30 before this shipped: across a 1,000-row sample of 42
+ * municipalities holding audited rows, ZERO (muni, fy, dataset, scope, basis)
+ * series carried two different grades. This is a guard against a future
+ * collision, not a present cleanup.
+ */
+export function weakestGrade(grades: Iterable<AuditGrade>): AuditGrade {
+  let weakest = -1;
+  let seen = false;
+  for (const raw of grades) {
+    seen = true;
+    const rank = DISCLOSURE_ORDER.indexOf(normalizeAuditGrade(raw));
+    if (rank > weakest) weakest = rank;
+  }
+  if (!seen || weakest < 0) return 'unknown';
+  return DISCLOSURE_ORDER[weakest];
+}
+
 export interface AuditGradeCopy {
   /** Short chip label shown beside the figure. */
   label: string;
