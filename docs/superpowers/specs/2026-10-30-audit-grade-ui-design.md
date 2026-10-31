@@ -215,9 +215,14 @@ coverage figure TT publishes rather than lying on a page. **That changes once D2
 moves the chip onto more surfaces**, which is why A must be settled *before* the
 chip reaches a salary table, not after.
 
-That scoping document ends with three open questions for Chris that were never
-answered. They are reproduced in §8 and must be answered by the plan, not
-guessed by the builder.
+✅ **Bucket A is now settled — see §5.4.** Chris chose a sixth stored value,
+`not_applicable`. Re-measured on 2026-10-30 the bucket is **7,932** rows, not
+7,938, and it is the whole of `dataset_type` in (`salaries`, `transactions`) —
+every such row is `unknown` today.
+
+That scoping document ended with three open questions for Chris that had gone
+unanswered for thirteen months. §8 records how each now stands: one answered by
+Chris, one answered by measurement, one still open and not blocking.
 
 ---
 
@@ -314,6 +319,81 @@ replacement vocabulary. Do not collapse `audited_gaap`, `audited_ocboa` and
 `compiled_from_audited` into one label — they say genuinely different things and
 the copy for each is already written and tested.
 
+### 5.4 A sixth value: `not_applicable` — Chris's call, 2026-10-30
+
+> Chris: *"not_applicable value — salaries aren't financial statements."*
+
+This settles question 1 of §8. Bucket A does **not** come out of the coverage
+denominator quietly; it gets a value that says, on the row, why the question
+does not apply. The denominator still moves, but it moves for a stated reason a
+reader can see, which is the whole rule: *we only share the information with how
+we sourced it and our confidence in that source.*
+
+**Measured in production 2026-10-30** (the 2026-10-09 scoping figure of 7,938 is
+stale by six rows):
+
+| | rows |
+|---|---:|
+| `dataset_type` in (`salaries`, `transactions`) | **7,932** |
+| …of which `audit_grade = 'unknown'` | **7,932 — all of them** |
+| …of which `source_url` is null or empty | **7,753 (97.7%)** |
+
+By source: 7,682 CA SCO `publicpay.ca.gov` compensation; 179 Transparent Utah
+(the only ones carrying a `source_url`); 71 across Bloomington, LA City payroll
+and checkbook, LA County, West Hollywood, Plano and McKinney.
+
+**Scope rule — stamp by `dataset_type`, not by registry.** Every other grade
+answers *what did the publisher do?* and therefore belongs in
+`auditGradeRegistry.mjs` with `{document, figures}` evidence.
+`not_applicable` answers *what kind of record is this?*, and the answer is on
+the row already. It is the `nonprofit_page_not_a_government` gate (#198) in data
+form: gate on the thing that makes the question inapplicable, never on the
+absence of an answer. A registry entry would make it look like a publisher
+judgement and would have to be repeated for all 26 sources above and every
+future one.
+
+⚠⚠ **This value collides with an existing CHECK constraint.**
+`budgets_graded_rows_need_a_source_url` (migration `20260828000100`) permits a
+missing `source_url` only when `audit_grade = 'unknown'`. Stamping
+`not_applicable` as written would therefore be **rejected on 7,753 of the 7,932
+rows** — 97.7% of exactly the rows the decision targets.
+
+**The fix, as the author's call:** widen that constraint to exempt
+`not_applicable` alongside `unknown`, and say why in the migration. The
+constraint's own comment gives the reason: it *"binds only rows that make a
+positive claim about assurance."* `not_applicable` makes no claim about
+assurance — it denies that assurance is the right question — and its
+justification is the row's own `dataset_type`, not an outside document. The
+alternative, back-filling a `source_url` onto 7,753 payroll rows, would invent
+an evidence trail for a grade that rests on no evidence.
+
+**Where the value must be declared.** The `audited_ocboa` migration
+(`20260831000000`) is the worked precedent for adding one; follow its shape,
+including the explicit statement of what each existing value would have to lie
+about. Six sites must agree, in the manner of `entity_type_declarations`:
+
+1. `supabase/migrations/` — widen `budgets_audit_grade_check`, and widen
+   `budgets_graded_rows_need_a_source_url` in the same migration.
+2. `scripts/lib/budgetAxes.mjs` — `AUDIT_GRADE`.
+3. `src/data/auditGrade.ts` — the `AuditGrade` union, the ordered array,
+   `AUDIT_GRADE_COPY`.
+4. `src/components/ScopeLabel.tsx` — `AUDIT_TONE`. ⚠ Constraint 4 still binds:
+   `not_applicable` takes the neutral tone, not a sixth colour.
+5. `src/data/auditGrade.test.ts` and `tests/auditGrade.test.mjs` — extend, never
+   relax.
+6. ev-accounts passes `audit_grade` through as a free-form string, so no API
+   change is needed — but confirm against master before relying on it (see §8).
+
+**Copy rules for the new value.** `isAudited()` returns false. The label says
+what the record *is*, never what is missing from it — "Not a financial
+statement" reads correctly on a payroll roster; "no audit" does not. The
+existing forbidden-word tests apply unchanged, and the explainer must not
+present six values as six rungs.
+
+**Order of operations.** §7 piece 1 lands this *before* D2 moves the chip onto
+new surfaces. A chip reaching a salary table while those rows still read "audit
+status not established" is the defect this prevents, not a later cleanup.
+
 ---
 
 ## 6. Constraints
@@ -340,7 +420,10 @@ the copy for each is already written and tested.
 6. **No grade may be assigned without the publisher's own evidence**, in the
    `{document, figures}` shape every `auditGradeRegistry.mjs` entry carries.
    D3 is inheritance from an already-evidenced parent, which is why it is in
-   scope here; everything else in bucket C/D/E is not.
+   scope here; everything else in bucket C/D/E is not. ⚠ `not_applicable` is the
+   one deliberate exception and it is not a loophole: it asserts nothing about
+   assurance, and §5.4 widens the `source_url` CHECK for it explicitly and in
+   writing rather than letting a loader slip past the rule.
 
 ---
 
@@ -382,19 +465,36 @@ source bar behaves at phone width.
 None of these three changes *what* gets built, only how — but all three would
 have been guessed differently by someone who had not read `seriesSelection.ts`.
 
-**Do NOT settle these — they are Chris's, and the plan must put them to him:**
+**Answered — do not re-open:**
 
-1. **Bucket A (7,938 rows): a new `not_applicable` grade value, or exclude
-   non-statement `dataset_type`s from the coverage denominator?** Carried over
-   unanswered from 2026-10-09. It changes TT's published coverage figure either
-   way, so it is a product call. ⚠ It also gates whether a salary table may
-   carry a chip at all.
-2. **Bucket D (1,971 rows): worth reading opinions at ~82 rows per family, or
+1. ~~**Bucket A: a new `not_applicable` grade value, or exclude non-statement
+   `dataset_type`s from the coverage denominator?**~~ **ANSWERED 2026-10-30:**
+   a new `not_applicable` value — *"salaries aren't financial statements."*
+   Open for thirteen months, closed here. The full specification, the six
+   declaration sites, the re-measured row counts and the CHECK-constraint
+   collision are in **§5.4**.
+
+2. ~~**Is there an existing Essentials / Civic Spaces consumer of `audit_grade`
+   whose published coverage number moves when D3 lands?**~~ **MEASURED
+   2026-10-30, one caveat.** In the ev-accounts working copy, `audit_grade`
+   appears only in `backend/src/lib/treasuryService.ts` — carried through the
+   per-series grouping key as a free-form string — plus its tests and one index
+   `INCLUDE` list. **`coverageService.ts`, `coverageMapService.ts`,
+   `coverageBivariate.ts` and `donorCoverage.ts` never reference it**, so no
+   published coverage figure is computed from the grade today, and D3 moves
+   nothing outside this repo. ⚠ Checked against `C:/EV-Accounts`, which
+   `ev_accounts_archive_folder` warns **is not master** — the plan should
+   re-run that grep against master before relying on it. No Civic Spaces
+   consumer either: the coverage-catalog design
+   (`docs/superpowers/specs/2026-09-12-civic-spaces-coverage-catalog-design.md`)
+   mentions `audit_grade` once, in passing, and catalogs nothing from it.
+
+**Do NOT settle this — it is Chris's, and the plan must put it to him:**
+
+3. **Bucket D (1,971 rows): worth reading opinions at ~82 rows per family, or
    leave the state-ACFR tail at `unknown` until a state is onboarded for other
-   reasons?** Carried over unanswered from 2026-10-09.
-3. **Is there an existing Essentials / Civic Spaces consumer of `audit_grade`
-   whose published coverage number moves when D3 lands?** Carried over
-   unanswered from 2026-10-09. ⚠ A coverage figure measures a publisher, not a
+   reasons?** Carried over unanswered from 2026-10-09. This is piece 3 and does
+   not block pieces 1 or 2. ⚠ A coverage figure measures a publisher, not a
    year — see `sc_city_acfr_route`.
 
 ---
@@ -414,6 +514,11 @@ have been guessed differently by someone who had not read `seriesSelection.ts`.
   **62587 / `60098de6`**. ⚠ A red invariant after a write means **sync the
   mirror**, not `--set-baseline`.
 * Confirm the four derived families landed on **two** different grades, not one.
+* After the `not_applicable` write: **7,932** rows carry it and **0** rows of
+  `dataset_type` in (`salaries`, `transactions`) remain `unknown`; no row of any
+  other `dataset_type` acquired it; both CHECK constraints still reject a bad
+  value — prove the second by attempting one graded row with no `source_url` and
+  watching it fail.
 
 ---
 
