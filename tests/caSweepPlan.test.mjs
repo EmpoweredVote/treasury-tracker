@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  buildWorkList, mergeCheckpoint, pendingUnits, classifyRun, isRetryable, summarize,
+  buildWorkList, mergeCheckpoint, pendingUnits, classifyRun, isRetryable, summarize, parseDryRunCounts,
 } from '../scripts/lib/caSweepPlan.mjs';
 
 /**
@@ -183,5 +183,33 @@ describe('classifyRun per loader', () => {
     });
     expect(r.status).toBe('parked');
     expect(r.note).toMatch(/not seeded|seedCountyLinks|not found/i);
+  });
+});
+
+/**
+ * ⭐ A DRY RUN THAT ONLY SAYS "done" PROVES THE UNIT RAN, NOT WHAT IT WOULD DO.
+ *
+ * The first city pre-flight reported 55 done / 0 parked and told us nothing
+ * about the thing actually worth knowing before a fleet load: how many
+ * entities would be written, and how many the never-overwrite guard would
+ * skip because a richer custom source already holds that year.
+ */
+describe('parseDryRunCounts', () => {
+  it('reads the city loader would-import and skipped counts', () => {
+    const out = '  (dry run — skipping import) 33 cities would import, 1 skipped (existing other-source data preserved)\n';
+    expect(parseDryRunCounts(out)).toEqual({ wouldImport: 33, skipped: 1 });
+  });
+
+  // ⚠ Both datasets run in one invocation, so the line appears TWICE — once
+  // for expenditures and once for revenues. Reading only the first halves the
+  // number and makes a fleet look smaller than it is.
+  it('sums the line across both datasets in one run', () => {
+    const out = '  (dry run — skipping import) 33 cities would import, 1 skipped (x)\n'
+      + '  (dry run — skipping import) 32 cities would import, 2 skipped (x)\n';
+    expect(parseDryRunCounts(out)).toEqual({ wouldImport: 65, skipped: 3 });
+  });
+
+  it('is null when the output carries no such line', () => {
+    expect(parseDryRunCounts('Done. 2 year/type combos processed.\n')).toBeNull();
   });
 });

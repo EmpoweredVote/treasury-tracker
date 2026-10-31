@@ -44,6 +44,7 @@ import { dirname } from 'node:path';
 import { parseArgs } from 'node:util';
 import {
   buildWorkList, mergeCheckpoint, pendingUnits, classifyRun, isRetryable, summarize,
+  parseDryRunCounts,
 } from './lib/caSweepPlan.mjs';
 
 const CITY_EXPENDITURES = 'ju3w-4gxp';
@@ -148,6 +149,7 @@ ${todoCount(units)} unit(s) would run. Nothing was touched.`);
   process.exit(0);
 }
 
+const planned = { wouldImport: 0, skipped: 0 };
 let n = 0;
 const todo = pendingUnits(units).length;
 for (const unit of units) {
@@ -168,7 +170,15 @@ for (const unit of units) {
     unit.note = verdict.note;
     const secs = ((Date.now() - started) / 1000).toFixed(1);
 
-    if (verdict.status === 'done') { console.log(`done in ${secs}s`); break; }
+    if (verdict.status === 'done') {
+      const counts = parseDryRunCounts(result.output);
+      if (counts) {
+        planned.wouldImport += counts.wouldImport;
+        planned.skipped += counts.skipped;
+      }
+      console.log(`done in ${secs}s${counts ? `  (${counts.wouldImport} would import, ${counts.skipped} skipped)` : ''}`);
+      break;
+    }
     if (isRetryable(unit, maxAttempts)) {
       console.log(`${verdict.note} — retrying (${secs}s)`);
       continue;
@@ -183,6 +193,13 @@ for (const unit of units) {
 
 const final = summarize(units);
 console.log(`\n${final.done} done · ${final.parked} parked · ${final.total} units total`);
+if (planned.wouldImport || planned.skipped) {
+  // ⚠ The skip count is the never-overwrite guard (D-06) protecting a year that
+  // a richer custom source already holds. A high number here is CORRECT, not a
+  // problem — but it should be recognised before the real run, not after it.
+  console.log(`${planned.wouldImport} entity-dataset pair(s) would be written · `
+    + `${planned.skipped} skipped, existing other-source data preserved`);
+}
 
 if (final.parked > 0) {
   console.log('\nParked units need a person. Each one, with why:\n');

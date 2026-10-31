@@ -134,3 +134,31 @@ export function summarize(units) {
   for (const u of units) if (u.status in out) out[u.status] += 1;
   return out;
 }
+
+/**
+ * What a DRY RUN would have written, read from the city loader's own summary.
+ *
+ * ⭐ A dry run that only says "done" proves the unit ran, not what it would
+ * do. The number worth knowing before a fleet load is how many entities get
+ * written and how many the never-overwrite guard skips because a richer
+ * custom source already holds that year.
+ *
+ * ⚠ The line appears ONCE PER DATASET — expenditures and revenues both run in
+ * one invocation — so these are summed, not taken from the first match.
+ *
+ * @returns {{wouldImport: number, skipped: number} | null} null when the
+ *   output carries no such line (a real run, or the county loader).
+ */
+export function parseDryRunCounts(output) {
+  const re = /(\d+) cities would import, (\d+) skipped/g;
+  let m;
+  let wouldImport = 0;
+  let skipped = 0;
+  let found = false;
+  while ((m = re.exec(String(output ?? ''))) !== null) {
+    found = true;
+    wouldImport += Number(m[1]);
+    skipped += Number(m[2]);
+  }
+  return found ? { wouldImport, skipped } : null;
+}
