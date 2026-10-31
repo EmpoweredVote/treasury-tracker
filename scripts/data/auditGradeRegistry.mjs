@@ -793,6 +793,58 @@ export const AUDIT_GRADE_REGISTRY = [
     },
   },
   {
+    /**
+     * ⭐⭐ SCOPE-04 DERIVED ROWS — the only entry in this registry whose evidence
+     * is another entry. D3 of docs/superpowers/specs/2026-10-30-audit-grade-ui-design.md.
+     *
+     * Treasury Tracker computed these totals by summing the governmental funds
+     * out of the two CA SCO city families immediately below. Saying "nobody has
+     * looked" about a figure TT built from its own graded inputs is LESS honest
+     * than the truth, not more — and it was live: on the LA City page, toggling
+     * All Funds → Total Governmental flipped the chip from "Government-reported"
+     * to "Audit status not established" for a figure derived from the very rows
+     * labelled "Government-reported".
+     *
+     * ⚠⚠ CITY ONLY, AND THE OMISSION IS THE POINT. The two COUNTY derived
+     * families — `(CA State Controller - County Expenditures)` and
+     * `(... County Revenues)`, 857 rows — are deliberately NOT matched here.
+     * Their parents are themselves ungraded (bucket C, awaiting a publisher
+     * recon), and a derived row may never out-rank its inputs (§3.5). An entry
+     * is created when its evidence is: theirs does not exist yet, so they stay
+     * `unknown`, which is the correct outcome and not a gap to fill in later.
+     *
+     * ⚠⚠ NOT A BRANCHING ENTRY, AND IT CANNOT BE ONE. The design proposed a
+     * single branching entry over all four families whose own `value` was
+     * `unknown`. classifyAxis returns `{value: unknown, entryId: null}` for any
+     * entry whose value IS the unknown value, and gradeFor returns immediately
+     * on a null entryId — so the branch would never have run. Two shapes, one
+     * for each truth, is what the mechanism supports and what the evidence
+     * actually says.
+     */
+    id: 'ca-sco-derived-total-governmental-city',
+    match: /^Treasury Tracker derived: Total Governmental \(CA State Controller - (?:Expenditures|Revenues)\)$/,
+    value: AUDIT_GRADE.SELF_REPORTED_UNAUDITED,
+    evidence: {
+      document: 'The two parent entries in this registry — `ca-sco-city-exp` and '
+        + '`ca-sco-city-rev` — and the Government Code § 53891(a) evidence they carry '
+        + '(CA_SCO_EVIDENCE above, verified verbatim 2026-08-28). These derived rows have '
+        + 'no publisher and no document of their own: Treasury Tracker computed them, so '
+        + 'the only honest evidence for their assurance is the assurance of the rows they '
+        + 'were computed FROM. That is inheritance, which §3.5 permits in one direction '
+        + 'only — a derived row may never out-rank its inputs.',
+      figures: 'SCOPE-04 built these by summing the governmental funds within each CA SCO '
+        + 'city filing; the `derivation` column records it as `derived` and '
+        + 'FundSeriesToggle renders "computed by Treasury Tracker" wherever the series is '
+        + 'named. Measured in production 2026-10-30: 3,403 expenditure rows and 3,392 '
+        + 'revenue rows carry these two labels, 6,795 in all, every one of them with a '
+        + 'source_url. Their parents carry `self_reported_unaudited` under the § 53891(a) '
+        + 'reading that SCO RECEIVES and compiles these reports rather than auditing '
+        + 'them, so the derived totals carry it too and nothing stronger. '
+        + '⚠ The two COUNTY derived families (428 + 429 rows) are excluded on purpose: '
+        + 'their parents are ungraded, so there is nothing for them to inherit.',
+    },
+  },
+  {
     id: 'ca-sco-city-exp',
     match: /^CA State Controller - Expenditures$/,
     value: AUDIT_GRADE.SELF_REPORTED_UNAUDITED,

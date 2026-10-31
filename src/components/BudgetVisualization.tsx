@@ -12,6 +12,21 @@ interface BudgetVisualizationProps {
   totalBudget: number;
   onPathClick: (path: BudgetCategory[]) => void;
   isNonprofit?: boolean;
+  /**
+   * AUDIT-GRADE §5.2 — the chart's own source line, built by
+   * `citationLine()` in src/data/provenanceLine.ts.
+   *
+   * ⚠⚠ IT LIVES IN HERE, NOT AT THE CALL SITES, and that is the point. App.tsx
+   * renders this component from THREE separate branches — the line-items view,
+   * the drill-down view and the leaf view — so a citation added beside one of
+   * them would vanish the moment a reader clicked into a category, which is
+   * exactly when they are most likely to screenshot a bar.
+   *
+   * ⚠ Absent renders nothing rather than a placeholder. Nonprofit pages pass
+   * nothing: for EV these are inapplicable questions, not unanswered ones
+   * (#198).
+   */
+  citation?: string;
 }
 
 const BudgetVisualization: React.FC<BudgetVisualizationProps> = ({
@@ -20,6 +35,7 @@ const BudgetVisualization: React.FC<BudgetVisualizationProps> = ({
   totalBudget,
   onPathClick,
   isNonprofit = false,
+  citation,
 }) => {
   const [viewMode, setViewMode] = useState<ViewMode>('icicle');
 
@@ -91,6 +107,17 @@ const BudgetVisualization: React.FC<BudgetVisualizationProps> = ({
           />
         )}
       </div>
+      {/* ⚠ PLAIN TEXT, never a link and never a button. It is the way a figure
+          in a printed report carries its source, and it affords nothing — the
+          grade chip in the source bar above is the control that opens the
+          explainer. A second pill here that looked clickable and did nothing is
+          the false affordance Chris hit twice in AUSTIN-TRAVIS-01 UAT. */}
+      {citation && (
+        <p className="mt-2 border-t border-ev-gray-100 pt-2 text-[11px] leading-relaxed
+                      text-ev-gray-500 dark:border-ev-gray-700 dark:text-ev-gray-400">
+          {citation}
+        </p>
+      )}
     </div>
   );
 };

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  normalizeAuditGrade, isAudited, AUDIT_GRADE_VALUES,
+  normalizeAuditGrade, isAudited, weakestGrade, AUDIT_GRADE_VALUES,
   AUDIT_GRADE_COPY, AUDIT_GRADE_EXPLAINER,
   type AuditGrade,
 } from './auditGrade';
@@ -39,6 +39,46 @@ describe('isAudited', () => {
     expect(isAudited('self_reported_unaudited')).toBe(false);
     expect(isAudited('unknown')).toBe(false);
   });
+
+  // ⚠ A payroll roster has no auditor to hold an opinion, so this is false for
+  // the same reason `unknown` is — but for a different cause. `unknown` has no
+  // opinion we have READ; this has no opinion to read.
+  it('is false for a record that is not a financial statement', () => {
+    expect(isAudited('not_applicable')).toBe(false);
+  });
+});
+
+describe('weakestGrade', () => {
+  // ⚠⚠ OVER-DISCLOSURE, NOT A RANKING. A series is one pill, and its entries
+  // can in principle carry different grades. If they do, the pill must state the
+  // WEAKER of them: the failure this guards against is a reader seeing "audited"
+  // over a figure only half of which is. Same one-directional rule as
+  // AvailableSeries.derivation, and the same rule the loader applies to a mixed
+  // source ("mixed takes the weaker branch").
+  //
+  // ⚠ This is about which copy gets CHOSEN. It is not a reader-facing rank and
+  // no string here is rendered — the "no value ranks itself" contract above is
+  // untouched.
+  it('takes the weaker grade when a series disagrees with itself', () => {
+    expect(weakestGrade(['audited_gaap', 'self_reported_unaudited'])).toBe('self_reported_unaudited');
+    expect(weakestGrade(['self_reported_unaudited', 'unknown'])).toBe('unknown');
+    expect(weakestGrade(['compiled_from_audited', 'audited_gaap'])).toBe('compiled_from_audited');
+  });
+
+  it('returns the only grade when a series agrees with itself', () => {
+    expect(weakestGrade(['audited_gaap'])).toBe('audited_gaap');
+    expect(weakestGrade(['unknown', 'unknown'])).toBe('unknown');
+  });
+
+  // ⚠ Empty is UNKNOWN, never a grade — the same direction normalizeAuditGrade
+  // takes. Nothing to disclose is not a licence to assert.
+  it('reads an empty series as unknown, never as a grade', () => {
+    expect(weakestGrade([])).toBe('unknown');
+  });
+
+  it('reads an unrecognised value as unknown rather than ignoring it', () => {
+    expect(weakestGrade(['audited_gaap', 'garbage' as AuditGrade])).toBe('unknown');
+  });
 });
 
 describe('AUDIT_GRADE_COPY', () => {
@@ -52,8 +92,10 @@ describe('AUDIT_GRADE_COPY', () => {
     }
   });
 
-  // ⚠⚠ `unknown` is 60,368 of 88,820 rows (68%) — the value a reader meets most
-  // often, across 2,122 entities. It means Treasury Tracker has not established
+  // ⚠⚠ `unknown` is 23,694 of 583,569 rows (4.1%), across the sources nobody has
+  // recon'd yet (measured 2026-10-30; it was 68% at 88,820 rows on 2026-08-31,
+  // and the stale figure reached readers — see the D1 tests below). It means
+  // Treasury Tracker has not established
   // the assurance level. It is NOT a finding about the government, and most of
   // those governments are perfectly well audited. Rendering it as a warning
   // would libel them at scale, which is why the words are pinned here rather
@@ -68,8 +110,9 @@ describe('AUDIT_GRADE_COPY', () => {
     expect(label).toMatch(/not (yet )?establish/i);
   });
 
-  // ⚠⚠ `self_reported_unaudited` is 27,912 rows across 835 entities — nearly
-  // every remaining row. It is a statutory filing a finance officer signs,
+  // ⚠⚠ `self_reported_unaudited` is 530,969 rows — 91.0% of the database and the
+  // note a reader actually meets most often (measured 2026-10-30; it was 27,912
+  // across 835 entities on 2026-08-31). It is a statutory filing a finance officer signs,
   // frequently drawn straight from audited books; it simply has not itself been
   // audited. "Unverified" or "unreliable" overstates that, and is the second way
   // this module could libel a government at scale.
@@ -114,6 +157,20 @@ describe('AUDIT_GRADE_COPY', () => {
     }
   });
 
+  // ⭐ ADDED 2026-10-30 (§5.4). The two failures this value exists to prevent.
+  //
+  // It must not CONFESS TO A GAP — that is `unknown`'s sentence and it is false
+  // here: nobody failed to check, there is nothing to check. And it must not
+  // read as a complaint about the record. The label says what the record IS.
+  it('says what the record IS, never what is missing from it', () => {
+    const { label, short, long } = AUDIT_GRADE_COPY.not_applicable;
+    for (const text of [label, short, long]) {
+      expect(text, `not_applicable copy confesses to a gap: ${text}`)
+        .not.toMatch(/not (yet )?establish|have not checked|unverified|unaudited|missing/i);
+    }
+    expect(`${short} ${long}`).toMatch(/financial statement/i);
+  });
+
   it('gives every value a distinct label', () => {
     const labels = AUDIT_GRADE_VALUES.map((v) => AUDIT_GRADE_COPY[v].label);
     expect(new Set(labels).size).toBe(labels.length);
@@ -135,6 +192,31 @@ describe('AUDIT_GRADE_EXPLAINER', () => {
     expect(all).toMatch(/not a rank|not a ranking|not a score|not a ladder|not better or worse/i);
   });
 
+  // ⚠⚠ D1 — THIS SENTENCE SHIPPED FALSE AND NOBODY NOTICED FOR TWO MONTHS.
+  //
+  // It said the "not established" note "is roughly two figures in every three".
+  // True on 2026-08-31 at 88,820 rows. By 2026-10-30 the table held 583,569 and
+  // `unknown` was 6.6% — one in fifteen. A hard-coded fraction in reader-facing
+  // copy rots silently as the corpus grows, and no gate reads it.
+  //
+  // So: no fraction, no percentage. Word it to stay true, or derive it.
+  it('states no fraction or percentage that can rot', () => {
+    const all = Object.values(AUDIT_GRADE_EXPLAINER).join(' ');
+    // The noun in the middle is why the first draft of this test passed over the
+    // live defect: the string is "two FIGURES in every three", not "two in three".
+    expect(all).not.toMatch(/\b(one|two|three|four|five|half)\s+(\w+\s+)?(in|of)\s+(every\s+)?(one|two|three|four|five|ten|\d+)\b/i);
+    expect(all).not.toMatch(/\b\d+(\.\d+)?\s?%/);
+  });
+
+  // The same defect in its other half: the explainer also named which note a
+  // reader meets most often, and that changed too — it is "Government-reported"
+  // now, at 89.8%. Which note is commonest is a fact about the database on one
+  // day, not about what the notes MEAN.
+  it('does not claim which note is commonest', () => {
+    const all = Object.values(AUDIT_GRADE_EXPLAINER).join(' ');
+    expect(all).not.toMatch(/\bcommonest\b|\bmost common\b|\bmost often\b/i);
+  });
+
   // ⚠ A qualified opinion currently grades identically to a clean one — every
   // Harrison County MS year (10 rows) is an "except for" opinion and reads as
   // audited_gaap. Filed as an open decision, NOT silently papered over. The
@@ -153,6 +235,9 @@ describe('the vocabulary itself', () => {
     const expected: AuditGrade[] = [
       'audited_gaap', 'audited_ocboa', 'compiled_from_audited',
       'self_reported_unaudited', 'unknown',
+      // ⚠ OFF THE ASSURANCE AXIS, not at the bottom of it. Listed last so the
+      // five assurance values keep their order and their indices.
+      'not_applicable',
     ];
     expect([...AUDIT_GRADE_VALUES]).toEqual(expected);
   });

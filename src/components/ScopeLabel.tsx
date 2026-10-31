@@ -28,13 +28,15 @@ import {
  * this milestone exists to remove; saying "we have not verified this" is the
  * honest state and is styled as information, not as a warning.
  *
- * The audit-grade chip follows the same rule and needs it more: `unknown` is 68%
- * of the database, so hiding it would leave two thirds of the site silently
- * unlabelled, and colouring it as a warning would accuse 2,122 governments of
- * something that is our gap and not theirs. All reader-facing wording lives in
- * src/data/auditGrade.ts.
+ * The audit-grade chip follows the same rule: hiding it would leave the reader
+ * guessing, and colouring it as a warning would accuse thousands of governments
+ * of something that is our gap and not theirs. All reader-facing wording lives
+ * in src/data/auditGrade.ts.
  *
- * ⚠⚠ The five audit grades are NOT a ranking and must never be rendered as one —
+ * ⚠ This comment used to quote "68% of the database", measured 2026-08-31. It
+ * was 6.6% by 2026-10-30. Counts in comments rot; the reasoning does not.
+ *
+ * ⚠⚠ The six audit grades are NOT a ranking and must never be rendered as one —
  * see AUDIT_TONE below.
  */
 
@@ -65,15 +67,16 @@ export const TONE: Record<FundScope, string> = {
  * AUDIT-GRADE tone.
  *
  * ⚠⚠ EVERY GRADED VALUE SHARES ONE COLOUR ON PURPOSE. Colour is a ranking
- * whether or not you intend it to be, and these five values are not a ranking:
+ * whether or not you intend it to be, and these values are not a ranking:
  * `audited_ocboa` carries the same assurance as `audited_gaap` on a different
  * measurement basis, so any palette that separates them tells the reader
  * something false. The WORDS carry the distinction — exactly as the three known
  * fund scopes already share VERIFIED_TONE and are told apart by their labels.
  *
  * `unknown` keeps the neutral grey for the same reason it does above: it is a
- * gap in our checking, not a defect in the figure, and it is 68% of the
- * database. Amber here would put a warning beside two thirds of the site.
+ * gap in our checking, not a defect in the figure. Amber here would put a
+ * warning beside every row nobody has got to yet. `not_applicable` shares that
+ * grey — a payroll roster is a different KIND of record, not a worse figure.
  */
 export const AUDIT_TONE: Record<AuditGrade, string> = {
   audited_gaap: VERIFIED_TONE,
@@ -81,6 +84,13 @@ export const AUDIT_TONE: Record<AuditGrade, string> = {
   compiled_from_audited: VERIFIED_TONE,
   self_reported_unaudited: VERIFIED_TONE,
   unknown:
+    'bg-ev-gray-050 text-ev-gray-600 border-ev-gray-200 '
+    + 'dark:bg-ev-gray-800 dark:text-ev-gray-300 dark:border-ev-gray-700',
+  // ⚠ THE SAME NEUTRAL GREY AS `unknown`, and not a sixth colour. A payroll
+  // roster is not a worse figure than an audited statement — it is a different
+  // kind of record, and the WORDS carry that. A colour of its own would put a
+  // sixth rung on a list that has no rungs.
+  not_applicable:
     'bg-ev-gray-050 text-ev-gray-600 border-ev-gray-200 '
     + 'dark:bg-ev-gray-800 dark:text-ev-gray-300 dark:border-ev-gray-700',
 };
@@ -113,11 +123,27 @@ interface ScopeLabelProps {
   accountingBasis?: AccountingBasis | null;
   /** Render the shared explainer inline when expanded. Default true. */
   withExplainer?: boolean;
+  /**
+   * Render the fund-scope chip and the basis words. Default true.
+   *
+   * ⚠⚠ FALSE IS FOR A RECORD THE QUESTION DOES NOT APPLY TO — a payroll
+   * roster or a payments register (`audit_grade` of `not_applicable`). Every
+   * such row is `fund_scope unknown`, so the chip read "Scope not established"
+   * beside "Not a financial statement": a confession of a gap that does not
+   * exist, which is the same category error (#198) the audit axis had and the
+   * one this milestone was convened to remove. `citationLine()` drops the scope
+   * segment for the same value and the same reason.
+   *
+   * ⚠ It does NOT mean "we do not know the scope". A government FIGURE whose
+   * scope is unestablished must still say so — that gap is real and it is ours.
+   */
+  withScope?: boolean;
   className?: string;
 }
 
 export default function ScopeLabel({
-  scope, basis, accountingBasis, auditGrade, datasetLabel, withExplainer = true, className = '',
+  scope, basis, accountingBasis, auditGrade, datasetLabel,
+  withExplainer = true, withScope = true, className = '',
 }: ScopeLabelProps) {
   const [open, setOpen] = useState(false);
   const [gradeOpen, setGradeOpen] = useState(false);
@@ -132,17 +158,19 @@ export default function ScopeLabel({
         {datasetLabel && (
           <span className="text-[11px] text-ev-gray-400 dark:text-ev-gray-500">{datasetLabel}:</span>
         )}
-        <button
-          type="button"
-          onClick={() => setOpen((v) => !v)}
-          aria-expanded={open}
-          title={copy.short}
-          className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px]
-                      font-medium transition-colors hover:brightness-95 ${TONE[resolved]}`}
-        >
-          {copy.label}
-          <Info className="h-3 w-3 opacity-60" aria-hidden="true" />
-        </button>
+        {withScope && (
+          <button
+            type="button"
+            onClick={() => setOpen((v) => !v)}
+            aria-expanded={open}
+            title={copy.short}
+            className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px]
+                        font-medium transition-colors hover:brightness-95 ${TONE[resolved]}`}
+          >
+            {copy.label}
+            <Info className="h-3 w-3 opacity-60" aria-hidden="true" />
+          </button>
+        )}
         {/* PLAIN TEXT, not a chip. This used to carry the same
             `rounded-full border px-2 py-0.5` treatment AND a TONE colour as the
             scope button immediately to its left — but the scope chip is a real
@@ -159,7 +187,7 @@ export default function ScopeLabel({
             The old TONE call was also odd on its own terms: it mapped ANY known
             basis onto the `general_fund` colour, so an `adopted` figure borrowed
             General Fund green. Dropping the chip drops that too. */}
-        {basis != null && (
+        {withScope && basis != null && (
           <span
             title={BASIS_COPY[normalizeBasis(basis)].short}
             className="text-[11px] font-medium text-ev-gray-600 dark:text-ev-gray-300"
@@ -170,7 +198,7 @@ export default function ScopeLabel({
         {/* ACCOUNTING BASIS — plain text beside the basis word, same treatment
             and for the same reason: it informs, it does not afford a click.
             Hidden when unknown; see the prop's docstring. */}
-        {accountingBasis != null && normalizeAccountingBasis(accountingBasis) !== 'unknown' && (
+        {withScope && accountingBasis != null && normalizeAccountingBasis(accountingBasis) !== 'unknown' && (
           <span
             title={ACCOUNTING_BASIS_COPY[normalizeAccountingBasis(accountingBasis)].short}
             className="text-[11px] font-medium text-ev-gray-600 dark:text-ev-gray-300"
@@ -200,7 +228,7 @@ export default function ScopeLabel({
             <Info className="h-3 w-3 opacity-60" aria-hidden="true" />
           </button>
         )}
-        {!isComparableScope(resolved) && (
+        {withScope && !isComparableScope(resolved) && (
           <span className="text-[11px] italic text-ev-gray-400 dark:text-ev-gray-500">
             not compared across places
           </span>
