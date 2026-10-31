@@ -452,3 +452,33 @@ export function resolveMcdByState(index, storedName) {
   }
   return miss(`no MCD match for "${storedName}"`);
 }
+
+// ── Composing two lookups ───────────────────────────────────────────────────
+
+/**
+ * Take a second lookup's answer ONLY when the first was a clean miss.
+ *
+ * ⚠⚠ THE WHOLE POINT IS THE AMBIGUITY GUARD. Every resolver above refuses to
+ * choose between two real governments, and a looser second lookup run over the
+ * same name would quietly undo that refusal by picking one. An ambiguous
+ * primary is returned untouched and the fallback is never even called.
+ *
+ * ⚠ The fallback is a THUNK because building its index costs a file fetch.
+ * Nothing is downloaded for an entity the base vintage already answered.
+ *
+ * Two callers, both in backfillGeoids.mjs: the New England MCD fallback, and
+ * the forward Census vintage that names a government incorporated after the
+ * base vintage was cut.
+ *
+ * @param {{geoid: string|null, basis: string|null, reason: string|null}} primary
+ * @param {null | (() => {geoid: string|null, basis: string|null, reason: string|null})} fallback
+ */
+export function preferResolved(primary, fallback) {
+  if (primary.geoid) return primary;
+  if (!fallback) return primary;
+  if (primary.reason?.startsWith('ambiguous')) return primary;
+  const alt = fallback();
+  // ⚠ The PRIMARY reason survives a fallback that also missed: "no place match
+  // for X" names the lookup that was supposed to work.
+  return alt.geoid ? alt : primary;
+}

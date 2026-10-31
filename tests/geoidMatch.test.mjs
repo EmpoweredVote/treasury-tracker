@@ -22,7 +22,7 @@ import {
   buildPlaceIndex, resolvePlace,
   buildMcdIndex, resolveTownship,
   buildMcdStateIndex, resolveMcdByState,
-  buildPlaceCountyIndex,
+  buildPlaceCountyIndex, preferResolved,
 } from '../scripts/lib/geoid.mjs';
 
 describe('STATE_FIPS', () => {
@@ -403,5 +403,47 @@ describe('⚠⚠ collisions the uniqueness check caught after the first national
       { SUMLEV: '162', STATE: '12', PLACE: '21525', NAME: 'Everglades city' },
     ]);
     expect(resolvePlace(idx, 'Everglades City', { entityType: 'city' }).geoid).toBe('1221525');
+  });
+});
+
+/**
+ * ⚠⚠ A SECOND LOOKUP MUST NEVER RESCUE AN AMBIGUITY. Two resolvers in
+ * backfillGeoids are allowed a second try after the first comes up empty — the
+ * New England MCD fallback, and the forward Census vintage that names a
+ * government incorporated after the base vintage was cut (Mountain House,
+ * 2024-07-01). Both are safe only because they run after a CLEAN MISS. An
+ * ambiguous result means two real governments competed and the matcher
+ * declined; a looser second lookup would "resolve" it by picking one.
+ */
+describe('preferResolved', () => {
+  const hit = { geoid: '0649582', basis: 'census-pep-162-exact', reason: null };
+  const miss = { geoid: null, basis: null, reason: 'no place match for "Mountain House"' };
+  const ambiguous = { geoid: null, basis: null, reason: 'ambiguous: 2 candidates for "Lincoln"' };
+
+  it('keeps a primary hit and never calls the fallback', () => {
+    let called = false;
+    const r = preferResolved(hit, () => { called = true; return miss; });
+    expect(r).toBe(hit);
+    expect(called).toBe(false);
+  });
+
+  it('takes the fallback hit after a clean miss', () => {
+    expect(preferResolved(miss, () => hit)).toBe(hit);
+  });
+
+  it('keeps the PRIMARY reason when the fallback also misses', () => {
+    const other = { geoid: null, basis: null, reason: 'not in forward vintage' };
+    expect(preferResolved(miss, () => other)).toBe(miss);
+  });
+
+  it('refuses to let a fallback rescue an ambiguous primary', () => {
+    let called = false;
+    const r = preferResolved(ambiguous, () => { called = true; return hit; });
+    expect(r).toBe(ambiguous);
+    expect(called).toBe(false);
+  });
+
+  it('is a no-op when there is no fallback to try', () => {
+    expect(preferResolved(miss, null)).toBe(miss);
   });
 });
