@@ -73,10 +73,35 @@ const SEPARATOR = ' · ';
  * one-liner is two chances for a page to say "source not recorded" in one place
  * and nothing in the other, over the same row.
  */
+/**
+ * ⚠⚠ `data_source` IS A MACHINE KEY, NOT READER COPY, and this is the whole
+ * reason the cut exists. Four registries regex-match that string and the
+ * live-sync exclusion joins on it by name, so it can never be rewritten in the
+ * database — but printing it verbatim put 76 characters in one citation
+ * segment, said "General Fund" and the year twice each, and never named the
+ * publisher:
+ *
+ *   Independently audited · General Fund ·
+ *     Los Angeles ACFR — General Fund Revenue by Source (FY2025 actual, GAAP basis)
+ *     · FY 2025
+ *
+ * ⭐ THE CONVENTION WAS MEASURED ACROSS EVERY LOADER REGISTRY, not assumed:
+ * `<document> — <face/scope> <dataset> (<FY>, <basis>)`. What follows the em
+ * dash is a per-row descriptor the line already carries in its own segments;
+ * what precedes it is the document a journalist would cite.
+ *
+ * ⚠ AN ASCII HYPHEN MUST NOT CUT. `CA State Controller - Expenditures` is one
+ * name, and hyphens sit inside real publisher names.
+ */
+const DESCRIPTOR = '—'; // EM DASH — never HYPHEN-MINUS
+
 export function publisherLabel(publisher: string | null | undefined): string {
-  return typeof publisher === 'string' && publisher.trim() !== ''
-    ? publisher.trim()
-    : NO_PUBLISHER;
+  if (typeof publisher !== 'string' || publisher.trim() === '') return NO_PUBLISHER;
+  const full = publisher.trim();
+  const cut = full.split(DESCRIPTOR)[0].trim();
+  // ⚠ An empty cut renders a doubled separator, which tells a reader something
+  // was dropped without telling them what. Keep the whole string instead.
+  return cut === '' ? full : cut;
 }
 
 export function citationLine({ grade, scope, publisher, period }: ProvenanceParts): string {

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { citationLine, NO_PUBLISHER } from './provenanceLine';
+import { citationLine, NO_PUBLISHER, publisherLabel } from './provenanceLine';
 
 /**
  * AUDIT-GRADE §5.2 — the quiet citation under each chart.
@@ -105,5 +105,74 @@ describe('citationLine', () => {
     expect(citationLine({
       grade: 'unknown', scope: 'unknown', publisher: 'Somewhere', period: '2024',
     })).toContain('Scope not established');
+  });
+});
+
+/**
+ * ⭐⭐ The audited series shipped 2026-10-31 made this unreadable. The citation
+ * under an LA General Fund chart read, at 76 characters in one segment:
+ *
+ *   Independently audited · General Fund ·
+ *     Los Angeles ACFR — General Fund Revenue by Source (FY2025 actual, GAAP basis)
+ *     · FY 2025
+ *
+ * "General Fund" twice, the year twice, and the publisher — the City of Los
+ * Angeles — never actually named, because `data_source` is not reader copy. It
+ * is a MACHINE KEY: four registries regex-match it and the live-sync exclusion
+ * joins on it by name, so the string itself must never be rewritten.
+ *
+ * ⭐ THE CONVENTION IS REAL AND WAS MEASURED, not guessed. Across every loader
+ * registry the shape is `<document> — <face/scope> <dataset> (<FY>, <basis>)`.
+ * Everything after the em dash is a per-row descriptor the citation already
+ * states in its own segments. Everything before it is the document a reader
+ * would cite.
+ *
+ * ⚠ AN ASCII HYPHEN IS NOT AN EM DASH and must not cut: `CA State Controller -
+ * Expenditures` is one name, and hyphens appear inside real publisher names.
+ */
+describe('publisherLabel', () => {
+  it('cites the document, not the row descriptor after the em dash', () => {
+    expect(publisherLabel('Los Angeles ACFR — General Fund Revenue by Source (FY2025 actual, GAAP basis)'))
+      .toBe('Los Angeles ACFR');
+  });
+
+  it('leaves a name containing an ASCII hyphen alone', () => {
+    expect(publisherLabel('CA State Controller - Expenditures'))
+      .toBe('CA State Controller - Expenditures');
+  });
+
+  it('leaves a name with no descriptor alone', () => {
+    expect(publisherLabel('Minnesota Office of the State Auditor'))
+      .toBe('Minnesota Office of the State Auditor');
+  });
+
+  it('cuts at the FIRST em dash when a descriptor carries another', () => {
+    expect(publisherLabel('New York OSC Town Annual Financial Report — Revenues, General Fund (FY2019 actual, self-reported)'))
+      .toBe('New York OSC Town Annual Financial Report');
+  });
+
+  // ⚠ Never return an empty segment: an empty publisher renders a doubled
+  // separator, which tells a reader something was dropped and not what.
+  it('keeps the whole string when cutting would leave nothing', () => {
+    expect(publisherLabel('— General Fund Revenue by Source')).toBe('— General Fund Revenue by Source');
+  });
+
+  it('still reports the finding when there is no publisher at all', () => {
+    expect(publisherLabel(null)).toBe(NO_PUBLISHER);
+    expect(publisherLabel('   ')).toBe(NO_PUBLISHER);
+  });
+});
+
+describe('citationLine with a long document name', () => {
+  it('says General Fund once and the year once', () => {
+    const line = citationLine({
+      grade: 'audited_gaap',
+      scope: 'general_fund',
+      publisher: 'Los Angeles ACFR — General Fund Revenue by Source (FY2025 actual, GAAP basis)',
+      period: '2025',
+    });
+    expect(line).toBe('Independently audited · General Fund · Los Angeles ACFR · FY 2025');
+    expect(line.match(/General Fund/g)).toHaveLength(1);
+    expect(line.match(/2025/g)).toHaveLength(1);
   });
 });
