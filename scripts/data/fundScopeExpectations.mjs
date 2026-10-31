@@ -74,7 +74,14 @@ export const EXPECTED_ROWS = Object.freeze({
   // that "this milestone is CA-only so it cannot have added MN rows" does NOT
   // exonerate the numbers — a racing read double-counts rows that were already
   // there. Re-run after the load: every entry matched exactly.
-  'ca-sco-derived-tg': 7650,
+  // ⚠ +2 on 2026-10-30: LA City's FY2025 all_funds pair gained its derived
+  // Total Governmental counterpart, so the scope toggle does not sit a year
+  // behind All Funds. The derive run reported `wrote 2 · skipped-existing 7650
+  // · failed 0` — it is idempotent on (muni, fy, dataset), so the 7,650
+  // existing rows were untouched and keep their ids.
+  // TG stays well under all_funds in both datasets and the ratio barely moves
+  // (operating 55.9% -> 53.7%, revenue 49.0% -> 48.7% of all_funds).
+  'ca-sco-derived-tg': 7652,
   // AUSTIN-TRAVIS-01, measured 2026-08-19: Austin 32 + Travis County 44. A NEW
   // family, so no pre-existing count moved.
   // Evidence: docs/superpowers/plans/AUSTIN-TRAVIS-01-SCOPE-RECON.md §1.

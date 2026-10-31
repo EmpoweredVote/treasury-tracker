@@ -73,7 +73,12 @@ export const EXPECTED_BASIS_ROWS = Object.freeze({
   // 7,650 = 7,664 eligible − 8 quarantined − 6 excluded, from the post-write count.
   // ⚠ See the note in classifyFundScope.mjs EXPECTED_ROWS: never run this gate
   // while a load is in flight, or LIMIT/OFFSET paging invents drift.
-  'ca-sco-derived-tg': 7650,
+  // ⚠ +2 on 2026-10-30, and the arithmetic above moves with it:
+  // 7,652 = 7,666 eligible − 8 quarantined − 6 excluded. The +2 is LA City's
+  // FY2025 derived pair, following its all_funds pair onto the State
+  // Controller's newly published FY2025. basis stays 'actual', inherited from
+  // the parent rows exactly as the original 7,650 were.
+  'ca-sco-derived-tg': 7652,
   'ca-sco-county-exp': 1188,
   'ca-sco-county-rev': 1188,
   // RE-MEASURED 2026-10-06 (phase 2): 308 -> 328, exactly +20, with nothing
