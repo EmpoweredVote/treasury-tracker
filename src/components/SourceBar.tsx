@@ -100,6 +100,13 @@ export default function SourceBar({
               basis={provenance.basis}
               accountingBasis={provenance.accountingBasis}
               auditGrade={provenance.auditGrade}
+              // ⚠⚠ A payroll roster has no fund scope and no actual-vs-adopted
+              // basis, and every such row is stored `unknown` on both — so the
+              // chips read "Scope not established · Basis not established" beside
+              // "Not a financial statement", confessing two gaps that do not
+              // exist. Inapplicable, not unanswered (#198). citationLine() drops
+              // the same segment for the same value.
+              withScope={provenance.auditGrade !== 'not_applicable'}
             />
           )}
           {/* PLAIN TEXT, not a pill. The grade chip inside ScopeLabel is a real

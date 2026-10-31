@@ -123,11 +123,27 @@ interface ScopeLabelProps {
   accountingBasis?: AccountingBasis | null;
   /** Render the shared explainer inline when expanded. Default true. */
   withExplainer?: boolean;
+  /**
+   * Render the fund-scope chip and the basis words. Default true.
+   *
+   * ⚠⚠ FALSE IS FOR A RECORD THE QUESTION DOES NOT APPLY TO — a payroll
+   * roster or a payments register (`audit_grade` of `not_applicable`). Every
+   * such row is `fund_scope unknown`, so the chip read "Scope not established"
+   * beside "Not a financial statement": a confession of a gap that does not
+   * exist, which is the same category error (#198) the audit axis had and the
+   * one this milestone was convened to remove. `citationLine()` drops the scope
+   * segment for the same value and the same reason.
+   *
+   * ⚠ It does NOT mean "we do not know the scope". A government FIGURE whose
+   * scope is unestablished must still say so — that gap is real and it is ours.
+   */
+  withScope?: boolean;
   className?: string;
 }
 
 export default function ScopeLabel({
-  scope, basis, accountingBasis, auditGrade, datasetLabel, withExplainer = true, className = '',
+  scope, basis, accountingBasis, auditGrade, datasetLabel,
+  withExplainer = true, withScope = true, className = '',
 }: ScopeLabelProps) {
   const [open, setOpen] = useState(false);
   const [gradeOpen, setGradeOpen] = useState(false);
@@ -142,17 +158,19 @@ export default function ScopeLabel({
         {datasetLabel && (
           <span className="text-[11px] text-ev-gray-400 dark:text-ev-gray-500">{datasetLabel}:</span>
         )}
-        <button
-          type="button"
-          onClick={() => setOpen((v) => !v)}
-          aria-expanded={open}
-          title={copy.short}
-          className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px]
-                      font-medium transition-colors hover:brightness-95 ${TONE[resolved]}`}
-        >
-          {copy.label}
-          <Info className="h-3 w-3 opacity-60" aria-hidden="true" />
-        </button>
+        {withScope && (
+          <button
+            type="button"
+            onClick={() => setOpen((v) => !v)}
+            aria-expanded={open}
+            title={copy.short}
+            className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px]
+                        font-medium transition-colors hover:brightness-95 ${TONE[resolved]}`}
+          >
+            {copy.label}
+            <Info className="h-3 w-3 opacity-60" aria-hidden="true" />
+          </button>
+        )}
         {/* PLAIN TEXT, not a chip. This used to carry the same
             `rounded-full border px-2 py-0.5` treatment AND a TONE colour as the
             scope button immediately to its left — but the scope chip is a real
@@ -169,7 +187,7 @@ export default function ScopeLabel({
             The old TONE call was also odd on its own terms: it mapped ANY known
             basis onto the `general_fund` colour, so an `adopted` figure borrowed
             General Fund green. Dropping the chip drops that too. */}
-        {basis != null && (
+        {withScope && basis != null && (
           <span
             title={BASIS_COPY[normalizeBasis(basis)].short}
             className="text-[11px] font-medium text-ev-gray-600 dark:text-ev-gray-300"
@@ -180,7 +198,7 @@ export default function ScopeLabel({
         {/* ACCOUNTING BASIS — plain text beside the basis word, same treatment
             and for the same reason: it informs, it does not afford a click.
             Hidden when unknown; see the prop's docstring. */}
-        {accountingBasis != null && normalizeAccountingBasis(accountingBasis) !== 'unknown' && (
+        {withScope && accountingBasis != null && normalizeAccountingBasis(accountingBasis) !== 'unknown' && (
           <span
             title={ACCOUNTING_BASIS_COPY[normalizeAccountingBasis(accountingBasis)].short}
             className="text-[11px] font-medium text-ev-gray-600 dark:text-ev-gray-300"
@@ -210,7 +228,7 @@ export default function ScopeLabel({
             <Info className="h-3 w-3 opacity-60" aria-hidden="true" />
           </button>
         )}
-        {!isComparableScope(resolved) && (
+        {withScope && !isComparableScope(resolved) && (
           <span className="text-[11px] italic text-ev-gray-400 dark:text-ev-gray-500">
             not compared across places
           </span>

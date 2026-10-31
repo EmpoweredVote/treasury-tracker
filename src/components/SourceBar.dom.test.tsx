@@ -90,6 +90,33 @@ describe('SourceBar', () => {
     expect(host.textContent ?? '').toMatch(new RegExp(NO_PUBLISHER, 'i'));
   });
 
+  /**
+   * ⚠⚠ THE SAME CATEGORY ERROR, ONE AXIS OVER. Found by reading the real Los
+   * Angeles Employees tab after the provenance fix: the bar had stopped
+   * claiming "Government-reported · All Funds" over a payroll table, and now
+   * read "Scope not established · Basis not established · Not a financial
+   * statement". Which funds a payroll roster covers, and whether it is actuals
+   * or adopted, are INAPPLICABLE questions about it — not unanswered ones
+   * (#198) — so confessing a gap on either is as wrong as the audit confession
+   * this whole milestone removed. citationLine already drops scope for this
+   * value; the bar now agrees with it.
+   */
+  it('states no scope or basis over a record that is not a financial statement', () => {
+    mount({
+      provenance: {
+        scope: 'unknown', basis: 'unknown',
+        auditGrade: 'not_applicable', span: null,
+      },
+      publisher: 'LA City Open Data',
+    });
+    const text = host.textContent ?? '';
+    expect(text).toMatch(/Not a financial statement/);
+    expect(text).toMatch(/LA City Open Data/);
+    expect(text).not.toMatch(/Scope not established/);
+    expect(text).not.toMatch(/Basis not established/);
+    expect(text).not.toMatch(/not compared across places/);
+  });
+
   // ⚠ The grade chip is the ONE control here — it opens the explainer. The
   // publisher and the span are plain text, because a pill that looks clickable
   // and does nothing is the false affordance Chris hit twice in
