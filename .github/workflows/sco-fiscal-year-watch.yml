@@ -18,7 +18,7 @@ on:
       baseline:
         description: 'Newest fiscal year already loaded (report anything newer)'
         required: false
-        default: '2024'
+        default: '2025'
 
 permissions:
   contents: read
@@ -39,10 +39,19 @@ jobs:
           node-version: '22'
 
       # ⚠ BUMP THIS after loading a new year, or the check re-reports it forever.
+      # ⚠ There are TWO copies of this number — here and the workflow_dispatch
+      # input default above. Move both, or a manual run and a scheduled run
+      # disagree about what is already loaded.
+      #
+      # 2024 -> 2025 on 2026-10-30: the Controller published FY2025 during
+      # October 2026 (the 10-01 run still read FY2024) and LA City was loaded
+      # onto it. ⚠ ONLY LA CITY. The other 482 CA cities and 54 county
+      # governments on this same feed are STILL at FY2024, so this watcher is
+      # now quiet about a year that is loaded for exactly one entity.
       - name: Check the State Controller for a newer fiscal year
         id: check
         env:
-          BASELINE: ${{ github.event.inputs.baseline || '2024' }}
+          BASELINE: ${{ github.event.inputs.baseline || '2025' }}
         run: |
           set +e
           node scripts/checkScoNewFiscalYear.mjs --baseline "$BASELINE" > out.txt 2>&1

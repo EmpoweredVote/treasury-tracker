@@ -45,8 +45,18 @@ export const EXPECTED_ROWS = Object.freeze({
   // figures were the State Controller's all along, dollar-identical in all 4 years.
   // Verified against the live table: the two sources now count 10452 / 10452, exactly
   // +4 / +4, with nothing else moved. Evidence: LA-02-SCOPING.md §2.
-  'ca-sco-city-exp': 10452,
-  'ca-sco-city-rev': 10452,
+  // ⚠ +1 each against 10452: the CA State Controller published FY2025 during
+  // October 2026 and LA City's series was extended onto it (one expenditure +
+  // one revenue row). The loader's totals tie to the dollar against an
+  // independent SOQL sum of the same feed — $21,745,684,500 operating and
+  // $23,522,739,106 revenue — and FY2022-FY2024 re-summed by that same method
+  // reproduce the stored figures exactly, so the method is the loader's.
+  // Verified live: 10453 / 10453, exactly +1 / +1, nothing else moved.
+  // ⚠ This is a STATEWIDE year, not an LA one: 482 CA cities and 54 county
+  // governments all ride this feed and are still at FY2024. When the rest of CA
+  // is loaded these two numbers move again, by far more than one.
+  'ca-sco-city-exp': 10453,
+  'ca-sco-city-rev': 10453,
   'ca-sco-county-exp': 1188,
   'ca-sco-county-rev': 1188,
   'state-acfr-gf': 1448,
@@ -64,7 +74,14 @@ export const EXPECTED_ROWS = Object.freeze({
   // that "this milestone is CA-only so it cannot have added MN rows" does NOT
   // exonerate the numbers — a racing read double-counts rows that were already
   // there. Re-run after the load: every entry matched exactly.
-  'ca-sco-derived-tg': 7650,
+  // ⚠ +2 on 2026-10-30: LA City's FY2025 all_funds pair gained its derived
+  // Total Governmental counterpart, so the scope toggle does not sit a year
+  // behind All Funds. The derive run reported `wrote 2 · skipped-existing 7650
+  // · failed 0` — it is idempotent on (muni, fy, dataset), so the 7,650
+  // existing rows were untouched and keep their ids.
+  // TG stays well under all_funds in both datasets and the ratio barely moves
+  // (operating 55.9% -> 53.7%, revenue 49.0% -> 48.7% of all_funds).
+  'ca-sco-derived-tg': 7652,
   // AUSTIN-TRAVIS-01, measured 2026-08-19: Austin 32 + Travis County 44. A NEW
   // family, so no pre-existing count moved.
   // Evidence: docs/superpowers/plans/AUSTIN-TRAVIS-01-SCOPE-RECON.md §1.

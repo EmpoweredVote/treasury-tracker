@@ -29,6 +29,25 @@ import { deriveTotalGovernmental, isEnterpriseRoot } from './lib/derivedTotalGov
 const HERE = dirname(fileURLToPath(import.meta.url));
 const IDS_PATH = join(HERE, 'data', 'scope04CreatedIds.json');
 
+/**
+ * How many all_funds rows this derivation expects to find eligible.
+ *
+ * ⚠ It MOVES whenever a parent all_funds row is added, and it is a warning, not
+ * a halt — so it is a tripwire for "did the population change in a way I can
+ * explain?", never a licence to write past an unexplained change.
+ *
+ * 7,664 -> 7,666 on 2026-10-30: the CA State Controller published FY2025 during
+ * October 2026 and LA City was loaded onto it (one expenditure + one revenue
+ * row). Exactly +2, and `to write` moved 7,650 -> 7,652 by the same +2, with
+ * quarantined/excluded/HALT all unchanged and HALT still 0 — meaning FY2025's
+ * root vocabulary is fully recognised by the era-B guard.
+ *
+ * ⚠ It WILL move again, by far more than 2, when the rest of CA is loaded onto
+ * FY2025: 482 cities and 54 county governments ride the same feeds and are all
+ * still at FY2024.
+ */
+const EXPECTED_ELIGIBLE = 7666;
+
 /** Parent data_source -> the derived row's OWN label. */
 const DERIVED_SOURCE = {
   'CA State Controller - Expenditures':
@@ -213,7 +232,7 @@ async function main() {
 
   const named = (b) => `${b.name}, ${b.state} FY${b.fiscal_year} ${b.dataset_type}`;
   const eligible = candidates.length + quarantined.length + excluded.length + halt.length;
-  console.log(`\neligible           ${eligible}   (expect 7,664)`);
+  console.log(`\neligible           ${eligible}   (expect ${EXPECTED_ELIGIBLE.toLocaleString()})`);
   console.log(`  → to write       ${candidates.length}`);
   console.log(`  → quarantined    ${quarantined.length}`);
   for (const b of quarantined) console.log(`      ${named(b)}`);
@@ -234,8 +253,8 @@ async function main() {
     console.error('   guard is doing its job. Investigate before re-running.');
     process.exit(1);
   }
-  if (eligible !== 7664) {
-    console.error(`\n⚠ eligible is ${eligible}, expected 7,664 — the population moved. Investigate.`);
+  if (eligible !== EXPECTED_ELIGIBLE) {
+    console.error(`\n⚠ eligible is ${eligible}, expected ${EXPECTED_ELIGIBLE.toLocaleString()} — the population moved. Investigate.`);
   }
 
   if (!WRITE) {
