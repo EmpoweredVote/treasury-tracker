@@ -25,6 +25,11 @@
  *       Write scripts/data/ncCharlotteCreatedIds.json with the unregistered ids,
  *       append it to excluded_ids_files, and re-verify.
  *
+ *   # --ids names rows EXACTLY, for a load that extends an existing series by a
+ *   # year (where no --match substring can isolate the new rows):
+ *   node scripts/registerCreatedRows.mjs --milestone la-city-sco-fy2025 \
+ *     --ids c9a78d2f-...,eacbbae4-...
+ *
  * ⚠ It registers whatever is currently unaccounted for. Run it right after YOUR
  * load, not after someone else's — otherwise you file their rows under your name.
  * It always prints the breakdown by entity and source first so you can check that
@@ -88,6 +93,7 @@ async function main() {
 
   console.error('✗ Refusing to guess. Registering by deficit alone would file arbitrary rows.');
   console.error('  Add a --match filter (entity or data_source substring) identifying YOUR rows,');
+  console.error('  or --ids with their exact ids when the load extended an existing series,');
   console.error('  e.g. --milestone nc-charlotte --match "Charlotte, NC"');
   // ⚠ REPEATABLE. A milestone is not always one entity: the Knight campaign
   // loads Charlotte AND Mecklenburg County together, and its Florida session
@@ -104,7 +110,26 @@ async function main() {
   const matchArgs = process.argv.reduce(
     (acc, a, i) => (a === '--match' && process.argv[i + 1] ? [...acc, process.argv[i + 1]] : acc), [],
   );
-  if (!matchArgs.length) process.exit(1);
+  // ⚠ REPEATABLE, and the ONLY selector that can name a single fiscal year.
+  // `--match` keys on `name, state :: data_source`, which carries NO fiscal
+  // year. That is enough for a new entity, where the entity or the source is
+  // itself new — but not for a load that EXTENDS an existing series by a year:
+  // the entity and the source are already there for every prior year, so no
+  // substring selects the new rows and nothing else. LA City's FY2025 State
+  // Controller pair was the first such load, and `--match` could not register
+  // it at any width. The only ways through were hand-writing the ids file and
+  // hand-editing scopeBaseline.json — the three-step chore this tool exists to
+  // replace, and the one that broke the invariant four times.
+  //
+  // ⚠ This does NOT relax the reconciliation guard below: the union must still
+  // equal the deficit EXACTLY. `--ids` only lets the operator name rows
+  // precisely instead of by substring, and every id must be a real, not-yet-
+  // registered row — so a typo refuses outright rather than quietly selecting
+  // fewer rows than the operator meant.
+  const idArgs = process.argv.reduce(
+    (acc, a, i) => (a === '--ids' && process.argv[i + 1] ? [...acc, ...process.argv[i + 1].split(',')] : acc), [],
+  ).map((s) => s.trim()).filter(Boolean);
+  if (!matchArgs.length && !idArgs.length) process.exit(1);
 
   const key = (r) => `${r.name}, ${r.state} :: ${r.data_source}`;
   const seen = new Map();
@@ -113,9 +138,28 @@ async function main() {
     console.log(`\n--match "${m}" selects ${hits.length} row(s).`);
     for (const r of hits) seen.set(r.id, r);
   }
+  if (idArgs.length) {
+    const byId = new Map(nonExcluded.map((r) => [r.id, r]));
+    const unknown = idArgs.filter((id) => !byId.has(id));
+    if (unknown.length) {
+      console.error(`\n✗ --ids names ${unknown.length} id(s) that are not unregistered rows:`);
+      for (const id of unknown) console.error(`    ${id}`);
+      console.error('  Each is mistyped, already registered, or not a budget row. Refusing to write.');
+      process.exit(1);
+    }
+    console.log(`\n--ids selects ${idArgs.length} row(s):`);
+    for (const id of idArgs) {
+      const r = byId.get(id);
+      console.log(`    ${id}  ${key(r)}  FY${r.fiscal_year ?? '?'}`);
+      seen.set(id, r);
+    }
+  }
   const mine = [...seen.values()];
+  // ⚠ Count the --ids selections too. Without them this subtraction goes
+  // NEGATIVE on an ids-only run (0 match hits − 2 selected rows), and the line
+  // below would report "-2 row(s) matched more than one filter".
   const overlap = matchArgs.reduce((n, m) => n + nonExcluded.filter((r) => key(r).includes(m)).length, 0)
-    - mine.length;
+    + idArgs.length - mine.length;
   if (overlap) console.log(`  (${overlap} row(s) matched more than one filter; counted once)`);
   console.log(`\nunion selects ${mine.length} row(s); deficit is ${deficit}.`);
   if (mine.length !== deficit) {
