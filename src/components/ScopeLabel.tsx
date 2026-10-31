@@ -28,13 +28,15 @@ import {
  * this milestone exists to remove; saying "we have not verified this" is the
  * honest state and is styled as information, not as a warning.
  *
- * The audit-grade chip follows the same rule and needs it more: `unknown` is 68%
- * of the database, so hiding it would leave two thirds of the site silently
- * unlabelled, and colouring it as a warning would accuse 2,122 governments of
- * something that is our gap and not theirs. All reader-facing wording lives in
- * src/data/auditGrade.ts.
+ * The audit-grade chip follows the same rule: hiding it would leave the reader
+ * guessing, and colouring it as a warning would accuse thousands of governments
+ * of something that is our gap and not theirs. All reader-facing wording lives
+ * in src/data/auditGrade.ts.
  *
- * ⚠⚠ The five audit grades are NOT a ranking and must never be rendered as one —
+ * ⚠ This comment used to quote "68% of the database", measured 2026-08-31. It
+ * was 6.6% by 2026-10-30. Counts in comments rot; the reasoning does not.
+ *
+ * ⚠⚠ The six audit grades are NOT a ranking and must never be rendered as one —
  * see AUDIT_TONE below.
  */
 
@@ -65,15 +67,16 @@ export const TONE: Record<FundScope, string> = {
  * AUDIT-GRADE tone.
  *
  * ⚠⚠ EVERY GRADED VALUE SHARES ONE COLOUR ON PURPOSE. Colour is a ranking
- * whether or not you intend it to be, and these five values are not a ranking:
+ * whether or not you intend it to be, and these values are not a ranking:
  * `audited_ocboa` carries the same assurance as `audited_gaap` on a different
  * measurement basis, so any palette that separates them tells the reader
  * something false. The WORDS carry the distinction — exactly as the three known
  * fund scopes already share VERIFIED_TONE and are told apart by their labels.
  *
  * `unknown` keeps the neutral grey for the same reason it does above: it is a
- * gap in our checking, not a defect in the figure, and it is 68% of the
- * database. Amber here would put a warning beside two thirds of the site.
+ * gap in our checking, not a defect in the figure. Amber here would put a
+ * warning beside every row nobody has got to yet. `not_applicable` shares that
+ * grey — a payroll roster is a different KIND of record, not a worse figure.
  */
 export const AUDIT_TONE: Record<AuditGrade, string> = {
   audited_gaap: VERIFIED_TONE,

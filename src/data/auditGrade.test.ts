@@ -59,8 +59,10 @@ describe('AUDIT_GRADE_COPY', () => {
     }
   });
 
-  // ⚠⚠ `unknown` is 60,368 of 88,820 rows (68%) — the value a reader meets most
-  // often, across 2,122 entities. It means Treasury Tracker has not established
+  // ⚠⚠ `unknown` is 38,421 of 583,569 rows (6.6%), across the sources nobody has
+  // recon'd yet (measured 2026-10-30; it was 68% at 88,820 rows on 2026-08-31,
+  // and the stale figure reached readers — see the D1 tests below). It means
+  // Treasury Tracker has not established
   // the assurance level. It is NOT a finding about the government, and most of
   // those governments are perfectly well audited. Rendering it as a warning
   // would libel them at scale, which is why the words are pinned here rather
@@ -75,8 +77,9 @@ describe('AUDIT_GRADE_COPY', () => {
     expect(label).toMatch(/not (yet )?establish/i);
   });
 
-  // ⚠⚠ `self_reported_unaudited` is 27,912 rows across 835 entities — nearly
-  // every remaining row. It is a statutory filing a finance officer signs,
+  // ⚠⚠ `self_reported_unaudited` is 524,174 rows — 89.8% of the database and the
+  // note a reader actually meets most often (measured 2026-10-30; it was 27,912
+  // across 835 entities on 2026-08-31). It is a statutory filing a finance officer signs,
   // frequently drawn straight from audited books; it simply has not itself been
   // audited. "Unverified" or "unreliable" overstates that, and is the second way
   // this module could libel a government at scale.
@@ -154,6 +157,31 @@ describe('AUDIT_GRADE_EXPLAINER', () => {
   it('tells the reader the grades are not a ranking', () => {
     const all = Object.values(AUDIT_GRADE_EXPLAINER).join(' ');
     expect(all).toMatch(/not a rank|not a ranking|not a score|not a ladder|not better or worse/i);
+  });
+
+  // ⚠⚠ D1 — THIS SENTENCE SHIPPED FALSE AND NOBODY NOTICED FOR TWO MONTHS.
+  //
+  // It said the "not established" note "is roughly two figures in every three".
+  // True on 2026-08-31 at 88,820 rows. By 2026-10-30 the table held 583,569 and
+  // `unknown` was 6.6% — one in fifteen. A hard-coded fraction in reader-facing
+  // copy rots silently as the corpus grows, and no gate reads it.
+  //
+  // So: no fraction, no percentage. Word it to stay true, or derive it.
+  it('states no fraction or percentage that can rot', () => {
+    const all = Object.values(AUDIT_GRADE_EXPLAINER).join(' ');
+    // The noun in the middle is why the first draft of this test passed over the
+    // live defect: the string is "two FIGURES in every three", not "two in three".
+    expect(all).not.toMatch(/\b(one|two|three|four|five|half)\s+(\w+\s+)?(in|of)\s+(every\s+)?(one|two|three|four|five|ten|\d+)\b/i);
+    expect(all).not.toMatch(/\b\d+(\.\d+)?\s?%/);
+  });
+
+  // The same defect in its other half: the explainer also named which note a
+  // reader meets most often, and that changed too — it is "Government-reported"
+  // now, at 89.8%. Which note is commonest is a fact about the database on one
+  // day, not about what the notes MEAN.
+  it('does not claim which note is commonest', () => {
+    const all = Object.values(AUDIT_GRADE_EXPLAINER).join(' ');
+    expect(all).not.toMatch(/\bcommonest\b|\bmost common\b|\bmost often\b/i);
   });
 
   // ⚠ A qualified opinion currently grades identically to a clean one — every

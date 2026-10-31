@@ -2,11 +2,12 @@
  * AUDIT-GRADE — what independent assurance stands behind a figure, in words a
  * reader who has never heard of an "unmodified opinion" can use.
  *
- * Treasury Tracker graded 88,820 budget rows across eight loading sessions. The
+ * Treasury Tracker graded 583,569 budget rows (2026-10-30; 88,820 when this
+ * module was written). The
  * column existed, was constrained, was populated — and until this module, a
  * reader could see none of it. Everything built to grade honestly reached nobody.
  *
- * ⚠⚠ THESE FIVE VALUES ARE NOT A LADDER, AND NOTHING HERE MAY RENDER THEM AS
+ * ⚠⚠ THESE SIX VALUES ARE NOT A LADDER, AND NOTHING HERE MAY RENDER THEM AS
  * ONE. `audited_ocboa` carries the SAME assurance as `audited_gaap` — an
  * independent opinion under Government Auditing Standards — on a measurement
  * basis that is not GAAP. Assurance and comparability are two different
@@ -14,15 +15,25 @@
  * why the UI distinguishes these by WORDS and not by colour or star count.
  *
  * ⚠⚠ TWO VALUES CAN LIBEL A GOVERNMENT AT SCALE if the copy drifts, and between
- * them they are 99.4% of the database (counts as of 2026-08-31):
+ * them they are 96.4% of the database (measured 2026-10-30):
  *
- *   unknown                  60,368 rows / 2,122 entities — 68.0%
- *   self_reported_unaudited  27,912 rows /   835 entities — 31.4%
- *   audited_gaap                342 rows /    15 entities —  0.4%
- *   compiled_from_audited       190 rows /     7 entities —  0.2%
- *   audited_ocboa                 8 rows /     1 entity   —  0.01%
+ *   self_reported_unaudited  524,174 rows — 89.8%
+ *   unknown                   38,421 rows —  6.6%
+ *   compiled_from_audited     19,590 rows —  3.4%
+ *   audited_gaap               1,356 rows —  0.2%
+ *   audited_ocboa                 28 rows —  0.005%
+ *   not_applicable             7,932 rows —  1.4% (salaries and transactions)
+ *   total                    583,569 rows
  *
- * `unknown` means NOBODY HAS LOOKED. Most of those 2,122 governments are audited
+ * ⚠ THESE COUNTS GO STALE. On 2026-08-31 this list read `unknown` 68.0% and
+ * `self_reported_unaudited` 31.4% at 88,820 rows, and a sentence derived from
+ * them reached readers and stayed false for two months (see
+ * AUDIT_GRADE_EXPLAINER.whyUnknownIsNotBad). The share did not get worse: the
+ * table grew 6.6x and honest grading kept up — New York (185k), Michigan (116k)
+ * and Pennsylvania (51k) are all state agencies compiling self-reports, graded
+ * correctly. Re-measure before quoting; never put a figure from here into copy.
+ *
+ * `unknown` means NOBODY HAS LOOKED. Most of those governments are audited
  * every year. `self_reported_unaudited` is a statutory filing a finance officer
  * signs, often drawn straight from audited books. Rendering the first as a
  * warning, or the second as "unverified", would smear thousands of governments
@@ -230,11 +241,17 @@ export const AUDIT_GRADE_EXPLAINER = {
     + 'whether its financial statements present its finances fairly. Most US local governments '
     + 'are audited every year, many of them because the law requires it.',
 
+  // ⚠⚠ NO FRACTION, NO PERCENTAGE, AND NO CLAIM ABOUT WHICH NOTE IS COMMONEST.
+  // This sentence used to carry all three, and all three rotted: it said the
+  // "not established" note was "roughly two figures in every three", true at
+  // 88,820 rows on 2026-08-31 and false at 583,569 rows on 2026-10-30, where
+  // `unknown` is 6.6%. It shipped false for two months because no gate reads
+  // reader-facing copy. Two tests now fail if any of them comes back.
   whyUnknownIsNotBad:
-    'The commonest note on this site says the audit status is not established. That means we '
-    + 'have not looked yet — it is a statement about our coverage, not about the government, '
-    + 'and it is roughly two figures in every three. In the same way, a figure a government '
-    + 'filed itself is an official record signed by its finance officer, not a rumour.',
+    'Where a note says the audit status is not established, it means we have not looked yet — '
+    + 'a statement about our coverage, not about the government. And where a note says a figure '
+    + 'is government-reported, that is an official annual filing signed by a finance officer: a '
+    + 'public record, not a rumour, and not the same thing as an audited one.',
 
   whatWeDo:
     'We record an audit only when we have actually read one, source by source, and we say so '
