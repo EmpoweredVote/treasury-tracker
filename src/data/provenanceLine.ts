@@ -42,9 +42,15 @@ import { parsePeriod } from '../utils/period';
 export const NO_PUBLISHER = 'source not recorded';
 
 export interface ProvenanceParts {
-  /** As normalised by dataLoader — absent reads `unknown`, never a grade. */
-  grade: AuditGrade;
-  scope: FundScope;
+  /**
+   * ⚠ NULLABLE ON PURPOSE. BudgetData.metadata types these optional because an
+   * older API build omits the columns, and both normalisers read absent as
+   * `unknown` — never as a grade and never as a scope. Narrowing the type here
+   * would push a non-null assertion out to every call site, which is where that
+   * guarantee would quietly be lost.
+   */
+  grade: AuditGrade | null | undefined;
+  scope: FundScope | null | undefined;
   /** `dataSourceInfo.displayName`, or null when the API returned none. */
   publisher: string | null;
   /** The period token already on screen, e.g. `2025` or `1976-TQ`. */

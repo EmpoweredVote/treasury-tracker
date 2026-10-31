@@ -90,6 +90,15 @@ describe('citationLine', () => {
     expect(line).not.toMatch(/·\s*·/);
   });
 
+  // ⚠ An API build predating either column omits it. Absent reads `unknown` on
+  // both axes — never a grade, never a scope — the same direction the
+  // normalisers take, asserted here because the call sites pass optional fields.
+  it('reads an absent grade or scope as unknown, never as a claim', () => {
+    expect(citationLine({
+      grade: null, scope: undefined, publisher: 'Somewhere', period: '2022',
+    })).toBe('Audit status not established · Scope not established · Somewhere · FY 2022');
+  });
+
   // ⚠ The scope is dropped ONLY for that value. A statement row with an
   // unestablished scope must still say so — that gap is real and is ours.
   it('still states an unestablished scope on a financial statement', () => {
