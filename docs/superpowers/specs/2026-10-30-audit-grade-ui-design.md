@@ -173,10 +173,21 @@ county rows. **LA City is fixed by this; LA County is not.**
 ⚠⚠ **A derived row may never out-rank its inputs.** Inheritance is the only
 permitted direction. This is the §3.5 rule from the Knight seeding spec.
 
-**How to write it — use the registry, not a bespoke script.** Add one
+⛔⛔ **CORRECTED 2026-10-30 DURING EXECUTION — THE MECHANISM BELOW IS IMPOSSIBLE.**
+`classifyAxis` (`scripts/lib/budgetAxes.mjs`) returns `{entryId: null}` for any
+entry whose own `value` IS the unknown value, and `gradeFor` returns immediately
+on a null `entryId` — so a branching entry valued `unknown` can never branch.
+**What shipped instead:** ONE plain entry
+(`ca-sco-derived-total-governmental-city`) over the two CITY labels only, and
+**no entry at all** for the two COUNTY labels, which is the registry's own
+doctrine — an entry is created when its evidence is. Measured: 6,795 rows
+changed, 857 correctly stayed `unknown`. The struck-through paragraph is kept
+for the reasoning it carries about inheritance.
+
+~~**How to write it — use the registry, not a bespoke script.** Add one
 **branching** entry to `scripts/data/auditGradeRegistry.mjs`, anchored at both
 ends over the four `Treasury Tracker derived: Total Governmental (…)` labels,
-whose `branch(context)` resolves the parent family and returns its grade. The
+whose `branch(context)` resolves the parent family and returns its grade.~~ The
 Minnesota OSA entry is the existing precedent for a branching entry and carries
 the rules: a branch may only raise a grade **on evidence**, and it returns
 `null` — falling back to the entry's own weaker `value` — when it cannot resolve.
@@ -525,8 +536,10 @@ source bar behaves at phone width.
 * **`audit_grade` is a property of `AvailableSeries`, not part of `seriesId()`**,
   with an over-disclose rule on a mixed series (§5.1). Follows the explicit
   `derivation` precedent in `seriesSelection.ts`; verified against live data.
-* **D3 is written as a branching registry entry, not a one-off script** (§4/D3).
-  Follows the Minnesota OSA precedent.
+* ~~**D3 is written as a branching registry entry**~~ — ⛔ **WRONG, and corrected
+  during execution.** The code cannot express a branching entry whose own value
+  is `unknown`. It shipped as one plain CITY-only entry with the county families
+  deliberately unregistered. See §4/D3.
 
 None of these three changes *what* gets built, only how — but all three would
 have been guessed differently by someone who had not read `seriesSelection.ts`.

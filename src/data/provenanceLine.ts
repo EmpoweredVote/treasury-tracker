@@ -66,10 +66,21 @@ const SEPARATOR = ' · ';
  * trailing separator — a citation ending in "· " tells a reader something was
  * dropped and leaves them guessing which part.
  */
-export function citationLine({ grade, scope, publisher, period }: ProvenanceParts): string {
-  const named = typeof publisher === 'string' && publisher.trim() !== ''
+/**
+ * The publisher as a reader sees it, or the finding when there is none.
+ *
+ * ⚠ Exported so SourceBar and citationLine cannot drift: two copies of this
+ * one-liner is two chances for a page to say "source not recorded" in one place
+ * and nothing in the other, over the same row.
+ */
+export function publisherLabel(publisher: string | null | undefined): string {
+  return typeof publisher === 'string' && publisher.trim() !== ''
     ? publisher.trim()
     : NO_PUBLISHER;
+}
+
+export function citationLine({ grade, scope, publisher, period }: ProvenanceParts): string {
+  const named = publisherLabel(publisher);
 
   const resolvedGrade = normalizeAuditGrade(grade);
 

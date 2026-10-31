@@ -132,8 +132,17 @@ test('A figure read off a chart carries its source', async ({ page }) => {
   // branches — root, drill-down and leaf — so a citation wired beside one of
   // them would vanish the moment a reader clicked into a category, which is
   // exactly when they are most likely to screenshot a bar.
+  //
+  // ⚠⚠ THE DRILL IS ASSERTED, NOT ASSUMED. The first version of this test
+  // clicked and re-checked the citation — but if the click were a no-op (a leaf
+  // segment, a changed DOM, an intercepted pointer) the ROOT citation is still
+  // on screen and the test passes while proving nothing about depth. Found in
+  // whole-branch review. The breadcrumb is the depth signal.
+  const breadcrumb = page.getByRole('navigation', { name: /Breadcrumb/i });
+  const before = await breadcrumb.innerText();
   const chart = page.getByRole('list', { name: /breakdown/i, includeHidden: true });
   await chart.getByRole('listitem', { includeHidden: true }).first().click();
+  await expect(breadcrumb, 'the drill click did not navigate').not.toHaveText(before);
   await expect(chartCitation(page).first()).toBeVisible();
 });
 

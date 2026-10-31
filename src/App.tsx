@@ -39,7 +39,7 @@ import FundSeriesToggle from './components/FundSeriesToggle';
 import SourceBar from './components/SourceBar';
 import { citationLine } from './data/provenanceLine';
 import {
-  listSeries, defaultSeries, seriesId, encodeSeries, decodeSeries,
+  listSeries, defaultSeries, seriesId, encodeSeries, decodeSeries, SERIES_DATASETS,
   seriesPeriodTokens, resolveSeriesYear, shouldResetSeries, initialYearForEntity,
   resolveClampNote, type ClampNoteState,
 } from './data/seriesSelection';
@@ -1181,6 +1181,44 @@ function App() {
   // MUST live above the appView early returns — hooks below them violate the
   // Rules of Hooks when the view transitions (React #310, caught in 45 UAT).
   /**
+   * AUDIT-GRADE §5.2 — what the source bar describes.
+   *
+   * ⚠⚠ IT MUST DESCRIBE WHAT IS ON SCREEN. `availableSeries` is built from
+   * `available_datasets` and filtered to SERIES_DATASETS (operating + revenue),
+   * so it is INDEPENDENT of `activeDataset` — while `budgetData` is the active
+   * dataset. Feeding the bar the series grade/scope/span beside the active
+   * dataset's publisher mixed two different things: on the Employees tab it
+   * read "Government-reported · All Funds · LA City Open Data · FY2003–25"
+   * above a salary table whose own citation said "Not a financial statement".
+   * A false claim of assurance is the mirror image of the false confession
+   * §5.4 exists to remove. Found in whole-branch review, not by a test.
+   *
+   * Outside the series model (Employees, transactions) the active dataset
+   * answers for itself and there is no span to state. Null while it loads —
+   * SourceBar renders nothing rather than a placeholder.
+   */
+  const sourceBarProvenance = useMemo(() => {
+    if (SERIES_DATASETS.includes(activeDataset)) {
+      if (!effectiveSeriesInfo || !effectiveSeries) return null;
+      return {
+        scope: effectiveSeries.fundScope,
+        basis: effectiveSeries.basis,
+        accountingBasis: budgetData?.metadata.accountingBasis,
+        auditGrade: effectiveSeriesInfo.auditGrade,
+        span: effectiveSeriesInfo.span,
+      };
+    }
+    if (!budgetData) return null;
+    return {
+      scope: budgetData.metadata.fundScope,
+      basis: budgetData.metadata.basis,
+      accountingBasis: budgetData.metadata.accountingBasis,
+      auditGrade: budgetData.metadata.auditGrade,
+      span: null,
+    };
+  }, [activeDataset, effectiveSeries, effectiveSeriesInfo, budgetData]);
+
+  /**
    * AUDIT-GRADE §5.2 — the line printed under each chart.
    *
    * ⚠ Built from the DISPLAYED DATASET's own metadata, not from the series:
@@ -1684,12 +1722,14 @@ function App() {
                       pill five times down a page becomes furniture and stops
                       being read, and it fails silently when it does. */}
                   <SourceBar
-                    scope={effectiveSeries?.fundScope}
-                    basis={effectiveSeries?.basis}
-                    accountingBasis={budgetData?.metadata.accountingBasis}
-                    auditGrade={effectiveSeriesInfo?.auditGrade}
-                    publisher={budgetData?.metadata.dataSourceInfo?.displayName ?? null}
-                    span={effectiveSeriesInfo?.span ?? null}
+                    provenance={sourceBarProvenance}
+                    // ⚠ undefined while the dataset LOADS; null only when the API
+                    // really returned no publisher. `budgetData` is nulled on every
+                    // dataset, year and entity change, so collapsing the two printed
+                    // the D5 finding over governments that have a publisher.
+                    publisher={budgetData
+                      ? (budgetData.metadata.dataSourceInfo?.displayName ?? null)
+                      : undefined}
                   >
                   <FundSeriesToggle
                     series={availableSeries}

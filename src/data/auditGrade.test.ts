@@ -92,7 +92,7 @@ describe('AUDIT_GRADE_COPY', () => {
     }
   });
 
-  // ⚠⚠ `unknown` is 38,421 of 583,569 rows (6.6%), across the sources nobody has
+  // ⚠⚠ `unknown` is 23,694 of 583,569 rows (4.1%), across the sources nobody has
   // recon'd yet (measured 2026-10-30; it was 68% at 88,820 rows on 2026-08-31,
   // and the stale figure reached readers — see the D1 tests below). It means
   // Treasury Tracker has not established
@@ -110,7 +110,7 @@ describe('AUDIT_GRADE_COPY', () => {
     expect(label).toMatch(/not (yet )?establish/i);
   });
 
-  // ⚠⚠ `self_reported_unaudited` is 524,174 rows — 89.8% of the database and the
+  // ⚠⚠ `self_reported_unaudited` is 530,969 rows — 91.0% of the database and the
   // note a reader actually meets most often (measured 2026-10-30; it was 27,912
   // across 835 entities on 2026-08-31). It is a statutory filing a finance officer signs,
   // frequently drawn straight from audited books; it simply has not itself been

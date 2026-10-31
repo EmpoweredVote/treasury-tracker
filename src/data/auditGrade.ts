@@ -17,15 +17,21 @@
  * ⚠⚠ TWO VALUES CAN LIBEL A GOVERNMENT AT SCALE if the copy drifts, and between
  * them they are 96.4% of the database (measured 2026-10-30):
  *
- *   self_reported_unaudited  524,174 rows — 89.8%
- *   unknown                   38,421 rows —  6.6%
+ *   self_reported_unaudited  530,969 rows — 91.0%
+ *   unknown                   23,694 rows —  4.1%
  *   compiled_from_audited     19,590 rows —  3.4%
+ *   not_applicable             7,932 rows —  1.4%  (salaries and transactions)
  *   audited_gaap               1,356 rows —  0.2%
  *   audited_ocboa                 28 rows —  0.005%
- *   not_applicable             7,932 rows —  1.4% (salaries and transactions)
  *   total                    583,569 rows
  *
- * ⚠ THESE COUNTS GO STALE. On 2026-08-31 this list read `unknown` 68.0% and
+ * ⚠ THESE COUNTS GO STALE, AND THE FIRST DRAFT OF THIS VERY TABLE DID NOT EVEN
+ * RECONCILE — it mixed a pre-write measurement with a post-write row, and the
+ * seven lines summed to 591,501 against a 583,569-row table. Caught in review,
+ * in the file whose whole subject is a number that rotted. Re-measure; do not
+ * patch a line.
+ *
+ * ⚠ On 2026-08-31 this list read `unknown` 68.0% and
  * `self_reported_unaudited` 31.4% at 88,820 rows, and a sentence derived from
  * them reached readers and stayed false for two months (see
  * AUDIT_GRADE_EXPLAINER.whyUnknownIsNotBad). The share did not get worse: the
