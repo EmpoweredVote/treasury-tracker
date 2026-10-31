@@ -198,6 +198,12 @@ console.log(`  node scripts/verifyAxisStamps.mjs --like "CA State Controller%"`)
 console.log(`  node scripts/registerCreatedRows.mjs --milestone ca-sco-fy${fy} \\`);
 console.log(`      --match "CA State Controller" --fy ${fy}`);
 console.log('  node scripts/syncFrozenInvariantState.mjs');
-console.log('  npm run verify:frozen\n');
+console.log('  npm run verify:frozen');
+// ⚠⚠ GEOID COMES AFTER THE LOAD, NEVER BEFORE IT. backfillGeoids reads its
+// entity list from the TT API, which serves only entities that HAVE data —
+// Alpine, Mariposa and Trinity counties were seeded with no geoid and stay
+// invisible to it until this sweep gives them rows. A county with no geoid is
+// unmatched in Civic Spaces.
+console.log('  node scripts/backfillGeoids.mjs --state CA --dry-run   # geoid only works AFTER the load\n');
 
 process.exit(final.parked > 0 ? 1 : 0);
