@@ -59,28 +59,63 @@ export function compareExclusionSources(baseline, mirrorByFile, readFile) {
 
     const onlyRepo = [...repo].filter((id) => !mirror.has(id));
     const onlyDb = [...mirror].filter((id) => !repo.has(id));
+    // ⚠⚠ ATTRIBUTION, NOT ABSENCE. The mirror stores each id ONCE under one
+    // source_file while a repo id may be listed in two files, so an id missing
+    // HERE may be sitting in the mirror under its other file. Which of the two
+    // it is decides whether there is anything to fix.
+    const attributedElsewhere = onlyRepo.filter(
+      (id) => [...mirrorByFile.values()].some((set) => set.has(id)));
     if (onlyRepo.length || onlyDb.length) {
-      out.push({ file, onlyRepo, onlyDb, missingFile: false, unlisted: false });
+      out.push({
+        file, onlyRepo, onlyDb, attributedElsewhere, missingFile: false, unlisted: false,
+      });
     }
   }
   return out;
 }
 
 /**
- * Split drifting ids into the ones that can move an invariant and the ones
- * that cannot.
+ * The union of every id the repo files list, and the union of every id the
+ * mirror holds — the only comparison that can produce a verdict.
  *
- * ⚠ `liveIds` is the set of ids that currently exist as budget rows. An id
- * absent from it is stale litter: real, worth cleaning, and incapable of
- * changing any count.
+ * ⚠⚠ WHY THE PER-FILE COMPARISON CANNOT. Measured 2026-10-31 over all 64
+ * files and 521,052 distinct ids: exactly 81 ids are listed in MORE THAN ONE
+ * repo file, and `liveSyncExcludedIds.json` holds all 81. That overlap is by
+ * design — it is a SCOPE file, "a complete statement of its own scope, not a
+ * diff", and it overlaps the milestone PROVENANCE files. The mirror stores
+ * each id ONCE (`syncFrozenInvariantState.mjs` dedupes it, or the insert dies
+ * on the primary key) under ONE source_file, so `compareExclusionSources`
+ * reads the other file's copy as missing from the database and reports drift
+ * that no sync can ever clear.
+ *
+ * Worse in the other direction: when the mirror attributes a shared id to the
+ * file the repo does NOT list it under, the per-file comparison calls it
+ * `only-in-db` and therefore BLOCKING — refusing a registration that should
+ * proceed.
+ *
+ * Every consumer unions these files into a Set before computing anything, so
+ * the unions agreeing is exactly what "the two lists are the same list" means.
+ *
+ * @param {{excluded_ids_files?: string[]}} baseline
+ * @param {Map<string, Set<string>>} mirrorByFile
+ * @param {(file: string) => string[] | null} readFile
+ * @returns {{onlyRepo: string[], onlyDb: string[]}}
  */
-export function splitLiveAndStale(drift, liveIds) {
-  let live = 0;
-  let stale = 0;
-  for (const d of drift) {
-    for (const id of [...d.onlyRepo, ...d.onlyDb]) {
-      if (liveIds.has(id)) live += 1; else stale += 1;
-    }
+export function compareExclusionUnions(baseline, mirrorByFile, readFile) {
+  const repo = new Set();
+  for (const file of baseline.excluded_ids_files ?? []) {
+    const contents = readFile(file);
+    if (contents === null) continue; // absent from this checkout — the unmerged-PR shape
+    for (const id of contents) repo.add(id);
   }
-  return { live, stale };
+
+  // ⚠ EVERY mirror file counts, including one the baseline never listed. An id
+  // the database excludes is excluded whatever name it filed under.
+  const db = new Set();
+  for (const ids of mirrorByFile.values()) for (const id of ids) db.add(id);
+
+  return {
+    onlyRepo: [...repo].filter((id) => !db.has(id)),
+    onlyDb: [...db].filter((id) => !repo.has(id)),
+  };
 }

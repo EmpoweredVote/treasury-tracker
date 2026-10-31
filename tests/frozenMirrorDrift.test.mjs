@@ -1,5 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { compareExclusionSources, splitLiveAndStale } from '../scripts/lib/frozenMirrorDrift.mjs';
+import {
+  compareExclusionSources, compareExclusionUnions,
+} from '../scripts/lib/frozenMirrorDrift.mjs';
 
 /**
  * ⭐ The 2026-10-31 investigation, pinned.
@@ -65,23 +67,84 @@ describe('compareExclusionSources', () => {
 });
 
 /**
- * ⚠⚠ The headline count misleads unless these are separated. On 2026-10-31 the
- * raw drift was 85 ids and only FOUR could move anything: the rest were ids of
- * rows that no longer exist. Reporting 85 would send the next reader hunting
- * for 85 rows that are not there.
+ * ⭐⭐ 2026-10-31, the SECOND investigation this tool caused rather than closed.
+ *
+ * It reported 81 drifting ids — 19 under `bloomingtonSalariesBackfillCreatedIds`
+ * and 62 under `liveSyncExcludedIds` — and syncing the mirror did not clear
+ * them, because nothing was wrong. Measured locally over all 64 files and
+ * 521,052 distinct ids: EXACTLY 81 ids are listed in more than one repo file,
+ * and `liveSyncExcludedIds.json` holds all 81 of them. The arithmetic ties —
+ * the 62 is scope04 30 + scope02 12 + weho 12 + postV224 4 + sfWiden 4.
+ *
+ * ⚠⚠ THE OVERLAP IS BY DESIGN and [[reference_frozen_figure_invariant]] says
+ * so: `liveSyncExcludedIds.json` is a SCOPE file, "a complete statement of its
+ * own scope, not a diff", so it overlaps the milestone PROVENANCE files. The
+ * mirror stores each id ONCE — `syncFrozenInvariantState.mjs` dedupes it or the
+ * insert dies on the primary key — and attributes it to one file. Comparing
+ * FILE BY FILE then reads the other file's copy as missing from the database.
+ *
+ * Everything unions into a Set before any invariant is computed, so the only
+ * question that means anything is whether the two UNIONS agree.
  */
-describe('splitLiveAndStale', () => {
-  const drift = [{ file: 'a.json', onlyRepo: ['stale1', 'stale2'], onlyDb: ['live1'] }];
-
-  it('counts only ids that still exist as budget rows as live', () => {
-    expect(splitLiveAndStale(drift, new Set(['live1']))).toEqual({ live: 1, stale: 2 });
+describe('compareExclusionUnions', () => {
+  // The exact shape above, reduced: '2' is listed twice, the mirror holds it once.
+  it('is silent when an id listed in two repo files is stored once in the mirror', () => {
+    const baseline = { excluded_ids_files: ['scope.json', 'milestone.json'] };
+    const mirror = new Map([['scope.json', new Set(['1', '2'])]]);
+    const read = (f) => ({ 'scope.json': ['1', '2'], 'milestone.json': ['2'] }[f] ?? null);
+    expect(compareExclusionUnions(baseline, mirror, read)).toEqual({ onlyRepo: [], onlyDb: [] });
   });
 
-  it('calls everything stale when no id survives', () => {
-    expect(splitLiveAndStale(drift, new Set())).toEqual({ live: 0, stale: 3 });
+  // ⚠ The mirror may attribute a shared id to EITHER file. Per-file comparison
+  // calls this one 'only-in-db' on milestone.json and therefore BLOCKING, which
+  // is the false positive that stops a registration that should proceed.
+  it('is silent when the mirror attributes a shared id to the other file', () => {
+    const baseline = { excluded_ids_files: ['scope.json', 'milestone.json'] };
+    const mirror = new Map([['milestone.json', new Set(['2'])], ['scope.json', new Set(['1'])]]);
+    const read = (f) => ({ 'scope.json': ['1', '2'], 'milestone.json': ['2'] }[f] ?? null);
+    expect(compareExclusionUnions(baseline, mirror, read)).toEqual({ onlyRepo: [], onlyDb: [] });
   });
 
-  it('is zero on both counts when nothing drifts', () => {
-    expect(splitLiveAndStale([], new Set(['x']))).toEqual({ live: 0, stale: 0 });
+  // ⚠⚠ THE UNMERGED-PR FINDING MUST SURVIVE THIS CHANGE. A file the database
+  // has and the checkout does not still contributes its ids to the db union.
+  it('still names ids the database has and no repo file lists', () => {
+    const baseline = { excluded_ids_files: ['a.json', 'pr.json'] };
+    const mirror = new Map([['a.json', new Set(['1'])], ['pr.json', new Set(['9', '10'])]]);
+    const read = (f) => ({ 'a.json': ['1'] }[f] ?? null);
+    expect(compareExclusionUnions(baseline, mirror, read)).toEqual({ onlyRepo: [], onlyDb: ['9', '10'] });
+  });
+
+  it('names ids a repo file lists and the mirror holds nowhere at all', () => {
+    const baseline = { excluded_ids_files: ['a.json'] };
+    const mirror = new Map([['a.json', new Set(['1'])]]);
+    const read = (f) => ({ 'a.json': ['1', '2'] }[f] ?? null);
+    expect(compareExclusionUnions(baseline, mirror, read)).toEqual({ onlyRepo: ['2'], onlyDb: [] });
+  });
+});
+
+/**
+ * The per-file breakdown stays — it is how a reader finds WHICH file to fix —
+ * but it has to say which of its differences are mere attribution, or the next
+ * reader runs the same investigation a third time.
+ */
+describe('compareExclusionSources attribution', () => {
+  it('marks an only-in-repo id the mirror holds under another file', () => {
+    const baseline = { excluded_ids_files: ['scope.json', 'milestone.json'] };
+    const mirror = new Map([['scope.json', new Set(['1', '2'])]]);
+    const read = (f) => ({ 'scope.json': ['1', '2'], 'milestone.json': ['2'] }[f] ?? null);
+    const drift = compareExclusionSources(baseline, mirror, read);
+    expect(drift).toHaveLength(1);
+    expect(drift[0].file).toBe('milestone.json');
+    expect(drift[0].onlyRepo).toEqual(['2']);
+    expect(drift[0].attributedElsewhere).toEqual(['2']);
+  });
+
+  it('leaves an id the mirror holds nowhere unmarked', () => {
+    const baseline = { excluded_ids_files: ['a.json'] };
+    const mirror = new Map([['a.json', new Set(['1'])]]);
+    const read = (f) => ({ 'a.json': ['1', '2'] }[f] ?? null);
+    const drift = compareExclusionSources(baseline, mirror, read);
+    expect(drift[0].onlyRepo).toEqual(['2']);
+    expect(drift[0].attributedElsewhere).toEqual([]);
   });
 });
