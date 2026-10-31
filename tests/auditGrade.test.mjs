@@ -9,13 +9,16 @@ describe('AUDIT_GRADE vocabulary', () => {
   // ⚠ The ORDER is asserted, not just the membership: the ladder runs
   // strongest-assurance-first and `audited_ocboa` belongs directly below
   // `audited_gaap` — same independent opinion, different measurement basis.
-  it('has exactly the five spec values, strongest assurance first', () => {
+  it('has exactly the six spec values, the five assurance values first', () => {
     expect(AUDIT_GRADE_VALUES).toEqual([
       'audited_gaap',
       'audited_ocboa',
       'compiled_from_audited',
       'self_reported_unaudited',
       'unknown',
+      // ⚠ OFF THE LADDER, not at the bottom of it — see the
+      // not-a-financial-statement test below.
+      'not_applicable',
     ]);
   });
 
@@ -23,6 +26,22 @@ describe('AUDIT_GRADE vocabulary', () => {
   // genuinely audited on a NON-GAAP basis had no honest value: `audited_gaap`
   // asserts a basis its own document denies, `unknown` claims nobody looked, and
   // `self_reported_unaudited` denies the audit.
+  // ⭐ ADDED 2026-10-30 (AUDIT-GRADE UI §5.4). Chris's call, verbatim:
+  // "not_applicable value — salaries aren't financial statements."
+  //
+  // ⚠⚠ IT SITS LAST AND IT IS NOT A RUNG. The order above runs
+  // strongest-assurance-first, and this value is not weaker than `unknown` — it
+  // is off that axis entirely. A payroll roster has no auditor to hold an
+  // opinion, so the question is INAPPLICABLE rather than unanswered (#198).
+  // Appending it also keeps every existing index stable.
+  it('can express a record that is not a financial statement', () => {
+    expect(AUDIT_GRADE.NOT_APPLICABLE).toBe('not_applicable');
+    expect(AUDIT_GRADE_VALUES).toEqual([
+      'audited_gaap', 'audited_ocboa', 'compiled_from_audited',
+      'self_reported_unaudited', 'unknown', 'not_applicable',
+    ]);
+  });
+
   it('can express an audited non-GAAP (OCBOA) filing', () => {
     expect(AUDIT_GRADE.AUDITED_OCBOA).toBe('audited_ocboa');
     expect(AUDIT_GRADE_VALUES).toContain('audited_ocboa');

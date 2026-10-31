@@ -15,6 +15,18 @@ describe('audit grade registry', () => {
     expect(result.missingIds).toBe(0);
   });
 
+  // ⚠⚠ `not_applicable` answers "what KIND of record is this", which the row's
+  // own `dataset_type` already says. This registry answers "what did the
+  // PUBLISHER do". An entry carrying that value would dress a row-shape fact as
+  // a publisher judgement, and would have to be repeated for all 26 salary and
+  // transaction sources and every future one. It is stamped by
+  // scripts/stampNotApplicableGrade.mjs instead.
+  it('never reaches not_applicable — that is a dataset_type fact, not a publisher one', () => {
+    for (const entry of AUDIT_GRADE_REGISTRY) {
+      expect(entry.value, `${entry.id} claims not_applicable`).not.toBe('not_applicable');
+    }
+  });
+
   it('every entry carries non-placeholder evidence', () => {
     expect(AUDIT_GRADE_REGISTRY.length).toBeGreaterThan(0);
     for (const entry of AUDIT_GRADE_REGISTRY) {
