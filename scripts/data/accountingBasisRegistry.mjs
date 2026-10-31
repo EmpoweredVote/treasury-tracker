@@ -49,6 +49,39 @@ const WA_GAAP_ENTITIES = [
 
 export const ACCOUNTING_BASIS_REGISTRY = [
   {
+    // ⭐ CITY OF LOS ANGELES — the AUDITED series, added 2026-10-31 as piece 2
+    // of the audit-grade milestone. It exists so the reader has something to
+    // switch TO: TT already holds this city's unaudited all-funds series from
+    // the State Controller, FY2003-FY2025.
+    //
+    // ⚠⚠⚠ A SECOND SERIES, NEVER A CORRECTION OF THE FIRST. The audited
+    // General Fund is ~$6.7B (FY2023); the Controller's all-funds figure for the
+    // same city and year is ~$23.5B, because it counts the airport, the port and
+    // the utility. Both are right and they will never agree.
+    // ⚠⚠ BYTE-IDENTICAL to this id's pattern in the other three axis
+    // registries, so they cannot disagree about who is in this family.
+    // ⚠⚠ YEARS ENUMERATED TO THE READ WINDOW (FY2016-FY2025), never
+    // `FY\d{4}`: a bare pattern would describe a future year's filing the
+    // moment it loaded, off a document nobody had opened. FY2026 must fail
+    // to match and load `unknown` until somebody reads it.
+    // ⚠ Anchored at BOTH ends. `Los Angeles` is a prefix of nothing here,
+    // but EIN 956000735 also carries `Port of Los Angeles` and `Los Angeles
+    // World Airports`, and LA County is a different government again.
+    id: 'la-city-acfr-gf',
+    match: /^Los Angeles ACFR — General Fund (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[6-9]|2[0-5]) actual, GAAP basis\)$/,
+    value: ACCOUNTING_BASIS.GAAP,
+    evidence: {
+      document: 'The independent auditor\u2019s report in each of the ten ACFRs states the statements '
+        + 'are presented "in accordance with accounting principles generally accepted in the United '
+        + 'States of America". FAC agrees independently: `sp_framework_opinions` is EMPTY for all ten '
+        + 'filings, so no special-purpose framework was used.',
+      figures: 'Governmental funds are presented on the MODIFIED ACCRUAL basis WITHIN US GAAP, which '
+        + 'is what this axis records as `gaap` \u2014 the same reading as every other ACFR-GF family in '
+        + 'this registry. It is not `modified_cash`: that value is for statements whose own auditor '
+        + 'says they depart from GAAP, as Brown County SD\u2019s do and these do not.',
+    },
+  },
+  {
     // ⚠ FIRST, and named explicitly. See the header.
     id: 'wa-sao-duvall-cash',
     // ⚠⚠ THE YEARS ARE ENUMERATED TO THE LOADED WINDOW, exactly as the
