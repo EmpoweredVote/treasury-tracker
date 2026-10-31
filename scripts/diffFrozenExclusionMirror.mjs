@@ -95,13 +95,25 @@ for (const d of drift) {
 // worth cleaning, but reporting it alongside the live count sends the next
 // reader hunting for rows that are not there. On 2026-10-31 the raw drift was
 // 85 ids and only FOUR of them could move the deficit.
-console.log(`\n${live} LIVE id(s) differ — this is the number that moves the deficit.`);
-console.log(`${stale} stale id(s) differ — bookkeeping litter; they match no budget row.`);
+console.log(`\n${live} LIVE id(s) differ — they match a budget row.`);
+console.log(`${stale} stale id(s) differ — they match no budget row at all.`);
 
-if (live > 0) {
+// ⚠⚠ DIFFERING IS NOT THE SAME AS RAISING THE DEFICIT, and the first draft of
+// this script conflated them — its headline called every live difference "the
+// number that moves the deficit" and that is false. Only ids the DATABASE
+// excludes and the REPO does not ('only-in-db') raise what registerCreatedRows
+// computes. Proved on 2026-10-31: 81 'only-in-repo' ids sat in this report
+// while the deficit was exactly 20 + 4 and nothing else. Reporting the wrong
+// headline sent the author hunting for a blocker that was not there.
+const blocking = drift.reduce(
+  (n, d) => n + d.onlyDb.filter((id) => liveIds.has(id)).length, 0);
+console.log(`${blocking} of them RAISE THE DEFICIT — live, excluded in the database,`
+  + ' absent from the repo files.');
+
+if (blocking > 0) {
   console.log('\nA file absent from this checkout usually means its PR is not merged yet.');
   console.log('Check: gh pr list --state open   — and register from a branch that has it,');
   console.log('or merge that PR first. Do NOT re-baseline to make the number agree.');
 }
 
-process.exit(live > 0 ? 1 : 0);
+process.exit(blocking > 0 ? 1 : 0);
