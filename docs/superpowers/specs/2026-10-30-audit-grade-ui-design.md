@@ -226,6 +226,62 @@ Chris, one answered by measurement, one still open and not blocking.
 
 ---
 
+### D5 — 16,997 figures are published with no citation at all
+
+Found 2026-10-30, answering Chris's question *"how are we putting any
+information up [without a source_url]?"* Measured in production:
+
+| | rows | share |
+|---|---:|---:|
+| statement rows (`dataset_type` not salaries/transactions) | 575,637 | — |
+| …carrying a source pill, via `source_registry` | 897 | 0.2% |
+| …carrying a source pill, via the row's own `source_url` + `source_date` | 557,743 | 96.9% |
+| **…carrying no source pill at all** | **16,997** | **2.95%** |
+
+**Three families, and one of them is 99%:**
+
+| family | rows | entities |
+|---|---:|---:|
+| **Massachusetts DLS** | **16,816** | **351** |
+| early hand-loaded city budgets (Sacramento, SF, San Jose, Oakland, Anaheim, Long Beach, Fresno, Riverside, Santa Ana, West Hollywood, Bloomington, Plano, McKinney, Frisco, Richardson) | 176 | 33 |
+| Empowered Vote's own books | 5 | 1 |
+
+**The failure mode is silence, not a dead link.** `treasuryService.ts` returns
+`data_source_info: null` unless either the registry join yields a display name
+*and* a url, or the row carries `data_source` **and** `source_url` **and**
+`source_date` — and `source_date` is null on every one of these rows. Both
+reader-facing surfaces key off that one object: `SourceChip` in `App.tsx` and
+the "Data sourced from …" line in `PlainLanguageSummary.tsx`. So on 351
+Massachusetts pages a figure appears with **no attribution whatsoever** — which
+is worse for a journalist than a broken link, because nothing signals that the
+provenance is missing.
+
+⭐ **TT's own write path already ties this knot the right way round.**
+`budgets_graded_rows_need_a_source_url` binds every graded row; `unknown` rows
+are unconstrained. All 16,997 uncited rows are `unknown` — the untraceable rows
+are exactly the ones claiming no assurance. That is the invariant holding, not
+failing. But *the reader cannot see that*, and "no claim" is not the same as
+"no citation."
+
+⚠ **A `source_url` is not proof the citation works.** `source_url_never_verified`
+records 227 rows that shipped a link which expired in 30 seconds with every
+check green — no gate reads a `source_url`. Presence and liveness are two
+different properties and this design should not let the first stand in for the
+second.
+
+**Not fixed by this work — scoped for the plan as its own piece.** The
+provenance exists; it was simply never written to the rows. `scrapeMaDLS.js`
+holds the gateway URL (`https://dls-gw.dor.state.ma.us/reports/rdpage.aspx`,
+with a per-report `rdreport`). ⚠ It is a POST-driven ASP.NET report gateway
+with no stable per-town deep link, so the honest citation is the report landing
+page plus the report and fiscal year — and ⚠ the same file states General Fund
+*Expenditures* was deliberately excluded from that scraper, while the database
+holds `… — MA General Fund Expenditures` operating rows, so **a recon must
+establish where the expenditure rows actually came from before anything is
+backfilled.** Do not invent a URL to satisfy a constraint.
+
+---
+
 ## 5. The design
 
 ### 5.1 One source at a time, chosen by a switcher — Chris picked this
@@ -427,7 +483,7 @@ status not established" is the defect this prevents, not a later cleanup.
 
 ---
 
-## 7. Sequence — three pieces, agreed order
+## 7. Sequence — four pieces, agreed order
 
 Chris: *"that order works."*
 
@@ -439,9 +495,19 @@ switcher has something to switch to; then the FY2025 fleet load tracked in
 **issue #313** (521 of 538 CA entities still at FY2024). Scoped separately;
 multi-hour; needs its own approval.
 
-**Piece 3 — the rest of the `unknown` cleanup.** Buckets C, D and E of the
-2026-10-09 scoping — roughly 22,000 rows, each needing a publisher recon. Steps
-1–3 there would take `unknown` from 38,421 to roughly 2,000.
+**Piece 3 — the rest of the `unknown` cleanup.** Buckets C and E of the
+2026-10-09 scoping — roughly 20,000 rows, each needing a publisher recon. ⚠
+Bucket D is **out**: Chris left it at `unknown` (§8). Bucket E *is* the MA DLS
+family, so **piece 3 and D5 are the same 351 entities seen from two sides** —
+one asks who assured the figures, the other asks where they came from. Recon
+them together or the publisher gets read twice.
+
+**Piece 4 — D5, the 16,997 uncited figures.** Smaller than it looks: one
+publisher is 99% of it. Recon first (where do the MA *expenditure* rows come
+from?), backfill `source_url` + `source_date` second, and only then consider
+whether the write path should refuse an uncited row at all. ⚠ Not in piece 1 —
+it is a data-provenance repair, not a labelling change, and it would smuggle a
+multi-hour load into a UI piece.
 
 ---
 
@@ -489,13 +555,18 @@ have been guessed differently by someone who had not read `seriesSelection.ts`.
    (`docs/superpowers/specs/2026-09-12-civic-spaces-coverage-catalog-design.md`)
    mentions `audit_grade` once, in passing, and catalogs nothing from it.
 
-**Do NOT settle this — it is Chris's, and the plan must put it to him:**
+3. ~~**Bucket D (1,971 rows): worth reading opinions at ~82 rows per family?**~~
+   **ANSWERED 2026-10-30: leave it at `unknown` for now.** Chris: *"let's leave
+   bucket D at unknown for now."* The tail stays honestly ungraded until a state
+   is onboarded for other reasons. ⚠ This means `unknown` must keep reading as
+   *we haven't checked yet* — which it does, once D3 and §5.4 remove the two
+   buckets where that sentence was false. Nothing in piece 1 or 2 depends on it.
 
-3. **Bucket D (1,971 rows): worth reading opinions at ~82 rows per family, or
-   leave the state-ACFR tail at `unknown` until a state is onboarded for other
-   reasons?** Carried over unanswered from 2026-10-09. This is piece 3 and does
-   not block pieces 1 or 2. ⚠ A coverage figure measures a publisher, not a
-   year — see `sc_city_acfr_route`.
+**Nothing is now blocked on an answer.** All three questions from
+`.planning/AUDIT-GRADE-UNKNOWN-SCOPING.md` are closed, thirteen months after
+they were asked. The one new item raised on 2026-10-30 — **D5, the 16,997
+uncited figures** — is scoped as its own piece with a recon in front of it, not
+folded into this work.
 
 ---
 
