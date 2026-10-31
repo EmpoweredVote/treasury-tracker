@@ -121,6 +121,19 @@ async function main() {
   if (mine.length !== deficit) {
     console.error('✗ Those do not agree. Registering a set that does not reconcile is exactly the');
     console.error('  bookkeeping error this tool exists to prevent. Refusing to write.');
+    // ⚠⚠ BEFORE BLAMING THE LOAD, CHECK THE TWO EXCLUSION LISTS. This tool reads
+    // scopeBaseline.excluded_ids_files; the in-database frozen_invariant_status()
+    // RPC reads treasury.frozen_excluded_ids. They are supposed to be one list.
+    // On 2026-10-31 they differed by four LIVE rows belonging to an UNMERGED pull
+    // request whose data was already in production — the rows were in the mirror
+    // and their bookkeeping files existed only on that PR'"'"'s branch. The deficit
+    // read four too high and this message read as if the load were wrong.
+    console.error('');
+    console.error('  If your match looks right, the two exclusion lists may have drifted:');
+    console.error('    node scripts/diffFrozenExclusionMirror.mjs');
+    console.error('  A file it reports ABSENT FROM THIS CHECKOUT usually belongs to an');
+    console.error('  unmerged PR whose rows are already loaded. Register from a branch that');
+    console.error('  has it, or merge that PR first. Never re-baseline to force agreement.');
     process.exit(1);
   }
 
