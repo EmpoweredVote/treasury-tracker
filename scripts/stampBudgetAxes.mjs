@@ -55,8 +55,18 @@ export const EXPECTED_BASIS_ROWS = Object.freeze({
   // figures were the State Controller's all along, dollar-identical in all 4 years.
   // Verified against the live table: the two sources now count 10452 / 10452, exactly
   // +4 / +4, with nothing else moved. Evidence: LA-02-SCOPING.md §2.
-  'ca-sco-city-exp': 10452,
-  'ca-sco-city-rev': 10452,
+  // ⚠ +1 each against 10452: the CA State Controller published FY2025 during
+  // October 2026 and LA City's series was extended onto it (one expenditure +
+  // one revenue row). The loader's totals tie to the dollar against an
+  // independent SOQL sum of the same feed — $21,745,684,500 operating and
+  // $23,522,739,106 revenue — and FY2022-FY2024 re-summed by that same method
+  // reproduce the stored figures exactly, so the method is the loader's.
+  // Verified live: 10453 / 10453, exactly +1 / +1, nothing else moved.
+  // ⚠ This is a STATEWIDE year, not an LA one: 482 CA cities and 54 county
+  // governments all ride this feed and are still at FY2024. When the rest of CA
+  // is loaded these two numbers move again, by far more than one.
+  'ca-sco-city-exp': 10453,
+  'ca-sco-city-rev': 10453,
   // SCOPE-04 — the derived Total Governmental rows. basis='actual', INHERITED from
   // the parent all_funds rows (all 7,664 eligible were measured uniformly actual);
   // summing a subset of a row's own roots cannot change the basis of the figure.
