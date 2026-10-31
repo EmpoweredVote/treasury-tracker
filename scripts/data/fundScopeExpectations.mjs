@@ -158,6 +158,12 @@ export const EXPECTED_ROWS = Object.freeze({
   // ⚠ Kaua'i and Hawaii County stop at FY2024 because they have NOT FILED
   // FY2025 — confirmed live against api.fac.gov on 2026-10-29, not inferred
   // from a stale bulk snapshot.
+  // ⭐ CITY OF LOS ANGELES — the AUDITED series, 2026-10-31. 20 = 10 fiscal
+  // years (FY2016-FY2025, the full span the Federal Audit Clearinghouse holds
+  // for this filer) x 2 datasets. A NEW family, so no pre-existing count moved.
+  // ⚠ Every one of the twenty ties to its own printed total at exactly $0;
+  // scripts/extractLaCityAll.mjs is the gate and reports the delta per run.
+  'la-city-acfr-gf': 20,
   'hi-local-acfr-gf': 67,
   // Knight session 7b — KANSAS'S FIRST LOCAL ENTITIES. A NEW family, so no
   // pre-existing count moved. 84 = 42 entity-years x 2 datasets: City of

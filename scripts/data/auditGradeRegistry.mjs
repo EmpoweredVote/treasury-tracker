@@ -156,6 +156,60 @@ const NYC_ACFR_EVIDENCE = {
 
 export const AUDIT_GRADE_REGISTRY = [
   {
+    // ⭐ CITY OF LOS ANGELES — the AUDITED series, added 2026-10-31 as piece 2
+    // of the audit-grade milestone. It exists so the reader has something to
+    // switch TO: TT already holds this city's unaudited all-funds series from
+    // the State Controller, FY2003-FY2025.
+    //
+    // ⚠⚠⚠ A SECOND SERIES, NEVER A CORRECTION OF THE FIRST. The audited
+    // General Fund is ~$6.7B (FY2023); the Controller's all-funds figure for the
+    // same city and year is ~$23.5B, because it counts the airport, the port and
+    // the utility. Both are right and they will never agree.
+    // ⚠⚠ BYTE-IDENTICAL to this id's pattern in the other three axis
+    // registries, so they cannot disagree about who is in this family.
+    // ⚠⚠ YEARS ENUMERATED TO THE READ WINDOW (FY2016-FY2025), never
+    // `FY\d{4}`: a bare pattern would describe a future year's filing the
+    // moment it loaded, off a document nobody had opened. FY2026 must fail
+    // to match and load `unknown` until somebody reads it.
+    // ⚠ Anchored at BOTH ends. `Los Angeles` is a prefix of nothing here,
+    // but EIN 956000735 also carries `Port of Los Angeles` and `Los Angeles
+    // World Airports`, and LA County is a different government again.
+    id: 'la-city-acfr-gf',
+    match: /^Los Angeles ACFR — General Fund (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[6-9]|2[0-5]) actual, GAAP basis\)$/,
+    value: AUDIT_GRADE.AUDITED_GAAP,
+    evidence: {
+      document: 'All ten City of Los Angeles ACFRs, FY2016-FY2025, read 2026-10-31 from the '
+        + 'Federal Audit Clearinghouse at https://app.fac.gov/dissemination/report/pdf/<report_id>. '
+        + 'The report_id for each year is recorded in _acfr-work/la-city/manifest.json and is the '
+        + '`source_url` stored on the rows this entry grades, so the document attested here is the '
+        + 'one the reader is offered. \u26a0\u26a0 EIN 956000735 carries THREE auditees with ten '
+        + 'filings each \u2014 `City of Los Angeles`, `Port of Los Angeles` and `LOS ANGELES WORLD '
+        + 'AIRPORTS` \u2014 and the Census-era report-id suffix (0000132045) repeats across FY2016-FY2022, '
+        + 'so the manifest filters on `auditee_name` and every PDF cover page was checked for the '
+        + 'entity and the fiscal year.',
+      figures: 'OPINION PRESENT IN ALL TEN \u2014 scripts/verifyCoKsOpinions.py: 10 found in the TEXT '
+        + 'layer, 0 recovered by OCR, 0 NOT FOUND. Corroborated INDEPENDENTLY by the FAC metadata '
+        + 'API, where `gaap_results` is `unmodified_opinion` for every one of the ten years and '
+        + '`sp_framework_opinions` is empty (so GAAP, not an other-basis framework \u2014 this is '
+        + '`audited_gaap`, not `audited_ocboa`). '
+        + '\u26a0\u26a0 FOUR FILINGS CONTAIN MODIFIED-OPINION WORDS AND WERE READ BY EYE RATHER THAN '
+        + 'AUTO-DOWNGRADED, recorded per filing as the Honolulu precedent requires: FY2018 "Basis for '
+        + 'Qualified Opinion on the Crime Victim Assistance Program"; FY2019 "...on the Fire '
+        + 'Management Assistance Grant Program"; FY2021 "...on the Aging Cluster and Temporary '
+        + 'Assistance for Needy Families". Every one names a FEDERAL PROGRAM inside the Single Audit '
+        + 'compliance report, never the basic financial statements. FY2016\u2019s "Qualified Opinion '
+        + 'and Material Weakness" appears in its SCHEDULE OF PRIOR AUDIT FINDINGS \u2014 a record of an '
+        + 'earlier year\u2019s finding, further from the basic statements still. The remaining matches '
+        + 'are ordinary prose in the notes ("no investment holdings of more than 10% ... except for"). '
+        + '\u26a0 FAC reports `is_internal_control_material_weakness_disclosed = Yes` for FY2016-FY2022. '
+        + 'That is a Single Audit internal-control finding, NOT a modification of the opinion on the '
+        + 'basic financial statements, and TT\u2019s vocabulary does not encode it \u2014 recorded here '
+        + 'rather than claimed as a precision the grade does not carry. '
+        + '\u26a0 THE GENERAL FUND IS THE SCOPE THE OPINION COVERS: every opinion names "each major '
+        + 'fund", and the General Fund is a major fund in all ten reports.',
+    },
+  },
+  {
     id: 'hi-local-acfr-gf',
     // ⚠⚠ YEARS ENUMERATED, NOT A RANGE, for the reason recorded on
     // ak-local-acfr-gf and tx-local-acfr-gf: a range would auto-grade a newly
