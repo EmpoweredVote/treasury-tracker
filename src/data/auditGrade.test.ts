@@ -39,6 +39,13 @@ describe('isAudited', () => {
     expect(isAudited('self_reported_unaudited')).toBe(false);
     expect(isAudited('unknown')).toBe(false);
   });
+
+  // ⚠ A payroll roster has no auditor to hold an opinion, so this is false for
+  // the same reason `unknown` is — but for a different cause. `unknown` has no
+  // opinion we have READ; this has no opinion to read.
+  it('is false for a record that is not a financial statement', () => {
+    expect(isAudited('not_applicable')).toBe(false);
+  });
 });
 
 describe('AUDIT_GRADE_COPY', () => {
@@ -114,6 +121,20 @@ describe('AUDIT_GRADE_COPY', () => {
     }
   });
 
+  // ⭐ ADDED 2026-10-30 (§5.4). The two failures this value exists to prevent.
+  //
+  // It must not CONFESS TO A GAP — that is `unknown`'s sentence and it is false
+  // here: nobody failed to check, there is nothing to check. And it must not
+  // read as a complaint about the record. The label says what the record IS.
+  it('says what the record IS, never what is missing from it', () => {
+    const { label, short, long } = AUDIT_GRADE_COPY.not_applicable;
+    for (const text of [label, short, long]) {
+      expect(text, `not_applicable copy confesses to a gap: ${text}`)
+        .not.toMatch(/not (yet )?establish|have not checked|unverified|unaudited|missing/i);
+    }
+    expect(`${short} ${long}`).toMatch(/financial statement/i);
+  });
+
   it('gives every value a distinct label', () => {
     const labels = AUDIT_GRADE_VALUES.map((v) => AUDIT_GRADE_COPY[v].label);
     expect(new Set(labels).size).toBe(labels.length);
@@ -153,6 +174,9 @@ describe('the vocabulary itself', () => {
     const expected: AuditGrade[] = [
       'audited_gaap', 'audited_ocboa', 'compiled_from_audited',
       'self_reported_unaudited', 'unknown',
+      // ⚠ OFF THE ASSURANCE AXIS, not at the bottom of it. Listed last so the
+      // five assurance values keep their order and their indices.
+      'not_applicable',
     ];
     expect([...AUDIT_GRADE_VALUES]).toEqual(expected);
   });

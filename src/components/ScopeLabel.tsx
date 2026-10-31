@@ -83,6 +83,13 @@ export const AUDIT_TONE: Record<AuditGrade, string> = {
   unknown:
     'bg-ev-gray-050 text-ev-gray-600 border-ev-gray-200 '
     + 'dark:bg-ev-gray-800 dark:text-ev-gray-300 dark:border-ev-gray-700',
+  // ⚠ THE SAME NEUTRAL GREY AS `unknown`, and not a sixth colour. A payroll
+  // roster is not a worse figure than an audited statement — it is a different
+  // kind of record, and the WORDS carry that. A colour of its own would put a
+  // sixth rung on a list that has no rungs.
+  not_applicable:
+    'bg-ev-gray-050 text-ev-gray-600 border-ev-gray-200 '
+    + 'dark:bg-ev-gray-800 dark:text-ev-gray-300 dark:border-ev-gray-700',
 };
 
 interface ScopeLabelProps {

@@ -45,7 +45,8 @@ export type AuditGrade =
   | 'audited_ocboa'
   | 'compiled_from_audited'
   | 'self_reported_unaudited'
-  | 'unknown';
+  | 'unknown'
+  | 'not_applicable';
 
 /**
  * ⚠ Must match the CHECK constraint on treasury.budgets exactly. If the database
@@ -58,6 +59,10 @@ export const AUDIT_GRADE_VALUES: readonly AuditGrade[] = [
   'compiled_from_audited',
   'self_reported_unaudited',
   'unknown',
+  // ⚠⚠ OFF THE ASSURANCE AXIS, NOT AT THE BOTTOM OF IT. The five above answer
+  // "how much independent checking stands behind this figure"; this one denies
+  // that the question applies. Listed last so the five keep their order.
+  'not_applicable',
 ] as const;
 
 /**
@@ -177,6 +182,30 @@ export const AUDIT_GRADE_COPY: Record<AuditGrade, AuditGradeCopy> = {
       + 'auditor’s page, which we do source by source. Until that is done we say so instead of '
       + 'guessing, because claiming an audit we have not read would be far worse than admitting '
       + 'we do not know.',
+  },
+
+  // ⚠⚠ 7,932 rows — every `salaries` and `transactions` row in the database.
+  // Chris's call, 2026-10-30: "not_applicable value — salaries aren't financial
+  // statements."
+  //
+  // The failure this replaces: these rows read "Treasury Tracker has not yet
+  // established whether this figure comes from an audited report", which is a
+  // FALSE CONFESSION. Nobody failed to check. An auditor opines on financial
+  // statements; a list of what a government paid is not one, so there is no
+  // opinion to find. Issue #198's lesson — an INAPPLICABLE question is not an
+  // UNANSWERED one — and the test forbids the copy from drifting back into
+  // confessing a gap that does not exist.
+  //
+  // ⚠ The label names the RECORD, not the absence. "Not a financial statement"
+  // reads correctly over a payroll table; "no audit" reads as a complaint.
+  not_applicable: {
+    label: 'Not a financial statement',
+    short: 'A record of payments rather than a financial statement, so an audit opinion does not apply.',
+    long:
+      'This record lists what a government paid — individual salaries, or individual payments — '
+      + 'rather than summarising its finances for a year in a financial statement. Auditors publish '
+      + 'opinions on financial statements, so a record of this kind has no auditor’s opinion behind '
+      + 'it and never did. Where it came from is shown beside it, exactly as for any other figure.',
   },
 };
 
