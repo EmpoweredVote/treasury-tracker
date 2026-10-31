@@ -184,6 +184,16 @@ for (const unit of units) {
       continue;
     }
     // Out of retries, or never retryable in the first place.
+    // ⚠⚠ KEEP THE LOADER'S OWN WORDS. The driver captures each run's output and
+    // used to discard it, so a parked unit left only the driver's one-line verdict
+    // — and on 2026-10-31 that verdict named the wrong cause. The message that
+    // actually diagnoses it is the loader's, so it is written next to the checkpoint.
+    const logPath = `${checkpointPath.replace(/.json$/, '')}-${unit.kind}-${unit.key.replace(/[^A-Za-z0-9]+/g, '_')}.log`;
+    try {
+      mkdirSync(dirname(logPath), { recursive: true });
+      writeFileSync(logPath, result.output);
+      console.log(`         loader output: ${logPath}`);
+    } catch { /* a log we cannot write must not lose the run */ }
     unit.status = 'parked';
     console.log(`PARKED after ${unit.attempts} attempt(s): ${unit.note}`);
     break;

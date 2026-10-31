@@ -105,11 +105,32 @@ export function classifyRun({ kind = 'city', code, output }) {
   const fatal = text.match(/^FATAL: (.+)$/m);
   if (fatal) return { status: 'parked', note: fatal[1].trim() };
 
-  // The database declined the write — an `ambiguous target` means the
-  // city-year holds more than one row for that (fund_scope, basis). Re-running
-  // and hoping is exactly what the loader's own message forbids.
+  // ⚠⚠ THE DATABASE DECLINES WRITES FOR MORE THAN ONE REASON, AND THEY NEED
+  // OPPOSITE ACTIONS. The FY2025 fleet load parked three counties as "resolve
+  // the duplicate"; there were ZERO duplicates — every CA FY2025
+  // all_funds/actual group was measured. The real cause was a missing fiscal
+  // year month, and the wrong note cost an investigation.
   if (text.includes('were REFUSED')) {
-    return { status: 'parked', note: 'writes REFUSED by the database — resolve the duplicate, do not re-run' };
+    if (text.includes('cannot determine fiscal_year_start_month')) {
+      // No prior row under this data_source to inherit a month from. For a
+      // flagship custom-source city this is the standing "no SCO backfill"
+      // decision being enforced; for a genuinely new city it needs the month
+      // read off that entity's own financial report, never a default.
+      return {
+        status: 'parked',
+        note: 'REFUSED — no fiscal-year start month to inherit; pass '
+          + "--fiscal-year-start-month from the entity's own financial report, "
+          + 'or leave the entity out if it has no series here on purpose',
+      };
+    }
+    if (text.includes('ambiguous target')) {
+      return {
+        status: 'parked',
+        note: 'REFUSED — ambiguous target: the entity-year holds more than one row for that '
+          + '(fund_scope, basis). Resolve the duplicate, do not re-run and hope',
+      };
+    }
+    return { status: 'parked', note: 'REFUSED by the database — read this unit\'s log for the reason' };
   }
 
   // The feed, not the data. These converge fast.

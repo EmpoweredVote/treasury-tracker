@@ -45,8 +45,34 @@ const IDS_PATH = join(HERE, 'data', 'scope04CreatedIds.json');
  * ⚠ It WILL move again, by far more than 2, when the rest of CA is loaded onto
  * FY2025: 482 cities and 54 county governments ride the same feeds and are all
  * still at FY2024.
+ *
+ * 7,666 -> 8,637 on 2026-10-31: that load happened (issue #313). It created
+ * 1,072 new all_funds rows — 480 city expenditure + 480 city revenue + 57
+ * county expenditure + 57 county revenue, less the 2 LA City rows already
+ * counted above. Eligible moved by +971, not +1,072, and the 101-row gap was
+ * checked rather than waved through:
+ *
+ *     FY2022   1,066 parents -> 954 derived   89.5%
+ *     FY2023   1,066 parents -> 961 derived   90.2%
+ *     FY2024   1,066 parents -> 961 derived   90.2%
+ *     FY2025   1,074 parents -> 971 eligible  90.4%   <- in line
+ *
+ * ⭐ ~10% of CA State Controller rows carry NO enterprise root every year, so
+ * Total Governmental cannot be derived from them and they land in
+ * `skip-no-enterprise`. FY2025's 9.6% is the normal rate, not a defect.
+ *
+ * ⚠⚠ 480 CITIES, NOT 483. Fremont, Sacramento and San Jose refused: they have
+ * no State Controller BUDGET history at all — only publicpay salaries — so the
+ * RPC had no fiscal_year_start_month to inherit and declined rather than
+ * defaulting. That is the standing "no SCO backfill for flagship custom-source
+ * cities" decision being enforced by the database.
+ *
+ * ⚠ SEPARATELY AND NOT FROM THIS LOAD: `skip-no-enterprise` prints
+ * `expect 852` against a measured 51,257. That tripwire predates the NY, MI and
+ * PA loads — the era-B population it was set against was CA-sized. It needs its
+ * own re-measurement; it is not evidence about anything done here.
  */
-const EXPECTED_ELIGIBLE = 7666;
+const EXPECTED_ELIGIBLE = 8637;
 
 /** Parent data_source -> the derived row's OWN label. */
 const DERIVED_SOURCE = {

@@ -213,3 +213,59 @@ describe('parseDryRunCounts', () => {
     expect(parseDryRunCounts('Done. 2 year/type combos processed.\n')).toBeNull();
   });
 });
+
+/**
+ * ⚠⚠ THE REFUSAL NOTE SENT ME HUNTING FOR A DUPLICATE THAT DID NOT EXIST.
+ *
+ * The FY2025 fleet load parked Alameda, Sacramento and Santa Clara with
+ * "writes REFUSED by the database — resolve the duplicate". I measured every
+ * CA FY2025 all_funds/actual group: ZERO duplicates. The actual message was
+ *
+ *   cannot determine fiscal_year_start_month: 0 existing month(s) for
+ *   (muni=… data_source=CA State Controller - Expenditures). Pass
+ *   p_fiscal_year_start_month explicitly — it must come from the entity's own
+ *   financial report, never a default.
+ *
+ * Fremont, Sacramento and San Jose have NO State Controller budget history at
+ * all — only publicpay salaries — so there was no month to inherit. That is
+ * the standing "no SCO backfill for flagship custom-source cities" decision
+ * being enforced by the database, not a fault.
+ *
+ * Both are refusals and both are parked; they need completely different
+ * actions, so the note must name which one it is.
+ */
+describe('classifyRun tells the two refusals apart', () => {
+  it('names a missing fiscal-year month, and does not call it a duplicate', () => {
+    const r = classifyRun({
+      kind: 'city',
+      code: 1,
+      output: '❌ 2 write(s) were REFUSED and nothing was loaded for them:\n'
+        + '   Sacramento FY2025 operating  [rpc]\n'
+        + '      cannot determine fiscal_year_start_month: 0 existing month(s) for '
+        + '(muni=9722596e data_source=CA State Controller - Expenditures). Pass '
+        + "p_fiscal_year_start_month explicitly — it must come from the entity's own "
+        + 'financial report, never a default.\n',
+    });
+    expect(r.status).toBe('parked');
+    expect(r.note).toMatch(/fiscal.year start month/i);
+    expect(r.note).not.toMatch(/duplicate/i);
+  });
+
+  it('still names an ambiguous target as a duplicate', () => {
+    const r = classifyRun({
+      kind: 'city',
+      code: 1,
+      output: '❌ 1 write(s) were REFUSED and nothing was loaded for them:\n'
+        + '   Dixon FY2025 operating  [rpc]\n      ambiguous target: 2 rows match\n',
+    });
+    expect(r.status).toBe('parked');
+    expect(r.note).toMatch(/duplicate/i);
+  });
+
+  it('falls back to a neutral refusal note it cannot classify', () => {
+    const r = classifyRun({ kind: 'city', code: 1, output: '❌ 1 write(s) were REFUSED\n   something new\n' });
+    expect(r.status).toBe('parked');
+    expect(r.note).toMatch(/refused/i);
+    expect(r.note).not.toMatch(/duplicate/i);
+  });
+});
