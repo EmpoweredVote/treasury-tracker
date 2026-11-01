@@ -777,3 +777,59 @@ describe('resolveMcdByCounty', () => {
     expect(r.geoid).toBeNull();
   });
 });
+
+/**
+ * ⚠⚠ ALASKA'S CONSOLIDATED GOVERNMENTS — the name form runs the OTHER WAY.
+ *
+ * Every other state writes the designator LAST ("Juneau city"); TT stores
+ * Alaska's unified governments the way they style themselves, with the
+ * designator FIRST: "City and Borough of Juneau", "Municipality of
+ * Anchorage". nameVariants stripped "City of"/"Town of"/"Borough of" but not
+ * these, so five entities that publish current budgets matched nothing.
+ *
+ * ⚠ The Census writes them "Juneau city and borough", and "city and borough"
+ * was not a known designator, so the trailing-designator split grabbed the
+ * last word and keyed the bare name as "Juneau city and".
+ *
+ * ⭐ THE TIER FOLLOWS TT'S TYPE, and both tiers really exist:
+ *     162  0236400  Juneau city and borough   (boundary G4110)
+ *     050  02110    Juneau City and Borough   (boundary G4020)
+ *   Juneau/Sitka/Wrangell/Anchorage are `city` -> place, as San Francisco and
+ *   Philadelphia already are. Yakutat is `county` -> county, and has no 162
+ *   row at all, which is why it is typed that way.
+ */
+describe('Alaska consolidated city-boroughs', () => {
+  const places = () => buildPlaceIndex([
+    { SUMLEV: '162', STATE: '02', PLACE: '36400', NAME: 'Juneau city and borough' },
+    { SUMLEV: '162', STATE: '02', PLACE: '70540', NAME: 'Sitka city and borough' },
+    { SUMLEV: '162', STATE: '02', PLACE: '86380', NAME: 'Wrangell city and borough' },
+    { SUMLEV: '162', STATE: '02', PLACE: '03000', NAME: 'Anchorage municipality' },
+  ]);
+
+  it('resolves "City and Borough of X" to its place', () => {
+    expect(resolvePlace(places(), 'City and Borough of Juneau', { entityType: 'city' }).geoid)
+      .toBe('0236400');
+    expect(resolvePlace(places(), 'City and Borough of Sitka', { entityType: 'city' }).geoid)
+      .toBe('0270540');
+    expect(resolvePlace(places(), 'City and Borough of Wrangell', { entityType: 'city' }).geoid)
+      .toBe('0286380');
+  });
+
+  it('resolves "Municipality of X"', () => {
+    expect(resolvePlace(places(), 'Municipality of Anchorage', { entityType: 'city' }).geoid)
+      .toBe('0203000');
+  });
+
+  it('resolves the county-typed one against the COUNTY file', () => {
+    const counties = buildCountyIndex([
+      { SUMLEV: '050', STATE: '02', COUNTY: '282', CTYNAME: 'Yakutat City and Borough' },
+    ], '02');
+    expect(resolveCounty(counties, '02', 'City and Borough of Yakutat').geoid).toBe('02282');
+  });
+
+  it('still splits a plain borough on its own designator', () => {
+    // ⚠ "city and borough" must not shadow "borough" for the 949 PA boroughs.
+    const idx = buildPlaceIndex([{ SUMLEV: '162', STATE: '42', PLACE: '27432', NAME: 'Franklin borough' }]);
+    expect(resolvePlace(idx, 'Franklin', { entityType: 'borough' }).geoid).toBe('4227432');
+  });
+});

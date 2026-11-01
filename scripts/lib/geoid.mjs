@@ -128,8 +128,12 @@ export function resolveCounty(index, stateFips, storedName) {
  * "... City" and vanish the same way.
  */
 const PLACE_DESIGNATORS = [
+  // ⚠ MULTI-WORD FIRST, for readability — the trailing-designator regex is
+  // anchored at the end, so the earliest start position wins regardless, and
+  // "Juneau city and borough" splits as "Juneau" + "city and borough" rather
+  // than "Juneau city and" + "borough". Plain PA boroughs are unaffected.
+  'city and borough', 'urban county', 'metro government', 'consolidated government',
   'city', 'town', 'village', 'borough', 'municipality',
-  'urban county', 'metro government', 'consolidated government',
 ];
 
 /**
@@ -187,7 +191,16 @@ function nameVariants(storedName) {
   }
 
   // Drop a formal "City of " / "Town of " / "Village of " prefix.
-  const stripped = base.replace(/^(City|Town|Village|Borough|Township) of\s+/i, '');
+  //
+  // ⚠⚠ ALASKA PUTS THE DESIGNATOR FIRST AND MEANS IT: TT stores its unified
+  // governments as they style themselves — "City and Borough of Juneau",
+  // "Municipality of Anchorage" — while the Census writes "Juneau city and
+  // borough". Without these forms five Alaska governments that publish current
+  // budgets matched nothing at all. Longest alternative first so "City and
+  // Borough of" is not read as a bare "City of".
+  const stripped = base.replace(
+    /^(City and Borough|City and County|Municipality|City|Town|Village|Borough|Township) of\s+/i, '',
+  );
   if (stripped !== base) add(stripped);
 
   // Saint <-> St., Mount <-> Mt., & -> and, on every candidate so far.
