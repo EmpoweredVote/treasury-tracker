@@ -168,7 +168,7 @@ for (const [abbrev, rows] of [...byState].sort()) {
       // property of the state's Census structure, not of TT's entity_type.
       // Tried ONLY after a clean place miss: an AMBIGUOUS place result must
       // stay null rather than be rescued by a second, looser lookup.
-      r = preferResolved(r, () => resolveMcdByState(mcdStateIdx, m.name));
+      r = preferResolved(r, () => resolveMcdByState(mcdStateIdx, m.name, { entityType: m.entity_type }));
       // ⚠ Forward vintage, same guard. A government incorporated after the
       // base vintage was cut is named by the NEXT one and by nothing earlier:
       // Mountain House (2024-07-01) is absent from V2024 and is place 49582 in

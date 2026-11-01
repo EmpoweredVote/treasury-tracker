@@ -603,3 +603,117 @@ describe('dropCollidingGeoids', () => {
     expect(r.collided).toHaveLength(3);
   });
 });
+
+/**
+ * ⚠⚠⚠ A DESIGNATOR IS NOT A PREFERENCE, IT IS PART OF THE IDENTITY.
+ *
+ * resolvePlace used to try the entity's own type FIRST and then fall through
+ * to every other designator. In New York that is catastrophic: a town is a
+ * county subdivision (SUMLEV 061) and a village is a place (162), the two
+ * routinely share a name, and they are different governments with different
+ * budgets. "Adams" the town found no "Adams town" place and happily took
+ * "Adams village" — 255 duplicate geoids over 514 rows, measured 2026-10-31.
+ *
+ * Falling through is never right. If the census has no place of the entity's
+ * own kind, the answer is that there is no place — let the MCD layer answer.
+ */
+describe('resolvePlace — the designator must AGREE, not merely be preferred', () => {
+  const nyIdx = () => buildPlaceIndex([
+    { SUMLEV: '162', STATE: '36', PLACE: '00199', NAME: 'Adams village' },
+  ]);
+
+  it('refuses to give a TOWN a village\'s place record', () => {
+    const r = resolvePlace(nyIdx(), 'Adams', { entityType: 'town' });
+    expect(r.geoid).toBeNull();
+    expect(r.reason).toMatch(/no place match/);
+  });
+
+  it('still gives the VILLAGE its own place record', () => {
+    expect(resolvePlace(nyIdx(), 'Adams', { entityType: 'village' }).geoid).toBe('3600199');
+  });
+
+  it('refuses to give a TOWN a city\'s place record (NY Geneva city vs Geneva town)', () => {
+    const idx = buildPlaceIndex([{ SUMLEV: '162', STATE: '36', PLACE: '28640', NAME: 'Geneva city' }]);
+    expect(resolvePlace(idx, 'Geneva', { entityType: 'town' }).geoid).toBeNull();
+    expect(resolvePlace(idx, 'Geneva', { entityType: 'city' }).geoid).toBe('3628640');
+  });
+
+  it('still resolves a town that IS a place — Indiana towns are places', () => {
+    const idx = buildPlaceIndex([{ SUMLEV: '162', STATE: '18', PLACE: '20674', NAME: 'Elizabeth town' }]);
+    expect(resolvePlace(idx, 'Elizabeth', { entityType: 'town' }).geoid).toBe('1820674');
+  });
+
+  it('sends an MA "Town" municipality to the MCD layer instead of a city place', () => {
+    // ⚠ "Agawam Town city" is a city-form government whose legal name carries
+    // "Town". TT types it `town`, so the place no longer answers and the MCD
+    // fallback does — which is exactly the 10-digit value production holds.
+    const idx = buildPlaceIndex([{ SUMLEV: '162', STATE: '25', PLACE: '00840', NAME: 'Agawam Town city' }]);
+    expect(resolvePlace(idx, 'Agawam Town', { entityType: 'town' }).geoid).toBeNull();
+  });
+
+  it('keeps the PA borough/city separation it already had', () => {
+    const idx = buildPlaceIndex([
+      { SUMLEV: '162', STATE: '42', PLACE: '27456', NAME: 'Franklin city' },
+      { SUMLEV: '162', STATE: '42', PLACE: '27432', NAME: 'Franklin borough' },
+    ]);
+    expect(resolvePlace(idx, 'Franklin', { entityType: 'borough' }).geoid).toBe('4227432');
+    expect(resolvePlace(idx, 'Franklin', { entityType: 'city' }).geoid).toBe('4227456');
+  });
+
+  it('stays permissive when the entity carries no usable type', () => {
+    // ⚠ An unknown type is not a statement that the designator is wrong, so
+    // refusing everything would turn missing metadata into missing geoids.
+    expect(resolvePlace(nyIdx(), 'Adams', {}).geoid).toBe('3600199');
+  });
+});
+
+/**
+ * ⚠⚠⚠ THE MCD INDEX HAD THE ELIZABETH/ELIZABETHTOWN DEFECT TOO, and the place
+ * index's two-key design is exactly the cure. Keying on the whole Census name
+ * makes "German town" key as `germantown` — which is also what TT's
+ * "Germantown" keys as. New York has both, in different counties:
+ *
+ *     061,017,28739  German town        (Chenango)
+ *     061,021,28772  Germantown town    (Columbia)
+ *     061,027,05452  Beekman town       (Dutchess)
+ *     061,019,05485  Beekmantown town   (Clinton)
+ *
+ * Splitting bare name from designator separates them: `german|town` versus
+ * `germantown|town`. Nothing is manufactured into the bare key.
+ */
+describe('resolveMcdByState — name/designator fusion and the village rule', () => {
+  const ny = () => buildMcdStateIndex([
+    { SUMLEV: '061', STATE: '36', COUNTY: '017', COUSUB: '28739', NAME: 'German town' },
+    { SUMLEV: '061', STATE: '36', COUNTY: '021', COUSUB: '28772', NAME: 'Germantown town' },
+    { SUMLEV: '061', STATE: '36', COUNTY: '025', COUSUB: '02132', NAME: 'Andes town' },
+  ]);
+
+  it('does not hand "Germantown" the geoid of "German town"', () => {
+    expect(resolveMcdByState(ny(), 'Germantown', { entityType: 'town' }).geoid).toBe('3602128772');
+  });
+
+  it('still resolves "German" to its own town', () => {
+    expect(resolveMcdByState(ny(), 'German', { entityType: 'town' }).geoid).toBe('3601728739');
+  });
+
+  it('refuses a VILLAGE outright — a village is a place, never a county subdivision', () => {
+    // ⚠ The village of Andes sits inside the town of Andes. Letting the MCD
+    // layer answer gave both the town's geoid.
+    const r = resolveMcdByState(ny(), 'Andes', { entityType: 'village' });
+    expect(r.geoid).toBeNull();
+    expect(r.reason).toMatch(/village/i);
+  });
+
+  it('still answers for the town of the same name', () => {
+    expect(resolveMcdByState(ny(), 'Andes', { entityType: 'town' }).geoid).toBe('3602502132');
+  });
+
+  it('keeps Massachusetts working, where the designator CONTRADICTS the type', () => {
+    // ⚠ "Amherst Town city" is a city-form government TT types `town`. The MCD
+    // layer must stay permissive about the designator or MA loses 300+ towns.
+    const ma = buildMcdStateIndex([
+      { SUMLEV: '061', STATE: '25', COUNTY: '015', COUSUB: '01370', NAME: 'Amherst Town city' },
+    ]);
+    expect(resolveMcdByState(ma, 'Amherst', { entityType: 'town' }).geoid).toBe('2501501370');
+  });
+});

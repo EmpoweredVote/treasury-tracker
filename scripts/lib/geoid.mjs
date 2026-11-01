@@ -132,6 +132,24 @@ const PLACE_DESIGNATORS = [
   'urban county', 'metro government', 'consolidated government',
 ];
 
+/**
+ * The two types whose Census designator must AGREE, not merely be preferred.
+ *
+ * ⚠⚠ ONLY THESE TWO, and the limit is measured, not cautious. In MCD states a
+ * town is a county subdivision and a village is a place; they share a name
+ * constantly (the village of Adams sits inside the town of Adams) and they are
+ * different governments with different budgets. Letting either fall through to
+ * the other's designator produced 255 duplicate geoids in New York alone.
+ *
+ * ⚠ Everywhere else TT's `entity_type` is a COARSE LABEL that legitimately
+ * disagrees with the Census designator — Florida's "Alford" is `city` in TT and
+ * "Alford town" in the Census, as are 142 more FL cities, 21 CA cities and 14
+ * TX municipalities. Making those strict refused 183 entities that had always
+ * been matched correctly, so `city`, `municipality` and `borough` keep the
+ * preferred-first order they have always had.
+ */
+const STRICT_TYPES = new Set(['town', 'village']);
+
 function placeKey(name) {
   return String(name).toLowerCase().replace(/[^a-z0-9]/g, '');
 }
@@ -270,15 +288,29 @@ export function buildPlaceCountyIndex(rows) {
 export function resolvePlace(index, storedName, opts = {}) {
   const { byBare, byFull } = index;
 
-  // ⚠ The entity's OWN type picks which designator is tried first. Pennsylvania
-  // has a Franklin BOROUGH in Cambria County and a Franklin CITY in Venango
-  // County; with a fixed designator order starting at 'city', the borough
-  // matched the city and both claimed 4227456.
+  // ⚠⚠ THE DESIGNATOR MUST AGREE — it is part of the identity, not a hint.
+  // Pennsylvania has a Franklin BOROUGH in Cambria County and a Franklin CITY
+  // in Venango County, and with a fixed order starting at 'city' the borough
+  // matched the city and both claimed 4227456. Preferring the entity's own
+  // type fixed that pair but still FELL THROUGH to every other designator,
+  // which is how 255 New York towns took their village's place record: a town
+  // is a county subdivision there, a village is a place, they share a name,
+  // and they are different governments with different budgets.
+  //
+  // ⚠ If the census has no place of the entity's own kind, the right answer is
+  // that there is NO PLACE — the MCD layer then gets its turn. That is also
+  // what sends Massachusetts' "Agawam Town" to its MCD rather than to the
+  // city-form place record of the same name.
+  //
+  // ⚠ An UNKNOWN type stays permissive. Missing metadata is not evidence that
+  // a designator is wrong, and refusing everything would turn one gap into two.
   const preferred = String(opts.entityType || '').toLowerCase();
-  const ordered = [
-    ...PLACE_DESIGNATORS.filter((d) => d === preferred),
-    ...PLACE_DESIGNATORS.filter((d) => d !== preferred),
-  ];
+  const ordered = STRICT_TYPES.has(preferred)
+    ? [preferred]
+    : [
+      ...PLACE_DESIGNATORS.filter((d) => d === preferred),
+      ...PLACE_DESIGNATORS.filter((d) => d !== preferred),
+    ];
 
   for (const variant of nameVariants(storedName)) {
     const k = placeKey(variant);
@@ -422,33 +454,77 @@ export function resolveTownship(mcdIndex, countyIndex, stateFips, storedName) {
  * and because an ambiguous name still resolves to null.
  */
 export function buildMcdStateIndex(rows) {
-  const idx = new Map();
+  const byBare = new Map();
+  const byFull = new Map();
   for (const r of rows) {
     if (r.SUMLEV !== '061') continue;
+    const geoid = r.STATE + r.COUNTY + r.COUSUB;
+    // ⚠⚠ SPLIT THE DESIGNATOR OFF, exactly as buildPlaceIndex does, and for
+    // the same reason. Keying the whole name makes "German town" key as
+    // `germantown`, which is also what TT's "Germantown" keys as — two real
+    // New York towns in different counties, one geoid. Separating the parts
+    // gives `german|town` and `germantown|town`.
+    const desig = (TRAILING_DESIGNATOR_RE.exec(r.NAME) || [null, ''])[1].toLowerCase();
+    const bare = r.NAME.replace(TRAILING_DESIGNATOR_RE, '');
+    const bk = placeKey(bare) + '|' + desig;
+    if (!byBare.has(bk)) byBare.set(bk, new Set());
+    byBare.get(bk).add(geoid);
+
     for (const variant of nameVariants(r.NAME)) {
-      const k = placeKey(variant);
-      if (!idx.has(k)) idx.set(k, new Set());
-      idx.get(k).add(r.STATE + r.COUNTY + r.COUSUB);
+      const fk = placeKey(variant);
+      if (!byFull.has(fk)) byFull.set(fk, new Set());
+      byFull.get(fk).add(geoid);
     }
   }
-  return idx;
+  return { byBare, byFull };
 }
 
-export function resolveMcdByState(index, storedName) {
-  const candidates = [];
-  for (const variant of nameVariants(storedName)) {
-    candidates.push(placeKey(variant));
-    for (const d of PLACE_DESIGNATORS) candidates.push(placeKey(variant + ' ' + d));
-    candidates.push(placeKey(variant + ' Town'));
-    for (const d of PLACE_DESIGNATORS) candidates.push(placeKey(variant + ' Town ' + d));
+export function resolveMcdByState(index, storedName, opts = {}) {
+  const { byBare, byFull } = index;
+  const type = String(opts.entityType || '').toLowerCase();
+
+  // ⚠⚠ A VILLAGE IS A PLACE, NEVER A COUNTY SUBDIVISION. New York villages sit
+  // INSIDE a same-named town, so offering them the MCD layer handed both
+  // governments one geoid — 15 of the 255 duplicates on 2026-10-31. If the
+  // place layer could not name a village, the answer is that it is unnamed.
+  if (type === 'village') {
+    return miss(`no MCD match for "${storedName}": a village is a place, not a county subdivision`);
   }
-  for (const k of candidates) {
-    const set = index.get(k);
-    if (!set) continue;
-    if (set.size > 1) {
-      return miss(`ambiguous MCD match for "${storedName}": ${[...set].join(', ')}`);
-    }
+
+  // ⚠ The designator is tried PREFERRED-FIRST and then permissively here,
+  // unlike resolvePlace which requires agreement. Massachusetts is why: it
+  // files its city-form towns as "Amherst Town city", a `city` designator on a
+  // government TT types `town`. Demanding agreement would drop 300+ MA towns.
+  const ordered = PLACE_DESIGNATORS.includes(type)
+    ? [type, ...PLACE_DESIGNATORS.filter((d) => d !== type)]
+    : [...PLACE_DESIGNATORS];
+
+  const take = (set) => {
+    if (set.size > 1) return miss(`ambiguous MCD match for "${storedName}": ${[...set].join(', ')}`);
     return hit([...set][0], BASIS.mcdState);
+  };
+
+  // 1. The name as stored, against bare+designator. Nothing is fused into the
+  //    bare key, so a manufactured designator cannot collide with a real name.
+  for (const variant of nameVariants(storedName)) {
+    for (const d of ordered) {
+      const set = byBare.get(placeKey(variant) + '|' + d);
+      if (set) return take(set);
+    }
+  }
+  // 2. Then the Massachusetts shape, where "Town" belongs to the NAME. Tried
+  //    only after every plain reading has missed, so "Beekman" can never be
+  //    read as "Beekmantown" while a real "Beekman town" exists.
+  for (const variant of nameVariants(storedName)) {
+    for (const d of ordered) {
+      const set = byBare.get(placeKey(variant + ' Town') + '|' + d);
+      if (set) return take(set);
+    }
+  }
+  // 3. Last, a legal name that ends in its own designator.
+  for (const variant of nameVariants(storedName)) {
+    const set = byFull.get(placeKey(variant));
+    if (set) return take(set);
   }
   return miss(`no MCD match for "${storedName}"`);
 }
