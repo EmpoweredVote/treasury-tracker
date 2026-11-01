@@ -132,7 +132,8 @@ const PLACE_DESIGNATORS = [
   // anchored at the end, so the earliest start position wins regardless, and
   // "Juneau city and borough" splits as "Juneau" + "city and borough" rather
   // than "Juneau city and" + "borough". Plain PA boroughs are unaffected.
-  'city and borough', 'urban county', 'metro government', 'consolidated government',
+  'consolidated government', 'metropolitan government', 'unified government',
+  'city and borough', 'urban county', 'metro government', 'metro township',
   'city', 'town', 'village', 'borough', 'municipality',
 ];
 
@@ -214,6 +215,21 @@ function nameVariants(storedName) {
   return out;
 }
 
+/**
+ * ⚠⚠ "(balance)" SITS AFTER THE DESIGNATOR AND HIDES IT. The Census writes a
+ * consolidated government's place row as "Athens-Clarke County unified
+ * government (balance)", so a split anchored at the end of the string finds no
+ * designator at all and keys the whole name. Five distinct forms carry it:
+ * unified / consolidated / metro / metropolitan government, and plain city
+ * (Indianapolis).
+ *
+ * ⚠ The balance is the government MINUS any separately incorporated place
+ * inside it (Athens-Clarke's excludes Winterville and Bogart). It is still the
+ * only place-level identifier the Census publishes for these governments, and
+ * it is what the boundary set carries, so it is the geoid that matches.
+ */
+const BALANCE_RE = /\s+\(balance\)$/i;
+
 /** Census's trailing designator, for splitting a NAME into bare + designator. */
 const TRAILING_DESIGNATOR_RE = new RegExp(
   '\\s+(' + PLACE_DESIGNATORS.join('|') + ')$', 'i',
@@ -248,14 +264,15 @@ export function buildPlaceIndex(rows) {
     // place and nulls a match that was never in doubt.
     if (r.SUMLEV !== '162') continue;
     const geoid = r.STATE + r.PLACE;
-    const desig = (TRAILING_DESIGNATOR_RE.exec(r.NAME) || [null, ''])[1].toLowerCase();
-    const bare = r.NAME.replace(TRAILING_DESIGNATOR_RE, '');
+    const name = r.NAME.replace(BALANCE_RE, '');
+    const desig = (TRAILING_DESIGNATOR_RE.exec(name) || [null, ''])[1].toLowerCase();
+    const bare = name.replace(TRAILING_DESIGNATOR_RE, '');
 
     const bk = placeKey(bare) + '|' + desig;
     if (!byBare.has(bk)) byBare.set(bk, new Set());
     byBare.get(bk).add(geoid);
 
-    const fk = placeKey(r.NAME);
+    const fk = placeKey(name);
     if (!byFull.has(fk)) byFull.set(fk, new Set());
     byFull.get(fk).add(geoid);
   }
@@ -477,8 +494,9 @@ export function buildMcdStateIndex(rows) {
     // `germantown`, which is also what TT's "Germantown" keys as — two real
     // New York towns in different counties, one geoid. Separating the parts
     // gives `german|town` and `germantown|town`.
-    const desig = (TRAILING_DESIGNATOR_RE.exec(r.NAME) || [null, ''])[1].toLowerCase();
-    const bare = r.NAME.replace(TRAILING_DESIGNATOR_RE, '');
+    const mcdName = r.NAME.replace(BALANCE_RE, '');
+    const desig = (TRAILING_DESIGNATOR_RE.exec(mcdName) || [null, ''])[1].toLowerCase();
+    const bare = mcdName.replace(TRAILING_DESIGNATOR_RE, '');
     const bk = placeKey(bare) + '|' + desig;
     if (!byBare.has(bk)) byBare.set(bk, new Set());
     byBare.get(bk).add(geoid);
@@ -665,8 +683,9 @@ export function buildMcdCountyIndex(rows) {
   const idx = new Map();
   for (const r of rows) {
     if (r.SUMLEV !== '061') continue;
-    const desig = (TRAILING_DESIGNATOR_RE.exec(r.NAME) || [null, ''])[1].toLowerCase();
-    const bare = r.NAME.replace(TRAILING_DESIGNATOR_RE, '');
+    const cName = r.NAME.replace(BALANCE_RE, '');
+    const desig = (TRAILING_DESIGNATOR_RE.exec(cName) || [null, ''])[1].toLowerCase();
+    const bare = cName.replace(TRAILING_DESIGNATOR_RE, '');
     const k = `${r.COUNTY}|${placeKey(bare)}|${desig}`;
     if (!idx.has(k)) idx.set(k, new Set());
     idx.get(k).add(r.STATE + r.COUNTY + r.COUSUB);

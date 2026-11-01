@@ -833,3 +833,66 @@ describe('Alaska consolidated city-boroughs', () => {
     expect(resolvePlace(idx, 'Franklin', { entityType: 'borough' }).geoid).toBe('4227432');
   });
 });
+
+/**
+ * ⚠⚠ CONSOLIDATED GOVERNMENTS: "(balance)" AND THE LONG DESIGNATORS.
+ *
+ * Georgia's unified governments are named by the Census as "Athens-Clarke
+ * County unified government (balance)" while TT stores "Athens-Clarke County".
+ * Two things defeated the match: `unified government` was not a known
+ * designator, and the trailing "(balance)" meant the designator was not at the
+ * end of the string at all, so the split found nothing and keyed the whole
+ * name.
+ *
+ * Scanning every cached place file for names no known designator ends gives
+ * the complete list, which is why these are fixed as a CLASS and not one
+ * state at a time:
+ *
+ *     5  metro township                     (Utah)
+ *     3  unified government                 (Georgia)
+ *     2  unified government (balance)
+ *     1  consolidated government (balance)  Augusta-Richmond
+ *     1  city (balance)                     Indianapolis
+ *     1  metro government (balance)         Louisville/Jefferson County
+ *     1  metropolitan government (balance)  Nashville-Davidson
+ *
+ * ⚠ "(balance)" is the consolidated government MINUS any separately
+ * incorporated municipality inside it — Athens-Clarke's balance excludes
+ * Winterville and Bogart. It is nonetheless the only place-level identifier
+ * the Census publishes for these governments, and it is the geoid the
+ * boundary set carries (1303440, G4110), so it is the one that matches.
+ */
+describe('consolidated governments — "(balance)" and long designators', () => {
+  const idx = () => buildPlaceIndex([
+    { SUMLEV: '162', STATE: '13', PLACE: '03440', NAME: 'Athens-Clarke County unified government (balance)' },
+    { SUMLEV: '162', STATE: '13', PLACE: '04204', NAME: 'Augusta-Richmond County consolidated government (balance)' },
+    { SUMLEV: '162', STATE: '13', PLACE: '81128', NAME: 'Webster County unified government' },
+    { SUMLEV: '162', STATE: '18', PLACE: '36003', NAME: 'Indianapolis city (balance)' },
+    { SUMLEV: '162', STATE: '47', PLACE: '52006', NAME: 'Nashville-Davidson metropolitan government (balance)' },
+    { SUMLEV: '162', STATE: '49', PLACE: '16110', NAME: 'Copperton metro township' },
+  ]);
+
+  it('resolves a unified government carrying "(balance)"', () => {
+    expect(resolvePlace(idx(), 'Athens-Clarke County', { entityType: 'city' }).geoid).toBe('1303440');
+  });
+
+  it('resolves a consolidated government carrying "(balance)"', () => {
+    expect(resolvePlace(idx(), 'Augusta-Richmond County', { entityType: 'city' }).geoid).toBe('1304204');
+  });
+
+  it('resolves a unified government with no "(balance)" suffix', () => {
+    expect(resolvePlace(idx(), 'Webster County', { entityType: 'city' }).geoid).toBe('1381128');
+  });
+
+  it('resolves a plain city that merely carries "(balance)"', () => {
+    expect(resolvePlace(idx(), 'Indianapolis', { entityType: 'city' }).geoid).toBe('1836003');
+  });
+
+  it('resolves "metropolitan government", not just "metro government"', () => {
+    expect(resolvePlace(idx(), 'Nashville-Davidson', { entityType: 'city' }).geoid).toBe('4752006');
+  });
+
+  it('resolves a Utah metro township', () => {
+    expect(resolvePlace(idx(), 'Copperton', { entityType: 'township' }).geoid).toBe('4916110');
+  });
+});
