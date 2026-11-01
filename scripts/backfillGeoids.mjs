@@ -26,6 +26,7 @@ import { readPepCsv } from './lib/censusPep.mjs';
 import {
   STATE_FIPS, buildCountyIndex, buildPlaceIndex, buildMcdIndex, buildMcdStateIndex, buildPlaceCountyIndex,
   resolveState, resolveCounty, resolvePlace, resolveTownship, resolveMcdByState, preferResolved,
+  dropCollidingGeoids,
 } from './lib/geoid.mjs';
 
 const CITY_TIER = new Set(['city', 'town', 'village', 'borough', 'municipality']);
@@ -195,6 +196,31 @@ for (const [abbrev, rows] of [...byState].sort()) {
     + `missed ${String(tally.missed).padStart(4)}  ambiguous ${String(tally.ambiguous).padStart(4)}  `
     + `skipped ${String(tally.skipped).padStart(3)}  (${pct}%)`
   );
+}
+
+// ── ⚠⚠⚠ TWO ENTITIES CANNOT BE ONE GOVERNMENT ─────────────────────────────
+// Every resolver above refuses to choose between two candidates for ONE name.
+// This is the mirror image and nothing was checking it: two different entities
+// resolving to the SAME geoid. Measured 2026-10-31 it was 514 of 10,413 — New
+// York villages and the towns that contain them, which share a name, each pair
+// handed one government. They reached the database before the post-hoc
+// verifier caught them, and removing them is a 514-row repair.
+const collisionCheck = dropCollidingGeoids(updates);
+if (collisionCheck.collided.length) {
+  const byGeoid = new Map();
+  for (const [id, geoid] of collisionCheck.collided) {
+    if (!byGeoid.has(geoid)) byGeoid.set(geoid, []);
+    byGeoid.get(geoid).push(id);
+  }
+  console.error(`\n⚠⚠ ${collisionCheck.collided.length} resolution(s) across ${byGeoid.size} geoid(s)`
+    + ' claim the same government as another entity — ALL of them dropped.');
+  for (const [geoid, ids] of [...byGeoid].slice(0, 10)) {
+    console.error(`     ${geoid}: ${ids.join(', ')}`);
+  }
+  totals.resolved -= collisionCheck.collided.length;
+  totals.ambiguous += collisionCheck.collided.length;
+  updates.length = 0;
+  updates.push(...collisionCheck.kept);
 }
 
 console.log(`\nTOTAL resolved ${totals.resolved}  missed ${totals.missed}  `

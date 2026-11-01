@@ -22,7 +22,7 @@ import {
   buildPlaceIndex, resolvePlace,
   buildMcdIndex, resolveTownship,
   buildMcdStateIndex, resolveMcdByState,
-  buildPlaceCountyIndex, preferResolved,
+  buildPlaceCountyIndex, preferResolved, classifyGeoidWrites, dropCollidingGeoids,
 } from '../scripts/lib/geoid.mjs';
 
 describe('STATE_FIPS', () => {
@@ -445,5 +445,161 @@ describe('preferResolved', () => {
 
   it('is a no-op when there is no fallback to try', () => {
     expect(preferResolved(miss, null)).toBe(miss);
+  });
+});
+
+/**
+ * ⚠⚠ APPLYING A REGENERATED BACKFILL IS NOT THE SAME ACT AS WRITING NULLS.
+ * The committed artifact holds every resolution, most of which are already in
+ * the database. Three outcomes hide in one file: a null being FILLED, a value
+ * being confirmed, and a value being CHANGED to a different government. The
+ * third is a matcher defect in the shape that once gave Elizabeth and
+ * Elizabethtown (IN) the same geoid — it must be surfaced and refused, never
+ * swept along with 10,000 no-ops.
+ */
+describe('classifyGeoidWrites', () => {
+  const cur = (geoid, basis) => ({ geoid, basis });
+
+  it('calls a null current value a fill', () => {
+    const r = classifyGeoidWrites(
+      [{ id: 'a', geoid: '3626880', basis: 'census-pep-162-exact' }],
+      new Map([['a', cur(null, null)]]),
+    );
+    expect(r.fill.map((t) => t.id)).toEqual(['a']);
+  });
+
+  it('calls an identical value the same, so it is never rewritten', () => {
+    const r = classifyGeoidWrites(
+      [{ id: 'a', geoid: '3626880', basis: 'census-pep-162-exact' }],
+      new Map([['a', cur('3626880', 'census-pep-162-exact')]]),
+    );
+    expect(r.same).toHaveLength(1);
+    expect(r.fill).toHaveLength(0);
+    expect(r.change).toHaveLength(0);
+  });
+
+  it('calls a DIFFERENT geoid a change — the dangerous one', () => {
+    const r = classifyGeoidWrites(
+      [{ id: 'a', geoid: '4227456', basis: 'census-pep-162-exact' }],
+      new Map([['a', cur('4284376', 'census-pep-162-exact')]]),
+    );
+    expect(r.change).toHaveLength(1);
+    expect(r.change[0]).toMatchObject({ id: 'a', from: '4284376', to: '4227456' });
+  });
+
+  it('separates a basis-only correction from a change of government', () => {
+    const r = classifyGeoidWrites(
+      [{ id: 'a', geoid: '2512345', basis: 'census-pep-061-state-scoped' }],
+      new Map([['a', cur('2512345', 'census-pep-162-exact')]]),
+    );
+    expect(r.change).toHaveLength(0);
+    expect(r.basisOnly).toHaveLength(1);
+  });
+
+  it('never writes to an entity that is no longer in the table', () => {
+    const r = classifyGeoidWrites(
+      [{ id: 'gone', geoid: '3626880', basis: 'census-pep-162-exact' }],
+      new Map(),
+    );
+    expect(r.absent.map((t) => t.id)).toEqual(['gone']);
+    expect(r.fill).toHaveLength(0);
+  });
+
+  it('partitions every tuple into exactly one bucket', () => {
+    const tuples = [
+      { id: 'f', geoid: '1', basis: 'b' }, { id: 's', geoid: '2', basis: 'b' },
+      { id: 'c', geoid: '3', basis: 'b' }, { id: 'r', geoid: '4', basis: 'b2' },
+      { id: 'x', geoid: '5', basis: 'b' },
+    ];
+    const r = classifyGeoidWrites(tuples, new Map([
+      ['f', cur(null, null)], ['s', cur('2', 'b')], ['c', cur('9', 'b')], ['r', cur('4', 'b')],
+    ]));
+    expect(r.fill.length + r.same.length + r.change.length + r.basisOnly.length + r.absent.length)
+      .toBe(tuples.length);
+    expect(r.toWrite.map((t) => t.id).sort()).toEqual(['f', 'r']);
+  });
+});
+
+/**
+ * ⚠⚠⚠ THE CHECK THAT WAS MISSING, AND IT COST A LIVE REPAIR.
+ *
+ * On 2026-10-31 the regenerated backfill filled 2,279 nulls and created 255
+ * DUPLICATE geoids — 514 New York rows, every one a village and its containing
+ * town claiming the same government. Adams village and Adams town are separate
+ * governments with separate budgets; one geoid cannot mean both.
+ *
+ * Nothing stopped it. The applier checked that the tuples' IDS were distinct,
+ * which they were, and the per-tuple classification only ever compared a tuple
+ * to its OWN current value. A collision lives BETWEEN rows, so no per-row check
+ * can see it. It took the post-hoc verifier to catch, after the write.
+ */
+describe('classifyGeoidWrites — collisions between entities', () => {
+  const cur = (geoid) => ({ geoid, basis: geoid ? 'census-pep-162-exact' : null });
+
+  it('refuses a geoid another entity already holds', () => {
+    const r = classifyGeoidWrites(
+      [{ id: 'village', geoid: '3600199', basis: 'census-pep-162-exact' }],
+      new Map([['village', cur(null)], ['town', cur('3600199')]]),
+    );
+    expect(r.collision).toHaveLength(1);
+    expect(r.collision[0]).toMatchObject({ id: 'village', heldBy: 'town' });
+    expect(r.toWrite).toHaveLength(0);
+  });
+
+  it('refuses BOTH tuples when one file claims a geoid twice', () => {
+    const r = classifyGeoidWrites(
+      [{ id: 'village', geoid: '3600199', basis: 'b' }, { id: 'town', geoid: '3600199', basis: 'b' }],
+      new Map([['village', cur(null)], ['town', cur(null)]]),
+    );
+    // ⚠ Neither is written. The matcher cannot say which government it is, and
+    // picking one is how a reader lands on the wrong budget.
+    expect(r.collision).toHaveLength(2);
+    expect(r.toWrite).toHaveLength(0);
+  });
+
+  it('is not tripped by an entity keeping the geoid it already has', () => {
+    const r = classifyGeoidWrites(
+      [{ id: 'town', geoid: '3600199', basis: 'census-pep-162-exact' }],
+      new Map([['town', cur('3600199')]]),
+    );
+    expect(r.collision).toHaveLength(0);
+    expect(r.same).toHaveLength(1);
+  });
+
+  it('still fills a geoid nobody else claims', () => {
+    const r = classifyGeoidWrites(
+      [{ id: 'a', geoid: '0649582', basis: 'census-pep-162-exact' }],
+      new Map([['a', cur(null)], ['b', cur('3600199')]]),
+    );
+    expect(r.collision).toHaveLength(0);
+    expect(r.toWrite.map((t) => t.id)).toEqual(['a']);
+  });
+});
+
+/**
+ * ⚠⚠ THE GENERATOR MUST NOT EMIT A GEOID TWICE. The applier's collision guard
+ * protects the database, but the committed migration is replayed on a fresh
+ * environment by plain SQL, which has no guard at all. A file claiming one
+ * government for two entities recreates the 255 duplicates on every rebuild.
+ */
+describe('dropCollidingGeoids', () => {
+  it('keeps a geoid claimed exactly once', () => {
+    const r = dropCollidingGeoids([['a', '0649582', 'b'], ['c', '3600199', 'b']]);
+    expect(r.kept).toHaveLength(2);
+    expect(r.collided).toHaveLength(0);
+  });
+
+  it('drops EVERY claimant of a geoid claimed twice, not just the later one', () => {
+    const r = dropCollidingGeoids([['town', '3600199', 'b'], ['village', '3600199', 'b']]);
+    expect(r.kept).toHaveLength(0);
+    expect(r.collided).toHaveLength(2);
+  });
+
+  it('reports the collided geoid once per claimant, so the count is the row count', () => {
+    const r = dropCollidingGeoids([
+      ['t', '3601033', 'b'], ['v', '3601033', 'b'], ['w', '3601033', 'b'], ['x', '0649582', 'b'],
+    ]);
+    expect(r.kept.map((u) => u[0])).toEqual(['x']);
+    expect(r.collided).toHaveLength(3);
   });
 });

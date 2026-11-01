@@ -482,3 +482,81 @@ export function preferResolved(primary, fallback) {
   // for X" names the lookup that was supposed to work.
   return alt.geoid ? alt : primary;
 }
+
+/**
+ * What applying a regenerated backfill would actually do, per tuple.
+ *
+ * ⚠⚠ THE FILE IS NOT A LIST OF CHANGES. It is every resolution the matcher can
+ * make, so most tuples restate a value the database already holds. Writing it
+ * blind hides the one case that matters: a geoid moving to a DIFFERENT
+ * government, which is what a matcher defect looks like from the outside
+ * (Elizabeth/Elizabethtown IN, Franklin/Franklin PA — both wrote the wrong
+ * government and were invisible to a count, a length check and a basis check).
+ *
+ * `toWrite` is fills plus basis-only corrections — deliberately NOT changes.
+ * A caller that wants those must ask for them after reading them.
+ *
+ * @param {Array<{id: string, geoid: string, basis: string}>} tuples
+ * @param {Map<string, {geoid: string|null, basis: string|null}>} current
+ */
+export function classifyGeoidWrites(tuples, current) {
+  const out = {
+    fill: [], same: [], change: [], basisOnly: [], absent: [], collision: [], toWrite: [],
+  };
+
+  // ⚠⚠⚠ A COLLISION LIVES BETWEEN ROWS, SO NO PER-ROW CHECK CAN SEE IT. The
+  // 2026-10-31 fill wrote 255 duplicate geoids — 514 NY rows, each a village
+  // and its containing town claiming one government — past an applier that
+  // checked only that the tuples' IDs were distinct, which they were.
+  const heldBy = new Map(); // geoid -> entity id that already holds it
+  for (const [id, now] of current) if (now.geoid != null) heldBy.set(now.geoid, id);
+  const proposals = new Map(); // geoid -> how many tuples want it
+  for (const t of tuples) proposals.set(t.geoid, (proposals.get(t.geoid) ?? 0) + 1);
+
+  for (const t of tuples) {
+    const now = current.get(t.id);
+    // ⚠ Absent is not "null geoid": the entity itself is gone from the table,
+    // so there is nothing to update and an UPDATE would silently affect 0 rows.
+    if (!now) { out.absent.push(t); continue; }
+    // An entity keeping the value it already has cannot collide with itself.
+    if (now.geoid === t.geoid) {
+      if (now.basis !== t.basis) { out.basisOnly.push({ ...t, from: now.basis }); out.toWrite.push(t); }
+      else out.same.push(t);
+      continue;
+    }
+    // ⚠ Taking a geoid another entity holds, or that a second tuple also
+    // wants, means the matcher cannot say which government this is. NEITHER
+    // side is written: picking one is how a reader lands on the wrong budget.
+    const owner = heldBy.get(t.geoid);
+    if ((owner && owner !== t.id) || proposals.get(t.geoid) > 1) {
+      out.collision.push({ ...t, heldBy: owner ?? null });
+      continue;
+    }
+    if (now.geoid == null) { out.fill.push(t); out.toWrite.push(t); continue; }
+    out.change.push({ ...t, from: now.geoid, to: t.geoid });
+  }
+  return out;
+}
+
+/**
+ * Drop every update whose geoid another update also claims.
+ *
+ * ⚠⚠ ALL CLAIMANTS GO, not the duplicates after the first. Two entities
+ * claiming one government means the matcher is wrong about at least one of
+ * them and cannot say which, so keeping either is a coin flip that looks
+ * authoritative. Null is a correct answer; a wrong geoid is not.
+ *
+ * ⚠ Measured 2026-10-31: this removes 514 of 10,413 — New York villages and
+ * the towns that contain them, which share a name. The generator resolved both
+ * to one place (or one MCD) and nothing downstream could tell them apart.
+ *
+ * @param {Array<[string, string, string]>} updates [id, geoid, basis] tuples
+ */
+export function dropCollidingGeoids(updates) {
+  const claims = new Map();
+  for (const [, geoid] of updates) claims.set(geoid, (claims.get(geoid) ?? 0) + 1);
+  const kept = [];
+  const collided = [];
+  for (const u of updates) (claims.get(u[1]) > 1 ? collided : kept).push(u);
+  return { kept, collided };
+}
