@@ -173,12 +173,30 @@ function placeKey(name) {
  * ⚠ These only ADD candidates. Nothing here rewrites the stored name, and a
  * variant that matches nothing costs a failed map lookup and no more.
  */
+/**
+ * Spellings no normalisation can reach, each naming ONE government.
+ *
+ * ⚠⚠ NOT A FUZZY MATCHER, AND IT MUST NEVER BECOME ONE. The whole tier refuses
+ * to choose between two real governments; a vowel-tolerant match would hand
+ * that refusal away. An entry is justified only when the publisher and the
+ * Census disagree on a spelling AND the state holds exactly one candidate.
+ *
+ * `uppermahantango` — PA DCED writes "Upper Mahantango Township, Schuylkill
+ * County"; the Census writes "Upper Mahantongo township". Checked across the
+ * whole PA file: it is the only "Mahant*" county subdivision in the state.
+ */
+const SPELLING_ALIASES = new Map([
+  ['uppermahantango', 'Upper Mahantongo'],
+]);
+
 function nameVariants(storedName) {
   const seen = new Set();
   const out = [];
   const add = (n) => {
     const t = String(n).trim();
     if (t && !seen.has(t)) { seen.add(t); out.push(t); }
+    const alias = SPELLING_ALIASES.get(placeKey(t));
+    if (alias && !seen.has(alias)) { seen.add(alias); out.push(alias); }
   };
 
   let base = String(storedName);

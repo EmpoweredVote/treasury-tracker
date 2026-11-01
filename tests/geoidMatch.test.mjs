@@ -896,3 +896,37 @@ describe('consolidated governments — "(balance)" and long designators', () => 
     expect(resolvePlace(idx(), 'Copperton', { entityType: 'township' }).geoid).toBe('4916110');
   });
 });
+
+/**
+ * ⚠⚠ A SPELLING THE PUBLISHER AND THE CENSUS DISAGREE ON.
+ *
+ * PA DCED writes "Upper Mahantango Township, Schuylkill County"; the Census
+ * writes "Upper Mahantongo township" — one vowel. No normalisation reaches
+ * that, and fuzzy matching must not be invented for it: the whole matcher is
+ * built on refusing to guess between two real governments.
+ *
+ * ⭐ Safe here because it is DECLARED and because the state holds exactly ONE
+ * "Mahant*" county subdivision, checked across the whole PA file. The alias
+ * names a specific government; it does not loosen matching for anything else.
+ */
+describe('declared spelling aliases', () => {
+  const mcd = () => buildMcdIndex([
+    { SUMLEV: '061', STATE: '42', COUNTY: '107', COUSUB: '79120', NAME: 'Upper Mahantongo township' },
+  ]);
+  const counties = new Map([['schuylkill', '107']]);
+
+  it('resolves the PA township the Census spells with an o', () => {
+    expect(resolveTownship(mcd(), counties, '42', 'Upper Mahantango Township, Schuylkill County').geoid)
+      .toBe('4210779120');
+  });
+
+  it('still resolves the Census spelling unchanged', () => {
+    expect(resolveTownship(mcd(), counties, '42', 'Upper Mahantongo Township, Schuylkill County').geoid)
+      .toBe('4210779120');
+  });
+
+  it('invents nothing for an unrelated name', () => {
+    expect(resolveTownship(mcd(), counties, '42', 'Lower Mahantango Township, Schuylkill County').geoid)
+      .toBeNull();
+  });
+});
