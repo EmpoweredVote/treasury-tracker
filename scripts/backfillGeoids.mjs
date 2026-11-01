@@ -26,6 +26,7 @@ import { readPepCsv } from './lib/censusPep.mjs';
 import {
   STATE_FIPS, buildCountyIndex, buildPlaceIndex, buildMcdIndex, buildMcdStateIndex, buildPlaceCountyIndex,
   resolveState, resolveCounty, resolvePlace, resolveTownship, resolveMcdByState, preferResolved,
+  buildMcdCountyIndex, resolveMcdByCounty,
   dropCollidingGeoids,
 } from './lib/geoid.mjs';
 
@@ -122,6 +123,7 @@ for (const [abbrev, rows] of [...byState].sort()) {
 
   const countyIdx = buildCountyIndex(coRows, stateFips);
   let placeIdx = new Map(); let mcdIdx = new Map(); let mcdStateIdx = new Map();
+  let mcdCountyIdx = new Map();
   let placeCountyIdx = new Map();
   const needsSub = rows.some((m) => CITY_TIER.has(m.entity_type) || m.entity_type === 'township');
   if (needsSub) {
@@ -131,6 +133,7 @@ for (const [abbrev, rows] of [...byState].sort()) {
     placeCountyIdx = buildPlaceCountyIndex(subRows);
     mcdIdx = buildMcdIndex(subRows);
     mcdStateIdx = buildMcdStateIndex(subRows);
+    mcdCountyIdx = buildMcdCountyIndex(subRows);
   }
 
   // ⚠ The forward vintage is fetched ONLY if this state has a city-tier entity
@@ -168,6 +171,11 @@ for (const [abbrev, rows] of [...byState].sort()) {
       // property of the state's Census structure, not of TT's entity_type.
       // Tried ONLY after a clean place miss: an AMBIGUOUS place result must
       // stay null rather than be rescued by a second, looser lookup.
+      // ⚠ COUNTY-SCOPED FIRST. It is the more specific lookup and the only one
+      // that can separate two same-named towns — New York has two Albions, and
+      // TT stores the county in the name. It simply misses for a name that
+      // carries no county, which costs one map lookup.
+      r = preferResolved(r, () => resolveMcdByCounty(mcdCountyIdx, countyIdx, m.name, { entityType: m.entity_type }));
       r = preferResolved(r, () => resolveMcdByState(mcdStateIdx, m.name, { entityType: m.entity_type }));
       // ⚠ Forward vintage, same guard. A government incorporated after the
       // base vintage was cut is named by the NEXT one and by nothing earlier:

@@ -21,7 +21,7 @@ import {
   buildCountyIndex, resolveCounty,
   buildPlaceIndex, resolvePlace,
   buildMcdIndex, resolveTownship,
-  buildMcdStateIndex, resolveMcdByState,
+  buildMcdStateIndex, resolveMcdByState, buildMcdCountyIndex, resolveMcdByCounty,
   buildPlaceCountyIndex, preferResolved, classifyGeoidWrites, dropCollidingGeoids,
 } from '../scripts/lib/geoid.mjs';
 
@@ -715,5 +715,65 @@ describe('resolveMcdByState — name/designator fusion and the village rule', ()
       { SUMLEV: '061', STATE: '25', COUNTY: '015', COUSUB: '01370', NAME: 'Amherst Town city' },
     ]);
     expect(resolveMcdByState(ma, 'Amherst', { entityType: 'town' }).geoid).toBe('2501501370');
+  });
+});
+
+/**
+ * ⭐ COUNTY-SCOPED MCDs FOR TOWNS, not just townships.
+ *
+ * `resolveTownship` has always scoped by county, but `buildMcdIndex` admits
+ * only Census names ending in "township", so New York — where every MCD is
+ * named "X town" — could never use it. Two towns named Albion, in Orleans and
+ * Oswego counties, were therefore AMBIGUOUS to the state-scoped lookup and
+ * left null, even though TT's own names say which county each one is in:
+ *
+ *     061,073,01044  Albion town   (Orleans)   TT "Albion, Orleans County"
+ *     061,075,01055  Albion town   (Oswego)    TT "Albion, Oswego County"
+ *
+ * The county is already in the stored name. Nothing needs to be guessed.
+ */
+describe('resolveMcdByCounty', () => {
+  const rows = [
+    { SUMLEV: '061', STATE: '36', COUNTY: '073', COUSUB: '01044', NAME: 'Albion town' },
+    { SUMLEV: '061', STATE: '36', COUNTY: '075', COUSUB: '01055', NAME: 'Albion town' },
+    { SUMLEV: '162', STATE: '36', PLACE: '01033', NAME: 'Albion village' },
+  ];
+  const counties = new Map([['orleans', '073'], ['oswego', '075']]);
+  const idx = () => buildMcdCountyIndex(rows);
+
+  it('separates two same-named towns by the county in the stored name', () => {
+    expect(resolveMcdByCounty(idx(), counties, 'Albion, Orleans County', { entityType: 'town' }).geoid)
+      .toBe('3607301044');
+    expect(resolveMcdByCounty(idx(), counties, 'Albion, Oswego County', { entityType: 'town' }).geoid)
+      .toBe('3607501055');
+  });
+
+  it('carries the county-scoped basis, not the state-scoped one', () => {
+    const r = resolveMcdByCounty(idx(), counties, 'Albion, Orleans County', { entityType: 'town' });
+    expect(r.basis).toBe('census-pep-061-county-scoped');
+  });
+
+  it('ignores SUMLEV 162 rows — a place is not a county subdivision', () => {
+    // ⚠ The village of Albion is a 162 row in county 073. Admitting it would
+    // put a place geoid behind a county-scoped MCD basis.
+    const r = resolveMcdByCounty(idx(), counties, 'Albion, Orleans County', { entityType: 'town' });
+    expect(r.geoid).not.toBe('3601033');
+  });
+
+  it('refuses a village here too — a village is a place', () => {
+    const r = resolveMcdByCounty(idx(), counties, 'Albion, Orleans County', { entityType: 'village' });
+    expect(r.geoid).toBeNull();
+    expect(r.reason).toMatch(/village/i);
+  });
+
+  it('misses cleanly when the stored name carries no county', () => {
+    const r = resolveMcdByCounty(idx(), counties, 'Albion', { entityType: 'town' });
+    expect(r.geoid).toBeNull();
+    expect(r.reason).toMatch(/no county/i);
+  });
+
+  it('misses when the county is not one this state has', () => {
+    const r = resolveMcdByCounty(idx(), counties, 'Albion, Nowhere County', { entityType: 'town' });
+    expect(r.geoid).toBeNull();
   });
 });

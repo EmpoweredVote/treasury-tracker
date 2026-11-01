@@ -636,3 +636,67 @@ export function dropCollidingGeoids(updates) {
   for (const u of updates) (claims.get(u[1]) > 1 ? collided : kept).push(u);
   return { kept, collided };
 }
+
+/**
+ * Index one state's county subdivisions by COUNTY, bare name and designator.
+ *
+ * ⚠ Distinct from buildMcdIndex, which admits only Census names ending in
+ * "township" and so has never been able to see New York, where every MCD is
+ * named "X town". This one takes every 061 row.
+ *
+ * ⚠ The designator is split off rather than fused, for the reason
+ * buildMcdStateIndex now documents: fusing makes "German town" collide with
+ * the town actually named "Germantown".
+ */
+export function buildMcdCountyIndex(rows) {
+  const idx = new Map();
+  for (const r of rows) {
+    if (r.SUMLEV !== '061') continue;
+    const desig = (TRAILING_DESIGNATOR_RE.exec(r.NAME) || [null, ''])[1].toLowerCase();
+    const bare = r.NAME.replace(TRAILING_DESIGNATOR_RE, '');
+    const k = `${r.COUNTY}|${placeKey(bare)}|${desig}`;
+    if (!idx.has(k)) idx.set(k, new Set());
+    idx.get(k).add(r.STATE + r.COUNTY + r.COUSUB);
+  }
+  return idx;
+}
+
+/**
+ * Resolve a town to its MCD using the county TT already stores in the name.
+ *
+ * ⭐ THE COUNTY IS NOT GUESSED — it is read from the stored name, exactly as
+ * resolveTownship does. New York has two towns named Albion, in Orleans and
+ * Oswego; a state-scoped lookup can only call that ambiguous and return null,
+ * while TT has carried "Albion, Orleans County" all along.
+ *
+ * ⚠ A village is refused here for the same reason as in resolveMcdByState: a
+ * village is a place, and the only MCD of its name is the town around it.
+ */
+export function resolveMcdByCounty(index, countyIndex, storedName, opts = {}) {
+  const type = String(opts.entityType || '').toLowerCase();
+  if (type === 'village') {
+    return miss(`no MCD match for "${storedName}": a village is a place, not a county subdivision`);
+  }
+  const comma = storedName.lastIndexOf(',');
+  if (comma === -1 || !/\s*County\s*$/i.test(storedName.slice(comma + 1))) {
+    return miss(`no county in the stored name "${storedName}"`);
+  }
+  const county = countyIndex.get(countyKey(storedName.slice(comma + 1).trim()));
+  if (!county) return miss(`no county match for "${storedName.slice(comma + 1).trim()}"`);
+
+  const ordered = PLACE_DESIGNATORS.includes(type)
+    ? [type, ...PLACE_DESIGNATORS.filter((d) => d !== type)]
+    : [...PLACE_DESIGNATORS];
+
+  for (const variant of nameVariants(storedName.slice(0, comma).trim())) {
+    for (const d of ordered) {
+      const set = index.get(`${county}|${placeKey(variant)}|${d}`);
+      if (!set) continue;
+      if (set.size > 1) {
+        return miss(`ambiguous MCD match for "${storedName}": ${[...set].join(', ')}`);
+      }
+      return hit([...set][0], BASIS.township);
+    }
+  }
+  return miss(`no MCD match for "${storedName}" in county ${county}`);
+}
