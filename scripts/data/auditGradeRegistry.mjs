@@ -351,8 +351,14 @@ export const AUDIT_GRADE_REGISTRY = [
     match: /^Ohio Auditor of State Summarized Annual Financial Reports$/,
     value: AUDIT_GRADE.SELF_REPORTED_UNAUDITED,
     evidence: {
+      // ⚠ `www.`, not the bare apex: `ohioauditor.gov` fails DNS outright
+      // (measured 2026-11-01) while `www.ohioauditor.gov` resolves. The page
+      // was read on 2026-08-28 via the apex, which worked then; the host here
+      // is the form that resolves, and the page it cites is the same one.
+      // ⛔ Unverified since: the AOS site has been offline following a
+      // 2026-10-25 cyberattack. Matches scripts/ohioAosDatasets.json.
       document: 'Ohio Auditor of State, Summarized Annual Financial Reports download page '
-        + '(https://ohioauditor.gov/references/SummarizedAnnualFinancialReports), fetched 2026-08-28. '
+        + '(https://www.ohioauditor.gov/references/SummarizedAnnualFinancialReports), fetched 2026-08-28. '
         + 'The publisher states the audit status in its own words, in capitals, on the page the files '
         + 'are downloaded from.',
       figures: 'Verbatim: "Download UNAUDITED annual financial report information by filing year, or '
