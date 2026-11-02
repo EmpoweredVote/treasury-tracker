@@ -1495,16 +1495,21 @@ export const FUND_SCOPE_REGISTRY = [
     // "School fund transfers are included as transfers from general government"
     // — which is what rules out general_fund.
     //
-    // ⚠ BOTH dataset_types are this one scope. The revenue face differs from the
-    // expenditure face by which revenue SOURCES it totals, not by which funds it
-    // covers, and the loader already states that in the dataset_type itself:
-    // `revenue_local_only`, because it excludes Exhibit B-1 intergovernmental
-    // aid. A source restriction inside a fund scope is not a second fund scope.
-    // ⚠ Its size is worth knowing before anyone compares a VA Money In figure
-    // with another state's: Virginia Beach FY2024 loads 1,524,028,455 of local
-    // revenue while Exhibit B-1 reports a further 958,006,808 from the
-    // Commonwealth and the federal government in the same scope — 38.6% of
-    // general-government revenue is outside the loaded total.
+    // ⚠ BOTH dataset_types are this one scope. The revenue face once differed
+    // from the expenditure face by which revenue SOURCES it totalled, not by
+    // which funds it covered — a source restriction inside a fund scope is not
+    // a second fund scope, which is why one entry answers for both.
+    // ✅ THAT RESTRICTION IS GONE as of 2026-11-03. The revenue rows carried
+    // Exhibit B "Total LOCAL Revenue" and were hidden as
+    // `dataset_type='revenue_local_only'`; they now carry Exhibit A's own
+    // "Total Revenue" — Local + Commonwealth + Federal — and are shown as
+    // `revenue`. Migration 20261103000000; 304 rows; the pre-change figures are
+    // in scripts/data/figureChanges.json so figures_frozen keeps verifying.
+    // ⚠ The `figures` evidence below still quotes 1,524,028,455 for Virginia
+    // Beach FY2024 because that is the EXHIBIT B figure the fund-scope
+    // reconciliation rests on, and it has not moved. What the row now STORES is
+    // 2,482,035,263, Exhibit A's Total Revenue. Both are stated so the evidence
+    // can still be checked against the workbook after the figure changed.
     id: 'va-apa-comparative-report',
     match: /^Virginia APA Comparative Report$/,
     scope: SCOPE.GOVERNMENTAL_OPERATING,
@@ -1520,8 +1525,12 @@ export const FUND_SCOPE_REGISTRY = [
       figures:
         'Virginia Beach FY2024. The two loaded totals tie to the workbook EXACTLY: operating '
         + '2,081,891,529 = Exhibit C "Total Expenditures" (and = the sum of its eight function '
-        + 'columns, checked); revenue_local_only 1,524,028,455 = Exhibit B "Total Local Revenue" '
-        + '(= the sum of its seven source columns, checked). The scope boundary is what the '
+        + 'columns, checked); the revenue face 1,524,028,455 = Exhibit B "Total Local Revenue" '
+        + '(= the sum of its seven source columns, checked). ⚠ Since 2026-11-03 the revenue row '
+        + 'STORES 2,482,035,263 — Exhibit A "Total Revenue" = that same 1,524,028,455 of local '
+        + 'revenue + 724,366,750 from the Commonwealth + 233,640,058 federal (Exhibit B-1). The '
+        + 'fund scope is unchanged by that: Exhibit B-1 is a revenue SOURCE inside this scope, '
+        + 'which is why one entry still answers for both faces. The scope boundary is what the '
         + 'excluded exhibits measure: Exhibit D capital-projects applications 373,043,369 and '
         + 'Exhibit E debt-service total 206,580,579, together 579,623,948 — 27.8% of the loaded '
         + 'expenditure figure, and exactly what a total_governmental label would wrongly assert '

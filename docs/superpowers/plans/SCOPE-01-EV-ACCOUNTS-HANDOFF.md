@@ -234,13 +234,21 @@ adding too, if there is a fixture budget id to hand.
 
 ## 5. One more thing you will see in the data
 
-A new `dataset_type` value exists: **`revenue_local_only`**, on 304 VA APA rows
-(migration `…000200`). The VA APA revenue figures are Exhibit B "Total *Local* Revenue" and exclude
-intergovernmental aid, so they understate revenue by up to ~40% for aid-dependent localities. The
-relabel hides them from the TT UI, which allow-lists known dataset types.
+⚠⚠ **RETRACTED 2026-11-03 — `revenue_local_only` NO LONGER EXISTS.** This section used to warn
+you that a 304-row `dataset_type` value existed (migration `…000200`) and that nobody should
+"helpfully" map it back to `revenue`. Exhibit B-1 intergovernmental aid has since been loaded, so
+those rows are whole revenue and migration `20261103000000` put them back to `revenue`. **The
+mapping this section warned against is now the correct state, arrived at properly.** Zero rows
+carry `revenue_local_only`; if you coded a special case for it, delete it.
 
-**No API change is needed** — you pass `dataset_type` through as text. Flagged only so the value is
-not a surprise, and so nobody "helpfully" maps it back to `revenue`.
+⭐⭐ **A FIFTH `fund_scope` VALUE EXISTS: `governmental_operating`** (#320, migration
+`20261102000900`). The CHECK set quoted in §1 is now
+`('general_fund','governmental_operating','total_governmental','all_funds','unknown')`, and the TS
+union in §3 needs the same addition. It is the Virginia APA scope — general government OPERATING
+activity, excluding capital projects, debt service and enterprise — which none of the other four
+names. 608 rows today. **No API change beyond widening the union:** you pass the text through.
+⚠ Do NOT treat it as a synonym of `total_governmental`; they differ by capital projects and debt
+service, 27.8% of the figure on the row it was reconciled against.
 
 ---
 
