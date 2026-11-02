@@ -928,4 +928,32 @@ export const BASIS_REGISTRY = [
       figures: 'Several carry FY2026, a fiscal year that has not closed, so they cannot be actuals. This is half of the -75% Long Beach seam: an adopted GF budget drawn as the continuation of an all-funds actuals series.',
     },
   },
+  {
+    // ⭐ VIRGINIA APA COMPARATIVE REPORT — added 2026-11-02 alongside the
+    // fund-scope entry `va-apa-comparative-report` (same anchored string).
+    //
+    // ⚠ THIS AXIS IS actual-vs-BUDGET, not the accounting basis. The measurement
+    // basis the APA's figures rest on is the separate ACCOUNTING_BASIS axis, and
+    // the Comparative Report and its Notes state no accounting basis anywhere —
+    // so that axis stays `unknown` for this family, correctly.
+    id: 'va-apa-comparative-report',
+    match: /^Virginia APA Comparative Report$/,
+    value: BASIS.ACTUAL,
+    evidence: {
+      document: '2024 and 2023 Notes to the Comparative Report of Local Government Revenues and '
+              + 'Expenditures (apa.virginia.gov), plus Code of Virginia § 15.2-2510, which is '
+              + 'the filing these figures come from. Fetched 2026-11-02.',
+      figures: 'Year-end actuals, not appropriations. Note 1.B: "Data in this report comes from '
+             + 'information submitted by cities, counties, and towns pursuant to Code of Virginia '
+             + '§ 15.2-2510" — the annual statement of a CLOSED fiscal year, filed after it ends '
+             + '(§ 15.2-2510 sets the due date after year end and requires the statement be '
+             + '"accompanied by the locality\'s audited financial report"). Both loaded years are '
+             + 'closed: every Virginia locality closes June 30, and FY2024 ended 2024-06-30. The '
+             + 'report carries no budget or appropriation column anywhere — Exhibit C is titled '
+             + '"Summary of Maintenance and Operation EXPENDITURES" and Exhibit B "Total Local '
+             + 'REVENUE", with per-capita and percent-of-average as the only derived columns. '
+             + 'There is therefore no budgetary-comparison decoy of the kind nc-local-acfr-gf '
+             + 'above had to be steered around.',
+    },
+  },
 ];

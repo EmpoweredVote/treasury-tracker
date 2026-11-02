@@ -1464,9 +1464,74 @@ export const FUND_SCOPE_REGISTRY = [
   //     different report with its own fund structure. Modesto is a city, so the
   //     tie says nothing about either. Needs a county probe.
   //
-  // Everything else — publicpay (7,682), VA APA, Transparent Utah, the
-  // state/local ACFR families, Texas's "General Revenue Fund" — is Task 4.
-  // (MN OSA, Ohio AOS and MA DLS have since been evidenced and are entries above.)
+  // Everything else — publicpay (7,682), Transparent Utah, the state/local ACFR
+  // families, Texas's "General Revenue Fund" — is Task 4.
+  // (MN OSA, Ohio AOS and MA DLS have since been evidenced and are entries above.
+  // VA APA was evidenced 2026-11-02 and is the entry below.)
+
+  {
+    // ⭐ VIRGINIA APA COMPARATIVE REPORT — the first `governmental_operating`
+    // family, added 2026-11-02. 608 rows, FY2023–FY2024, 161 TT entities (the APA
+    // report itself covers 174 localities; TT holds 161 of them).
+    //
+    // ── WHY THIS IS NOT ONE OF THE OTHER THREE ──────────────────────────────
+    // The APA states its scope in a document separate from the data workbook:
+    // the per-year "Notes to the Comparative Report", published on
+    // apa.virginia.gov > Local Government > Comparative Reports. FY2023 and
+    // FY2024 carry IDENTICAL definitions (six key paragraphs compared
+    // line-for-line), so one entry covers both years:
+    //
+    //   "This report presents local government operations for the general
+    //    government and enterprise activities."                     (Note 1.A)
+    //   "Maintenance and Operation Expenditures - Summary total of expenditures
+    //    for the operation of general government."          (Note 2, Exhibit A)
+    //   "Local Revenue - Total revenue received by general government from local
+    //    sources."                                          (Note 2, Exhibit B)
+    //
+    // Capital projects (Exhibit D), debt service (Exhibit E) and enterprise
+    // (Exhibit F) are each reported SEPARATELY and excluded. That is what rules
+    // out total_governmental: D and E are governmental-fund outflows. And the
+    // school operating fund is INSIDE the scope — Note 2 (Exhibit E) says
+    // "School fund transfers are included as transfers from general government"
+    // — which is what rules out general_fund.
+    //
+    // ⚠ BOTH dataset_types are this one scope. The revenue face differs from the
+    // expenditure face by which revenue SOURCES it totals, not by which funds it
+    // covers, and the loader already states that in the dataset_type itself:
+    // `revenue_local_only`, because it excludes Exhibit B-1 intergovernmental
+    // aid. A source restriction inside a fund scope is not a second fund scope.
+    // ⚠ Its size is worth knowing before anyone compares a VA Money In figure
+    // with another state's: Virginia Beach FY2024 loads 1,524,028,455 of local
+    // revenue while Exhibit B-1 reports a further 958,006,808 from the
+    // Commonwealth and the federal government in the same scope — 38.6% of
+    // general-government revenue is outside the loaded total.
+    id: 'va-apa-comparative-report',
+    match: /^Virginia APA Comparative Report$/,
+    scope: SCOPE.GOVERNMENTAL_OPERATING,
+    evidence: {
+      document:
+        '2024 Notes to the Comparative Report of Local Government Revenues and Expenditures '
+        + '(apa.virginia.gov, dlasprodpublic.blob.core.windows.net/apa/'
+        + 'A9B51673-9C74-439C-B756-E17419B312A7.docx), read against the amended FY2024 data '
+        + 'workbook the rows themselves cite (data.virginia.gov resource '
+        + '742912c5-6a71-4d85-8820-1105128510b1, amended-fy2024-comparative-report.xlsx). '
+        + 'Both fetched 2026-11-02. The FY2023 Notes (9D2DABB0-590C-4E38-9C3C-73CB7A8EBF14.docx) '
+        + 'carry the same definitions verbatim.',
+      figures:
+        'Virginia Beach FY2024. The two loaded totals tie to the workbook EXACTLY: operating '
+        + '2,081,891,529 = Exhibit C "Total Expenditures" (and = the sum of its eight function '
+        + 'columns, checked); revenue_local_only 1,524,028,455 = Exhibit B "Total Local Revenue" '
+        + '(= the sum of its seven source columns, checked). The scope boundary is what the '
+        + 'excluded exhibits measure: Exhibit D capital-projects applications 373,043,369 and '
+        + 'Exhibit E debt-service total 206,580,579, together 579,623,948 — 27.8% of the loaded '
+        + 'expenditure figure, and exactly what a total_governmental label would wrongly assert '
+        + 'is inside it. Breadth beyond the General Fund is visible in the same row: 1,074,966,505 '
+        + 'of Education expenditure (Exhibit C-6) sits in the same total as general '
+        + 'administration. ⚠ Verified against the AMENDED workbook, not the original: the rows '
+        + 'cite the amended dataset, and both files hold identical Virginia Beach figures (only '
+        + 'the percent-of-average columns move, the peer set having changed).',
+    },
+  },
 
   {
     id: 'ca-sco-derived-tg',

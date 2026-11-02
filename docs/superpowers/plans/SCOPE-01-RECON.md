@@ -1036,6 +1036,79 @@ plus a locality ACFR, neither of which was fetched this pass.
 completeness defect rather than a scope one. At 608 rows (0.8% of the table) this is a
 proportionate place to stop; the finding is worth more than the classification would be.
 
+#### ✅ 2026-11-02 — RESOLVED. The publisher defines its own scope, in a separate document
+
+The sentence above — *"Settling it needs the APA workbook plus a locality ACFR, neither of which
+was fetched this pass"* — turned out to overestimate what was needed. **No locality ACFR is
+required, because the APA states its scope itself.** The definitions live in a per-year
+**"Notes to the Comparative Report"**, a separate `.docx` published alongside the data workbook at
+`apa.virginia.gov > Local Government > Comparative Reports`. FY2023 and FY2024 carry identical
+definitions (six key paragraphs compared line-for-line), so one registry entry covers both years.
+
+> *"This report presents local government operations for the general government and enterprise
+> activities."* — Note 1.A
+>
+> *"Maintenance and Operation Expenditures — Summary total of expenditures for the operation of
+> general government."* — Note 2, Exhibit A
+>
+> *"Local Revenue — Total revenue received by general government from local sources."* — Note 2,
+> Exhibit B
+
+Capital projects (Exhibit D), debt service (Exhibit E) and enterprise (Exhibit F) are each reported
+**separately** and excluded. That rules out both candidate labels, and the workbook measures by how
+much — Virginia Beach FY2024, from the amended workbook the rows themselves cite:
+
+| Exhibit | Figure | Status |
+|---|---:|---|
+| C — Total Expenditures | **2,081,891,529** | the figure TT loads (`operating`) |
+| B — Total Local Revenue | **1,524,028,455** | the figure TT loads (`revenue_local_only`) |
+| D — capital-project applications | 373,043,369 | reported separately, **excluded** |
+| E — debt-service total | 206,580,579 | reported separately, **excluded** |
+| B-1 — intergovernmental aid | 958,006,808 | reported separately, **excluded** (§4.9 above) |
+
+Both loaded totals tie to the workbook **exactly**, and each also equals the sum of its own
+component columns (eight functions for C, seven sources for B), so the parse is confirmed twice.
+
+* **NOT `total_governmental`.** D and E are governmental-fund outflows that the label asserts are
+  included. They are 579,623,948 together — **27.8%** of the loaded expenditure figure.
+* **NOT `general_fund`.** The school operating fund is inside the scope: the same row carries
+  1,074,966,505 of Education expenditure (Exhibit C-6) alongside general administration, and Note 2
+  (Exhibit E) states *"School fund transfers are included as transfers from general government."*
+
+⇒ **A fifth vocabulary value, `governmental_operating`, added 2026-11-02** (Chris's decision).
+Migration `20261102000900`; registry entry `va-apa-comparative-report` in all three axis
+registries. `audit_grade = self_reported_unaudited` and `basis = actual` landed with it.
+
+⚠ **It is deliberately NOT in `NON_COMPARABLE_SCOPES`.** Virginia's localities are comparable with
+*each other* — one publisher, one set of definitions, 161 of them in TT. `areComparable()` already
+keeps them away from every other scope by requiring the scopes to be **equal**, so the blanket flag
+would buy nothing and would print *"not compared across places"* (`ScopeLabel.tsx`) on 608 rows
+that are comparable among themselves. Declaring two figures incomparable without evidence is the
+same error as declaring them comparable without evidence.
+
+⚠ **§4.9's revenue finding is UNCHANGED and still open.** The Notes confirm rather than overturn
+it: Exhibit B is a breakdown of *where general government's revenue came from*, and B-1 is the rest
+of that same scope — a **source** restriction inside a fund scope, not a second fund scope. The 304
+rows remain hidden as `revenue_local_only` (§5.4) and still need Exhibit B-1 loaded. They are
+stamped `governmental_operating` because that is what funds they cover; the incompleteness sits on
+a different axis and no scope label was ever going to carry it.
+
+#### The strongest remaining lead, for whoever takes `reporting_entity`
+
+The component-unit question raised above now has publisher-stated evidence, though not enough to
+settle it. Note 1.C: the Alleghany Highlands School Board *"is considered a component unit of the
+County of Alleghany for financial reporting purposes"*, and the APA allocates its activity into
+Exhibit C-6. So **school** component units are demonstrably consolidated. The report says nothing
+about housing authorities, EDAs or IDAs, so `incl_component_units` — which asserts the whole
+reporting entity — is not yet earned, and `reporting_entity` stays `unknown`. Start here.
+
+⚠ Also settled in passing, and worth having on the record given
+`reference_source_url_never_verified`: the FY2024 rows' `source_url` **was fetched back and
+verified** on 2026-11-02. It serves the amended workbook, and the amended and original files hold
+identical Virginia Beach figures — only the percent-of-average columns move, the peer set having
+changed. The FY2024 report has been amended once (adding Martinsville) with a second amendment
+pending, so this family's figures can move under a re-pull.
+
 ---
 
 ## Task 5 — classified, and the partition proved clean

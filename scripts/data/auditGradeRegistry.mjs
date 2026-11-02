@@ -1637,6 +1637,41 @@ export const AUDIT_GRADE_REGISTRY = [
         + 'audit status.',
     },
   },
+  {
+    // ⭐ VIRGINIA APA COMPARATIVE REPORT — added 2026-11-02 alongside the
+    // fund-scope and basis entries carrying the same id and the same anchored
+    // string. 608 rows, FY2023–FY2024, 174 localities.
+    id: 'va-apa-comparative-report',
+    match: /^Virginia APA Comparative Report$/,
+    value: AUDIT_GRADE.SELF_REPORTED_UNAUDITED,
+    evidence: {
+      document: '2024 Notes to the Comparative Report of Local Government Revenues and '
+              + 'Expenditures (apa.virginia.gov), Note 1.B; the FY2024 Comparative Report '
+              + 'transmittal letter (rga.lis.virginia.gov/Published/2025/RD218/PDF); and Code '
+              + 'of Virginia § 15.2-2510. Fetched 2026-11-02.',
+      figures: 'THE TRANSMITTAL DATA AND THE AUDITED REPORT ARE TWO SEPARATE FILINGS, and these '
+             + 'figures come from the former. § 15.2-2510 requires the annual statement be '
+             + '"accompanied by the locality\'s audited financial report" — accompanied BY, not '
+             + 'drawn FROM. The transmittal letter proves the two can arrive apart: "the County '
+             + 'of Scott has submitted the transmittal d[ata but not] the audited financial '
+             + 'report". Scott County is therefore IN this report with no audited report behind '
+             + 'it at all. '
+             + 'THE AUDITOR\'S ROLE IS REVIEW OF PREPARATION, NOT AN OPINION ON THESE FIGURES. '
+             + 'Note 1.B, verbatim: "Local governments prepare the information following the '
+             + 'requirements of the Uniform Financial Reporting Manual. The locality\'s '
+             + 'independent auditors review the information." Review of information prepared to '
+             + 'a state manual is not an audit opinion on a financial statement. '
+             + '⛔ NOT compiled_from_audited, which means a state agency compiled FROM audited '
+             + 'statements. Scott County disproves it directly, and the APA nowhere claims to '
+             + 'reconcile the transmittal against the audited report — unlike Florida DFS, which '
+             + 'does reconcile and RETURNS an AFR that does not tie. '
+             + '⚠ PART OF THE LOADED TOTAL IS UNAUDITED BY THE APA\'S OWN WORDS, independently '
+             + 'of all the above. Note 1.B on expenditures made on behalf of localities: "This '
+             + 'data has been provided by state agencies and is unaudited." That data sits '
+             + 'inside Exhibits C-4, C-5 and C-6 — i.e. inside the Exhibit C expenditure total '
+             + 'this family loads.',
+    },
+  },
 ];
 
 /**
