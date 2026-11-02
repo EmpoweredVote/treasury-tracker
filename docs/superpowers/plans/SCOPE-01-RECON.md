@@ -1086,12 +1086,70 @@ would buy nothing and would print *"not compared across places"* (`ScopeLabel.ts
 that are comparable among themselves. Declaring two figures incomparable without evidence is the
 same error as declaring them comparable without evidence.
 
-⚠ **§4.9's revenue finding is UNCHANGED and still open.** The Notes confirm rather than overturn
+⚠ **§4.9's revenue finding is UNCHANGED by the scope work.** The Notes confirm rather than overturn
 it: Exhibit B is a breakdown of *where general government's revenue came from*, and B-1 is the rest
-of that same scope — a **source** restriction inside a fund scope, not a second fund scope. The 304
-rows remain hidden as `revenue_local_only` (§5.4) and still need Exhibit B-1 loaded. They are
+of that same scope — a **source** restriction inside a fund scope, not a second fund scope. They are
 stamped `governmental_operating` because that is what funds they cover; the incompleteness sits on
-a different axis and no scope label was ever going to carry it.
+a different axis and no scope label was ever going to carry it. **It was closed separately the next
+day — see §4.9.2 below.**
+
+#### ✅ 2026-11-03 — §4.9.2 EXHIBIT B-1 IS LOADED. The revenue rows are whole revenue
+
+The follow-up §4.9 asked for (*"load VA Exhibit B1 (intergovernmental aid) so the VA revenue rows
+become a whole-revenue figure"*) is done, and §5.4's hide is reversed: the 304 rows are
+`dataset_type = 'revenue'` again, as 20260817000200 said they would be *"once B1 lands"*.
+
+**The total is now Exhibit A's own "Total Revenue"**, and the loader asserts the tree equals it on
+every single call. That is a real check, not arithmetic restated: Exhibit A decomposes revenue by
+ORIGIN (Local | From the Commonwealth | Federal Pass-Through | Direct Federal Aid) while Exhibit
+B-1 cuts the same intergovernmental money by AID TYPE (payments in lieu of taxes, non-categorical,
+categorical, shared expenses). Two independent cuts of one quantity.
+
+**Measured across every locality-year TT holds — 304 of them, both fiscal years:**
+
+| | |
+|---|---:|
+| tied to Exhibit A | **304 / 304** |
+| tied at *exactly* $0 | **304** (the ±1 tolerance is never used) |
+| failed to build | 0 |
+| locality-years that did **not** grow | 0 |
+| stored total, local only | 57,205,915,070 |
+| stored total, all origins | **92,726,281,003.37** |
+| increase | 35,520,365,933 (**+62.1%**) |
+
+The per-locality spread is the aid dependence §4.9 predicted, now visible as a gain rather than a
+gap: smallest **Fairfax FY2023 +14.8%**, largest **Scott County FY2024 +263.1%**.
+
+⚠ **One fractional total, and it is the publisher's.** Roanoke FY2024 stores 640,695,329**.37** —
+and Exhibit A states the identical figure to the cent, so the fraction is the APA's own
+joint-activity allocation (Note 1.C), faithfully reproduced rather than introduced by us.
+
+⚠⚠ **THE TRAP IN EXHIBIT B-1, named because a naive reader walks straight into it.** The two
+columns after "Total from the Federal Government" are *"Total State/Federal Expenditures Made on
+Behalf of the Local Government"*. They are **not revenue** — Note 1.B: *"funds spent directly by
+the state that do not flow through the local government's accounting records"* — and Exhibit A's
+Total Revenue excludes them. Summing the sheet instead of stopping at the federal total adds
+3,225,136.49 + 3,838,084.51 for Virginia Beach FY2024 alone: money the locality never received,
+published as its revenue. The reader stops at the stated total, asserts the leaves sum to it, and a
+fixture carrying both columns is in `tests/vaIntergovernmentalRevenue.test.mjs` — mutation-tested.
+
+⚠ **The frozen invariant did its job and was not rebased.** All 304 rows are inside the frozen set,
+so every figure moving tripped `verify:frozen`, which named all 304 with old → new and confirmed
+the row count still reconciled (62,587) — figures moved, nothing was inserted or deleted. The
+sanctioned mechanism was used instead of a rebase: `scripts/data/figureChanges.json` holds each
+row's pre-B-1 value, captured **before** the write, so the digest still reads **62,587 /
+`60098de6`**. `scripts/captureVaRevenueFigureChanges.mjs` refuses to run twice for that reason.
+
+⚠⚠ **AND THE LOADER WAS A DUPLICATE-GENERATOR FOR ONE DAY.** `treasury_sync_city_budget` finds its
+target on `(municipality_id, fiscal_year, dataset_type, fund_scope, basis)` and defaults both axes
+to `'unknown'`. This loader omitted them — correct while the family was unclassified, and wrong the
+moment the previous day's stamping gave every row `governmental_operating`/`actual`. A re-run would
+have matched nothing, taken the INSERT branch, and written 304 duplicates reporting success;
+`findConflictingBudget` would not have caught it, because `data_source` is not in the lookup key.
+`tests/syncCityBudgetAxisKey.test.mjs` listed this loader as EXEMPT on the stale grounds "608 rows,
+unknown/unknown". ⭐ **An exemption there is a measurement with a date, exactly like a partition
+count: when a stamper classifies a family, every loader that writes it moves lists in the same
+change.** Measured after the load: 304 rows, 304 distinct ids, zero duplicates.
 
 #### The strongest remaining lead, for whoever takes `reporting_entity`
 

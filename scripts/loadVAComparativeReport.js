@@ -18,15 +18,25 @@
  *              Education, Parks/Recreation/Cultural, Community Development, Non-Departmental)
  *       leaf = each function's activities, pulled from its sub-exhibit (Exhibit C1..C8).
  *       total = Exhibit C "Total Expenditures".
- *   - Revenue ('revenue'): source -> sub-source, 2 levels.
- *       top  = General Property Taxes, Other Local Taxes, Permits/Fees, Fines & Forfeitures,
- *              Charges for Services, Revenue from Use of Money & Property, Miscellaneous.
+ *   - Revenue ('revenue'): origin -> source -> sub-source, 3 levels.
+ *       top  = Local Revenue · Revenue from the Commonwealth · Revenue from the Federal
+ *              Government — Exhibit A's own decomposition of "Total Revenue".
+ *       mid  = under Local Revenue: General Property Taxes, Other Local Taxes, Permits/Fees,
+ *              Fines & Forfeitures, Charges for Services, Revenue from Use of Money &
+ *              Property, Miscellaneous (Exhibit B). Under the two intergovernmental
+ *              branches: aid type (Exhibit B1).
  *       leaf = sub-sources (property-tax breakout from Exhibit B; other-local-taxes from
  *              Exhibit B2; use-of-money Interest/Rental).
- *       total = Exhibit B "Total Local Revenue".
- *       (Intergovernmental aid — Exhibit B1 — is intentionally excluded this phase: it is
- *        not local revenue, the report headlines "Total Local Revenue", and including it
- *        would imply a false surplus vs. the expenditure side. Revisit for an all-sources view.)
+ *       total = Exhibit A "Total Revenue", asserted equal to the sum of the three branches.
+ *
+ *   ⭐ INTERGOVERNMENTAL AID WAS ADDED 2026-11-02. Until then this loader read Exhibit B
+ *   alone and published "Total LOCAL Revenue" — a revenue-SOURCE subset, which ran from
+ *   59.6% (Newport News) to 102.3% (Loudoun) of the matching expenditure figure purely by
+ *   how aid-dependent the locality is. Those 304 rows were hidden as
+ *   dataset_type='revenue_local_only' rather than shown as a locality's revenue.
+ *   The original note here argued that including aid "would imply a false surplus vs. the
+ *   expenditure side"; it inverts in practice — EXCLUDING it manufactured an apparent ~40%
+ *   deficit for the localities most dependent on state education aid. SCOPE-01-RECON §4.9.
  *
  * Parsing rule (recon — auto-memory reference_virginia_apa_comparative_report):
  *   A value column is a NODE when its next non-empty header is "Per Capita". This single
@@ -54,6 +64,18 @@ import { ensureMunicipality } from './lib/ensureMunicipality.mjs';
 import { classifySyncResult } from './lib/rpcResult.mjs';
 import { assertRegisteredFamily } from './lib/registeredFamilies.mjs';
 export const DATA_SOURCE_NAME = 'Virginia APA Comparative Report';
+
+/**
+ * The axes every row in this family carries, classified in #320 against the
+ * APA's own "Notes to the Comparative Report".
+ *
+ * ⚠ They are passed to treasury_sync_city_budget on every write because they
+ * are half of its lookup key — see the note at the call site. If this family is
+ * ever re-classified, these two constants and the stamped rows must move
+ * TOGETHER, or the next run duplicates instead of updating.
+ */
+export const FUND_SCOPE = 'governmental_operating';
+export const BASIS = 'actual';
 
 // ── Cell helpers ──────────────────────────────────────────────────────────────
 /** Raw numeric value of a cell; handles exceljs formula objects ({result}). NaN if non-numeric. */
@@ -236,8 +258,14 @@ export function buildExpenditureTree(workbook, localityName, sectionIndex) {
   return { tree, total };
 }
 
-// ── Revenue tree (Exhibit B + B2) ───────────────────────────────────────────────
-export function buildRevenueTree(workbook, localityName, sectionIndex) {
+// ── Revenue tree (Exhibit A total · B + B2 local · B1 intergovernmental) ────────
+/**
+ * The LOCAL branch — Exhibit B "Total Local Revenue" and its sub-sources.
+ *
+ * This was the whole revenue tree until 2026-11-02. It is now one of three
+ * branches under the Exhibit A "Total Revenue" figure; see buildRevenueTree.
+ */
+function buildLocalRevenueBranch(workbook, localityName, sectionIndex) {
   const ws = workbook.getWorksheet('Exhibit B');
   if (!ws) throw new Error('Exhibit B sheet missing');
   const hdr = findHeaderRow(ws);
@@ -290,7 +318,110 @@ export function buildRevenueTree(workbook, localityName, sectionIndex) {
   const totalCol = headerCells(ws, hdr).find((h) => /total local revenue/i.test(h.label));
   let total = totalCol ? cellNum(dataRow.getCell(totalCol.col)) : NaN;
   if (!Number.isFinite(total)) total = tree.reduce((s, n) => s + n.a, 0);
-  return { tree, total };
+  return { children: tree, total };
+}
+
+/**
+ * The two INTERGOVERNMENTAL branches, read from Exhibit B-1.
+ *
+ * ⚠⚠⚠ STOP AT "Total from the Federal Government". The two columns that follow
+ * it — "Total State/Federal Expenditures Made on Behalf of the Local
+ * Government" — are NOT revenue to the locality. Note 1.B: they "represent
+ * funds spent directly by the state that do not flow through the local
+ * government's accounting records", and Exhibit A's own Total Revenue excludes
+ * them. A naive sum of every B-1 column adds them and breaks the tie: for
+ * Virginia Beach FY2024 that is 3,225,136 + 3,838,084 = 7,063,221 of money the
+ * locality never received, which would be published as its revenue.
+ *
+ * ⚠ Each branch's total is the PUBLISHER'S own total column, not a sum of the
+ * leaves — and the two are asserted equal, so a column appearing or moving
+ * between editions fails here rather than silently re-pointing a leaf.
+ *
+ * ⚠ "Payments in Lieu of Taxes" appears in BOTH branches, once for the state
+ * and once for the federal government. That is correct and is why the branches
+ * carry it as a child rather than the tree carrying it at top level.
+ */
+export function buildIntergovernmentalBranches(workbook, localityName, sectionIndex) {
+  const ws = workbook.getWorksheet('Exhibit B1');
+  if (!ws) throw new Error('Exhibit B1 sheet missing');
+  const hdr = findHeaderRow(ws);
+  const dataRow = locateLocalityRow(ws, hdr, localityName, sectionIndex);
+  const cells = headerCells(ws, hdr);
+
+  const cwIdx = cells.findIndex((c) => /total from the commonwealth/i.test(c.label));
+  const fedIdx = cells.findIndex((c) => /total from the federal government/i.test(c.label));
+  if (cwIdx < 0 || fedIdx < 0 || fedIdx <= cwIdx) {
+    throw new Error(
+      `Exhibit B1 layout unrecognised for ${localityName}: expected "Total from the `
+      + `Commonwealth" then "Total from the Federal Government" (found at ${cwIdx}, ${fedIdx})`);
+  }
+
+  const branch = (name, leafCells, totalCell) => {
+    const children = [];
+    for (const { col, label } of leafCells) {
+      const v = cellNum(dataRow.getCell(col));
+      if (Number.isFinite(v) && v !== 0) children.push({ n: tidy(label), a: v });
+    }
+    const stated = cellNum(dataRow.getCell(totalCell.col));
+    const sum = children.reduce((s, c) => s + c.a, 0);
+    if (Number.isFinite(stated) && Math.abs(sum - stated) > 1) {
+      throw new Error(
+        `Exhibit B1 "${name}" for ${localityName}: the leaf columns sum to ${sum} but the `
+        + `publisher's own total is ${stated}. A column has moved or been added — fix the `
+        + 'column selection, do not accept the difference.');
+    }
+    const node = { n: name, a: Number.isFinite(stated) ? stated : sum };
+    if (children.length > 1) { children.sort((x, y) => y.a - x.a); node.c = children; }
+    return node;
+  };
+
+  return [
+    branch('Revenue from the Commonwealth', cells.slice(0, cwIdx), cells[cwIdx]),
+    branch('Revenue from the Federal Government', cells.slice(cwIdx + 1, fedIdx), cells[fedIdx]),
+  ];
+}
+
+/** Collapse the newlines the APA embeds in header cells ("Non-\nCategorical State Aid"). */
+const tidy = (s) => String(s).replace(/\s+/g, ' ').trim();
+
+/**
+ * The whole revenue tree: local + from the Commonwealth + from the federal government.
+ *
+ * ⭐⭐ THE TOTAL IS CHECKED AGAINST EXHIBIT A, which publishes the same figure
+ * independently of B and B-1. Exhibit A's columns are
+ *   Local Revenue | From the Commonwealth | Federal Pass-Through | Direct Federal Aid
+ * summing to "Total Revenue", while B-1 cuts the same intergovernmental money by
+ * AID TYPE instead. Two different cuts of one quantity, so agreeing is real
+ * evidence rather than arithmetic restated. Virginia Beach FY2024:
+ *   1,524,028,455 + 724,366,750 + 147,293,060 + 86,346,998 = 2,482,035,263
+ * and 147,293,060 + 86,346,998 = 233,640,058 = B-1's federal total.
+ *
+ * ⚠ Exhibit A's Total Revenue deliberately EXCLUDES "Non-Revenue Receipts" and
+ * "Transfers from Other Funds" — those two are added to it to reach "Total
+ * Sources Available", which is a different quantity and not what we publish.
+ * Note 2 (Exhibit A): non-revenue receipts are "collections that are not
+ * anticipated for support of normal operations", and a transfer in is this
+ * government's own money moved between its funds, not revenue raised.
+ */
+export function buildRevenueTree(workbook, localityName, sectionIndex) {
+  const local = buildLocalRevenueBranch(workbook, localityName, sectionIndex);
+  const intergov = buildIntergovernmentalBranches(workbook, localityName, sectionIndex);
+
+  const localNode = { n: 'Local Revenue', a: local.total };
+  if (local.children.length > 1) localNode.c = local.children;
+
+  const tree = [localNode, ...intergov].filter((n) => Number.isFinite(n.a) && n.a !== 0);
+  tree.sort((x, y) => y.a - x.a);
+  const total = tree.reduce((s, n) => s + n.a, 0);
+
+  const stated = totalRevenueFromExhibitA(workbook, localityName, sectionIndex);
+  if (stated != null && Math.abs(stated - total) > 1) {
+    throw new Error(
+      `${localityName}: the revenue tree sums to ${total} but Exhibit A "Total Revenue" is `
+      + `${stated} (difference ${stated - total}). Nothing was written. Exhibit A is the `
+      + 'independent check on B + B-1 — reconcile it, never publish the difference.');
+  }
+  return { tree, total, statedTotal: stated };
 }
 
 /** Like extractNodeCols but for B2 where every tax column is a leaf (no Per-Capita between them);
@@ -350,30 +481,87 @@ export function localityPopulation(workbook, localityName, sectionIndex) {
  * The section index (No.-reset) is the same §0/§1/§2 scheme as the other exhibits.
  * Returns null if the locality is absent from Exhibit A or the sheet is missing.
  */
-export function townPopulationFromExhibitA(workbook, localityName, sectionIndex) {
+export function exhibitARowFor(workbook, localityName, sectionIndex) {
   const ws = workbook.getWorksheet('Exhibit A');
   if (!ws) return null;
   const hdr = findHeaderRow(ws);
   const want = localityName.trim().toLowerCase();
+  // ⚠⚠ SECTION-LESS CALLS MUST STILL FIND THE ROW. `locateLocalityRow` has
+  // always fallen back to a global first-match when sectionIndex is null
+  // (the Phase 79 backward-compat path), and this function did not — so
+  // `0 !== undefined` skipped every row and it returned null. Harmless while
+  // the only caller was the population fallback, which always passes a
+  // section; NOT harmless once buildRevenueTree started using it to verify the
+  // total, because a null here means the Exhibit A check SILENTLY DOES NOT RUN
+  // and the tree publishes unchecked. Caught by the backward-compat test.
+  const sectionless = sectionIndex == null;
   let section = -1;
   for (let r = hdr + 1; r <= ws.rowCount; r++) {
     const row = ws.getRow(r);
     const no = cellNum(row.getCell(1));
     if (!Number.isFinite(no)) continue;       // header / footnote / Total — skip
     if (no === 1) section += 1;               // No. reset → next section
-    if (section > sectionIndex) break;        // past target section
-    if (section !== sectionIndex) continue;
+    if (!sectionless) {
+      if (section > sectionIndex) break;      // past target section
+      if (section !== sectionIndex) continue;
+    }
     // Col 4 is the locality name in Exhibit A.
     const name = cellText(row.getCell(4));
     if (!name || /^total$|^grand total$/i.test(name)) continue;
-    if (name.toLowerCase() === want) {
-      // Col 2 is the population.
-      const v = cellNum(row.getCell(2));
-      return Number.isFinite(v) ? v : null;
-    }
+    if (name.toLowerCase() === want) return { ws, hdr, row };
   }
   return null;
 }
+
+export function townPopulationFromExhibitA(workbook, localityName, sectionIndex) {
+  const hit = exhibitARowFor(workbook, localityName, sectionIndex);
+  if (!hit) return null;
+  // Col 2 is the population.
+  const v = cellNum(hit.row.getCell(2));
+  return Number.isFinite(v) ? v : null;
+}
+
+/**
+ * Exhibit A's own "Total Revenue" for a locality — the independent check on the
+ * B + B-1 tree. Returns null when the locality or the column is absent, which
+ * leaves buildRevenueTree unverified rather than failing it: a town missing
+ * from Exhibit A is a real case (the population fallback above exists for the
+ * opposite reason) and must not block a load whose branches already reconcile
+ * against their own publisher totals.
+ *
+ * ⚠ Anchored `^total revenue$`. "Percent of Revenue" and "Total Sources
+ * Available" are both adjacent and neither is this figure.
+ */
+export function totalRevenueFromExhibitA(workbook, localityName, sectionIndex) {
+  const hit = exhibitARowFor(workbook, localityName, sectionIndex);
+  if (!hit) return null;
+  const col = headerCells(hit.ws, hit.hdr).find((h) => /^total revenue$/i.test(tidy(h.label)));
+  if (!col) return null;
+  const v = cellNum(hit.row.getCell(col.col));
+  return Number.isFinite(v) ? v : null;
+}
+
+/**
+ * ⚠ THIS LIVES HERE, NOT IN backfillVaIntergovernmentalRevenue.mjs, BECAUSE
+ * THAT FILE CARRIES A SHEBANG. A `#!` on any module a test imports breaks
+ * `npm test` on Windows and tests/waSao.test.mjs fails the whole suite for it
+ * — which is exactly how this function got moved. This module has no shebang
+ * and is already imported by tests.
+ *
+ */
+/**
+ * TT stores counties under their display name ("Albemarle County"); the APA
+ * workbook lists them under the bare name inside its county section. Cities
+ * and towns match as stored.
+ *
+ * ⚠ The section index is what makes this safe. Virginia has city/county
+ * homonyms — Fairfax, Franklin, Richmond, Roanoke — so "Richmond" alone is
+ * ambiguous and only (name, section) identifies a row.
+ */
+export function workbookName(name, entityType) {
+  return entityType === 'county' ? name.replace(/\s+County$/i, '') : name;
+}
+
 
 // ── Supabase write path (mirrors loadUtahTransparency importEntityData) ──────────
 /** entity_type → report section index (Cities §0, Counties §1, Towns §2). */
@@ -419,6 +607,20 @@ export async function importDataset(supabase, municipalityId, fiscalYear, datase
     p_data_source_name: DATA_SOURCE_NAME,
     p_source_url: sourceUrl,
     p_source_date: sourceDate,
+    // ⚠⚠⚠ THESE TWO ARE THE UPDATE-VS-INSERT KEY, NOT DECORATION.
+    // treasury_sync_city_budget looks its target up on
+    // (municipality_id, fiscal_year, dataset_type, fund_scope, basis) and
+    // DEFAULTS both axes to 'unknown'. This loader omitted them, which was
+    // correct while every VA row was unknown/unknown — and stopped being
+    // correct the moment #320 stamped the family on 2026-11-02. From that
+    // merge until this line, a re-run would have matched nothing, taken the
+    // INSERT branch, and written 608 duplicates while reporting success.
+    // Nothing would have warned: `findConflictingBudget` above checks
+    // data_source, which is NOT in the lookup key.
+    // tests/syncCityBudgetAxisKey.test.mjs moved this loader from its EXEMPT
+    // list to REQUIRED in the same commit.
+    p_fund_scope: FUND_SCOPE,
+    p_basis: BASIS,
     // Va. Code § 15.2-2500 for counties, cities and towns >= 3,500 or holding a
     // separate school division; the Town of Wise charter § 4.2 for the one town
     // that clause does not reach. All 161 entities run July–June. Authority in
@@ -456,6 +658,14 @@ export async function importLocality(supabase, workbook, opts) {
     sourceUrl = null,
     sourceDate = new Date().toISOString().slice(0, 10),
     dryRun = false,
+    // ⚠ Which datasets to WRITE. Both by default, which is what a fresh
+    // onboarding wants. The Exhibit B-1 backfill passes ['revenue'] so it
+    // touches exactly the 304 rows whose figures are meant to change and
+    // leaves the 304 operating rows — and their source_date — alone. Keeping
+    // a re-run's blast radius to the rows it is actually correcting is worth
+    // one option; the alternative is 304 untouched figures taking a new
+    // source_date for no reason anyone could later explain.
+    datasets = ['operating', 'revenue'],
   } = opts;
   const sectionIndex = opts.sectionIndex != null ? opts.sectionIndex : ENTITY_TYPE_SECTION[entityType];
 
@@ -484,8 +694,13 @@ export async function importLocality(supabase, workbook, opts) {
   });
 
   summary.municipalityId = municipalityId;
-  summary.operating = await importDataset(supabase, municipalityId, fiscalYear, 'operating', exp.tree, exp.total, sourceUrl, sourceDate);
-  summary.revenue = await importDataset(supabase, municipalityId, fiscalYear, 'revenue', rev.tree, rev.total, sourceUrl, sourceDate);
+  summary.datasetsWritten = [...datasets];
+  if (datasets.includes('operating')) {
+    summary.operating = await importDataset(supabase, municipalityId, fiscalYear, 'operating', exp.tree, exp.total, sourceUrl, sourceDate);
+  }
+  if (datasets.includes('revenue')) {
+    summary.revenue = await importDataset(supabase, municipalityId, fiscalYear, 'revenue', rev.tree, rev.total, sourceUrl, sourceDate);
+  }
   return summary;
 }
 
@@ -528,7 +743,7 @@ async function main() {
   console.log(`  Population (Exhibit H July est.): ${pop == null ? '(none)' : pop.toLocaleString('en-US')}`);
   console.log(`  Operating (expenditure) total: ${fmt(exp.total)}  — ${exp.tree.length} functions`);
   for (const n of exp.tree) console.log(`     ${n.n}: ${fmt(n.a)}${n.c ? `  (${n.c.length} activities)` : ''}`);
-  console.log(`  Revenue (local) total: ${fmt(rev.total)}  — ${rev.tree.length} sources`);
+  console.log(`  Revenue total: ${fmt(rev.total)}  — ${rev.tree.length} origins` + (rev.statedTotal == null ? "  (Exhibit A has no row for this locality — tree unverified)" : "  = Exhibit A Total Revenue"));
   for (const n of rev.tree) console.log(`     ${n.n}: ${fmt(n.a)}${n.c ? `  (${n.c.length} sub-sources)` : ''}`);
 
   if (values['dry-run']) { console.log('\nDry-run — no writes.'); return; }

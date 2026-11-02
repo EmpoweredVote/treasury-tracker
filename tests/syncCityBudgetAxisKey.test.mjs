@@ -60,8 +60,6 @@ const EXEMPT = {
     '"LA County Open Data - Employee Salaries", 1 row, unknown/unknown.',
   'loadUtahTransparency.js':
     '"Transparent Utah", 539 rows, unknown/unknown (measured 2026-08-29).',
-  'loadVAComparativeReport.js':
-    '"Virginia APA Comparative Report", 608 rows, unknown/unknown.',
   'loadWICMREB.js':
     'Wisconsin DOR CMREB, 20 rows, unknown/unknown.',
 };
@@ -80,6 +78,21 @@ const REQUIRED = {
   // would ask for unknown/unknown, match neither, and insert a THIRD set of
   // duplicates on every re-run while looking entirely successful (#110).
   'loadLaCityAcfr.mjs': 'LA City audited ACFR — 20 rows, general_fund / actual (FY2016-FY2025 x 2 datasets)',
+
+  // ⚠⚠⚠ MOVED FROM `EXEMPT` TO HERE ON 2026-11-02, AND THIS IS THE CASE THE
+  // EXEMPT LIST WAS ALWAYS GOING TO MISS. Its exemption read "608 rows,
+  // unknown/unknown" and was true when written. #320 then classified the family
+  // — governmental_operating / actual on all 608 rows — and that one merge
+  // turned a correct exemption into a duplicate-generator without touching this
+  // file, the loader, or anything a test can see. An exemption is a MEASUREMENT
+  // WITH A DATE, exactly like a partition count.
+  // ⚠ The window was real but never fired: between #320 and this commit no VA
+  // load ran. Measured in the live table afterwards — 608 rows, 608 distinct
+  // ids, zero duplicates.
+  // ⭐ THE RULE THIS SHARPENS: when an axis stamper classifies a family, every
+  // loader that writes it must be re-checked against this list in the SAME
+  // change. Stamping is what moves a loader from one list to the other.
+  'loadVAComparativeReport.js': 'VA APA Comparative Report — 608 rows, governmental_operating / actual (161 localities x FY2023-FY2024 x 2 datasets)',
 
   // ⚠⚠ The NY OSC city load is the SECOND two-scope caller, and by far the
   // largest: 61 cities x 27 fiscal years x 2 datasets x 2 scopes. Measured in
