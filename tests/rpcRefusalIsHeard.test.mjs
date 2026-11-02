@@ -25,6 +25,8 @@
 
 import { describe, it, expect } from 'vitest';
 import { importDataset } from '../scripts/loadVAComparativeReport.js';
+import { importDataset as importOhio } from '../scripts/loadOhioAOS.js';
+import { importDataset as importMnOsa } from '../scripts/loadMNOSA.js';
 
 /** A Supabase stub whose RPC returns exactly what the real one returns. */
 function stubClient(rpcPayload) {
@@ -82,4 +84,42 @@ describe('a refused write is heard by the caller', () => {
     await expect(importDataset(stubClient({ rows_inserted: 4 }), ...ARGS))
       .resolves.toEqual({ rows_inserted: 4 });
   });
+});
+
+/**
+ * ⚠⚠ THE CONVERSION WAS TESTED ON ONE LOADER OUT OF FIFTEEN. Code review
+ * flagged it, and it was the right flag: the one place the conversion broke
+ * surrounding design (bulkLoadStateController's per-city failure path) was in
+ * an unconverted-by-test file. These cover two more writers that take their
+ * client as an argument, so the contract is pinned on more than a sample.
+ *
+ * ⚠ The remaining twelve are not unit-testable without refactoring: they take
+ * no client, or do the RPC inline in a main(). That is a real gap and is
+ * recorded as such rather than papered over.
+ */
+describe('the refusal contract holds across the converted loaders', () => {
+  const REFUSAL = 'unregistered source family: X (unmatched: audit_grade)';
+
+  const cases = [
+    ['loadOhioAOS', (c) => importOhio(
+      c, '00000000-0000-0000-0000-000000000000', 'Testville', 2024, 'revenue',
+      [{ n: 'Taxes', a: 1 }], 1, 'https://example.invalid/x.XLSX', '2026-11-02',
+    )],
+    ['loadMNOSA', (c) => importMnOsa(
+      c, '00000000-0000-0000-0000-000000000000', 2024, 'revenue',
+      [{ n: 'Taxes', a: 1 }], 1, 'https://example.invalid/x.xlsx', '2026-11-02',
+    )],
+  ];
+
+  for (const [name, call] of cases) {
+    it(`${name} throws on a payload refusal`, async () => {
+      await expect(call(stubClient({ error: REFUSAL }))).rejects.toThrow(/unregistered source family/);
+    });
+
+    // The other half of the original bug: rows_inserted 0 is a LEGITIMATE
+    // success (a budget with no line items) and is also falsy.
+    it(`${name} does not throw when the RPC legitimately wrote nothing`, async () => {
+      await expect(call(stubClient({ rows_inserted: 0 }))).resolves.toBeDefined();
+    });
+  }
 });

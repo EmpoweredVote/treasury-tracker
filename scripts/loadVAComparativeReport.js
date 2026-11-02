@@ -52,6 +52,7 @@ import ExcelJS from 'exceljs';
 
 import { ensureMunicipality } from './lib/ensureMunicipality.mjs';
 import { classifySyncResult } from './lib/rpcResult.mjs';
+import { assertRegisteredFamily } from './lib/registeredFamilies.mjs';
 export const DATA_SOURCE_NAME = 'Virginia APA Comparative Report';
 
 // ── Cell helpers ──────────────────────────────────────────────────────────────
@@ -533,6 +534,13 @@ async function main() {
   if (values['dry-run']) { console.log('\nDry-run — no writes.'); return; }
 
   const supabase = await getSupabase();
+  // ⚠ The registry preflight. The plan named this loader alongside Ohio and
+  // Utah and it was missed — on the one source this gate was dogfooded
+  // against, which is the kind of omission a reviewer catches and the author
+  // does not. It sits after the dry-run return, because a dry run writes
+  // nothing and must stay runnable on an unclassified source: that is exactly
+  // how you inspect a family before classifying it.
+  await assertRegisteredFamily(supabase, DATA_SOURCE_NAME, { fiscalYears: [fiscalYear] });
   await importLocality(supabase, wb, {
     matchName: values.locality, displayName: values.locality, entityType, state,
     fiscalYear, sourceUrl, sourceDate, sectionIndex,
