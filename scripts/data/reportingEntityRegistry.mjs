@@ -7,7 +7,15 @@
  * each tab restates the entity's own governmental-funds statement rather than
  * re-aggregating from a state chart of accounts the way MN OSA does — but
  * columbus.gov returned HTTP 403 to a scripted ACFR fetch, so there is no
- * document and therefore no entry. Same for CA SCO and VA APA.
+ * document and therefore no entry. Same for CA SCO.
+ *
+ * ✅ VA APA sat in that list until 2026-11-03 and is now the entry at the
+ * bottom of this file. What unblocked it was not persistence but a different
+ * HOST: the APA republishes localities' own ACFRs itself, so the document was
+ * reachable from a place nobody had tried. ⭐ When a scripted ACFR fetch is
+ * refused, ask who ELSE republishes it before recording "no document" — a
+ * state auditor, the Federal Audit Clearinghouse, or the bond market are all
+ * second homes for the same PDF.
  *
  * Spec: docs/superpowers/specs/2026-08-17-scope-02-design.md §1
  */
@@ -582,6 +590,65 @@ export const REPORTING_ENTITY_REGISTRY = [
              + 'keeping: mn-osa is a STATE AUDITOR re-aggregating what a city presents '
              + 'separately, whereas Gateway is a collection system that preserves the unit\'s '
              + 'own filed partition unchanged.',
+    },
+  },
+  {
+    // ⭐ VIRGINIA APA COMPARATIVE REPORT — the third axis for this family, and
+    // the last one it was missing. Added 2026-11-03. 608 rows, 161 entities.
+    //
+    // ⚠ THE HEADER OF THIS FILE LISTED VA APA UNDER "EXPECTED IS NOT EVIDENCED"
+    // — "no document and therefore no entry". There is a document now: the
+    // Virginia Beach FY2023 ACFR, which the APA itself hosts, read against the
+    // APA's own FY2023 workbook for the same city and year.
+    //
+    // ⚠⚠ `incl_component_units` HERE MEANS "the figure demonstrably exceeds the
+    // primary government by a consolidated component unit", NOT "the whole GASB
+    // reporting entity". The APA consolidates the SCHOOL DIVISION and does not
+    // consolidate authorities it does not manage — Note 2 (Exhibit F) reports
+    // those only as "Payments to Enterprise Type Activities … organized and
+    // operated as an authority and not managed by the locality". Virginia
+    // Beach's CDC is a component unit of the City that this figure does not
+    // carry. The value is still right: it is what the axis exists to flag, and
+    // `primary_government` would be false by 48% on the total and 123% on
+    // Education. This is the same reading mn-osa uses for HRA/EDA/TIF.
+    id: 'va-apa-comparative-report',
+    match: /^Virginia APA Comparative Report$/,
+    value: REPORTING_ENTITY.INCL_COMPONENT_UNITS,
+    evidence: {
+      document: 'City of Virginia Beach FY2023 ACFR (406pp, hosted by the APA at '
+              + 'dlasprodpublic.blob.core.windows.net/apa/015A9CB6-DE37-40C9-9A96-6B30618ACD57.pdf) '
+              + 'read against the APA 2023 Comparative Report workbook for the same city and '
+              + 'year (data.virginia.gov resource 102f7b9e-4e65-467f-b38c-75edd78dbbe9), plus '
+              + 'the 2024 Notes to the Comparative Report. All fetched 2026-11-02/03.',
+      figures: 'THE SCHOOL DIVISION IS A DISCRETELY PRESENTED COMPONENT UNIT AND THE APA '
+             + 'CONSOLIDATES IT. The ACFR says so in terms (Note 1): the Schools are "a legally '
+             + 'separate entity", component units are "reported in separate columns to emphasize '
+             + 'that they are legally separate from the City". Under GASB 34 a discretely '
+             + 'presented component unit therefore appears only in the GOVERNMENT-WIDE '
+             + 'statements, never in the governmental-FUND statements. '
+             + 'Virginia Beach FY2023, the three figures that settle it: '
+             + 'APA Exhibit C-6 Education 1,017,649,747 · ACFR governmental funds Education '
+             + '456,472,085 (p.76, General Fund; nonmajor nil) · ACFR government-wide Total '
+             + 'Component Units expenses 995,286,575 (p.72). The APA figure is 2.23x the '
+             + 'primary government\'s and sits in the component units\' range, so it is the '
+             + 'School Board\'s own operations, not the City\'s appropriation to them. '
+             + 'WHOLE-ENTITY CHECK: APA Exhibit C total M&O 1,962,644,100 vs ACFR governmental '
+             + 'funds current operating 1,324,914,972 (total expenditures 1,733,646,370 less '
+             + 'capital outlay 254,026,978, leases 4,133,722, subscriptions 5,400,148, principal '
+             + '106,318,292 and interest 38,852,258 — the categories Exhibits D and E carry '
+             + 'instead). Gap 637,729,128, i.e. the APA reports 48.1% MORE operating than the '
+             + 'city\'s own funds do, and the Education gap of 561,177,662 is 88% of it. '
+             + '⚠ The remaining ~76.5M is NOT attributed. State "expenditures made on behalf of '
+             + 'the local government" (Note 1.B, inside Exhibits C-4/C-5/C-6) are only 7,063,221 '
+             + 'for this city, so they do not explain it; the rest is presumed chart-of-accounts '
+             + 'and measurement-basis difference and was not chased. Said rather than rounded '
+             + 'away: 88% attributed is the claim, not 100%. '
+             + 'SYSTEMATIC, NOT ONE CITY — measured over all 304 loaded operating rows: 245 '
+             + 'carry a top-level Education node (64 city-years, 177 county-years, 4 town-years) '
+             + 'averaging 44.3% of a city\'s total, 55.5% of a county\'s, up to 70.9%. The 59 '
+             + 'rows with NO Education node are ALL towns, which is correct rather than a gap: '
+             + 'Virginia towns are served by their county\'s school division except for the '
+             + 'handful that run their own, which are exactly the 4 town-years that do carry it.',
     },
   },
 ];

@@ -805,6 +805,15 @@ export const EXPECTED_REPORTING_ENTITY_ROWS = Object.freeze({
   'az-muni-acfr-gf': 64,
   'seattle-city-acfr-gf': 34,
   'state-acfr-gf-by-name': 56,
+  // ⚠ NEW ENTRY 2026-11-03 — Virginia APA, `incl_component_units`, the third
+  // and last axis this family was missing. MEASURED IN THE TABLE the same day:
+  // 608 rows / 608 DISTINCT ids / 1 string / 161 entities / FY2023-FY2024.
+  // ⚠ It is 608, not 304: reporting_entity describes the whole family, so BOTH
+  // dataset_types carry it. The fund-scope and basis entries are 608 for the
+  // same reason; only the figure-changing B-1 backfill was revenue-only.
+  // ⚠ 161 is TT's holding, not the APA's 174 localities. A later onboarding
+  // wave moves this legitimately — re-measure, do not assume.
+  'va-apa-comparative-report': 608,
 });
 
 /** The last fiscal year that has closed. A row after this cannot be an actual. */
