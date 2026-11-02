@@ -61,6 +61,7 @@ import { dirname, join } from 'node:path';
 import ExcelJS from 'exceljs';
 
 import { ensureMunicipality } from './lib/ensureMunicipality.mjs';
+import { classifySyncResult } from './lib/rpcResult.mjs';
 export const DATA_SOURCE_NAME = 'Ohio Auditor of State Summarized Annual Financial Reports';
 
 // ── Workbook layout profiles (GAAP vs CASH/MOD) ──────────────────────────────
@@ -591,6 +592,9 @@ export async function importDataset(supabase, municipalityId, entityName, fiscal
     p_fiscal_year_start_month: ohioMonthFor({ name: entityName, state: 'OH' }),
   });
   if (error) { console.error(`  RPC error (${datasetType}): ${error.message}`); return null; }
+  // ⚠⚠ The transport error is not the refusal — see lib/rpcResult.mjs.
+  const outcome = classifySyncResult(data);
+  if (!outcome.ok) throw new Error(`RPC refused (${datasetType}): ${outcome.message}`);
   return data;
 }
 

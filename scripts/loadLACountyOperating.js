@@ -22,6 +22,7 @@ import { parseArgs } from 'node:util';
 import { monthForSource } from './lib/loaderFiscalCalendars.mjs';
 
 import { ensureMunicipality } from './lib/ensureMunicipality.mjs';
+import { classifySyncResult } from './lib/rpcResult.mjs';
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://kxsdzaojfaibhuzmclfq.supabase.co';
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
 if (!SUPABASE_KEY) { console.error('Missing SUPABASE_SERVICE_KEY'); process.exit(1); }
@@ -145,6 +146,9 @@ async function syncYear(municipalityId, year, rows, dryRun) {
   });
 
   if (error) { console.error(`  RPC error: ${error.message}`); return; }
+  // ⚠⚠ The transport error is not the refusal — see lib/rpcResult.mjs.
+  const outcome = classifySyncResult(data);
+  if (!outcome.ok) throw new Error(`RPC refused: ${outcome.message}`);
   console.log(`  Synced (${data?.rows_inserted ?? '?'} rows reported)`);
 }
 

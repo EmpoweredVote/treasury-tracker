@@ -50,6 +50,7 @@ import { dirname, join } from 'node:path';
 import ExcelJS from 'exceljs';
 
 import { ensureMunicipality } from './lib/ensureMunicipality.mjs';
+import { classifySyncResult } from './lib/rpcResult.mjs';
 export const DATA_SOURCE_NAME = 'Minnesota Office of the State Auditor City/County Finances Report';
 const SHEET_NAME = 'Governmental Funds';
 const SUBTOTAL_TOLERANCE = 0.005; // 0.5% — D-03 double-count guard
@@ -535,6 +536,9 @@ export async function importDataset(supabase, municipalityId, fiscalYear, datase
     p_fiscal_year_start_month: monthForSource(DATA_SOURCE_NAME),
   });
   if (error) { console.error(`  RPC error (${datasetType}): ${error.message}`); return null; }
+  // ⚠⚠ The transport error is not the refusal — see lib/rpcResult.mjs.
+  const outcome = classifySyncResult(data);
+  if (!outcome.ok) throw new Error(`RPC refused (${datasetType}): ${outcome.message}`);
   return data;
 }
 

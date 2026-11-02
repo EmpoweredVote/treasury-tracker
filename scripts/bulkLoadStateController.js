@@ -198,6 +198,11 @@ async function importCityData(cityName, state, population, rows, fiscalYear, dat
     console.error(`    RPC error: ${error.message}`);
     return null;
   }
+  // ⚠⚠ `error` above is the TRANSPORT error only; a refusal travels in the
+  // payload while supabase-js reports error: null. This is the call site
+  // lib/rpcResult.mjs was written for, and it still returned the payload.
+  const outcome = classifySyncResult(result);
+  if (!outcome.ok) throw new Error(`RPC refused: ${outcome.message}`);
 
   return result;
 }

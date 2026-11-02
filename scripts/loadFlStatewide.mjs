@@ -68,6 +68,7 @@ import { FL_STATEWIDE_ENTITIES, FL_STATE, FL_STATEWIDE_LOAD_WINDOW } from './dat
 import { FL_ORACLE_DRIFT, declaredDriftFor } from './data/flOracleDrift.mjs';
 
 import { ensureMunicipality } from './lib/ensureMunicipality.mjs';
+import { classifySyncResult } from './lib/rpcResult.mjs';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const CACHE = path.join(ROOT, 'docs/fl-dfs');
 
@@ -320,6 +321,9 @@ async function main() {
           p_derivation: DERIVATION,
         });
         if (error) throw new Error(`RPC error (${ent.name} FY${year} ${datasetType}): ${error.message}`);
+        // ⚠⚠ The transport error is not the refusal — see lib/rpcResult.mjs.
+        const outcome = classifySyncResult(data);
+        if (!outcome.ok) throw new Error(`RPC refused (${ent.name} FY${year} ${datasetType}): ${outcome.message}`);
         stats.written++;
       }
       done++;

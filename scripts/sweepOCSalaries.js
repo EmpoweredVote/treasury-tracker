@@ -30,6 +30,7 @@ import path from 'node:path';
 import os from 'node:os';
 // Shared helpers (single source of truth — see loadCASalaries.js).
 import { normalizeDeptLabel, parseMoney } from './loadCASalaries.js';
+import { classifySyncResult } from './lib/rpcResult.mjs';
 
 // ── Env / Supabase setup ─────────────────────────────────────────────────────
 
@@ -274,6 +275,9 @@ async function syncCityYear(municipalityId, year, rows, dryRun) {
     console.error(`    RPC error: ${error.message}`);
     return null;
   }
+  // ⚠⚠ The transport error is not the refusal — see lib/rpcResult.mjs.
+  const outcome = classifySyncResult(data);
+  if (!outcome.ok) throw new Error(`RPC refused: ${outcome.message}`);
 
   console.log(`    Wrote salaries: ${deptCount} depts, ${posCount} positions, ${rowCount} records, total $${Math.round(total).toLocaleString()}`);
   return { total: Math.round(total), rowCount, deptCount, posCount, dbRows: data?.rows_inserted };

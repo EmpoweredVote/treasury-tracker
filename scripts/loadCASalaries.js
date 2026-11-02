@@ -192,6 +192,7 @@ function parseCSV(csvText) {
 // ── ZIP extractor (node built-in: zlib) ─────────────────────────────────────
 
 import { inflateRawSync } from 'node:zlib';
+import { classifySyncResult } from './lib/rpcResult.mjs';
 
 /**
  * Synchronous CSV extractor from a ZIP buffer.
@@ -448,6 +449,10 @@ async function syncYear(municipalityId, year, rows, dryRun) {
     console.error(`  RPC error: ${error.message}`);
     return false;
   }
+  // ⚠⚠ `error` above is the TRANSPORT error only. A refusal travels in the
+  // payload while supabase-js reports error: null — see lib/rpcResult.mjs.
+  const outcome = classifySyncResult(data);
+  if (!outcome.ok) throw new Error(`RPC refused: ${outcome.message}`);
 
   console.log(`  Inserted ${data?.rows_inserted ?? '?'} rows`);
   return true;

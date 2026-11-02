@@ -44,6 +44,7 @@ import { utahMonthFor } from './lib/loaderFiscalCalendars.mjs';
 import { fileURLToPath } from 'node:url';
 
 import { ensureMunicipality } from './lib/ensureMunicipality.mjs';
+import { classifySyncResult } from './lib/rpcResult.mjs';
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://kxsdzaojfaibhuzmclfq.supabase.co';
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
 // ⚠ Do NOT hard-exit at import time. This module is imported by its unit tests,
@@ -547,6 +548,9 @@ async function importEntityData(municipalityName, state, rows, fiscalYear, datas
     p_fiscal_year_start_month: utahMonthFor({ entity_type: entityType }),
   });
   if (error) { console.error(`    RPC error: ${error.message}`); return null; }
+  // ⚠⚠ The transport error is not the refusal — see lib/rpcResult.mjs.
+  const outcome = classifySyncResult(result);
+  if (!outcome.ok) throw new Error(`RPC refused: ${outcome.message}`);
   return result;
 }
 
@@ -724,6 +728,9 @@ async function main() {
         errors++;
         continue;
       }
+      // ⚠⚠ The transport error is not the refusal — see lib/rpcResult.mjs.
+      const outcome = classifySyncResult(result);
+      if (!outcome.ok) throw new Error(`RPC refused (${label}): ${outcome.message}`);
 
       console.log(`  OK ${label} — total $${group.total.toLocaleString()} (${result?.rows_inserted ?? '?'} items)`);
       imported++;
