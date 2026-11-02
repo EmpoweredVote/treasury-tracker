@@ -61,11 +61,31 @@ test('Alexandria FY2024 expenditure total ties to the report', { skip: !HAVE_SAM
   assert.ok(publicSafety && publicSafety.c && publicSafety.c.length >= 4, 'Public Safety has activity children');
 });
 
-test('Alexandria FY2024 revenue total ties + property-tax breakout', { skip: !HAVE_SAMPLE && 'recon sample absent' }, async () => {
-  const { tree, total } = buildRevenueTree(await workbook(), 'Alexandria');
-  assert.ok(Math.abs(total - 874230660) <= 1, `revenue total ${total} != 874230660`);
+// ⚠⚠ THE EXPECTED TOTAL AND THE TREE SHAPE BOTH CHANGED ON 2026-11-02, when
+// Exhibit B-1 intergovernmental aid was added. This test asserted 874,230,660 —
+// Alexandria's "Total LOCAL Revenue" — and that figure is still correct for
+// Exhibit B alone; it is simply no longer what this loader publishes, because
+// publishing it as a locality's revenue understated it by everything the
+// Commonwealth and the federal government sent. The new figure is Exhibit A's
+// own "Total Revenue", which buildRevenueTree asserts against on every call.
+// ⚠ The top level is now ORIGIN (Local / Commonwealth / Federal). General
+// Property Taxes moved DOWN a level, under Local Revenue — so the breakout
+// assertion below reaches through that branch rather than scanning the top.
+test('Alexandria FY2024 revenue ties to Exhibit A + property-tax breakout survives', { skip: !HAVE_SAMPLE && 'recon sample absent' }, async () => {
+  const { tree, total, statedTotal } = buildRevenueTree(await workbook(), 'Alexandria');
+  assert.ok(Math.abs(total - 1077863081) <= 1, `revenue total ${total} != 1077863081`);
+  assert.equal(statedTotal, total, 'tree total equals Exhibit A "Total Revenue"');
   assert.ok(allAmountsFinite(tree), 'all revenue amounts finite');
-  const gpt = tree.find((n) => /general property taxes/i.test(n.n));
+
+  const origins = tree.map((n) => n.n).sort();
+  assert.deepEqual(origins, [
+    'Local Revenue', 'Revenue from the Commonwealth', 'Revenue from the Federal Government',
+  ], `origins ${origins.join(' | ')}`);
+  assert.equal(tree.reduce((s, n) => s + n.a, 0), total, 'origins sum to the total');
+
+  const local = tree.find((n) => n.n === 'Local Revenue');
+  assert.ok(Math.abs(local.a - 874230660) <= 1, `local branch ${local.a} != 874230660`);
+  const gpt = local.c.find((n) => /general property taxes/i.test(n.n));
   assert.ok(gpt && gpt.c && gpt.c.length >= 4, 'General Property Taxes expanded into sub-sources');
   // No single-child node equal to itself (collapse rule).
   assert.ok(!tree.some((n) => n.c && n.c.length === 1), 'no single-child top-level revenue node');
@@ -146,7 +166,12 @@ test('absent locality (chronic late-filer) yields total 0, never NaN', { skip: !
 test('backward-compat: section-less calls unchanged (Phase 79 global path)', { skip: !HAVE_SAMPLE && 'recon sample absent' }, async () => {
   const w = await workbook();
   assert.ok(Math.abs(buildExpenditureTree(w, 'Alexandria').total - 863578347) <= 1);
-  assert.ok(Math.abs(buildRevenueTree(w, 'Alexandria').total - 874230660) <= 1);
+  // ⚠ 874,230,660 was the Exhibit-B-only figure this returned before the B-1
+  // load; the section-less path still resolves the same locality, it now just
+  // returns its WHOLE revenue. The point of this test is the lookup path, not
+  // the magnitude — so it asserts both, to keep proving the two paths agree.
+  assert.ok(Math.abs(buildRevenueTree(w, 'Alexandria').total - 1077863081) <= 1);
+  assert.equal(buildRevenueTree(w, 'Alexandria').total, buildRevenueTree(w, 'Alexandria', 0).total);
   assert.equal(localityPopulation(w, 'Alexandria'), 158591);
 });
 
