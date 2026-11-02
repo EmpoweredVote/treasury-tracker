@@ -271,8 +271,14 @@ async function syncCityYear(municipalityId, year, rows, dryRun) {
     return null;
   }
   // ⚠⚠ The transport error is not the refusal — see lib/rpcResult.mjs.
+  // ⚠ Returns null rather than throwing: the caller records a per-city gap
+  // and sets hadFailures, and the run exits non-zero on that. Throwing killed
+  // the sweep at the first refusal and skipped every remaining city.
   const outcome = classifySyncResult(data);
-  if (!outcome.ok) throw new Error(`RPC refused: ${outcome.message}`);
+  if (!outcome.ok) {
+    console.error(`    RPC refused: ${outcome.message}`);
+    return null;
+  }
 
   console.log(`    Wrote salaries: ${deptCount} depts, ${posCount} positions, ${rowCount} records, total $${Math.round(total).toLocaleString()}`);
   return { total: Math.round(total), rowCount, deptCount, posCount, dbRows: data?.rows_inserted };

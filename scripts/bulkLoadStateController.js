@@ -199,11 +199,14 @@ async function importCityData(cityName, state, population, rows, fiscalYear, dat
     return null;
   }
   // ⚠⚠ `error` above is the TRANSPORT error only; a refusal travels in the
-  // payload while supabase-js reports error: null. This is the call site
-  // lib/rpcResult.mjs was written for, and it still returned the payload.
-  const outcome = classifySyncResult(result);
-  if (!outcome.ok) throw new Error(`RPC refused: ${outcome.message}`);
-
+  // payload while supabase-js reports error: null — see lib/rpcResult.mjs.
+  //
+  // ⚠ THE PAYLOAD IS RETURNED, NOT THROWN. The caller already classifies it
+  // with classifySyncResult, records a per-city failure and `continue`s, and
+  // prints an end-of-run summary explaining what each failure means. Throwing
+  // here jumped past all of that and killed a 400-city run on the first
+  // refusal. The Georgia incident that justified throwing elsewhere was
+  // SILENCE, not continuation; this loop was never silent.
   return result;
 }
 

@@ -126,6 +126,34 @@ describe('mirrorRows', () => {
     expect(srow.pattern).toBe(sensitive.match.source);
   });
 
+  // ⚠⚠⚠ THE STATIC HALF OF REVIEW FOCUS #1, AND IT RUNS IN CI. The live
+  // parity proof (verify:registry-parity) needs a database, and this repo
+  // deliberately keeps no service-role key in Actions — so it runs only when
+  // a human remembers. This test needs nothing and runs every time.
+  //
+  // Postgres ARE accepts (?:…), \d and {n} verbatim, which is why the
+  // patterns are stored unchanged. It does NOT share JS's meaning for every
+  // escape: `\b` is a BACKSPACE in ARE but a word boundary in JS, so a future
+  // entry using it would silently never match and the gate would refuse a
+  // family that IS registered — Review Focus #1 happening with every check
+  // green. `\B`, `\A`, `\Z` and `\G` are the same class of hazard.
+  it('uses no regex construct whose meaning differs in Postgres ARE', () => {
+    const HAZARDS = [
+      [/\\b/, '\\b — word boundary in JS, BACKSPACE in Postgres ARE'],
+      [/\\B/, '\\B — non-boundary in JS, undefined in ARE'],
+      [/\\A/, '\\A — not portable'],
+      [/\\Z/, '\\Z — not portable'],
+      [/\\G/, '\\G — not portable'],
+      [/\(\?<[=!]/, 'lookbehind — unsupported in ARE'],
+      [/\\p\{/, '\\p{…} unicode property — differs in ARE'],
+    ];
+    const bad = [];
+    for (const { axis, entry_id: id, pattern } of rows) {
+      for (const [re, why] of HAZARDS) if (re.test(pattern)) bad.push(`${axis}/${id}: ${why}`);
+    }
+    expect(bad).toEqual([]);
+  });
+
   it('carries no flag other than i anywhere in the live registries', () => {
     const all = [
       ...AUDIT_GRADE_REGISTRY, ...FUND_SCOPE_REGISTRY,

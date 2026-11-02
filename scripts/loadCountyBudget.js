@@ -307,8 +307,13 @@ async function syncYear(opts) {
   }
   // ⚠⚠ `error` above is the TRANSPORT error only. A refusal travels in the
   // payload while supabase-js reports error: null — see lib/rpcResult.mjs.
+  // ⚠ Logged and returned, matching the transport-error path immediately
+  // above, so one dataset's refusal does not abandon the others.
   const outcome = classifySyncResult(data);
-  if (!outcome.ok) throw new Error(`RPC refused: ${outcome.message}`);
+  if (!outcome.ok) {
+    console.error(`    RPC refused: ${outcome.message}`);
+    return { total, skipped: false };
+  }
   console.log(`    Synced (${data?.rows_inserted ?? '?'} rows reported) — source_url=${ds.pageUrl} source_date=${fetchDate}`);
   return { total, skipped: false };
 }
