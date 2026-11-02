@@ -17,6 +17,10 @@
       "superseded_by": "see the newest migration in supabase/migrations/"
     }
   ],
+  "_figure_change_note": "figure_change_files hold rows whose published figure DELIBERATELY changed. They are NOT exclusions: the row stays inside the frozen set and the digest reads the `old` value from treasury.frozen_figure_ledger in its place (coalesce(l.old_value, b.total_budget::text, '~')), so figures_frozen keeps verifying while the row tells the truth. This is the mechanism checkFrozenInvariant.mjs points at -- 'record it with the value it replaced; the digest then keeps verifying and no rebase is needed' -- and it is the alternative to rebasing, which scopeBaseline's _warning forbids doing casually. ⚠ Capture the old values BEFORE the write; afterwards the script would record the NEW figures as though they were the old ones and silently re-base the invariant.",
+  "figure_change_files": [
+    "scripts/data/figureChanges.json"
+  ],
   "excluded_ids_files": [
     "scripts/data/scope02CreatedIds.json",
     "scripts/data/postV224CreatedIds.json",

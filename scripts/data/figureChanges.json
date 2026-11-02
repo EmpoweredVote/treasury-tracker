@@ -1,1 +1,1826 @@
-[]
+[
+  {
+    "id": "005886b9-d13e-41a7-a2e7-a975fe7fb99e",
+    "old": "18202194",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "22952404"
+  },
+  {
+    "id": "0150c778-9a49-455f-ab22-c56e0c49e944",
+    "old": "62394724",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "121616195"
+  },
+  {
+    "id": "026202d1-4baa-41bf-a660-5987035b5e6d",
+    "old": "37253749",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "66183278"
+  },
+  {
+    "id": "02afefee-9f00-4f75-b389-e850b80ebf34",
+    "old": "7408652",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "14409230"
+  },
+  {
+    "id": "02efe28c-410c-41e7-a038-cbac69b9f329",
+    "old": "96313601",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "201901570"
+  },
+  {
+    "id": "034d554a-341b-4bf1-94d7-0130abfd5584",
+    "old": "26337350",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "54660067"
+  },
+  {
+    "id": "04dde623-421f-4647-8956-db5270df09f3",
+    "old": "29118078",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "58413113"
+  },
+  {
+    "id": "0722da1b-c1b2-4a5f-9d38-8d7e877b8149",
+    "old": "1759650000",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "2885145000"
+  },
+  {
+    "id": "07b6b822-36b8-4586-84c6-90f4eec9c83a",
+    "old": "10313288",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "15684515"
+  },
+  {
+    "id": "07d4669a-fbef-4005-81e3-7b3934b393dc",
+    "old": "11241857",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "22305116"
+  },
+  {
+    "id": "08179447-2d31-4dea-9add-dfdcd47a7b98",
+    "old": "46693596",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "114197856"
+  },
+  {
+    "id": "0aca5d4c-b5b9-404e-bb6e-f0d68167df0d",
+    "old": "25026005",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "50736240"
+  },
+  {
+    "id": "0b2ee2da-d9af-49b0-9d47-06bd2f93dd11",
+    "old": "27596393",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "69244251"
+  },
+  {
+    "id": "0f37c422-1afd-42da-b224-4acc96ea474e",
+    "old": "30703982",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "47885400"
+  },
+  {
+    "id": "0f743f85-a155-4cbb-8eea-7b8ea00cfe31",
+    "old": "32149725",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "57643159"
+  },
+  {
+    "id": "104de515-a753-46e1-8b95-7ebc7b6e9926",
+    "old": "60614108",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "159722836"
+  },
+  {
+    "id": "11a38e37-fcb6-4d9f-bdc2-205e25a987ca",
+    "old": "157017633",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "180297648"
+  },
+  {
+    "id": "1345fa8f-c9ca-4970-b738-4cd43ed92407",
+    "old": "215943519",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "312197394"
+  },
+  {
+    "id": "1372ba86-ba80-46f7-bcfd-7faca838564e",
+    "old": "245091590",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "369382393"
+  },
+  {
+    "id": "13cb7a1f-fa91-40f7-81e4-001b5dd1bdfe",
+    "old": "79989182",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "150832045"
+  },
+  {
+    "id": "13f76cef-c9aa-4d75-83b6-14381e627ece",
+    "old": "99823990",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "212540014"
+  },
+  {
+    "id": "1530ab44-e150-4525-9bb1-c42a71e34b38",
+    "old": "63656059",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "171814057"
+  },
+  {
+    "id": "15d4c5a4-270e-4e4f-b5aa-ed86d9c59a5e",
+    "old": "38416243",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "45761278"
+  },
+  {
+    "id": "15e1fdc9-aba3-41d5-ab3f-e4d8d2c0947a",
+    "old": "9883861",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "20218774"
+  },
+  {
+    "id": "15e44b57-0b14-4661-9b60-2b2b50214ed8",
+    "old": "1522342000",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "2681003000"
+  },
+  {
+    "id": "17b85a56-0295-4bde-8ab7-907b047bc9b9",
+    "old": "8106932",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "10522636"
+  },
+  {
+    "id": "19145cad-dc0d-4530-9864-14a92067b6a5",
+    "old": "30955777",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "78043264"
+  },
+  {
+    "id": "19d64ff7-e13b-439d-80cc-b3fca6179968",
+    "old": "61643828",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "127521899"
+  },
+  {
+    "id": "1ba4ef66-ad2b-4383-ae70-5e7f003889e3",
+    "old": "16549857",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "20680146"
+  },
+  {
+    "id": "1c9fb5e9-a0d0-4dca-a6e7-c12200f7ef14",
+    "old": "5258284",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "7288229"
+  },
+  {
+    "id": "1d33f5a6-8ae6-43aa-acf8-6557bfdc816d",
+    "old": "731146510",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "1358868721"
+  },
+  {
+    "id": "1dd3ae90-20f9-4cb1-90f0-41e5dbbca926",
+    "old": "41653501",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "51248865"
+  },
+  {
+    "id": "1dde0218-86e0-4640-8bdd-d6455f08a31a",
+    "old": "237513093",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "349618353"
+  },
+  {
+    "id": "1f2f3152-3a67-4eb5-983f-31945c517f34",
+    "old": "12864767",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "15847479"
+  },
+  {
+    "id": "214fd167-ab2c-41a2-ab9d-b4a3bffb4dd9",
+    "old": "92075316",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "169539769"
+  },
+  {
+    "id": "219531ac-70c1-4520-b6e0-924950bcfbbc",
+    "old": "398733139",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "767056815"
+  },
+  {
+    "id": "23670f6c-307f-4b92-83fd-6e722b44b962",
+    "old": "114155049",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "239716891"
+  },
+  {
+    "id": "2368c0e4-58ad-4624-bcef-c9880042a612",
+    "old": "58589651",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "98974865"
+  },
+  {
+    "id": "2404c78e-409e-4bda-b3cd-bc6ef7577dd9",
+    "old": "217073887",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "421729975"
+  },
+  {
+    "id": "24bd16f8-50fe-4fe1-ab16-51f418722e8c",
+    "old": "19200754",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "44026653"
+  },
+  {
+    "id": "255be85a-ac42-47ec-938c-59d310b87fe9",
+    "old": "26757203",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "42469341"
+  },
+  {
+    "id": "258e6ef8-9c5e-4772-bdbb-0628ddf66bb3",
+    "old": "16809232",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "33166846"
+  },
+  {
+    "id": "25bdae9c-6ee8-4851-b32e-ce881a555a17",
+    "old": "14376595",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "42873216"
+  },
+  {
+    "id": "2672b843-8bdd-4e72-949b-958b5df899ef",
+    "old": "11139479",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "14783603"
+  },
+  {
+    "id": "26c5d2b2-90fb-4710-a6c1-11e77e602553",
+    "old": "43255564",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "84774687"
+  },
+  {
+    "id": "273ee886-7cf0-4c26-a77c-5d4ad5a31abc",
+    "old": "65696948",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "123080749"
+  },
+  {
+    "id": "27ecfefb-de3b-445a-80ba-292ee3c6a044",
+    "old": "16892793",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "25276519"
+  },
+  {
+    "id": "292f73b7-9cf5-4c81-b989-98b594c4df5c",
+    "old": "60728924",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "152272352"
+  },
+  {
+    "id": "2b4d619b-f864-42f3-ad02-36c5a9b34e9b",
+    "old": "404906044",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "573456882"
+  },
+  {
+    "id": "2ba5022b-83a3-4544-9890-1bbe4533faf3",
+    "old": "125191140",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "300066624"
+  },
+  {
+    "id": "2c4966ea-1dae-4df8-b81c-564acc1926b2",
+    "old": "81914236",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "147032362"
+  },
+  {
+    "id": "2d2f4192-88ad-4aca-9e48-f48606ffdd96",
+    "old": "7009611",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "10472496"
+  },
+  {
+    "id": "2e576339-8e09-4598-80e6-455efb9a94b4",
+    "old": "28444246",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "46643612"
+  },
+  {
+    "id": "2eb76b7b-8fc3-4e37-909c-4a248426e848",
+    "old": "102032724",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "179206324"
+  },
+  {
+    "id": "2f6a7608-0aac-4460-be22-264ca18c1931",
+    "old": "81380473",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "107991290"
+  },
+  {
+    "id": "3044af17-bf7d-43a6-9818-51e935cf6490",
+    "old": "64990186",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "116941897"
+  },
+  {
+    "id": "305bfd16-b994-47ea-a57a-8a544eb536fe",
+    "old": "60215273",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "108773800"
+  },
+  {
+    "id": "31441acb-4ff1-4462-b74a-b96ed9f29f4e",
+    "old": "92132461",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "163665024"
+  },
+  {
+    "id": "327cf9c1-3c0d-4378-a7e3-2e5e2a77d253",
+    "old": "4886331",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "8390584"
+  },
+  {
+    "id": "36799958-615f-4216-97b4-dc21c3b2a465",
+    "old": "24783400",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "62404932"
+  },
+  {
+    "id": "382d70b6-b5f8-4900-8fcf-0a120771d4cf",
+    "old": "69874145",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "124577677"
+  },
+  {
+    "id": "386af424-769b-4c33-8a05-0f48c21c452c",
+    "old": "12176847",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "16348033"
+  },
+  {
+    "id": "3ab03f72-1e8d-437e-b81f-f4f9bc5552ad",
+    "old": "16082341",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "20485516"
+  },
+  {
+    "id": "3bd35f4f-dc3e-4e49-a4d4-73ee608be328",
+    "old": "560195013",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "1060348834"
+  },
+  {
+    "id": "3d18bd0b-1a39-4bc7-965d-dea4c748aea2",
+    "old": "19159503",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "30291982"
+  },
+  {
+    "id": "3d95ec52-5e82-462a-85b8-7dfd6eccd9f7",
+    "old": "16914228",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "22646266"
+  },
+  {
+    "id": "3dd9bc5e-e915-4a24-85df-db11ca89a693",
+    "old": "25013379",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "60261723"
+  },
+  {
+    "id": "40721b30-7457-42f4-9fcf-e7a2db962025",
+    "old": "29945249",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "66915832"
+  },
+  {
+    "id": "40857587-7c12-430b-b3da-a528e8695932",
+    "old": "39843127",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "67801176"
+  },
+  {
+    "id": "4118d51b-6f97-45e0-b48a-a45faeee77cd",
+    "old": "16579089",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "22041867"
+  },
+  {
+    "id": "41366a4f-6c87-4c51-9163-0802cac1e2a4",
+    "old": "170141829",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "204145129"
+  },
+  {
+    "id": "41f91e80-59f6-44d4-b18d-024324327c01",
+    "old": "15633967",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "31562355"
+  },
+  {
+    "id": "430647c6-ffcd-4479-b428-5ddc780d7af8",
+    "old": "91356443",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "183417735"
+  },
+  {
+    "id": "43fb590e-e53a-411d-9ae7-7b3179056252",
+    "old": "4670212",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "7507303"
+  },
+  {
+    "id": "46dc0abc-aa66-4a2f-b49d-b9f125517a4b",
+    "old": "36522916",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "43937403"
+  },
+  {
+    "id": "470729a7-5122-465a-bdf2-c034321a3b58",
+    "old": "4057319",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "5502828"
+  },
+  {
+    "id": "47c622b5-9508-4d7e-b375-33a3e1f488a7",
+    "old": "169965713",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "303816169"
+  },
+  {
+    "id": "4873fa38-3dd6-4fc2-970c-04973695a251",
+    "old": "6108213",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "9406329"
+  },
+  {
+    "id": "48855672-a6ed-49b4-8af2-6a4dc15c4c6a",
+    "old": "84145109",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "197295777"
+  },
+  {
+    "id": "498b852d-ebc8-4f57-aeff-e11599b453b3",
+    "old": "38473078",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "81749854"
+  },
+  {
+    "id": "4a69ff3e-980f-404c-b30d-5fe329596bb2",
+    "old": "71997280",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "151967325"
+  },
+  {
+    "id": "4ce0bd8f-719a-488b-9ae1-ff6d42fb4c55",
+    "old": "29177366",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "47902150"
+  },
+  {
+    "id": "4d26b632-f627-4ca6-af39-84295e38dba9",
+    "old": "31489353",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "88555123"
+  },
+  {
+    "id": "4ddb3f24-4a8c-4b4f-b842-5b95d2eb56fc",
+    "old": "107093466",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "213774101"
+  },
+  {
+    "id": "4e0f8e7a-da96-47ee-9348-103833e68c0b",
+    "old": "21360946",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "40531071"
+  },
+  {
+    "id": "4e1ff60a-06a8-43f1-b596-3a280c2c22eb",
+    "old": "12177592",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "35675088"
+  },
+  {
+    "id": "4e8c0255-7e13-4682-8ae5-de3a0387f0cb",
+    "old": "14238548",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "16374819"
+  },
+  {
+    "id": "5029729a-15b3-4df0-b674-1c48f72482eb",
+    "old": "37343352",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "79949776"
+  },
+  {
+    "id": "5034cc95-03e0-4d18-a70f-5ec665af41ae",
+    "old": "17322606",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "26890629"
+  },
+  {
+    "id": "50354900-6217-4368-a59c-1041fff8d0bc",
+    "old": "57793307",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "110644580"
+  },
+  {
+    "id": "516bbf13-1597-43a8-a363-1a65e2cc404a",
+    "old": "27544439",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "69031932"
+  },
+  {
+    "id": "532bd751-5ab9-41d0-b4a8-60971d9781ad",
+    "old": "122388610",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "249657082"
+  },
+  {
+    "id": "536b9df5-7834-4007-980a-81e1d9a3e497",
+    "old": "27215331",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "41546898"
+  },
+  {
+    "id": "551f0366-726f-4f82-a2a1-cfd5f7e9539b",
+    "old": "13392010",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "29708813"
+  },
+  {
+    "id": "57180d53-2c7d-445a-8f7c-f791d687ddf1",
+    "old": "39141376",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "65488656"
+  },
+  {
+    "id": "57d039d5-3774-4e72-9ceb-48a354cd5200",
+    "old": "240180402",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "364218637"
+  },
+  {
+    "id": "57e9dc07-fc68-43bc-87ae-6b6ca0b98cef",
+    "old": "23099406",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "50219676"
+  },
+  {
+    "id": "58c06ede-58d2-4283-850c-6fd20274f4b7",
+    "old": "6459025",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "10466382"
+  },
+  {
+    "id": "58f6ce9f-de6d-4c78-af85-10e4a90ee131",
+    "old": "255258759",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "381956055"
+  },
+  {
+    "id": "598ec393-401b-4307-8311-266f5192f671",
+    "old": "23491197",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "57554308"
+  },
+  {
+    "id": "59a79fe3-3739-45b9-87f1-4bcb191a3bb3",
+    "old": "30992815",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "58551130"
+  },
+  {
+    "id": "5a859385-4488-4a08-bfd4-f7f89b2b3955",
+    "old": "52795298",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "135191967"
+  },
+  {
+    "id": "5b52803a-66ea-49cf-96d9-691aeafaf047",
+    "old": "150961321",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "263262146"
+  },
+  {
+    "id": "5bdf4dfc-03e5-4be9-8524-b43c9cfae332",
+    "old": "8020620",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "16274145"
+  },
+  {
+    "id": "5c3f8a42-5c2a-494f-876d-e74ddc044baf",
+    "old": "5534202",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "9536794"
+  },
+  {
+    "id": "5ccc56c3-28da-4fbd-b738-eed6bd00a948",
+    "old": "68291031",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "155802873"
+  },
+  {
+    "id": "5ce0c13e-7413-402e-a667-f35c40809345",
+    "old": "73885346",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "130711379"
+  },
+  {
+    "id": "5d5ebf91-9c05-4a9a-8138-4d313174dd56",
+    "old": "29672762",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "38748555"
+  },
+  {
+    "id": "5e31f24e-e669-4887-ae76-8c8c99ccf91d",
+    "old": "223212650",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "396700002"
+  },
+  {
+    "id": "5efbfc04-19e2-4af7-a958-9c1c44670655",
+    "old": "60979627",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "103709199"
+  },
+  {
+    "id": "5f7d3945-88c3-48f3-8c6f-dbf7dcc5704d",
+    "old": "104862634",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "165909481"
+  },
+  {
+    "id": "62da8230-dd6e-4839-8d31-9098a134e388",
+    "old": "35910547",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "42654365"
+  },
+  {
+    "id": "62f32db0-b3f1-4cc4-bd63-ed6753692e8e",
+    "old": "29597883",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "78919216"
+  },
+  {
+    "id": "630f8af2-58ff-4ac4-841e-c23135596f39",
+    "old": "5283245",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "8098431"
+  },
+  {
+    "id": "631f2c45-13ec-4332-a1df-3da744845c65",
+    "old": "1524028455",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "2482035263"
+  },
+  {
+    "id": "6391e92e-0622-44d0-a250-b7c2adfa92b0",
+    "old": "71925684",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "121071196"
+  },
+  {
+    "id": "63afe1d5-1eed-445e-a5eb-587239e15408",
+    "old": "10650832",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "13045538"
+  },
+  {
+    "id": "63b5e358-5b0c-4c88-8b05-f3d3ad1f486b",
+    "old": "53894369",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "99682328"
+  },
+  {
+    "id": "6544090b-b94c-4130-85e8-2a2427b01dac",
+    "old": "43952186",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "54840796"
+  },
+  {
+    "id": "65fbeb47-5062-463f-97e2-86e84f4e3f71",
+    "old": "51399198",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "161739421"
+  },
+  {
+    "id": "6611331b-20b8-46da-ae39-e58a60d1c417",
+    "old": "49689109",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "160720306"
+  },
+  {
+    "id": "66ce9f74-e174-4ef3-a9ca-3368bc1171c2",
+    "old": "19157319",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "29566153"
+  },
+  {
+    "id": "673132ac-55b4-4aeb-ae82-ccee86991e21",
+    "old": "28803669",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "37695553"
+  },
+  {
+    "id": "67353f1d-970a-49a5-8dc5-b700c1d99720",
+    "old": "1022922894",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "1801928854"
+  },
+  {
+    "id": "688e99fd-9931-4b18-a40e-b7b65de7920c",
+    "old": "5646769177",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "7730039993"
+  },
+  {
+    "id": "68f68c43-5256-4fba-b69b-7702b748f660",
+    "old": "160719629",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "288064052"
+  },
+  {
+    "id": "6a1965b9-3f37-4746-b8bb-a33fba326a94",
+    "old": "127321624",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "263211241"
+  },
+  {
+    "id": "6addf906-090c-4ee6-86d2-53219ec9a818",
+    "old": "47616400",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "94224720"
+  },
+  {
+    "id": "6b871c1b-e26f-41bd-8e35-c60d62d77822",
+    "old": "30046575",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "54749851"
+  },
+  {
+    "id": "6c78923e-4400-465a-bd9a-6f5d1d3012bb",
+    "old": "31620774",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "42067782"
+  },
+  {
+    "id": "6d31ffae-5144-465e-b7ca-3ebab33fe2d8",
+    "old": "15053261",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "45169133"
+  },
+  {
+    "id": "6d4b57cd-e97a-40f0-8cd2-90ccc8e6eeb3",
+    "old": "758653439",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "1353267351"
+  },
+  {
+    "id": "6e7530c5-41d6-486e-9a3a-2b1f494b6690",
+    "old": "930297729",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "1566854843"
+  },
+  {
+    "id": "6e94966d-16c2-465b-a04c-d921af8a3c7d",
+    "old": "29655738",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "65612850"
+  },
+  {
+    "id": "6fa0dcba-a7c9-4c89-8808-521eb80d706d",
+    "old": "11691658",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "36172883"
+  },
+  {
+    "id": "6fea0ce2-5073-45f8-bcd0-4dcbcf23f384",
+    "old": "124146138",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "188132894"
+  },
+  {
+    "id": "70676366-dfc5-466e-a944-e7d523cc869c",
+    "old": "26049913",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "56787979"
+  },
+  {
+    "id": "708bd87f-946b-4473-b359-d2aa1405211f",
+    "old": "1395203471",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "2308570653"
+  },
+  {
+    "id": "71143168-20cb-4d58-9b26-e37d9779586f",
+    "old": "28659408",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "104066615"
+  },
+  {
+    "id": "7115cb99-4eaf-44e9-8c2f-fd0efd4d18fb",
+    "old": "874230660",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "1077863081"
+  },
+  {
+    "id": "747e8f44-3451-4634-bb74-9864c42327d2",
+    "old": "369206939",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "526813985"
+  },
+  {
+    "id": "75165c98-31b8-449e-b640-70ce760d8605",
+    "old": "5305281807",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "7329588097"
+  },
+  {
+    "id": "7550cc32-96c1-435a-bc2f-4b4133877e42",
+    "old": "91435675",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "208183835"
+  },
+  {
+    "id": "7600a936-2453-45a4-b0c4-683243d00e5d",
+    "old": "14249018",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "17841357"
+  },
+  {
+    "id": "764d10b8-98a5-4aa8-8b3a-67df55efb7de",
+    "old": "416151352",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "776428081"
+  },
+  {
+    "id": "7675b01b-50a9-4553-b7e4-dc8658555ac9",
+    "old": "141179348",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "251079944"
+  },
+  {
+    "id": "77fe491a-90a3-47de-9b6a-552098874add",
+    "old": "49040095",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "130819368"
+  },
+  {
+    "id": "796e600a-e4a3-43d3-afcb-d211893efdda",
+    "old": "30139098",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "87596613"
+  },
+  {
+    "id": "7b0a71a4-7241-49dd-b93d-09654d242f9c",
+    "old": "7394865",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "18953496"
+  },
+  {
+    "id": "7e1562ee-2925-4d0b-80c9-e9364d91e608",
+    "old": "22001490",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "55363919"
+  },
+  {
+    "id": "7ee86fdc-d6f6-44ed-bb75-fc9c737ffc19",
+    "old": "6768732",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "7802835"
+  },
+  {
+    "id": "7fc49b54-fe56-4704-bcfc-5a14aa6b184e",
+    "old": "38664800",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "68506341"
+  },
+  {
+    "id": "7ff5f080-8505-4ec3-9d6a-a224e8f9150b",
+    "old": "171550703",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "284550732"
+  },
+  {
+    "id": "800f3fc9-e6e0-4401-82b8-cce49c7ed1d3",
+    "old": "927625061",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "1644858969"
+  },
+  {
+    "id": "8257b055-04d3-483b-bfa1-f6df0d1a9fdb",
+    "old": "187741767",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "345956180"
+  },
+  {
+    "id": "827db0b5-cbd3-472a-9abc-478621d43c41",
+    "old": "29484336",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "80140603"
+  },
+  {
+    "id": "831aa240-de52-4313-ae14-60440ccdb45d",
+    "old": "21521104",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "54694632"
+  },
+  {
+    "id": "835aefb3-dec5-4ab2-ae3c-79e961054ae7",
+    "old": "29205904",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "81004953"
+  },
+  {
+    "id": "837cdfc9-18f7-4585-8a90-665a57389eb2",
+    "old": "69831765",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "128477783"
+  },
+  {
+    "id": "84e09618-148e-4495-a67c-d19844c2e311",
+    "old": "57219662",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "73335107"
+  },
+  {
+    "id": "85f31baa-84c4-49ec-a662-91e2d61e7612",
+    "old": "100577836",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "164155327"
+  },
+  {
+    "id": "860849d4-d23d-4cac-a925-9c1675f93db5",
+    "old": "115813508",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "229063181"
+  },
+  {
+    "id": "8608967d-b88a-41ec-add6-c9af713dfd67",
+    "old": "4878516",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "8902134"
+  },
+  {
+    "id": "865ffc91-cf1f-4292-ad82-6420f87a50e0",
+    "old": "21666135",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "32225593"
+  },
+  {
+    "id": "87be1aba-0084-4105-833f-654fd9ec92b5",
+    "old": "696633004",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "1335457465"
+  },
+  {
+    "id": "87e433ff-59a5-4f66-a3bc-9eb04167bae1",
+    "old": "72618423",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "168443363"
+  },
+  {
+    "id": "8a2fe5d7-9eb5-4dd8-a347-d653f676cb0f",
+    "old": "66477683",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "120654200"
+  },
+  {
+    "id": "8b287835-9148-4d7b-8a8c-340b4715d133",
+    "old": "4403625",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "5978445"
+  },
+  {
+    "id": "8b621310-a2f6-486c-a13e-b6c60fedd253",
+    "old": "70306488",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "112360445"
+  },
+  {
+    "id": "8cda42b0-f7e2-408b-b971-673cdf08c775",
+    "old": "52542434",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "109393026"
+  },
+  {
+    "id": "8ceae1d4-a6f1-46be-97c6-1513a0b0e762",
+    "old": "8750971",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "15699900"
+  },
+  {
+    "id": "8dfd69fc-0f04-4531-aada-35cab6679c2f",
+    "old": "11698734",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "17579226"
+  },
+  {
+    "id": "8f369a13-5e6e-4d7e-9bec-7910fecbf69f",
+    "old": "273644446",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "606610051"
+  },
+  {
+    "id": "8f730757-ac85-4e35-9464-38f515fa8138",
+    "old": "10025313",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "16828415"
+  },
+  {
+    "id": "8f7de729-4d2e-4d9f-9046-4994141c49d9",
+    "old": "52051673",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "122931136"
+  },
+  {
+    "id": "90f11382-c8a8-4647-90d2-749b0dc428cd",
+    "old": "31875754",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "70742810"
+  },
+  {
+    "id": "926faf64-95f1-4c97-be15-118c87b096fd",
+    "old": "58111652",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "129092290"
+  },
+  {
+    "id": "934c3297-baa9-42a1-8e44-8a1c3947ed37",
+    "old": "18587258",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "42679817"
+  },
+  {
+    "id": "93d111a8-5c24-4ec6-a040-17c55086a1ee",
+    "old": "351430223",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "539891978"
+  },
+  {
+    "id": "951277b1-ca82-45ab-aaed-b373a51e65c5",
+    "old": "158420714",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "263648040"
+  },
+  {
+    "id": "954ec434-d0a0-4496-8f7f-f63a457361cd",
+    "old": "23832656",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "48808535"
+  },
+  {
+    "id": "970be297-f91c-485b-8323-9269c7452988",
+    "old": "34773800",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "100956971"
+  },
+  {
+    "id": "98ae4763-a663-4664-a691-9e5c6cbc2a05",
+    "old": "242324263",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "364659808"
+  },
+  {
+    "id": "98f15fc9-cc1b-440a-bc47-d1e7de9cb456",
+    "old": "21687818",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "37402881"
+  },
+  {
+    "id": "99c15968-7412-4f1b-8e0c-abb1e444aaff",
+    "old": "218723231",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "403729083"
+  },
+  {
+    "id": "9a88c159-d377-4895-b475-178c6a635900",
+    "old": "251775015",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "424761644"
+  },
+  {
+    "id": "9beac804-a5d9-49bc-a695-0c5ff266e25c",
+    "old": "5732827",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "12669447"
+  },
+  {
+    "id": "9d2a4a76-712b-499b-8a76-774a7f1c1ce4",
+    "old": "35905964",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "67980797"
+  },
+  {
+    "id": "9e005533-1239-444c-932a-9fa70f72ab27",
+    "old": "53459625",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "119578189"
+  },
+  {
+    "id": "9e23831c-1a46-4f75-97b1-15a750601bde",
+    "old": "22901936",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "52042889"
+  },
+  {
+    "id": "9eb002a6-fea8-428f-b7d1-3b5b05034d23",
+    "old": "334186490",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "615929900"
+  },
+  {
+    "id": "a11e0e4d-a182-462a-be55-6cf8d09ec106",
+    "old": "30542556",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "82771991"
+  },
+  {
+    "id": "a198623a-6fbd-482d-9ee7-f088a9d0641c",
+    "old": "105379129",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "212702926"
+  },
+  {
+    "id": "a19d1a66-1d3e-4f6c-96ac-fcf212d97c0d",
+    "old": "15399681",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "39740349"
+  },
+  {
+    "id": "a23f6a3d-dfbf-42c8-959d-9951b525cc56",
+    "old": "107956721",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "128249326"
+  },
+  {
+    "id": "a270bfad-dab6-4f24-913e-bd963e332b40",
+    "old": "51160761",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "71921173"
+  },
+  {
+    "id": "a3c7eee0-74ba-40ba-94aa-f31b277a7d04",
+    "old": "7058690",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "8955967"
+  },
+  {
+    "id": "a40404fb-f240-4bb0-880a-56926305110f",
+    "old": "74552963",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "119904835"
+  },
+  {
+    "id": "a460d1f9-a832-4e35-a79e-e7571ab5ee22",
+    "old": "75685599",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "144442780"
+  },
+  {
+    "id": "a490780e-fcd6-4059-b013-6bc4f27e682e",
+    "old": "303320158",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "640695329.37"
+  },
+  {
+    "id": "a50d74aa-99fc-42bc-a1a7-55fab52e9095",
+    "old": "68036308",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "138535492"
+  },
+  {
+    "id": "a76e184c-4ef2-494a-8aa8-3d8841c15506",
+    "old": "6787733",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "8125199"
+  },
+  {
+    "id": "a7bf4a69-8955-4c3d-9083-5dc23e790aba",
+    "old": "23707776",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "34288951"
+  },
+  {
+    "id": "a81eccd5-8e5e-4a59-9d9c-e8cafc7ec6a7",
+    "old": "56911917",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "124966534"
+  },
+  {
+    "id": "a962a330-d200-4347-b945-4ad1afc3d29b",
+    "old": "2736875183",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "3451323154"
+  },
+  {
+    "id": "aa312928-639f-4467-849b-7d724d10652b",
+    "old": "9367127",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "22594610"
+  },
+  {
+    "id": "aaa4824e-e5a1-4fbc-bb56-fc482777ae37",
+    "old": "7145508",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "13655800"
+  },
+  {
+    "id": "aad8320c-a9a8-4fe2-88f0-ef31eba7ebdf",
+    "old": "21776300",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "37602238"
+  },
+  {
+    "id": "ab490ca1-6def-42e5-9581-7fad11059a34",
+    "old": "16759524",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "53777458"
+  },
+  {
+    "id": "adaf062b-9407-4794-a172-26053fb8c45d",
+    "old": "807561217",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "1397347972"
+  },
+  {
+    "id": "ae39ac26-6c06-4d47-b2a1-12c919e29ebd",
+    "old": "844559659",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "1074565909"
+  },
+  {
+    "id": "ae7019f1-eabd-4e2b-a353-4a81f041fb86",
+    "old": "280458617",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "603957800"
+  },
+  {
+    "id": "aebf8f14-9630-4b4e-9477-c606bada2e95",
+    "old": "15117029",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "31032383"
+  },
+  {
+    "id": "af0088ae-a381-43e4-afb2-e0e2b3218f81",
+    "old": "110110071",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "263780827"
+  },
+  {
+    "id": "af4d7741-688d-4f15-9b8c-3bcad9f1e584",
+    "old": "16493613",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "39367012"
+  },
+  {
+    "id": "afabb926-8e7f-4c63-959a-c464dd0c5190",
+    "old": "86540618",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "113341018"
+  },
+  {
+    "id": "afe2e278-ca34-49d5-8bae-03c0806c128c",
+    "old": "24281106",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "46042060"
+  },
+  {
+    "id": "aff39e69-5731-4fc3-acb0-43aef26cb5f5",
+    "old": "248040326",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "441121263"
+  },
+  {
+    "id": "b0051bfc-e81d-4e12-bd00-323b32c12930",
+    "old": "63948744",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "122168750"
+  },
+  {
+    "id": "b126364b-02bf-4717-9a3f-304bccbd3379",
+    "old": "20537105",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "36256419"
+  },
+  {
+    "id": "b1b0d646-24b1-40b6-ad95-94bb08642b43",
+    "old": "182441962",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "339780517"
+  },
+  {
+    "id": "b274add1-1abc-4761-8a87-02739dafaf10",
+    "old": "11748989",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "15721296"
+  },
+  {
+    "id": "b4232c3c-292d-4001-aebb-cd6c75a8c9de",
+    "old": "86211912",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "164001077"
+  },
+  {
+    "id": "b4d82f0e-9ed0-4f3d-ae8f-795be2762343",
+    "old": "24266292",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "52964128"
+  },
+  {
+    "id": "b5da0f7a-6dd5-4668-8f90-be7d32c0645a",
+    "old": "16771764",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "50639073"
+  },
+  {
+    "id": "b86edbee-17c2-48a3-a83e-1a2591ce5880",
+    "old": "58807853",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "71049894"
+  },
+  {
+    "id": "b9cb7d9a-be95-4cc0-b733-0ef4c4852576",
+    "old": "8124700",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "12057377"
+  },
+  {
+    "id": "b9cf67ba-eaca-4543-8f97-ecf32ba83de5",
+    "old": "28195255",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "63863406"
+  },
+  {
+    "id": "ba8c8be2-4b78-4e3e-a253-03de20bbb534",
+    "old": "12798460",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "16813780"
+  },
+  {
+    "id": "bda254a5-c978-451d-a112-b971ad8bc0de",
+    "old": "7840600",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "14376769"
+  },
+  {
+    "id": "be6984fa-c3d0-44d5-9398-c41b7866e5d7",
+    "old": "8778974",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "19193755"
+  },
+  {
+    "id": "c008725e-c4b3-4988-aa1c-fae658e2e8e1",
+    "old": "431070111",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "793365794"
+  },
+  {
+    "id": "c1f250e7-ab3c-48a7-8f13-aeba81a90d29",
+    "old": "48350000",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "114679958"
+  },
+  {
+    "id": "c3abe763-b755-43cd-8b1a-dd77ead56f74",
+    "old": "111641898",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "199341385"
+  },
+  {
+    "id": "c56feddb-5f74-4086-b6ae-2a0c534c7750",
+    "old": "179969719",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "324448200"
+  },
+  {
+    "id": "c61e3820-4e55-45ed-9001-ac1515efefb5",
+    "old": "21771499",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "36291908"
+  },
+  {
+    "id": "c6a91e83-e561-4de3-9936-59239273c69e",
+    "old": "33462789",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "63944470"
+  },
+  {
+    "id": "c7171bc1-85b7-4736-b076-82838e49c0fb",
+    "old": "62838716",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "72496222"
+  },
+  {
+    "id": "c86e277a-fab6-428e-95b9-2264991be5dc",
+    "old": "136501175",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "284501262"
+  },
+  {
+    "id": "cb6954e4-867f-4f46-9beb-a599ea92ec24",
+    "old": "35093049",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "104931917"
+  },
+  {
+    "id": "cb7a990b-f786-4f0d-830d-bcc9fda3156c",
+    "old": "58726464",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "140995793"
+  },
+  {
+    "id": "cc0c98e1-2d26-4856-9cd9-20a71d1dfbae",
+    "old": "43299123",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "90253457"
+  },
+  {
+    "id": "cd2a7c77-3e25-45c7-8692-4832c3783aed",
+    "old": "91107694",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "206735484"
+  },
+  {
+    "id": "cdf90314-fc4d-4342-8a97-72cea9485d43",
+    "old": "29692293",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "55627567"
+  },
+  {
+    "id": "ce53e4c1-505d-4abb-bbf7-ba190653b35c",
+    "old": "102096842",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "183299079"
+  },
+  {
+    "id": "cf9108c1-7679-4c6f-bf6a-dd440955aa37",
+    "old": "29235586",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "70896603"
+  },
+  {
+    "id": "d188ddba-30c7-4084-ad24-35502b5e3f7c",
+    "old": "72891166",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "152880948"
+  },
+  {
+    "id": "d20a89e9-6709-4190-96a2-4bd6d1809fe7",
+    "old": "32479133",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "54465480"
+  },
+  {
+    "id": "d2197737-f896-4879-9d0b-1985fb28dd14",
+    "old": "379365755",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "629415084"
+  },
+  {
+    "id": "d3532f6c-ab3f-43b9-a3d7-f2851a8a1d74",
+    "old": "6699723",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "19333387"
+  },
+  {
+    "id": "d37154ac-77a2-40d5-930b-d5cbed21ce7b",
+    "old": "894390336",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "1505956146"
+  },
+  {
+    "id": "d45de881-2b18-44fe-aa18-fc32b2ea59b1",
+    "old": "38725990",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "68470462"
+  },
+  {
+    "id": "d49405bc-6f7c-40a5-8d6b-e5c629a5aeec",
+    "old": "90282029",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "233610338"
+  },
+  {
+    "id": "d4bd666f-3e09-44f9-8fb7-7a8902d7b2cd",
+    "old": "140206043",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "206596818"
+  },
+  {
+    "id": "d5fc2a3e-995f-40c8-ac41-b4e772637831",
+    "old": "19598531",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "24645954"
+  },
+  {
+    "id": "d963ac5a-af9d-41b7-9d64-8289a39a247c",
+    "old": "365800799",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "659257110"
+  },
+  {
+    "id": "d9fdd8f1-a0bf-4792-9eb8-41aff2cf14ed",
+    "old": "1012932091",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "1716340224"
+  },
+  {
+    "id": "daccdf81-b28e-4e40-b796-e850f3a57949",
+    "old": "8937018",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "12549132"
+  },
+  {
+    "id": "db4c0e87-c7fb-4cf0-b8a7-d23e19d114d8",
+    "old": "71678429",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "128298859"
+  },
+  {
+    "id": "dba90935-ae83-488e-9927-4e56c6e64af7",
+    "old": "113642854",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "178650910"
+  },
+  {
+    "id": "dc131597-19f8-4b8a-811f-50b360e391a6",
+    "old": "606584138",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "1106560210"
+  },
+  {
+    "id": "de9e85f9-4283-49e2-b7ad-bd2316c22f74",
+    "old": "11291884",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "14892874"
+  },
+  {
+    "id": "deed69db-b677-48cd-8743-5c6b66c1868d",
+    "old": "114987024",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "137565401"
+  },
+  {
+    "id": "df08e8ef-5335-4cfc-8208-963ef04c2f2f",
+    "old": "30089281",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "48952771"
+  },
+  {
+    "id": "dfcfb989-a2c4-4e34-8a60-0b9abc4709c4",
+    "old": "6579393",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "12625463"
+  },
+  {
+    "id": "e0a89a37-bcb9-4e82-a798-33612dbb931b",
+    "old": "49869284",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "131324501"
+  },
+  {
+    "id": "e3c9729e-3767-4b0b-9149-ccf8df699117",
+    "old": "20147218",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "27395530"
+  },
+  {
+    "id": "e543149e-8f31-41dd-811b-a110e62324e4",
+    "old": "24629182",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "54874806"
+  },
+  {
+    "id": "e6490785-1036-4d96-9961-2b4343da1c2a",
+    "old": "5551036",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "9092932"
+  },
+  {
+    "id": "e68e4962-8ad8-4abd-975d-5854ce337b97",
+    "old": "75818720",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "139116476"
+  },
+  {
+    "id": "e6ba8c3c-b139-4b8e-ae1e-32de13fee984",
+    "old": "174877973",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "334822296"
+  },
+  {
+    "id": "e6c0d192-3f1d-4bd2-a8b2-0f3e39bdbb59",
+    "old": "43559784",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "93149558"
+  },
+  {
+    "id": "e73df74d-50a3-4c56-8f16-06fd2c705d58",
+    "old": "30159169",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "82626302"
+  },
+  {
+    "id": "e74ca2a4-a6c3-4d24-88d8-53df1eb43925",
+    "old": "22154425",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "46937987"
+  },
+  {
+    "id": "e77c25d5-22e6-4980-889f-2caddb054314",
+    "old": "79842858",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "211254479"
+  },
+  {
+    "id": "e805146f-ce22-4a6d-808c-11a7db1cd35c",
+    "old": "964019504",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "1638762821"
+  },
+  {
+    "id": "e94416d4-c06a-4216-b602-2f5527d7f881",
+    "old": "6444177",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "9973845"
+  },
+  {
+    "id": "e9e6a9b5-4029-4a4f-8af4-cddf2eaeb98c",
+    "old": "54448736",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "123896582"
+  },
+  {
+    "id": "ec24b329-89d8-47b3-bea6-e2ad161d43c5",
+    "old": "34952107",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "62125589"
+  },
+  {
+    "id": "ed015854-c5ea-4ee2-bce0-a8f1f84bb769",
+    "old": "1524817469",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "1881868085"
+  },
+  {
+    "id": "ed423247-903f-4206-9ab8-0a735acf0cc3",
+    "old": "132728071",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "197752851"
+  },
+  {
+    "id": "ef69516a-2ab4-4603-9cc7-67561891dab4",
+    "old": "23062276",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "50452247"
+  },
+  {
+    "id": "f228fbb5-1395-4655-aa23-790e2dc2b635",
+    "old": "131763009",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "199613450"
+  },
+  {
+    "id": "f27d57dd-3bfc-4d26-a95b-4adb5f18ec36",
+    "old": "79264733",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "195994605"
+  },
+  {
+    "id": "f404abdf-c042-4ec4-bd62-25bff3a506ab",
+    "old": "5738519",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "7515267"
+  },
+  {
+    "id": "f452ae47-373a-402c-ac8d-071d8fc430eb",
+    "old": "386218840",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "724183671"
+  },
+  {
+    "id": "f4974a10-fff3-4ac5-be98-cfd28fb86ee7",
+    "old": "322594471",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "550750515"
+  },
+  {
+    "id": "f5831d96-a716-4822-8518-cfca9391f01b",
+    "old": "10601638",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "12353596"
+  },
+  {
+    "id": "f6014bcf-da1f-4e99-8ae7-3c3e003504f3",
+    "old": "53700037",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "119403637"
+  },
+  {
+    "id": "f73d9c8b-a1d1-4808-91c0-e0fa2fc8db84",
+    "old": "6000645",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "13032921"
+  },
+  {
+    "id": "f867eb1e-de64-4ad8-8867-c5feb7a20443",
+    "old": "24578118",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "45950973"
+  },
+  {
+    "id": "f8a5374e-922c-4162-a060-9d0fa7ca8dbc",
+    "old": "4507030",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "6277802"
+  },
+  {
+    "id": "f9831da8-8c22-4276-a47d-228019dabb42",
+    "old": "243164836",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "408510793"
+  },
+  {
+    "id": "f9ea5d1f-dffc-4096-8f1b-da89539e67be",
+    "old": "20187810",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "30499502"
+  },
+  {
+    "id": "fbadeb28-3888-4bd7-a670-bb3b3cc23be3",
+    "old": "88161153",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "222184342"
+  },
+  {
+    "id": "fbd2b038-d45b-4292-88df-074a53d4ec98",
+    "old": "1975907",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "3305303"
+  },
+  {
+    "id": "fd5a3890-b625-44d4-9a8c-f5d63c3c654e",
+    "old": "308247329",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "495625634"
+  },
+  {
+    "id": "fd6bf0bd-ca5a-4d7c-af1a-40b01d03410e",
+    "old": "9145241",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "12781526"
+  },
+  {
+    "id": "fd887058-a149-4ad8-9330-c4d790441f32",
+    "old": "1444942889",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "1799299714"
+  },
+  {
+    "id": "fdc786e3-95ec-4d95-9ed3-ba3935189d55",
+    "old": "4446342",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "5640633"
+  },
+  {
+    "id": "fee3f467-3523-46b7-8131-f55c1aa62e4d",
+    "old": "75026765",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "230904035"
+  },
+  {
+    "id": "ff478bbe-ea0f-4d50-a3af-6353176d7c2c",
+    "old": "84303697",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "151520907"
+  },
+  {
+    "id": "ff6089ea-be43-42ad-b4dd-08b5e39f98d6",
+    "old": "2391718421",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "3080433204"
+  },
+  {
+    "id": "ffb0da00-b38c-40ee-9c75-4dccaae151a7",
+    "old": "25531072",
+    "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
+    "new": "61046569"
+  }
+]
