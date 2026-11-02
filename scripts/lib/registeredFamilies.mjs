@@ -102,6 +102,88 @@ export function mirrorRows(registries = REGISTRIES) {
   return rows;
 }
 
+/**
+ * Why this family may not be written, or null if it may.
+ *
+ * ⚠⚠ GRANDFATHERING IS DELIBERATE. The goal is that a loader cannot write
+ * rows for a family NO registry entry matches; the non-goal is draining the
+ * existing backlog. Only 1,966 of 5,929 live families (33.2%) match all three
+ * active axes today, so a bare rule would refuse 2,150 existing families on
+ * their next write — including a run whose whole purpose is to fix bad data.
+ * A family already present in the database is let through, and its debt is
+ * held flat by the provenance ratchet instead.
+ *
+ * ⭐ This does NOT weaken the enumerated-year design. "… (FY2026 actual, GAAP
+ * basis)" is a different `data_source` string, so a year outside a registry's
+ * window is a NEW family and is refused — which is exactly why the years are
+ * enumerated rather than written `FY\d{4}`.
+ *
+ * @param {string} dataSource
+ * @param {{exists?: boolean, fiscalYears?: number[]}} opts
+ *   `exists` — is this data_source already in treasury.budgets?
+ * @returns {string|null} the refusal, ready to print, or null to proceed
+ */
+export function familyRefusalReason(dataSource, opts = {}) {
+  const name = typeof dataSource === 'string' ? dataSource.trim() : '';
+  if (!name) return 'refusing to write a row with a blank data_source.';
+  if (opts.exists) return null;
+
+  const missing = missingAxes(name, opts.registries);
+  if (missing.length === 0) return null;
+
+  return [
+    `unregistered source family: ${name}`,
+    `  unmatched: ${missing.join(', ')}`,
+    '',
+    '  Nothing was written. This family has never been classified, so its rows',
+    '  would publish with no provenance label and no gate would notice.',
+    '',
+    `  Add an entry to each of: ${missing.map((a) => `scripts/data/${AXIS_FILE[a]}`).join(', ')}`,
+    '  then run: node scripts/syncRegisteredFamilies.mjs',
+    '',
+    suggestEntry(name, opts.fiscalYears ?? []),
+  ].join('\n');
+}
+
+/**
+ * Throw before a loader spends anything, if the gate would refuse this family.
+ *
+ * ⚠⚠⚠ CALL THIS FIRST — before fetching, scanning or downloading. For
+ * `loadUtahTransparency.js --rollup` that means before the BigQuery scan,
+ * which is billed. A refusal after the scan has already cost money, and the
+ * operator, with nothing written, re-runs it.
+ *
+ * ⚠ It makes ONE tiny indexed existence query, so it gives the SAME answer as
+ * the gate rather than a different one. That is not "network-free" in the
+ * strictest sense, but it is a single PostgREST round trip against the
+ * alternative of a 47 GiB scan — and a preflight that disagrees with the gate
+ * is worse than no preflight, because it teaches people the check is noise.
+ *
+ * ⚠⚠ THIS IS A COURTESY, NEVER THE ENFORCEMENT. The RPC refuses too. Do not
+ * drop that half on the grounds that every current loader calls this: the
+ * whole premise is the loader written next year by someone who never read it.
+ */
+export async function assertRegisteredFamily(client, dataSource, opts = {}) {
+  let exists = false;
+  if (client) {
+    const { data, error } = await client.schema('treasury').from('budgets')
+      .select('id').eq('data_source', dataSource).limit(1);
+    // ⚠ A check that cannot reach its source must not look like a clean pass,
+    // but it must not block a load either — the RPC is the real gate, so a
+    // failed probe falls through to it rather than guessing "exists".
+    if (!error && Array.isArray(data)) exists = data.length > 0;
+  }
+  const reason = familyRefusalReason(dataSource, { ...opts, exists });
+  if (reason) throw new Error(reason);
+}
+
+const AXIS_FILE = Object.freeze({
+  audit_grade: 'auditGradeRegistry.mjs',
+  fund_scope: 'fundScopeRegistry.mjs',
+  basis: 'basisRegistry.mjs',
+  accounting_basis: 'accountingBasisRegistry.mjs',
+});
+
 /** Regex-escape a literal family name. */
 function escapeRe(s) {
   return String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
