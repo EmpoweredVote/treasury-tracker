@@ -164,14 +164,23 @@ export function familyRefusalReason(dataSource, opts = {}) {
  * whole premise is the loader written next year by someone who never read it.
  */
 export async function assertRegisteredFamily(client, dataSource, opts = {}) {
+  // A blank name is wrong whatever the probe says, so it is checked first.
+  const blank = typeof dataSource !== 'string' || dataSource.trim() === '';
+  if (blank) throw new Error(familyRefusalReason(dataSource, opts));
+
   let exists = false;
   if (client) {
     const { data, error } = await client.schema('treasury').from('budgets')
       .select('id').eq('data_source', dataSource).limit(1);
-    // ⚠ A check that cannot reach its source must not look like a clean pass,
-    // but it must not block a load either — the RPC is the real gate, so a
-    // failed probe falls through to it rather than guessing "exists".
-    if (!error && Array.isArray(data)) exists = data.length > 0;
+    // ⚠⚠ A FAILED PROBE MUST NOT BECOME A FALSE REFUSAL. Without the family's
+    // presence we cannot tell grandfathered from new, and defaulting to "new"
+    // would tell someone re-running a long-standing loader that their source
+    // "has never been classified" — wrong, alarming, and caused by a
+    // connection blip. The RPC is the real gate and still applies, so the
+    // preflight stands aside rather than guessing. It is a courtesy; the
+    // enforcement is downstream.
+    if (error || !Array.isArray(data)) return;
+    exists = data.length > 0;
   }
   const reason = familyRefusalReason(dataSource, { ...opts, exists });
   if (reason) throw new Error(reason);

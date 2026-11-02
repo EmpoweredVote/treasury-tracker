@@ -16,7 +16,18 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { familyRefusalReason } from '../scripts/lib/registeredFamilies.mjs';
+import { familyRefusalReason, assertRegisteredFamily } from '../scripts/lib/registeredFamilies.mjs';
+
+/** A client whose existence probe behaves as told. */
+function stubClient(result) {
+  return {
+    schema: () => ({
+      from: () => ({
+        select: () => ({ eq: () => ({ limit: async () => result }) }),
+      }),
+    }),
+  };
+}
 
 const REGISTERED = 'Ohio Auditor of State Summarized Annual Financial Reports';
 const UNKNOWN_FAMILY = 'Wisconsin DOR Municipal Report';
@@ -74,5 +85,33 @@ describe('familyRefusalReason', () => {
   // 99.94% of rows. Requiring it would refuse every loader in the repo.
   it('does not require accounting_basis', () => {
     expect(familyRefusalReason('CA State Controller - Revenues', { exists: false })).toBeNull();
+  });
+});
+
+describe('assertRegisteredFamily', () => {
+  it('throws for a new unregistered family', async () => {
+    await expect(assertRegisteredFamily(stubClient({ data: [], error: null }), UNKNOWN_FAMILY))
+      .rejects.toThrow(/unregistered source family/);
+  });
+
+  it('passes a family the probe finds', async () => {
+    await expect(assertRegisteredFamily(stubClient({ data: [{ id: 'x' }], error: null }), UNKNOWN_FAMILY))
+      .resolves.toBeUndefined();
+  });
+
+  // ⚠⚠ A TRANSIENT PROBE FAILURE MUST NOT BECOME A FALSE REFUSAL. If the
+  // existence query errors, the preflight cannot tell a grandfathered family
+  // from a new one — and defaulting to "new" would tell someone re-running a
+  // long-standing loader that their source "has never been classified",
+  // which is both wrong and alarming. The RPC is the real gate and still
+  // applies, so the right move is to stand aside.
+  it('stands aside when the existence probe fails, rather than refusing', async () => {
+    const broken = stubClient({ data: null, error: { message: 'connection reset' } });
+    await expect(assertRegisteredFamily(broken, UNKNOWN_FAMILY)).resolves.toBeUndefined();
+  });
+
+  it('still refuses a blank name even when the probe fails', async () => {
+    const broken = stubClient({ data: null, error: { message: 'connection reset' } });
+    await expect(assertRegisteredFamily(broken, '')).rejects.toThrow(/blank data_source/);
   });
 });
