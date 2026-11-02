@@ -36,6 +36,11 @@ const COUNTY_CASH_SAMPLE = join(__dirname, '..', '_oh-recon', 'County_2024_CASH_
 const HAVE_COUNTY_CASH_SAMPLE = existsSync(COUNTY_CASH_SAMPLE);
 const COUNTY_MOD_SAMPLE = join(__dirname, '..', '_oh-recon', 'County_2024_MOD_Summarized.XLSX');
 const HAVE_COUNTY_MOD_SAMPLE = existsSync(COUNTY_MOD_SAMPLE);
+// ⚠⚠ THE COHORT WITH NO SAMPLE WAS THE COHORT THAT WAS BROKEN. Every other
+// city/county x basis combination had a test above; city MOD had none, and it
+// was wrong in all ten years, FY2016-2025.
+const CITY_MOD_SAMPLE = join(__dirname, '..', '_oh-recon', 'City_2024_MOD_Summarized.XLSX');
+const HAVE_CITY_MOD_SAMPLE = existsSync(CITY_MOD_SAMPLE);
 
 let wb = null;
 async function workbook() {
@@ -602,5 +607,100 @@ test(
     }
     assert.deepEqual(duplicates, [], 'root category names must be unique within a tree');
     assert.deepEqual(untied, [], 'every tree must sum to its published total');
+  },
+);
+
+// ── The city MOD layout (2026-11-01) ─────────────────────────────────────────
+//
+// ⚠⚠⚠ ONE SHEET NAME, TWO LAYOUTS. `SORDACIFB_TotalGov` is shared by the CASH
+// and MOD city workbooks, and detectLayout() branched on the sheet name and on
+// city-vs-county but NEVER on basis. The city MOD workbook alone carries an
+// extra subgroup header row — "Security Of Persons And Property", the same row
+// that caused the GAAP duplicate-root defect — which puts its leaf labels on
+// row 7 and shifts every data column one to the LEFT:
+//
+//     city CASH   leaf row 6   entity 2  county 4  revTotal 18  expTotal 37
+//     city MOD    leaf row 7   entity 2  county 3  revTotal 17  expTotal 36
+//
+// Applying the CASH profile to MOD read col 37 — "Excess Of Receipts Over
+// Under Disbursements" — as the expenditure total, and col 18 — "Police" — as
+// the revenue total. Measured in the database: all 40 city MOD rows wrong,
+// 13 of them visibly negative, the other 27 wrong but plausible-looking.
+
+test(
+  'city MOD: detectLayout anchors on the row that actually holds the leaf labels',
+  { skip: !HAVE_CITY_MOD_SAMPLE && 'recon sample _oh-recon/City_2024_MOD_Summarized.XLSX absent' },
+  async () => {
+    const book = new ExcelJS.Workbook();
+    await book.xlsx.readFile(CITY_MOD_SAMPLE);
+    const layout = detectLayout(book, 'city');
+    const ws = book.getWorksheet(layout.sheetName);
+
+    const label = (col, row = layout.headerRow) =>
+      String(ws.getRow(row).getCell(col).value ?? '').replace(/\s+/g, ' ').trim();
+
+    assert.equal(label(layout.entityCol), 'Entity Name',
+      `entityCol ${layout.entityCol} on row ${layout.headerRow} is "${label(layout.entityCol)}"`);
+    assert.equal(label(layout.countyCol), 'County',
+      `countyCol ${layout.countyCol} on row ${layout.headerRow} is "${label(layout.countyCol)}"`);
+    assert.equal(label(layout.revTotalCol), 'Total',
+      `revTotalCol ${layout.revTotalCol} is "${label(layout.revTotalCol)}", not the receipts Total`);
+    assert.equal(label(layout.expTotalCol), 'Total',
+      `expTotalCol ${layout.expTotalCol} is "${label(layout.expTotalCol)}", not the disbursements Total`);
+  },
+);
+
+// ⭐⭐ THE GENERALISATION — this is the test that would have caught the defect
+// when it shipped, and catches the next variant of it. A layout is only valid
+// if the row it names is the row the publisher put the leaf labels on, and the
+// columns it calls totals are the ones the publisher labelled "Total".
+const EVERY_LAYOUT = [
+  ['city GAAP', SAMPLE, HAVE_SAMPLE, 'city'],
+  ['city CASH', CASH_SAMPLE, HAVE_CASH_SAMPLE, 'city'],
+  ['city MOD', CITY_MOD_SAMPLE, HAVE_CITY_MOD_SAMPLE, 'city'],
+  ['county GAAP', COUNTY_GAAP_SAMPLE, HAVE_COUNTY_SAMPLE, 'county'],
+  ['county CASH', COUNTY_CASH_SAMPLE, HAVE_COUNTY_CASH_SAMPLE, 'county'],
+  ['county MOD', COUNTY_MOD_SAMPLE, HAVE_COUNTY_MOD_SAMPLE, 'county'],
+];
+
+for (const [name, file, have, entityType] of EVERY_LAYOUT) {
+  test(
+    `${name}: the layout's header row and total columns match the workbook`,
+    { skip: !have && `recon sample ${file} absent` },
+    async () => {
+      const book = new ExcelJS.Workbook();
+      await book.xlsx.readFile(file);
+      const layout = detectLayout(book, entityType);
+      const ws = book.getWorksheet(layout.sheetName);
+      const label = (col) =>
+        String(ws.getRow(layout.headerRow).getCell(col).value ?? '').replace(/\s+/g, ' ').trim();
+
+      assert.equal(label(layout.entityCol), 'Entity Name',
+        `${name}: headerRow ${layout.headerRow} col ${layout.entityCol} is "${label(layout.entityCol)}"`);
+      assert.equal(label(layout.revTotalCol), 'Total', `${name}: revTotalCol mislabelled`);
+      assert.equal(label(layout.expTotalCol), 'Total', `${name}: expTotalCol mislabelled`);
+      assert.equal(layout.dataStart, layout.headerRow + 1,
+        `${name}: data must start on the row after the header`);
+      // The totals must not be inside the leaf ranges, or they get counted twice.
+      assert.ok(!layout.revSourceCols.includes(layout.revTotalCol), `${name}: revTotal inside revSourceCols`);
+      assert.ok(!layout.expFuncCols.includes(layout.expTotalCol), `${name}: expTotal inside expFuncCols`);
+    },
+  );
+}
+
+// ⚠⚠ THE TWO SHEETS SHIFT IN OPPOSITE DIRECTIONS. On the financial sheet the
+// city MOD workbook sits one column LEFT of CASH; on OI_Demographics it sits
+// one row down and one column RIGHT (entity col 3, not 2). There is no single
+// "MOD offset" to apply — each sheet has to be measured on its own.
+test(
+  'city MOD: OI_Demographics yields a real county and population',
+  { skip: !HAVE_CITY_MOD_SAMPLE && 'recon sample _oh-recon/City_2024_MOD_Summarized.XLSX absent' },
+  async () => {
+    const book = new ExcelJS.Workbook();
+    await book.xlsx.readFile(CITY_MOD_SAMPLE);
+    assert.equal(cityCounty(book, 'Huber Heights', 'city'), 'Montgomery');
+    assert.equal(cityPopulation(book, 'Huber Heights', 'city'), 43439);
+    // The control: CASH must keep working, it is a different layout.
+    assert.equal(cityCounty(book, 'Germantown', 'city'), 'Montgomery');
   },
 );

@@ -142,7 +142,50 @@ export function detectLayout(workbook, entityType = 'city') {
         demoEntityCol: 1, demoCountyCol: 2, demoPopCol: 3,
       };
     }
-    // City CASH/MOD: row 6 = headers, data row 7, entity col 2, county col 4
+    // ⚠⚠⚠ ONE SHEET NAME, TWO CITY LAYOUTS. `SORDACIFB_TotalGov` is shared by
+    // the CASH and MOD city workbooks, and this branch used to serve one
+    // profile to both. The MOD workbook alone carries an extra subgroup header
+    // row — "Security Of Persons And Property", the same row behind the GAAP
+    // duplicate-root defect — so its leaf labels sit on row 7 and every data
+    // column shifts one to the LEFT:
+    //
+    //     city CASH   leaf row 6   entity 2  county 4  revTotal 18  expTotal 37
+    //     city MOD    leaf row 7   entity 2  county 3  revTotal 17  expTotal 36
+    //
+    // Reading MOD with the CASH profile took col 37 — "Excess Of Receipts Over
+    // Under Disbursements" — as the expenditure total and col 18 — "Police" —
+    // as the revenue total. All 40 city MOD rows in the database are wrong;
+    // only 13 are visibly negative.
+    //
+    // ⚠ Detected from the workbook, never from the --basis flag the caller
+    // passed: the file is the authority on its own shape, and a flag can be
+    // wrong in exactly the way that produced this bug.
+    const cityLeafRow = findLeafHeaderRow(workbook.getWorksheet('SORDACIFB_TotalGov'), [6, 7], 1, 4);
+    if (cityLeafRow === 7) {
+      // City MOD: row 7 = headers, data row 8, entity col 2, county col 3
+      // Receipts cols 4-16, Total col 17; Disbursements cols 18-35, Total col 36;
+      // cols 37+ (Excess / OFS / fund balance) excluded, as in every other profile.
+      return {
+        basis: 'CASH_OR_MOD',
+        sheetName: 'SORDACIFB_TotalGov',
+        headerRow: 7, dataStart: 8,
+        entityCol: 2, countyCol: 3,
+        revSourceCols: [4,5,6,7,8,9,10,11,12,13,14,15,16],
+        revTotalCol: 17,
+        expFuncCols:  [18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35],
+        expTotalCol: 36,
+        // ⚠⚠ THE TWO SHEETS SHIFT IN OPPOSITE DIRECTIONS. On the financial
+        // sheet city MOD sits one column LEFT of CASH; on OI_Demographics it
+        // sits one row DOWN and one column RIGHT — row 4 = headers, data row 5,
+        // entity col 3, county col 4, pop col 5. There is no single "MOD
+        // offset": each sheet has to be measured on its own. Reading the CASH
+        // offsets here is what made every city MOD row load with no county and
+        // no population.
+        demoHeaderRow: 4, demoDataStart: 5,
+        demoEntityCol: 3, demoCountyCol: 4, demoPopCol: 5,
+      };
+    }
+    // City CASH: row 6 = headers, data row 7, entity col 2, county col 4
     // Receipts cols 5-17, Total col 18; Disbursements cols 19-36, Total col 37; cols 38+ excluded
     return {
       basis: 'CASH_OR_MOD',
@@ -159,6 +202,25 @@ export function detectLayout(workbook, entityType = 'city') {
     };
   }
   throw new Error('Unrecognised workbook: neither SOREACIFB_TotalGov nor SORDACIFB_TotalGov sheet found');
+}
+
+/**
+ * Which of `candidates` is the row the publisher put the LEAF labels on?
+ *
+ * The one anchor every Ohio layout shares is the literal "Entity Name" cell at
+ * the left of the leaf row. Group and subgroup rows above it are blank there.
+ * Returns the first candidate that carries it, or null.
+ */
+function findLeafHeaderRow(sheet, candidates, firstCol, lastCol) {
+  for (const row of candidates) {
+    for (let col = firstCol; col <= lastCol; col += 1) {
+      const cell = sheet.getRow(row).getCell(col).value;
+      const text = String(cell && typeof cell === 'object' && 'result' in cell ? cell.result : cell ?? '')
+        .replace(/\s+/g, ' ').trim();
+      if (text === 'Entity Name') return row;
+    }
+  }
+  return null;
 }
 
 // ── Legacy GAAP column constants (kept for backward-compat with tests) ────────
