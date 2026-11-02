@@ -213,13 +213,34 @@ function escapeRe(s) {
 export function suggestEntry(dataSource, fiscalYears = []) {
   const years = [...new Set(fiscalYears)].filter(Number.isFinite).sort((a, b) => a - b);
   const name = escapeRe(dataSource);
-  const pattern = years.length
-    ? `/^${name.replace(/FY\d{4}/, `FY(?:${years.join('|')})`)}$/`
-    : `/^${name}$/`;
-  const yearNote = years.length
-    ? `  // Years read: ${years.join(', ')}. ENUMERATE them — a bare FY\\d{4}\n`
-      + '  // would grade a future filing off a document nobody has opened.\n'
-    : '';
+
+  // ⚠ REPLACE EVERY OCCURRENCE. Several real family names carry the year
+  // twice ("… FY2024 actual (FY2024 basis)"); substituting only the first
+  // leaves a hard-coded year behind, so the entry matches one year while
+  // claiming a window.
+  const substituted = years.length
+    ? name.replace(/FY\d{4}/g, `FY(?:${years.join('|')})`)
+    : name;
+  const didSubstitute = substituted !== name;
+  const pattern = `/^${substituted}$/`;
+
+  // ⚠⚠ The note only appears if a year class was actually written. A
+  // "Years read" comment beside a pattern with no year in it says the window
+  // was enumerated when nothing was — a lie in the one artifact whose whole
+  // job is to be checkable.
+  let yearNote = '';
+  if (didSubstitute) {
+    yearNote = `  // Years read: ${years.join(', ')}. ENUMERATE them — a bare FY\\d{4}\n`
+      + '  // would grade a future filing off a document nobody has opened.\n';
+  } else if (years.length) {
+    // ⚠ The name carries no year, so one entry covers every year of this
+    // family — there is nothing to enumerate and claiming otherwise would be
+    // the lie this branch exists to avoid. Say what IS true: which years this
+    // load held, and that the answer must therefore be year-invariant.
+    yearNote = `  // Years in this load: ${years.join(', ')}. This family's name carries no\n`
+      + '  // year, so ONE entry answers for every year — only correct if the answer\n'
+      + '  // really is a property of the publisher rather than of one document.\n';
+  }
   return [
     '{',
     `  id: '<short-kebab-id>',`,

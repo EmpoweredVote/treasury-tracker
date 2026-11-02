@@ -18,6 +18,18 @@
 -- Synced by scripts/syncRegisteredFamilies.mjs. A stale mirror is itself a
 -- failure mode — it would refuse a family that IS registered — so the sync
 -- has a --check mode that exits non-zero on drift.
+--
+-- ⚠⚠ THIS TABLE STARTS EMPTY, AND AN EMPTY MIRROR REFUSES EVERY NEW FAMILY.
+-- The gate asks this table, not the JavaScript registries, so on a freshly
+-- migrated database nothing matches until it is filled. First step after
+-- running migrations:
+--
+--     npm run sync:families            # fill it (121 rows as of 2026-11-02)
+--     npm run verify:registry-mirror   # confirm; exits 1 while stale
+--
+-- It is deliberately not seeded here: the patterns live in
+-- scripts/data/*Registry.mjs and a hand-copied INSERT would be a second
+-- source of truth that drifts the moment someone edits a registry.
 
 create table if not exists treasury.registered_source_families (
   axis       text not null,

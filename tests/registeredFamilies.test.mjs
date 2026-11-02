@@ -154,6 +154,28 @@ describe('mirrorRows', () => {
     expect(bad).toEqual([]);
   });
 
+  // ⚠⚠⚠ A POSITIVE ASSURANCE CLAIM MAY NOT CARRY AN OPEN YEAR CLASS.
+  //
+  // `audited_gaap` / `audited_ocboa` / `compiled_from_audited` each assert
+  // something about ONE document's opinion. A bare `FY\d{4}` grades a filing
+  // the moment it loads, off an opinion nobody has opened — which is exactly
+  // why the LA entry enumerates FY2016-2025 instead.
+  //
+  // `self_reported_unaudited` is different and is deliberately allowed: there
+  // the grade is a property of the PUBLISHER, not of a year's document. NY
+  // OSC filings are self-reported in every year, so the three NY entries use
+  // `FY\d{4}` correctly over 185,507 rows.
+  //
+  // Convention until now; enforced from here.
+  it('never grades an unread year — no audited value with an open year class', () => {
+    const OPEN_YEAR = /\\d\{[24]\}|\[0-9\]\{[24]\}/;
+    const ASSURANCE = ['audited_gaap', 'audited_ocboa', 'compiled_from_audited'];
+    const offenders = AUDIT_GRADE_REGISTRY
+      .filter((e) => ASSURANCE.includes(e.value) && OPEN_YEAR.test(e.match.source))
+      .map((e) => `${e.id} (${e.value})`);
+    expect(offenders).toEqual([]);
+  });
+
   it('carries no flag other than i anywhere in the live registries', () => {
     const all = [
       ...AUDIT_GRADE_REGISTRY, ...FUND_SCOPE_REGISTRY,
@@ -191,5 +213,32 @@ describe('suggestEntry', () => {
     const t = suggestEntry('Foo (Bar) — Baz.', []);
     expect(t).toContain('\\(Bar\\)');
     expect(t).toContain('Baz\\.');
+  });
+
+  // ⚠ A name can carry the year TWICE — several real families repeat it, e.g.
+  // "… FY2024 actual (FY2024 basis)". Replacing only the first occurrence
+  // leaves a hard-coded year in the pattern, so the entry silently matches
+  // one year instead of the window it claims to.
+  it('enumerates EVERY occurrence of the year, not just the first', () => {
+    const t = suggestEntry('X Report FY2024 — Exhibit FY2024', [2023, 2024]);
+    const matchLine = t.split('\n').find((l) => l.trim().startsWith('match:'));
+    expect(matchLine).not.toMatch(/FY2024/);
+    expect((matchLine.match(/FY\(\?:2023\|2024\)/g) ?? [])).toHaveLength(2);
+  });
+
+  // ⚠⚠ A "Years read:" note beside a pattern with no year class is a lie —
+  // it says the window was enumerated when nothing was. Either substitute or
+  // say nothing.
+  it('never claims years were enumerated when none were substituted', () => {
+    const t = suggestEntry('Ohio Auditor of State Summarized Annual Financial Reports', [2023, 2024]);
+    expect(t).not.toMatch(/Years read/);
+    // …but it still says which years the load held, and why one entry covers
+    // them all. Dropping the information entirely was the first fix's bug.
+    expect(t).toMatch(/Years in this load: 2023, 2024/);
+    expect(t).toMatch(/ONE entry answers for every year/);
+  });
+
+  it('still notes the years when it did substitute them', () => {
+    expect(suggestEntry('X FY2024', [2023, 2024])).toMatch(/Years read: 2023, 2024/);
   });
 });

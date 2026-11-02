@@ -601,7 +601,14 @@ async function main() {
     // sequence would be scan, pay, refuse, write nothing, and an operator
     // with nothing to show for it re-runs. The 2026-06-19 incident was 622
     // jobs and ~21.2 TiB in ten hours, ≈ $132. Ask the cheap question first.
-    await assertRegisteredFamily(supabase, DATA_SOURCE_NAME);
+    // ⚠ The years are passed so the paste-ready entry in a refusal ENUMERATES
+    // them. Without them the suggestion comes back with no year class at all —
+    // on the one loader whose refusal was meant to be the worked example. The
+    // range is the rollup query's own BETWEEN 2014 AND 2025 (line ~174), not a
+    // guess; if that widens, this must widen with it.
+    await assertRegisteredFamily(supabase, DATA_SOURCE_NAME, {
+      fiscalYears: Array.from({ length: 2025 - 2014 + 1 }, (_, i) => 2014 + i),
+    });
 
     // Step 1: Always run the free dry-run first (bills 0 bytes, quota-exempt).
     console.log('Running BigQuery dry-run (free, bills 0 bytes)...');

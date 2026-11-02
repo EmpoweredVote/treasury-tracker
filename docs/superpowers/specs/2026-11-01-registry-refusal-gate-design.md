@@ -102,6 +102,44 @@ was green.*
 
 ## Constraints discovered during design — read these before planning
 
+### ⛔⛔ CORRECTED AFTER REVIEW — read this before trusting anything below
+
+Two claims in this document were wrong when written. Both are left in place,
+struck through by this note, because the reasoning that produced them is the
+useful part.
+
+**1. "The RPC is the only real chokepoint" is FALSE.** `treasury.budgets` has
+**two** write functions, and the gate shipped on the smaller one:
+
+```
+treasury_sync_budget_tree   262 files   <- the MAJORITY path
+treasury_sync_city_budget    65 files
+```
+
+The claim came from counting call sites of one function. The ungated path
+carried this document's own motivating incidents — `processHIAcfr.js`
+(Hawaii), `scrapeMaDLS.js` (15,071 of the 24,947 linkless rows) and
+`lib/acfrGfLoad.mjs`. Both paths are gated as of #317; see
+`reference_budgets_two_write_paths` for how they differ.
+
+**2. "All four axes" was reversed by measurement.** Only 62 of 5,929 families
+(1.0%) match all four. The gate requires three: `audit_grade`, `fund_scope`,
+`basis`.
+
+### ⚠⚠⚠ WHAT THE GATE DOES NOT DO, STATED PLAINLY
+
+**It refuses none of the eight cohorts in the "Why now" table above.** Every
+one of them — Virginia, Transparent Utah, bloomington, Wisconsin DOR, King
+County, cambridge, the Connecticut per-year sources and EV's own records —
+is already in `treasury.budgets` and is therefore **grandfathered**.
+
+That is the intended reading of "stop the bleeding", not an oversight: only
+1,966 of 5,929 families match all three axes, so refusing the rest would
+block the re-runs that fix bad data. But it means the gate changes nothing
+about today's 1,302 unlabelled and 24,947 linkless rows. **The ratchet
+(`npm run verify:provenance`), not the gate, is what keeps that from
+growing.** The gate's job begins with the next family somebody adds.
+
 ### ⚠⚠ There is no single write path in JavaScript
 
 **34 call sites invoke `treasury_sync_city_budget` directly, across 61 files.**
