@@ -25,20 +25,49 @@ import { writeFileSync, existsSync, mkdirSync } from 'node:fs';
 import { readPepCsv } from './lib/censusPep.mjs';
 import {
   STATE_FIPS, buildCountyIndex, buildPlaceIndex, buildMcdIndex, buildMcdStateIndex, buildPlaceCountyIndex,
-  resolveState, resolveCounty, resolvePlace, resolveTownship, resolveMcdByState,
+  resolveState, resolveCounty, resolvePlace, resolveTownship, resolveMcdByState, preferResolved,
+  buildMcdCountyIndex, resolveMcdByCounty,
+  dropCollidingGeoids,
 } from './lib/geoid.mjs';
 
 const CITY_TIER = new Set(['city', 'town', 'village', 'borough', 'municipality']);
 const API = process.env.TT_API || 'https://ev-accounts-api.onrender.com/api/treasury/cities?datasets=summary';
 const CACHE = 'cache';
-const CO_EST = `${CACHE}/co-est2024-alldata.csv`;
+// ── ⚠⚠ TWO VINTAGES, AND THE NEWER ONE IS NOT SIMPLY BETTER ────────────────
+//
+// A vintage cannot name a government that did not exist when it was cut.
+// reference_census_vintage_ladder solves that LOOKING BACKWARD — a dissolved
+// government is typed from the newest vintage that still names it. BASE/FORWARD
+// here is the forward half of the same fact: a government incorporated after
+// the cut is named by the NEXT vintage, and by nothing before it. Mountain
+// House incorporated 2024-07-01; V2024 carries boundaries as of 2024-01-01 and
+// does not list it, so its geoid was correctly NULL. V2025, published
+// 2026-05-14, carries it as place 49582 in county 077.
+//
+// ⚠⚠ SO WHY IS THE BASE NOT JUST MOVED TO V2025? Because it was MEASURED, and
+// the newer vintage RESOLVES FEWER ENTITIES: writing the SQL on each and
+// diffing gave +1 (Mountain House) and -4 against 10,412. Two of the four are
+// not dissolutions at all — the Census RECLASSIFIED Penn Hills and Mt Lebanon
+// from township MCDs to places (Penn Hills: MCD 59032 -> place 59040), so a
+// straight bump drops a 41,059-person municipality to buy a 25,315-person one.
+// Wheatland borough (PA) and Fort Johnson village (NY) also vanish; those two
+// look like genuine dissolutions and are NOT yet confirmed.
+//
+// The forward vintage is therefore consulted ONLY after a clean miss, exactly
+// like the New England MCD fallback below. Net effect, measured: +1, zero
+// losses, zero CHANGED geoids. A geoid that changes is a defect to investigate,
+// never an update to ship quietly.
+const SERIES = (v) => `2020-${v}`; // ⚠ the directory segment is the SERIES, not the vintage
+const BASE_VINTAGE = 2024;
+const FORWARD_VINTAGE = 2025;
+const CO_EST = `${CACHE}/co-est${BASE_VINTAGE}-alldata.csv`;
 // ⚠ The Census filename uses the UNPADDED state FIPS: sub-est2024_8.csv for
 // Colorado, not sub-est2024_08.csv. Number() strips the pad.
-const SUB_EST = (fips) => `${CACHE}/sub-est2024_${Number(fips)}.csv`;
-const SUB_URL = (fips) =>
-  `https://www2.census.gov/programs-surveys/popest/datasets/2020-2024/cities/totals/sub-est2024_${Number(fips)}.csv`;
+const SUB_EST = (fips, v = BASE_VINTAGE) => `${CACHE}/sub-est${v}_${Number(fips)}.csv`;
+const SUB_URL = (fips, v = BASE_VINTAGE) =>
+  `https://www2.census.gov/programs-surveys/popest/datasets/${SERIES(v)}/cities/totals/sub-est${v}_${Number(fips)}.csv`;
 const CO_URL =
-  'https://www2.census.gov/programs-surveys/popest/datasets/2020-2024/counties/totals/co-est2024-alldata.csv';
+  `https://www2.census.gov/programs-surveys/popest/datasets/${SERIES(BASE_VINTAGE)}/counties/totals/co-est${BASE_VINTAGE}-alldata.csv`;
 
 const args = process.argv.slice(2);
 const argOf = (n) => { const i = args.indexOf(n); return i === -1 ? null : args[i + 1]; };
@@ -94,6 +123,7 @@ for (const [abbrev, rows] of [...byState].sort()) {
 
   const countyIdx = buildCountyIndex(coRows, stateFips);
   let placeIdx = new Map(); let mcdIdx = new Map(); let mcdStateIdx = new Map();
+  let mcdCountyIdx = new Map();
   let placeCountyIdx = new Map();
   const needsSub = rows.some((m) => CITY_TIER.has(m.entity_type) || m.entity_type === 'township');
   if (needsSub) {
@@ -103,6 +133,23 @@ for (const [abbrev, rows] of [...byState].sort()) {
     placeCountyIdx = buildPlaceCountyIndex(subRows);
     mcdIdx = buildMcdIndex(subRows);
     mcdStateIdx = buildMcdStateIndex(subRows);
+    mcdCountyIdx = buildMcdCountyIndex(subRows);
+  }
+
+  // ⚠ The forward vintage is fetched ONLY if this state has a city-tier entity
+  // the base vintage could not name — one extra file for California, none at
+  // all for a state that resolves cleanly. Built once per state, not per miss.
+  let forwardPlaceIdx = null;
+  let forwardPlaceCountyIdx = null;
+  const needsForward = needsSub && rows.some((m) => CITY_TIER.has(m.entity_type)
+    && !resolvePlace(placeIdx, m.name, {
+      placeCountyIndex: placeCountyIdx, countyIndex: countyIdx, entityType: m.entity_type,
+    }).geoid);
+  if (needsForward) {
+    const fp = await ensure(SUB_EST(stateFips, FORWARD_VINTAGE), SUB_URL(stateFips, FORWARD_VINTAGE));
+    const fRows = readPepCsv(fp);
+    forwardPlaceIdx = buildPlaceIndex(fRows);
+    forwardPlaceCountyIdx = buildPlaceCountyIndex(fRows);
   }
 
   const tally = { resolved: 0, missed: 0, ambiguous: 0, skipped: 0 };
@@ -124,10 +171,21 @@ for (const [abbrev, rows] of [...byState].sort()) {
       // property of the state's Census structure, not of TT's entity_type.
       // Tried ONLY after a clean place miss: an AMBIGUOUS place result must
       // stay null rather than be rescued by a second, looser lookup.
-      if (!r.geoid && !r.reason.startsWith('ambiguous')) {
-        const alt = resolveMcdByState(mcdStateIdx, m.name);
-        if (alt.geoid) r = alt;
-      }
+      // ⚠ COUNTY-SCOPED FIRST. It is the more specific lookup and the only one
+      // that can separate two same-named towns — New York has two Albions, and
+      // TT stores the county in the name. It simply misses for a name that
+      // carries no county, which costs one map lookup.
+      r = preferResolved(r, () => resolveMcdByCounty(mcdCountyIdx, countyIdx, m.name, { entityType: m.entity_type }));
+      r = preferResolved(r, () => resolveMcdByState(mcdStateIdx, m.name, { entityType: m.entity_type }));
+      // ⚠ Forward vintage, same guard. A government incorporated after the
+      // base vintage was cut is named by the NEXT one and by nothing earlier:
+      // Mountain House (2024-07-01) is absent from V2024 and is place 49582 in
+      // V2025. Tried LAST, so it can only ever turn a null into a geoid.
+      r = preferResolved(r, forwardPlaceIdx && (() => resolvePlace(forwardPlaceIdx, m.name, {
+        placeCountyIndex: forwardPlaceCountyIdx,
+        countyIndex: countyIdx,
+        entityType: m.entity_type,
+      })));
     } else { tally.skipped++; totals.skipped++; continue; }
 
     if (r.geoid) {
@@ -146,6 +204,31 @@ for (const [abbrev, rows] of [...byState].sort()) {
     + `missed ${String(tally.missed).padStart(4)}  ambiguous ${String(tally.ambiguous).padStart(4)}  `
     + `skipped ${String(tally.skipped).padStart(3)}  (${pct}%)`
   );
+}
+
+// ── ⚠⚠⚠ TWO ENTITIES CANNOT BE ONE GOVERNMENT ─────────────────────────────
+// Every resolver above refuses to choose between two candidates for ONE name.
+// This is the mirror image and nothing was checking it: two different entities
+// resolving to the SAME geoid. Measured 2026-10-31 it was 514 of 10,413 — New
+// York villages and the towns that contain them, which share a name, each pair
+// handed one government. They reached the database before the post-hoc
+// verifier caught them, and removing them is a 514-row repair.
+const collisionCheck = dropCollidingGeoids(updates);
+if (collisionCheck.collided.length) {
+  const byGeoid = new Map();
+  for (const [id, geoid] of collisionCheck.collided) {
+    if (!byGeoid.has(geoid)) byGeoid.set(geoid, []);
+    byGeoid.get(geoid).push(id);
+  }
+  console.error(`\n⚠⚠ ${collisionCheck.collided.length} resolution(s) across ${byGeoid.size} geoid(s)`
+    + ' claim the same government as another entity — ALL of them dropped.');
+  for (const [geoid, ids] of [...byGeoid].slice(0, 10)) {
+    console.error(`     ${geoid}: ${ids.join(', ')}`);
+  }
+  totals.resolved -= collisionCheck.collided.length;
+  totals.ambiguous += collisionCheck.collided.length;
+  updates.length = 0;
+  updates.push(...collisionCheck.kept);
 }
 
 console.log(`\nTOTAL resolved ${totals.resolved}  missed ${totals.missed}  `

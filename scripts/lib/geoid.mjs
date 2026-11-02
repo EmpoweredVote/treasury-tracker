@@ -128,9 +128,32 @@ export function resolveCounty(index, stateFips, storedName) {
  * "... City" and vanish the same way.
  */
 const PLACE_DESIGNATORS = [
+  // ⚠ MULTI-WORD FIRST, for readability — the trailing-designator regex is
+  // anchored at the end, so the earliest start position wins regardless, and
+  // "Juneau city and borough" splits as "Juneau" + "city and borough" rather
+  // than "Juneau city and" + "borough". Plain PA boroughs are unaffected.
+  'consolidated government', 'metropolitan government', 'unified government',
+  'city and borough', 'urban county', 'metro government', 'metro township',
   'city', 'town', 'village', 'borough', 'municipality',
-  'urban county', 'metro government', 'consolidated government',
 ];
+
+/**
+ * The two types whose Census designator must AGREE, not merely be preferred.
+ *
+ * ⚠⚠ ONLY THESE TWO, and the limit is measured, not cautious. In MCD states a
+ * town is a county subdivision and a village is a place; they share a name
+ * constantly (the village of Adams sits inside the town of Adams) and they are
+ * different governments with different budgets. Letting either fall through to
+ * the other's designator produced 255 duplicate geoids in New York alone.
+ *
+ * ⚠ Everywhere else TT's `entity_type` is a COARSE LABEL that legitimately
+ * disagrees with the Census designator — Florida's "Alford" is `city` in TT and
+ * "Alford town" in the Census, as are 142 more FL cities, 21 CA cities and 14
+ * TX municipalities. Making those strict refused 183 entities that had always
+ * been matched correctly, so `city`, `municipality` and `borough` keep the
+ * preferred-first order they have always had.
+ */
+const STRICT_TYPES = new Set(['town', 'village']);
 
 function placeKey(name) {
   return String(name).toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -150,12 +173,30 @@ function placeKey(name) {
  * ⚠ These only ADD candidates. Nothing here rewrites the stored name, and a
  * variant that matches nothing costs a failed map lookup and no more.
  */
+/**
+ * Spellings no normalisation can reach, each naming ONE government.
+ *
+ * ⚠⚠ NOT A FUZZY MATCHER, AND IT MUST NEVER BECOME ONE. The whole tier refuses
+ * to choose between two real governments; a vowel-tolerant match would hand
+ * that refusal away. An entry is justified only when the publisher and the
+ * Census disagree on a spelling AND the state holds exactly one candidate.
+ *
+ * `uppermahantango` — PA DCED writes "Upper Mahantango Township, Schuylkill
+ * County"; the Census writes "Upper Mahantongo township". Checked across the
+ * whole PA file: it is the only "Mahant*" county subdivision in the state.
+ */
+const SPELLING_ALIASES = new Map([
+  ['uppermahantango', 'Upper Mahantongo'],
+]);
+
 function nameVariants(storedName) {
   const seen = new Set();
   const out = [];
   const add = (n) => {
     const t = String(n).trim();
     if (t && !seen.has(t)) { seen.add(t); out.push(t); }
+    const alias = SPELLING_ALIASES.get(placeKey(t));
+    if (alias && !seen.has(alias)) { seen.add(alias); out.push(alias); }
   };
 
   let base = String(storedName);
@@ -169,7 +210,16 @@ function nameVariants(storedName) {
   }
 
   // Drop a formal "City of " / "Town of " / "Village of " prefix.
-  const stripped = base.replace(/^(City|Town|Village|Borough|Township) of\s+/i, '');
+  //
+  // ⚠⚠ ALASKA PUTS THE DESIGNATOR FIRST AND MEANS IT: TT stores its unified
+  // governments as they style themselves — "City and Borough of Juneau",
+  // "Municipality of Anchorage" — while the Census writes "Juneau city and
+  // borough". Without these forms five Alaska governments that publish current
+  // budgets matched nothing at all. Longest alternative first so "City and
+  // Borough of" is not read as a bare "City of".
+  const stripped = base.replace(
+    /^(City and Borough|City and County|Municipality|City|Town|Village|Borough|Township) of\s+/i, '',
+  );
   if (stripped !== base) add(stripped);
 
   // Saint <-> St., Mount <-> Mt., & -> and, on every candidate so far.
@@ -182,6 +232,21 @@ function nameVariants(storedName) {
   }
   return out;
 }
+
+/**
+ * ⚠⚠ "(balance)" SITS AFTER THE DESIGNATOR AND HIDES IT. The Census writes a
+ * consolidated government's place row as "Athens-Clarke County unified
+ * government (balance)", so a split anchored at the end of the string finds no
+ * designator at all and keys the whole name. Five distinct forms carry it:
+ * unified / consolidated / metro / metropolitan government, and plain city
+ * (Indianapolis).
+ *
+ * ⚠ The balance is the government MINUS any separately incorporated place
+ * inside it (Athens-Clarke's excludes Winterville and Bogart). It is still the
+ * only place-level identifier the Census publishes for these governments, and
+ * it is what the boundary set carries, so it is the geoid that matches.
+ */
+const BALANCE_RE = /\s+\(balance\)$/i;
 
 /** Census's trailing designator, for splitting a NAME into bare + designator. */
 const TRAILING_DESIGNATOR_RE = new RegExp(
@@ -217,14 +282,15 @@ export function buildPlaceIndex(rows) {
     // place and nulls a match that was never in doubt.
     if (r.SUMLEV !== '162') continue;
     const geoid = r.STATE + r.PLACE;
-    const desig = (TRAILING_DESIGNATOR_RE.exec(r.NAME) || [null, ''])[1].toLowerCase();
-    const bare = r.NAME.replace(TRAILING_DESIGNATOR_RE, '');
+    const name = r.NAME.replace(BALANCE_RE, '');
+    const desig = (TRAILING_DESIGNATOR_RE.exec(name) || [null, ''])[1].toLowerCase();
+    const bare = name.replace(TRAILING_DESIGNATOR_RE, '');
 
     const bk = placeKey(bare) + '|' + desig;
     if (!byBare.has(bk)) byBare.set(bk, new Set());
     byBare.get(bk).add(geoid);
 
-    const fk = placeKey(r.NAME);
+    const fk = placeKey(name);
     if (!byFull.has(fk)) byFull.set(fk, new Set());
     byFull.get(fk).add(geoid);
   }
@@ -270,15 +336,29 @@ export function buildPlaceCountyIndex(rows) {
 export function resolvePlace(index, storedName, opts = {}) {
   const { byBare, byFull } = index;
 
-  // ⚠ The entity's OWN type picks which designator is tried first. Pennsylvania
-  // has a Franklin BOROUGH in Cambria County and a Franklin CITY in Venango
-  // County; with a fixed designator order starting at 'city', the borough
-  // matched the city and both claimed 4227456.
+  // ⚠⚠ THE DESIGNATOR MUST AGREE — it is part of the identity, not a hint.
+  // Pennsylvania has a Franklin BOROUGH in Cambria County and a Franklin CITY
+  // in Venango County, and with a fixed order starting at 'city' the borough
+  // matched the city and both claimed 4227456. Preferring the entity's own
+  // type fixed that pair but still FELL THROUGH to every other designator,
+  // which is how 255 New York towns took their village's place record: a town
+  // is a county subdivision there, a village is a place, they share a name,
+  // and they are different governments with different budgets.
+  //
+  // ⚠ If the census has no place of the entity's own kind, the right answer is
+  // that there is NO PLACE — the MCD layer then gets its turn. That is also
+  // what sends Massachusetts' "Agawam Town" to its MCD rather than to the
+  // city-form place record of the same name.
+  //
+  // ⚠ An UNKNOWN type stays permissive. Missing metadata is not evidence that
+  // a designator is wrong, and refusing everything would turn one gap into two.
   const preferred = String(opts.entityType || '').toLowerCase();
-  const ordered = [
-    ...PLACE_DESIGNATORS.filter((d) => d === preferred),
-    ...PLACE_DESIGNATORS.filter((d) => d !== preferred),
-  ];
+  const ordered = STRICT_TYPES.has(preferred)
+    ? [preferred]
+    : [
+      ...PLACE_DESIGNATORS.filter((d) => d === preferred),
+      ...PLACE_DESIGNATORS.filter((d) => d !== preferred),
+    ];
 
   for (const variant of nameVariants(storedName)) {
     const k = placeKey(variant);
@@ -422,33 +502,251 @@ export function resolveTownship(mcdIndex, countyIndex, stateFips, storedName) {
  * and because an ambiguous name still resolves to null.
  */
 export function buildMcdStateIndex(rows) {
+  const byBare = new Map();
+  const byFull = new Map();
+  for (const r of rows) {
+    if (r.SUMLEV !== '061') continue;
+    const geoid = r.STATE + r.COUNTY + r.COUSUB;
+    // ⚠⚠ SPLIT THE DESIGNATOR OFF, exactly as buildPlaceIndex does, and for
+    // the same reason. Keying the whole name makes "German town" key as
+    // `germantown`, which is also what TT's "Germantown" keys as — two real
+    // New York towns in different counties, one geoid. Separating the parts
+    // gives `german|town` and `germantown|town`.
+    const mcdName = r.NAME.replace(BALANCE_RE, '');
+    const desig = (TRAILING_DESIGNATOR_RE.exec(mcdName) || [null, ''])[1].toLowerCase();
+    const bare = mcdName.replace(TRAILING_DESIGNATOR_RE, '');
+    const bk = placeKey(bare) + '|' + desig;
+    if (!byBare.has(bk)) byBare.set(bk, new Set());
+    byBare.get(bk).add(geoid);
+
+    for (const variant of nameVariants(r.NAME)) {
+      const fk = placeKey(variant);
+      if (!byFull.has(fk)) byFull.set(fk, new Set());
+      byFull.get(fk).add(geoid);
+    }
+  }
+  return { byBare, byFull };
+}
+
+export function resolveMcdByState(index, storedName, opts = {}) {
+  const { byBare, byFull } = index;
+  const type = String(opts.entityType || '').toLowerCase();
+
+  // ⚠⚠ A VILLAGE IS A PLACE, NEVER A COUNTY SUBDIVISION. New York villages sit
+  // INSIDE a same-named town, so offering them the MCD layer handed both
+  // governments one geoid — 15 of the 255 duplicates on 2026-10-31. If the
+  // place layer could not name a village, the answer is that it is unnamed.
+  if (type === 'village') {
+    return miss(`no MCD match for "${storedName}": a village is a place, not a county subdivision`);
+  }
+
+  // ⚠ The designator is tried PREFERRED-FIRST and then permissively here,
+  // unlike resolvePlace which requires agreement. Massachusetts is why: it
+  // files its city-form towns as "Amherst Town city", a `city` designator on a
+  // government TT types `town`. Demanding agreement would drop 300+ MA towns.
+  const ordered = PLACE_DESIGNATORS.includes(type)
+    ? [type, ...PLACE_DESIGNATORS.filter((d) => d !== type)]
+    : [...PLACE_DESIGNATORS];
+
+  const take = (set) => {
+    if (set.size > 1) return miss(`ambiguous MCD match for "${storedName}": ${[...set].join(', ')}`);
+    return hit([...set][0], BASIS.mcdState);
+  };
+
+  // 1. The name as stored, against bare+designator. Nothing is fused into the
+  //    bare key, so a manufactured designator cannot collide with a real name.
+  for (const variant of nameVariants(storedName)) {
+    for (const d of ordered) {
+      const set = byBare.get(placeKey(variant) + '|' + d);
+      if (set) return take(set);
+    }
+  }
+  // 2. Then the Massachusetts shape, where "Town" belongs to the NAME. Tried
+  //    only after every plain reading has missed, so "Beekman" can never be
+  //    read as "Beekmantown" while a real "Beekman town" exists.
+  for (const variant of nameVariants(storedName)) {
+    for (const d of ordered) {
+      const set = byBare.get(placeKey(variant + ' Town') + '|' + d);
+      if (set) return take(set);
+    }
+  }
+  // 3. Last, a legal name that ends in its own designator.
+  for (const variant of nameVariants(storedName)) {
+    const set = byFull.get(placeKey(variant));
+    if (set) return take(set);
+  }
+  return miss(`no MCD match for "${storedName}"`);
+}
+
+// ── Composing two lookups ───────────────────────────────────────────────────
+
+/**
+ * Take a second lookup's answer ONLY when the first was a clean miss.
+ *
+ * ⚠⚠ THE WHOLE POINT IS THE AMBIGUITY GUARD. Every resolver above refuses to
+ * choose between two real governments, and a looser second lookup run over the
+ * same name would quietly undo that refusal by picking one. An ambiguous
+ * primary is returned untouched and the fallback is never even called.
+ *
+ * ⚠ The fallback is a THUNK because building its index costs a file fetch.
+ * Nothing is downloaded for an entity the base vintage already answered.
+ *
+ * Two callers, both in backfillGeoids.mjs: the New England MCD fallback, and
+ * the forward Census vintage that names a government incorporated after the
+ * base vintage was cut.
+ *
+ * @param {{geoid: string|null, basis: string|null, reason: string|null}} primary
+ * @param {null | (() => {geoid: string|null, basis: string|null, reason: string|null})} fallback
+ */
+export function preferResolved(primary, fallback) {
+  if (primary.geoid) return primary;
+  if (!fallback) return primary;
+  if (primary.reason?.startsWith('ambiguous')) return primary;
+  const alt = fallback();
+  // ⚠ The PRIMARY reason survives a fallback that also missed: "no place match
+  // for X" names the lookup that was supposed to work.
+  return alt.geoid ? alt : primary;
+}
+
+/**
+ * What applying a regenerated backfill would actually do, per tuple.
+ *
+ * ⚠⚠ THE FILE IS NOT A LIST OF CHANGES. It is every resolution the matcher can
+ * make, so most tuples restate a value the database already holds. Writing it
+ * blind hides the one case that matters: a geoid moving to a DIFFERENT
+ * government, which is what a matcher defect looks like from the outside
+ * (Elizabeth/Elizabethtown IN, Franklin/Franklin PA — both wrote the wrong
+ * government and were invisible to a count, a length check and a basis check).
+ *
+ * `toWrite` is fills plus basis-only corrections — deliberately NOT changes.
+ * A caller that wants those must ask for them after reading them.
+ *
+ * @param {Array<{id: string, geoid: string, basis: string}>} tuples
+ * @param {Map<string, {geoid: string|null, basis: string|null}>} current
+ */
+export function classifyGeoidWrites(tuples, current) {
+  const out = {
+    fill: [], same: [], change: [], basisOnly: [], absent: [], collision: [], toWrite: [],
+  };
+
+  // ⚠⚠⚠ A COLLISION LIVES BETWEEN ROWS, SO NO PER-ROW CHECK CAN SEE IT. The
+  // 2026-10-31 fill wrote 255 duplicate geoids — 514 NY rows, each a village
+  // and its containing town claiming one government — past an applier that
+  // checked only that the tuples' IDs were distinct, which they were.
+  const heldBy = new Map(); // geoid -> entity id that already holds it
+  for (const [id, now] of current) if (now.geoid != null) heldBy.set(now.geoid, id);
+  const proposals = new Map(); // geoid -> how many tuples want it
+  for (const t of tuples) proposals.set(t.geoid, (proposals.get(t.geoid) ?? 0) + 1);
+
+  for (const t of tuples) {
+    const now = current.get(t.id);
+    // ⚠ Absent is not "null geoid": the entity itself is gone from the table,
+    // so there is nothing to update and an UPDATE would silently affect 0 rows.
+    if (!now) { out.absent.push(t); continue; }
+    // An entity keeping the value it already has cannot collide with itself.
+    if (now.geoid === t.geoid) {
+      if (now.basis !== t.basis) { out.basisOnly.push({ ...t, from: now.basis }); out.toWrite.push(t); }
+      else out.same.push(t);
+      continue;
+    }
+    // ⚠ Taking a geoid another entity holds, or that a second tuple also
+    // wants, means the matcher cannot say which government this is. NEITHER
+    // side is written: picking one is how a reader lands on the wrong budget.
+    const owner = heldBy.get(t.geoid);
+    if ((owner && owner !== t.id) || proposals.get(t.geoid) > 1) {
+      out.collision.push({ ...t, heldBy: owner ?? null });
+      continue;
+    }
+    if (now.geoid == null) { out.fill.push(t); out.toWrite.push(t); continue; }
+    out.change.push({ ...t, from: now.geoid, to: t.geoid });
+  }
+  return out;
+}
+
+/**
+ * Drop every update whose geoid another update also claims.
+ *
+ * ⚠⚠ ALL CLAIMANTS GO, not the duplicates after the first. Two entities
+ * claiming one government means the matcher is wrong about at least one of
+ * them and cannot say which, so keeping either is a coin flip that looks
+ * authoritative. Null is a correct answer; a wrong geoid is not.
+ *
+ * ⚠ Measured 2026-10-31: this removes 514 of 10,413 — New York villages and
+ * the towns that contain them, which share a name. The generator resolved both
+ * to one place (or one MCD) and nothing downstream could tell them apart.
+ *
+ * @param {Array<[string, string, string]>} updates [id, geoid, basis] tuples
+ */
+export function dropCollidingGeoids(updates) {
+  const claims = new Map();
+  for (const [, geoid] of updates) claims.set(geoid, (claims.get(geoid) ?? 0) + 1);
+  const kept = [];
+  const collided = [];
+  for (const u of updates) (claims.get(u[1]) > 1 ? collided : kept).push(u);
+  return { kept, collided };
+}
+
+/**
+ * Index one state's county subdivisions by COUNTY, bare name and designator.
+ *
+ * ⚠ Distinct from buildMcdIndex, which admits only Census names ending in
+ * "township" and so has never been able to see New York, where every MCD is
+ * named "X town". This one takes every 061 row.
+ *
+ * ⚠ The designator is split off rather than fused, for the reason
+ * buildMcdStateIndex now documents: fusing makes "German town" collide with
+ * the town actually named "Germantown".
+ */
+export function buildMcdCountyIndex(rows) {
   const idx = new Map();
   for (const r of rows) {
     if (r.SUMLEV !== '061') continue;
-    for (const variant of nameVariants(r.NAME)) {
-      const k = placeKey(variant);
-      if (!idx.has(k)) idx.set(k, new Set());
-      idx.get(k).add(r.STATE + r.COUNTY + r.COUSUB);
-    }
+    const cName = r.NAME.replace(BALANCE_RE, '');
+    const desig = (TRAILING_DESIGNATOR_RE.exec(cName) || [null, ''])[1].toLowerCase();
+    const bare = cName.replace(TRAILING_DESIGNATOR_RE, '');
+    const k = `${r.COUNTY}|${placeKey(bare)}|${desig}`;
+    if (!idx.has(k)) idx.set(k, new Set());
+    idx.get(k).add(r.STATE + r.COUNTY + r.COUSUB);
   }
   return idx;
 }
 
-export function resolveMcdByState(index, storedName) {
-  const candidates = [];
-  for (const variant of nameVariants(storedName)) {
-    candidates.push(placeKey(variant));
-    for (const d of PLACE_DESIGNATORS) candidates.push(placeKey(variant + ' ' + d));
-    candidates.push(placeKey(variant + ' Town'));
-    for (const d of PLACE_DESIGNATORS) candidates.push(placeKey(variant + ' Town ' + d));
+/**
+ * Resolve a town to its MCD using the county TT already stores in the name.
+ *
+ * ⭐ THE COUNTY IS NOT GUESSED — it is read from the stored name, exactly as
+ * resolveTownship does. New York has two towns named Albion, in Orleans and
+ * Oswego; a state-scoped lookup can only call that ambiguous and return null,
+ * while TT has carried "Albion, Orleans County" all along.
+ *
+ * ⚠ A village is refused here for the same reason as in resolveMcdByState: a
+ * village is a place, and the only MCD of its name is the town around it.
+ */
+export function resolveMcdByCounty(index, countyIndex, storedName, opts = {}) {
+  const type = String(opts.entityType || '').toLowerCase();
+  if (type === 'village') {
+    return miss(`no MCD match for "${storedName}": a village is a place, not a county subdivision`);
   }
-  for (const k of candidates) {
-    const set = index.get(k);
-    if (!set) continue;
-    if (set.size > 1) {
-      return miss(`ambiguous MCD match for "${storedName}": ${[...set].join(', ')}`);
+  const comma = storedName.lastIndexOf(',');
+  if (comma === -1 || !/\s*County\s*$/i.test(storedName.slice(comma + 1))) {
+    return miss(`no county in the stored name "${storedName}"`);
+  }
+  const county = countyIndex.get(countyKey(storedName.slice(comma + 1).trim()));
+  if (!county) return miss(`no county match for "${storedName.slice(comma + 1).trim()}"`);
+
+  const ordered = PLACE_DESIGNATORS.includes(type)
+    ? [type, ...PLACE_DESIGNATORS.filter((d) => d !== type)]
+    : [...PLACE_DESIGNATORS];
+
+  for (const variant of nameVariants(storedName.slice(0, comma).trim())) {
+    for (const d of ordered) {
+      const set = index.get(`${county}|${placeKey(variant)}|${d}`);
+      if (!set) continue;
+      if (set.size > 1) {
+        return miss(`ambiguous MCD match for "${storedName}": ${[...set].join(', ')}`);
+      }
+      return hit([...set][0], BASIS.township);
     }
-    return hit([...set][0], BASIS.mcdState);
   }
-  return miss(`no MCD match for "${storedName}"`);
+  return miss(`no MCD match for "${storedName}" in county ${county}`);
 }

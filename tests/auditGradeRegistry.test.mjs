@@ -3,6 +3,8 @@ import { readFileSync } from 'node:fs';
 import { AUDIT_GRADE, AUDIT_GRADE_VALUES, validateAxisRegistry } from '../scripts/lib/budgetAxes.mjs';
 import { AUDIT_GRADE_REGISTRY, gradeFor, mnOsaGradeFor } from '../scripts/data/auditGradeRegistry.mjs';
 import { ACCOUNTING_BASIS_REGISTRY } from '../scripts/data/accountingBasisRegistry.mjs';
+import { FUND_SCOPE_REGISTRY } from '../scripts/data/fundScopeRegistry.mjs';
+import { BASIS_REGISTRY } from '../scripts/data/basisRegistry.mjs';
 
 describe('audit grade registry', () => {
   it('is structurally valid', () => {
@@ -13,6 +15,18 @@ describe('audit grade registry', () => {
     expect(result.badValues).toEqual([]);
     expect(result.badMatches).toEqual([]);
     expect(result.missingIds).toBe(0);
+  });
+
+  // ⚠⚠ `not_applicable` answers "what KIND of record is this", which the row's
+  // own `dataset_type` already says. This registry answers "what did the
+  // PUBLISHER do". An entry carrying that value would dress a row-shape fact as
+  // a publisher judgement, and would have to be repeated for all 26 salary and
+  // transaction sources and every future one. It is stamped by
+  // scripts/stampNotApplicableGrade.mjs instead.
+  it('never reaches not_applicable — that is a dataset_type fact, not a publisher one', () => {
+    for (const entry of AUDIT_GRADE_REGISTRY) {
+      expect(entry.value, `${entry.id} claims not_applicable`).not.toBe('not_applicable');
+    }
   });
 
   it('every entry carries non-placeholder evidence', () => {
@@ -44,6 +58,137 @@ describe('gradeFor', () => {
       .toEqual({ value: 'self_reported_unaudited', entryId: 'ca-sco-city-exp' });
     expect(gradeFor('CA State Controller - Revenues'))
       .toEqual({ value: 'self_reported_unaudited', entryId: 'ca-sco-city-rev' });
+  });
+
+  /**
+   * ⭐⭐ SCOPE-04 DERIVED ROWS — D3 of the 2026-10-30 audit-grade design.
+   *
+   * 7,652 rows across four families, all `derivation = 'derived'`, all
+   * `audit_grade = 'unknown'`. Treasury Tracker computed them from its OWN
+   * graded inputs, so telling a reader "we have not checked" is LESS honest
+   * than the truth. On the LA City page this is live: toggling All Funds →
+   * Total Governmental flips the chip from "Government-reported" to "Audit
+   * status not established", for figures derived from the very rows labelled
+   * "Government-reported".
+   *
+   * ⚠⚠ INHERITANCE IS NOT UNIFORM, AND THAT IS THE WHOLE TASK. The two CITY
+   * families' parents (ca-sco-city-exp / -rev) are `self_reported_unaudited`,
+   * so they inherit it. The two COUNTY families' parents are themselves
+   * ungraded — bucket C, awaiting a publisher recon — and a derived row may
+   * never out-rank its inputs, so they must STAY unknown. Mapping all four to
+   * one value invents a claim. LA City is fixed by this; LA County is not.
+   *
+   * ⚠⚠ THE SPEC CALLED FOR A BRANCHING ENTRY AND THE CODE CANNOT EXPRESS ONE
+   * HERE. An entry whose own `value` is UNKNOWN never classifies at all:
+   * classifyAxis returns `{entryId: null}` for it (budgetAxes.mjs), and
+   * gradeFor returns immediately on a null entryId, so the branch would never
+   * run. The registry's own doctrine is the honest shape instead — an entry is
+   * created when its evidence is — so the county families simply have no entry.
+   */
+  const DERIVED_CITY = [
+    'Treasury Tracker derived: Total Governmental (CA State Controller - Expenditures)',
+    'Treasury Tracker derived: Total Governmental (CA State Controller - Revenues)',
+  ];
+  const DERIVED_COUNTY = [
+    'Treasury Tracker derived: Total Governmental (CA State Controller - County Expenditures)',
+    'Treasury Tracker derived: Total Governmental (CA State Controller - County Revenues)',
+  ];
+
+  it('grades the derived CITY families from the SCO parents they were computed from', () => {
+    for (const source of DERIVED_CITY) {
+      expect(gradeFor(source), source).toEqual({
+        value: 'self_reported_unaudited',
+        entryId: 'ca-sco-derived-total-governmental-city',
+      });
+    }
+  });
+
+  it('leaves the derived COUNTY families ungraded — their parents are ungraded too', () => {
+    for (const source of DERIVED_COUNTY) {
+      expect(gradeFor(source), source).toEqual({ value: 'unknown', entryId: null });
+    }
+  });
+
+  // The anchoring trap again, on the new entry. A pattern loose at either end
+  // would reach sources this evidence does not cover.
+  it('the derived entry is anchored at both ends', () => {
+    expect(gradeFor(`${DERIVED_CITY[0]} and more`)).toEqual({ value: 'unknown', entryId: null });
+    expect(gradeFor(`Copy of ${DERIVED_CITY[0]}`)).toEqual({ value: 'unknown', entryId: null });
+  });
+
+  // ⚠ A DERIVED ROW MAY NEVER OUT-RANK ITS INPUTS. The entry must carry exactly
+  // the parents' value, not a stronger one, and this fails if someone edits
+  // either side apart from the other.
+  it('carries exactly the grade its parents carry', () => {
+    const parent = gradeFor('CA State Controller - Expenditures');
+    const derived = gradeFor(DERIVED_CITY[0]);
+    expect(derived.value).toBe(parent.value);
+  });
+
+  /**
+   * ⭐ CITY OF LOS ANGELES — the AUDITED series (2026-10-31, milestone piece 2).
+   *
+   * This is what the reader switches TO. TT already holds this city's unaudited
+   * all-funds series from the State Controller for FY2003-FY2025; these ten
+   * years of audited General Fund sit beside it, and the two will never agree
+   * because they count different funds.
+   */
+  const LA = (fy, face) => `Los Angeles ACFR \u2014 General Fund ${face} (FY${fy} actual, GAAP basis)`;
+
+  it('grades all ten read years audited_gaap, both faces', () => {
+    for (let fy = 2016; fy <= 2025; fy += 1) {
+      for (const face of ['Revenue by Source', 'Expenditure by Function']) {
+        expect(gradeFor(LA(fy, face)), `FY${fy} ${face}`)
+          .toEqual({ value: 'audited_gaap', entryId: 'la-city-acfr-gf' });
+      }
+    }
+  });
+
+  // ⚠⚠ THE YEARS ARE ENUMERATED TO THE WINDOW SOMEBODY ACTUALLY READ. A bare
+  // `FY\d{4}` would grade a future filing the moment it loaded, off an opinion
+  // nobody had opened — the rule every ACFR family in this registry follows.
+  it('refuses a year nobody has read yet', () => {
+    expect(gradeFor(LA(2026, 'Revenue by Source'))).toEqual({ value: 'unknown', entryId: null });
+    expect(gradeFor(LA(2015, 'Revenue by Source'))).toEqual({ value: 'unknown', entryId: null });
+  });
+
+  // ⚠⚠⚠ ONE EIN, THREE AUDITEES. 956000735 carries `Port of Los Angeles` and
+  // `LOS ANGELES WORLD AIRPORTS` as well as the city, ten filings each. An
+  // enterprise fund's book loaded under the city's name would tie perfectly and
+  // be entirely wrong.
+  it('claims neither the Port nor the airports nor the county', () => {
+    for (const other of [
+      'Port of Los Angeles ACFR \u2014 General Fund Revenue by Source (FY2023 actual, GAAP basis)',
+      'Los Angeles World Airports ACFR \u2014 General Fund Revenue by Source (FY2023 actual, GAAP basis)',
+      'Los Angeles County ACFR \u2014 General Fund Revenue by Source (FY2023 actual, GAAP basis)',
+    ]) {
+      expect(gradeFor(other), other).toEqual({ value: 'unknown', entryId: null });
+    }
+  });
+
+  // The anchoring trap again: the pattern must be closed at both ends.
+  it('is anchored at both ends', () => {
+    expect(gradeFor(`Copy of ${LA(2023, 'Revenue by Source')}`)).toEqual({ value: 'unknown', entryId: null });
+    expect(gradeFor(`${LA(2023, 'Revenue by Source')} (restated)`)).toEqual({ value: 'unknown', entryId: null });
+  });
+
+  // ⚠ The four axes carry the two halves of one fact about one document. A year
+  // inside one pattern and outside another publishes a row with half a
+  // description, and no gate reads across registries — so this test does.
+  it('is described identically by all four axes', () => {
+    const label = LA(2016, 'Revenue by Source');
+    const byAxis = {
+      audit_grade: AUDIT_GRADE_REGISTRY,
+      fund_scope: FUND_SCOPE_REGISTRY,
+      basis: BASIS_REGISTRY,
+      accounting_basis: ACCOUNTING_BASIS_REGISTRY,
+    };
+    for (const [axis, registry] of Object.entries(byAxis)) {
+      const entry = registry.find((e) => e.id === 'la-city-acfr-gf');
+      expect(entry, `${axis} has no la-city-acfr-gf entry`).toBeTruthy();
+      expect(entry.match.test(label), `${axis} does not match the label`).toBe(true);
+      expect(entry.match.test(LA(2026, 'Revenue by Source')), `${axis} claims an unread year`).toBe(false);
+    }
   });
 
   // ⚠ THE ANCHORING TRAP, pinned. /^CA State Controller/ also matches the

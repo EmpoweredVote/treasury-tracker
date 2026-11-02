@@ -87,6 +87,37 @@ export const AUDIT_GRADE = Object.freeze({
   SELF_REPORTED_UNAUDITED: 'self_reported_unaudited',
   /** Not yet assessed. */
   UNKNOWN: 'unknown',
+  /**
+   * The row is not a financial statement, so no auditor ever held an opinion
+   * on it. A payroll roster or a payments register — `dataset_type` of
+   * `salaries` or `transactions`.
+   *
+   * ⭐ Chris's call, 2026-10-30, verbatim: "not_applicable value — salaries
+   * aren't financial statements."
+   *
+   * ⚠⚠ THIS IS NOT A SIXTH RUNG. Every value above answers "how much
+   * independent checking stands behind this figure"; this one denies that the
+   * question applies. It is not weaker than UNKNOWN — it is off that axis. It
+   * is listed LAST so the five assurance values keep their order and their
+   * indices, not because it ranks below them.
+   *
+   * ⚠⚠ NEVER REACHABLE FROM auditGradeRegistry.mjs, and a test pins that.
+   * Every other grade answers "what did the PUBLISHER do", which is why it
+   * needs `{document, figures}` evidence. This one answers "what KIND of record
+   * is this", and the row's own `dataset_type` already says — so it is stamped
+   * by scripts/stampNotApplicableGrade.mjs from that column, never matched from
+   * a `data_source` string. A registry entry would dress a row-shape fact as a
+   * publisher judgement and would have to be repeated for all 26 salary and
+   * transaction sources and every future one. The same lesson as #198: an
+   * INAPPLICABLE question is not an UNANSWERED one, and gating on the thing
+   * that makes it inapplicable is what keeps us from confessing to a gap that
+   * does not exist.
+   *
+   * ⚠ It is EXEMPT from `budgets_graded_rows_need_a_source_url`, alongside
+   * `unknown` — see migration 20261030000000. That constraint binds rows making
+   * a positive claim about assurance; this value makes none.
+   */
+  NOT_APPLICABLE: 'not_applicable',
 });
 export const AUDIT_GRADE_VALUES = Object.freeze(Object.values(AUDIT_GRADE));
 

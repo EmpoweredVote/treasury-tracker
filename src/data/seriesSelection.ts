@@ -24,6 +24,7 @@ import {
 } from './fundScopeVocabulary';
 import { buildPeriodTokens, parsePeriod } from '../utils/period';
 import { normalizeDerivation, isDerived, type Derivation } from './derivation';
+import { normalizeAuditGrade, weakestGrade, type AuditGrade } from './auditGrade';
 
 /**
  * The dataset types that participate in series selection.
@@ -67,6 +68,19 @@ export interface AvailableSeries {
    * UNMARKED, so a mixed series must over-disclose rather than under-disclose.
    */
   derivation: Derivation;
+  /**
+   * AUDIT-GRADE — what independent assurance stands behind this series.
+   *
+   * ⚠⚠ A PROPERTY, NEVER PART OF THE IDENTITY, for exactly the reason given
+   * for `derivation` above: `(fund_scope, basis)` already identifies a series,
+   * and letting the grade reach seriesId() would split one series into two
+   * pills the moment its two datasets were graded differently.
+   *
+   * ⚠ A mixed series states the WEAKER grade, not the first one seen — see
+   * weakestGrade() in ./auditGrade. Same one-directional rule as `derivation`:
+   * over-disclose rather than under-disclose.
+   */
+  auditGrade: AuditGrade;
 }
 
 export function seriesId(k: SeriesKey): string {
@@ -82,7 +96,9 @@ export function seriesId(k: SeriesKey): string {
  * adopted operating figures permanently invisible.
  */
 export function listSeries(datasets: DatasetEntry[]): AvailableSeries[] {
-  const acc = new Map<string, { key: SeriesKey; years: Map<string, Set<number>>; derivation: Derivation }>();
+  const acc = new Map<string, {
+    key: SeriesKey; years: Map<string, Set<number>>; derivation: Derivation; grades: AuditGrade[];
+  }>();
 
   for (const d of datasets) {
     if (!SERIES_DATASETS.includes(d.dataset_type)) continue;
@@ -91,16 +107,18 @@ export function listSeries(datasets: DatasetEntry[]): AvailableSeries[] {
       basis: normalizeBasis(d.basis),
     };
     const id = seriesId(key);
-    if (!acc.has(id)) acc.set(id, { key, years: new Map(), derivation: 'published' });
+    if (!acc.has(id)) acc.set(id, { key, years: new Map(), derivation: 'published', grades: [] });
     const entry = acc.get(id)!;
     // Any derived entry makes the whole series derived — see AvailableSeries.derivation.
     if (isDerived(normalizeDerivation(d.derivation))) entry.derivation = 'derived';
+    // Every entry's grade is collected; the weakest is what the series states.
+    entry.grades.push(normalizeAuditGrade(d.audit_grade));
     if (!entry.years.has(d.dataset_type)) entry.years.set(d.dataset_type, new Set());
     entry.years.get(d.dataset_type)!.add(d.fiscal_year);
   }
 
   const out: AvailableSeries[] = [];
-  for (const [id, { key, years, derivation }] of acc) {
+  for (const [id, { key, years, derivation, grades }] of acc) {
     const coverage: Record<string, SeriesCoverage> = {};
     const all = new Set<number>();
     for (const [dataset, set] of years) {
@@ -111,6 +129,7 @@ export function listSeries(datasets: DatasetEntry[]): AvailableSeries[] {
     const allSorted = [...all].sort((a, b) => a - b);
     out.push({
       key, id, label: seriesLabel(key), coverage, derivation,
+      auditGrade: weakestGrade(grades),
       span: { min: allSorted[0], max: allSorted[allSorted.length - 1] },
       totalYears: allSorted.length,
     });

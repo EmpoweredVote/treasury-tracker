@@ -29,6 +29,8 @@
  *   SUPABASE_SERVICE_KEY=... node scripts/seedCountyLinks.js --county "Ventura" --dry-run
  *   SUPABASE_SERVICE_KEY=... node scripts/seedCountyLinks.js --county "Orange" --state CA --force
  *   SUPABASE_SERVICE_KEY=... node scripts/seedCountyLinks.js --county "Salt Lake" --state UT --cities "Salt Lake City,Sandy City,West Jordan City,West Valley City"
+ *   # a county with NO incorporated cities — the entity is the whole job:
+ *   SUPABASE_SERVICE_KEY=... node scripts/seedCountyLinks.js --county "Alpine" --no-cities
  */
 
 import { createClient } from '@supabase/supabase-js';
@@ -69,6 +71,18 @@ async function main() {
       county: { type: 'string', short: 'c' },
       state: { type: 'string', short: 's' },
       cities: { type: 'string' },
+      // ⚠⚠ AN INAPPLICABLE QUESTION IS NOT AN UNANSWERED ONE (#198, in county
+      // form). Alpine, Mariposa and Trinity are California's three counties
+      // with NO incorporated cities — which is exactly why this seed-and-link
+      // helper, driven by city membership, never created them: Step 1 writes
+      // the county entity and Step 2 then exits non-zero with "No member cities
+      // resolved", leaving a real row behind a reported failure.
+      //
+      // Zero members is a FACT about those counties, not a failed lookup, and
+      // the operator states it rather than the script inferring it from an
+      // empty response — an empty response is also what a misspelled county
+      // name returns.
+      'no-cities': { type: 'boolean' },
       'dry-run': { type: 'boolean' },
       force: { type: 'boolean' },
     },
@@ -78,8 +92,14 @@ async function main() {
   const county = values.county;
   const state = (values.state || 'CA').toUpperCase();
   const citiesArg = values.cities;
+  const noCities = values['no-cities'] ?? false;
   const dryRun = values['dry-run'] ?? false;
   const force = values.force ?? false;
+
+  if (noCities && citiesArg && citiesArg.trim()) {
+    console.error('--no-cities and --cities contradict each other. Pass one.');
+    process.exit(1);
+  }
 
   if (!county) {
     console.error('Usage: node scripts/seedCountyLinks.js --county "<Name>" [--state CA] [--dry-run] [--force]');
@@ -127,7 +147,11 @@ async function main() {
   // D-70-02: an explicit --cities list bypasses the SCO Socrata fetch (which is
   // CA-only). When absent, derive membership from the SCO `county` field as before.
   let cityNames;
-  if (citiesArg && citiesArg.trim()) {
+  if (noCities) {
+    cityNames = [];
+    console.log('\nStep 2: --no-cities — this county has no incorporated cities, so there is');
+    console.log('        nothing to link. The county entity above is the whole job.');
+  } else if (citiesArg && citiesArg.trim()) {
     cityNames = citiesArg.split(',').map(s => s.trim()).filter(Boolean);
     console.log(`\nStep 2: Member cities from --cities flag (${cityNames.length}): ${cityNames.join(', ')}`);
   } else {
@@ -135,8 +159,13 @@ async function main() {
     cityNames = await fetchCountyCityNames(county);
     console.log(`  ${cityNames.length} entity names returned by SCO for this county.`);
   }
-  if (cityNames.length === 0) {
-    console.error(`  No member cities resolved for county='${county}'. Pass --cities "A,B,C" or check the SCO 'county' field matches exactly.`);
+  // ⚠ Still an ERROR when the operator did NOT say the county has none: an
+  // empty response is also what a misspelled county name returns, and the
+  // county entity has already been written by Step 1 at this point.
+  if (cityNames.length === 0 && !noCities) {
+    console.error(`  No member cities resolved for county='${county}'. Pass --cities "A,B,C", or`);
+    console.error("  --no-cities if this county genuinely has none, or check the SCO 'county'");
+    console.error('  field matches exactly.');
     process.exit(1);
   }
 

@@ -36,6 +36,12 @@ export interface DatasetEntry {
   // SCOPE-04: 'published' | 'derived'. Absent means published — every row
   // predating SCOPE-04 is, and an older API build omits the field.
   derivation?: string | null;
+  // AUDIT-GRADE: what independent assurance stands behind the row. Optional for
+  // the same reason as the two above — an older API build omits it — but the
+  // DEFAULT RUNS THE OTHER WAY: normalizeAuditGrade() reads absent as 'unknown',
+  // never as a grade, because defaulting to a graded value would have Treasury
+  // Tracker assert an audit it never read.
+  audit_grade?: string | null;
 }
 
 /**

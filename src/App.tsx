@@ -36,8 +36,10 @@ import type { YearSelectorHandle } from './components/YearSelector';
 import { parsePeriod } from './utils/period'
 import { resolveEffectiveDataset } from './utils/resolveDataset';
 import FundSeriesToggle from './components/FundSeriesToggle';
+import SourceBar from './components/SourceBar';
+import { citationLine } from './data/provenanceLine';
 import {
-  listSeries, defaultSeries, seriesId, encodeSeries, decodeSeries,
+  listSeries, defaultSeries, seriesId, encodeSeries, decodeSeries, SERIES_DATASETS,
   seriesPeriodTokens, resolveSeriesYear, shouldResetSeries, initialYearForEntity,
   resolveClampNote, type ClampNoteState,
 } from './data/seriesSelection';
@@ -394,11 +396,16 @@ function App() {
     return defaultSeriesSeed;
   }, [selectedEntity, selectedSeries, availableSeries, defaultSeriesSeed]);
 
-  const effectiveSeriesLabel = useMemo(
+  // AUDIT-GRADE §5.2 — the source bar needs the series ITSELF, not just its
+  // label: its `auditGrade` (over-disclosed across the series' datasets by
+  // weakestGrade) and its coverage `span`.
+  const effectiveSeriesInfo = useMemo(
     () => availableSeries.find(
-      (s) => effectiveSeries && s.id === seriesId(effectiveSeries))?.label ?? '',
+      (s) => effectiveSeries && s.id === seriesId(effectiveSeries)) ?? null,
     [availableSeries, effectiveSeries],
   );
+
+  const effectiveSeriesLabel = effectiveSeriesInfo?.label ?? '';
 
   // SCOPE-03: the selection does NOT persist across entities — a series Modesto
   // has, Natick will not, and carrying it over drops the reader into an absent
@@ -1173,6 +1180,64 @@ function App() {
   // loaded data; formulas disclosed in ScaleToggle tooltips + MethodologyPanel.
   // MUST live above the appView early returns — hooks below them violate the
   // Rules of Hooks when the view transitions (React #310, caught in 45 UAT).
+  /**
+   * AUDIT-GRADE §5.2 — what the source bar describes.
+   *
+   * ⚠⚠ IT MUST DESCRIBE WHAT IS ON SCREEN. `availableSeries` is built from
+   * `available_datasets` and filtered to SERIES_DATASETS (operating + revenue),
+   * so it is INDEPENDENT of `activeDataset` — while `budgetData` is the active
+   * dataset. Feeding the bar the series grade/scope/span beside the active
+   * dataset's publisher mixed two different things: on the Employees tab it
+   * read "Government-reported · All Funds · LA City Open Data · FY2003–25"
+   * above a salary table whose own citation said "Not a financial statement".
+   * A false claim of assurance is the mirror image of the false confession
+   * §5.4 exists to remove. Found in whole-branch review, not by a test.
+   *
+   * Outside the series model (Employees, transactions) the active dataset
+   * answers for itself and there is no span to state. Null while it loads —
+   * SourceBar renders nothing rather than a placeholder.
+   */
+  const sourceBarProvenance = useMemo(() => {
+    if (SERIES_DATASETS.includes(activeDataset)) {
+      if (!effectiveSeriesInfo || !effectiveSeries) return null;
+      return {
+        scope: effectiveSeries.fundScope,
+        basis: effectiveSeries.basis,
+        accountingBasis: budgetData?.metadata.accountingBasis,
+        auditGrade: effectiveSeriesInfo.auditGrade,
+        span: effectiveSeriesInfo.span,
+      };
+    }
+    if (!budgetData) return null;
+    return {
+      scope: budgetData.metadata.fundScope,
+      basis: budgetData.metadata.basis,
+      accountingBasis: budgetData.metadata.accountingBasis,
+      auditGrade: budgetData.metadata.auditGrade,
+      span: null,
+    };
+  }, [activeDataset, effectiveSeries, effectiveSeriesInfo, budgetData]);
+
+  /**
+   * AUDIT-GRADE §5.2 — the line printed under each chart.
+   *
+   * ⚠ Built from the DISPLAYED DATASET's own metadata, not from the series:
+   * a chart shows one dataset in one year, and the series grade is
+   * over-disclosed across both datasets. Using it here would state the weaker
+   * of two over a figure drawn from only one of them.
+   *
+   * ⚠ Null for a nonprofit — inapplicable questions, not unanswered ones (#198).
+   */
+  const chartCitation = useMemo(() => {
+    if (!budgetData || selectedEntity?.entity_type === 'nonprofit') return undefined;
+    return citationLine({
+      grade: budgetData.metadata.auditGrade,
+      scope: budgetData.metadata.fundScope,
+      publisher: budgetData.metadata.dataSourceInfo?.displayName ?? null,
+      period: selectedYear,
+    });
+  }, [budgetData, selectedEntity, selectedYear]);
+
   const displayData = useMemo(() => {
     if (!budgetData || selectedEntity?.entity_type !== 'federal' || federalScale === 'dollars') {
       return budgetData;
@@ -1651,6 +1716,21 @@ function App() {
                   not apply to a nonprofit's own bank and platform records. */}
               {selectedEntity?.entity_type !== 'nonprofit' && availableSeries.length > 0 && (
                 <div className="mb-4">
+                  {/* AUDIT-GRADE §5.2 — provenance stated once, loudly, under the
+                      entity name, with the series switcher INSIDE it rather than
+                      beside it. Chris rejected a chip on every figure: the same
+                      pill five times down a page becomes furniture and stops
+                      being read, and it fails silently when it does. */}
+                  <SourceBar
+                    provenance={sourceBarProvenance}
+                    // ⚠ undefined while the dataset LOADS; null only when the API
+                    // really returned no publisher. `budgetData` is nulled on every
+                    // dataset, year and entity change, so collapsing the two printed
+                    // the D5 finding over governments that have a publisher.
+                    publisher={budgetData
+                      ? (budgetData.metadata.dataSourceInfo?.displayName ?? null)
+                      : undefined}
+                  >
                   <FundSeriesToggle
                     series={availableSeries}
                     selectedId={effectiveSeries ? seriesId(effectiveSeries) : ''}
@@ -1662,6 +1742,7 @@ function App() {
                       {yearClampNote}
                     </p>
                   )}
+                  </SourceBar>
                 </div>
               )}
 
@@ -1829,6 +1910,7 @@ function App() {
                         totalBudget={displayData!.metadata.totalBudget}
                         onPathClick={handlePathClick}
                         isNonprofit={selectedEntity?.entity_type === 'nonprofit'}
+                        citation={chartCitation}
                       />
                       {txView === 'panel' ? (
                         <LinkedTransactionsPanel
@@ -1859,6 +1941,7 @@ function App() {
                     totalBudget={displayData!.metadata.totalBudget}
                     onPathClick={handlePathClick}
                     isNonprofit={selectedEntity?.entity_type === 'nonprofit'}
+                    citation={chartCitation}
                   />
                   {/* Attribution for descriptions */}
                   {(() => {
@@ -1914,6 +1997,7 @@ function App() {
                     totalBudget={displayData!.metadata.totalBudget}
                     onPathClick={handlePathClick}
                     isNonprofit={selectedEntity?.entity_type === 'nonprofit'}
+                    citation={chartCitation}
                   />
                   {/* ⚠⚠ Decided by `linkedTxView`, not by the truthiness of the
                       summary. `null` meant three different things and the

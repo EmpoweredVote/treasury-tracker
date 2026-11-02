@@ -156,6 +156,60 @@ const NYC_ACFR_EVIDENCE = {
 
 export const AUDIT_GRADE_REGISTRY = [
   {
+    // ⭐ CITY OF LOS ANGELES — the AUDITED series, added 2026-10-31 as piece 2
+    // of the audit-grade milestone. It exists so the reader has something to
+    // switch TO: TT already holds this city's unaudited all-funds series from
+    // the State Controller, FY2003-FY2025.
+    //
+    // ⚠⚠⚠ A SECOND SERIES, NEVER A CORRECTION OF THE FIRST. The audited
+    // General Fund is ~$6.7B (FY2023); the Controller's all-funds figure for the
+    // same city and year is ~$23.5B, because it counts the airport, the port and
+    // the utility. Both are right and they will never agree.
+    // ⚠⚠ BYTE-IDENTICAL to this id's pattern in the other three axis
+    // registries, so they cannot disagree about who is in this family.
+    // ⚠⚠ YEARS ENUMERATED TO THE READ WINDOW (FY2016-FY2025), never
+    // `FY\d{4}`: a bare pattern would describe a future year's filing the
+    // moment it loaded, off a document nobody had opened. FY2026 must fail
+    // to match and load `unknown` until somebody reads it.
+    // ⚠ Anchored at BOTH ends. `Los Angeles` is a prefix of nothing here,
+    // but EIN 956000735 also carries `Port of Los Angeles` and `Los Angeles
+    // World Airports`, and LA County is a different government again.
+    id: 'la-city-acfr-gf',
+    match: /^Los Angeles ACFR — General Fund (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[6-9]|2[0-5]) actual, GAAP basis\)$/,
+    value: AUDIT_GRADE.AUDITED_GAAP,
+    evidence: {
+      document: 'All ten City of Los Angeles ACFRs, FY2016-FY2025, read 2026-10-31 from the '
+        + 'Federal Audit Clearinghouse at https://app.fac.gov/dissemination/report/pdf/<report_id>. '
+        + 'The report_id for each year is recorded in _acfr-work/la-city/manifest.json and is the '
+        + '`source_url` stored on the rows this entry grades, so the document attested here is the '
+        + 'one the reader is offered. \u26a0\u26a0 EIN 956000735 carries THREE auditees with ten '
+        + 'filings each \u2014 `City of Los Angeles`, `Port of Los Angeles` and `LOS ANGELES WORLD '
+        + 'AIRPORTS` \u2014 and the Census-era report-id suffix (0000132045) repeats across FY2016-FY2022, '
+        + 'so the manifest filters on `auditee_name` and every PDF cover page was checked for the '
+        + 'entity and the fiscal year.',
+      figures: 'OPINION PRESENT IN ALL TEN \u2014 scripts/verifyCoKsOpinions.py: 10 found in the TEXT '
+        + 'layer, 0 recovered by OCR, 0 NOT FOUND. Corroborated INDEPENDENTLY by the FAC metadata '
+        + 'API, where `gaap_results` is `unmodified_opinion` for every one of the ten years and '
+        + '`sp_framework_opinions` is empty (so GAAP, not an other-basis framework \u2014 this is '
+        + '`audited_gaap`, not `audited_ocboa`). '
+        + '\u26a0\u26a0 FOUR FILINGS CONTAIN MODIFIED-OPINION WORDS AND WERE READ BY EYE RATHER THAN '
+        + 'AUTO-DOWNGRADED, recorded per filing as the Honolulu precedent requires: FY2018 "Basis for '
+        + 'Qualified Opinion on the Crime Victim Assistance Program"; FY2019 "...on the Fire '
+        + 'Management Assistance Grant Program"; FY2021 "...on the Aging Cluster and Temporary '
+        + 'Assistance for Needy Families". Every one names a FEDERAL PROGRAM inside the Single Audit '
+        + 'compliance report, never the basic financial statements. FY2016\u2019s "Qualified Opinion '
+        + 'and Material Weakness" appears in its SCHEDULE OF PRIOR AUDIT FINDINGS \u2014 a record of an '
+        + 'earlier year\u2019s finding, further from the basic statements still. The remaining matches '
+        + 'are ordinary prose in the notes ("no investment holdings of more than 10% ... except for"). '
+        + '\u26a0 FAC reports `is_internal_control_material_weakness_disclosed = Yes` for FY2016-FY2022. '
+        + 'That is a Single Audit internal-control finding, NOT a modification of the opinion on the '
+        + 'basic financial statements, and TT\u2019s vocabulary does not encode it \u2014 recorded here '
+        + 'rather than claimed as a precision the grade does not carry. '
+        + '\u26a0 THE GENERAL FUND IS THE SCOPE THE OPINION COVERS: every opinion names "each major '
+        + 'fund", and the General Fund is a major fund in all ten reports.',
+    },
+  },
+  {
     id: 'hi-local-acfr-gf',
     // ⚠⚠ YEARS ENUMERATED, NOT A RANGE, for the reason recorded on
     // ak-local-acfr-gf and tx-local-acfr-gf: a range would auto-grade a newly
@@ -297,8 +351,14 @@ export const AUDIT_GRADE_REGISTRY = [
     match: /^Ohio Auditor of State Summarized Annual Financial Reports$/,
     value: AUDIT_GRADE.SELF_REPORTED_UNAUDITED,
     evidence: {
+      // ⚠ `www.`, not the bare apex: `ohioauditor.gov` fails DNS outright
+      // (measured 2026-11-01) while `www.ohioauditor.gov` resolves. The page
+      // was read on 2026-08-28 via the apex, which worked then; the host here
+      // is the form that resolves, and the page it cites is the same one.
+      // ⛔ Unverified since: the AOS site has been offline following a
+      // 2026-10-25 cyberattack. Matches scripts/ohioAosDatasets.json.
       document: 'Ohio Auditor of State, Summarized Annual Financial Reports download page '
-        + '(https://ohioauditor.gov/references/SummarizedAnnualFinancialReports), fetched 2026-08-28. '
+        + '(https://www.ohioauditor.gov/references/SummarizedAnnualFinancialReports), fetched 2026-08-28. '
         + 'The publisher states the audit status in its own words, in capitals, on the page the files '
         + 'are downloaded from.',
       figures: 'Verbatim: "Download UNAUDITED annual financial report information by filing year, or '
@@ -790,6 +850,58 @@ export const AUDIT_GRADE_REGISTRY = [
         + 'Local Government Report from county auditors instead." A second self-reporting channel, '
         + 'so the grade is unchanged, but the mixed provenance is recorded because it makes the '
         + 'property-tax rows non-independent of SCDOR rather than of the county.',
+    },
+  },
+  {
+    /**
+     * ⭐⭐ SCOPE-04 DERIVED ROWS — the only entry in this registry whose evidence
+     * is another entry. D3 of docs/superpowers/specs/2026-10-30-audit-grade-ui-design.md.
+     *
+     * Treasury Tracker computed these totals by summing the governmental funds
+     * out of the two CA SCO city families immediately below. Saying "nobody has
+     * looked" about a figure TT built from its own graded inputs is LESS honest
+     * than the truth, not more — and it was live: on the LA City page, toggling
+     * All Funds → Total Governmental flipped the chip from "Government-reported"
+     * to "Audit status not established" for a figure derived from the very rows
+     * labelled "Government-reported".
+     *
+     * ⚠⚠ CITY ONLY, AND THE OMISSION IS THE POINT. The two COUNTY derived
+     * families — `(CA State Controller - County Expenditures)` and
+     * `(... County Revenues)`, 857 rows — are deliberately NOT matched here.
+     * Their parents are themselves ungraded (bucket C, awaiting a publisher
+     * recon), and a derived row may never out-rank its inputs (§3.5). An entry
+     * is created when its evidence is: theirs does not exist yet, so they stay
+     * `unknown`, which is the correct outcome and not a gap to fill in later.
+     *
+     * ⚠⚠ NOT A BRANCHING ENTRY, AND IT CANNOT BE ONE. The design proposed a
+     * single branching entry over all four families whose own `value` was
+     * `unknown`. classifyAxis returns `{value: unknown, entryId: null}` for any
+     * entry whose value IS the unknown value, and gradeFor returns immediately
+     * on a null entryId — so the branch would never have run. Two shapes, one
+     * for each truth, is what the mechanism supports and what the evidence
+     * actually says.
+     */
+    id: 'ca-sco-derived-total-governmental-city',
+    match: /^Treasury Tracker derived: Total Governmental \(CA State Controller - (?:Expenditures|Revenues)\)$/,
+    value: AUDIT_GRADE.SELF_REPORTED_UNAUDITED,
+    evidence: {
+      document: 'The two parent entries in this registry — `ca-sco-city-exp` and '
+        + '`ca-sco-city-rev` — and the Government Code § 53891(a) evidence they carry '
+        + '(CA_SCO_EVIDENCE above, verified verbatim 2026-08-28). These derived rows have '
+        + 'no publisher and no document of their own: Treasury Tracker computed them, so '
+        + 'the only honest evidence for their assurance is the assurance of the rows they '
+        + 'were computed FROM. That is inheritance, which §3.5 permits in one direction '
+        + 'only — a derived row may never out-rank its inputs.',
+      figures: 'SCOPE-04 built these by summing the governmental funds within each CA SCO '
+        + 'city filing; the `derivation` column records it as `derived` and '
+        + 'FundSeriesToggle renders "computed by Treasury Tracker" wherever the series is '
+        + 'named. Measured in production 2026-10-30: 3,403 expenditure rows and 3,392 '
+        + 'revenue rows carry these two labels, 6,795 in all, every one of them with a '
+        + 'source_url. Their parents carry `self_reported_unaudited` under the § 53891(a) '
+        + 'reading that SCO RECEIVES and compiles these reports rather than auditing '
+        + 'them, so the derived totals carry it too and nothing stronger. '
+        + '⚠ The two COUNTY derived families (428 + 429 rows) are excluded on purpose: '
+        + 'their parents are ungraded, so there is nothing for them to inherit.',
     },
   },
   {

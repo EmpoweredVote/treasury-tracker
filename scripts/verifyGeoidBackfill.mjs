@@ -78,6 +78,47 @@ from treasury.municipalities
 where geoid is not null
 group by geoid having count(*) > 1
 order by geoid;
+
+-- ⚠⚠ A NULL GEOID IS NOT AUTOMATICALLY A GAP, AND COUNTING THEM TOGETHER HID
+-- THE ONLY NUMBER THAT MATTERS. Measured 2026-11-01: of 79 nulls, 37 belong to
+-- governments that DISSOLVED and 26 carry no data at all. Both are correct
+-- nulls — the census cannot name a government that no longer exists, and a
+-- geoid invented from a retired vintage would match no boundary row (checked:
+-- 0 of 18 dissolved NY villages appear in essentials.geofence_boundaries).
+--
+-- ⭐ Only "STILL FILING" is actionable. Those entities publish current budgets
+-- and are nonetheless unmatched in Civic Spaces. 16 on 2026-11-01: five Alaska
+-- consolidated city-boroughs, five Georgia consolidated city-counties, two IN
+-- towns, one PA township — plus Ranger, Sunny Side and South Nyack, which are
+-- DISSOLVED and merely filed a final year, so they belong with the 37.
+with geo as (
+  select id, name, state, entity_type, geoid
+  from treasury.municipalities
+  where entity_type in ('state','county','township','city','town','village','borough','municipality')
+),
+last_filed as (
+  select municipality_id, max(fiscal_year) as last_fy from treasury.budgets group by 1
+)
+select case
+         when g.geoid is not null                then 'has geoid'
+         when l.last_fy is null                  then 'null geoid, no data at all'
+         when l.last_fy >= 2022                  then 'null geoid, STILL FILING — actionable'
+         else 'null geoid, stopped filing — a retired government'
+       end as bucket,
+       count(*) as n
+from geo g left join last_filed l on l.municipality_id = g.id
+group by 1 order by 2 desc;
+
+-- Name the actionable ones.
+with last_filed as (
+  select municipality_id, max(fiscal_year) as last_fy from treasury.budgets group by 1
+)
+select m.state, m.entity_type, m.name, l.last_fy
+from treasury.municipalities m join last_filed l on l.municipality_id = m.id
+where m.geoid is null
+  and m.entity_type in ('state','county','township','city','town','village','borough','municipality')
+  and l.last_fy >= 2022
+order by m.state, m.name;
 `;
 
 if (process.argv.includes('--print-sql')) {

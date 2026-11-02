@@ -18,6 +18,38 @@ import { BASIS } from '../lib/budgetAxes.mjs';
 /** @type {import('../lib/budgetAxes.mjs').AxisEntry[]} */
 export const BASIS_REGISTRY = [
   {
+    // ⭐ CITY OF LOS ANGELES — the AUDITED series, added 2026-10-31 as piece 2
+    // of the audit-grade milestone. It exists so the reader has something to
+    // switch TO: TT already holds this city's unaudited all-funds series from
+    // the State Controller, FY2003-FY2025.
+    //
+    // ⚠⚠⚠ A SECOND SERIES, NEVER A CORRECTION OF THE FIRST. The audited
+    // General Fund is ~$6.7B (FY2023); the Controller's all-funds figure for the
+    // same city and year is ~$23.5B, because it counts the airport, the port and
+    // the utility. Both are right and they will never agree.
+    // ⚠⚠ BYTE-IDENTICAL to this id's pattern in the other three axis
+    // registries, so they cannot disagree about who is in this family.
+    // ⚠⚠ YEARS ENUMERATED TO THE READ WINDOW (FY2016-FY2025), never
+    // `FY\d{4}`: a bare pattern would describe a future year's filing the
+    // moment it loaded, off a document nobody had opened. FY2026 must fail
+    // to match and load `unknown` until somebody reads it.
+    // ⚠ Anchored at BOTH ends. `Los Angeles` is a prefix of nothing here,
+    // but EIN 956000735 also carries `Port of Los Angeles` and `Los Angeles
+    // World Airports`, and LA County is a different government again.
+    id: 'la-city-acfr-gf',
+    match: /^Los Angeles ACFR — General Fund (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[6-9]|2[0-5]) actual, GAAP basis\)$/,
+    value: BASIS.ACTUAL,
+    evidence: {
+      document: 'The same governmental-funds statement in each of the ten ACFRs. It reports what the '
+        + 'city actually received and spent in a closed fiscal year, audited after the fact.',
+      figures: '\u26a0 THE SAME DOCUMENT ALSO CONTAINS AN ADOPTED-BUDGET STATEMENT, two pages later: '
+        + '`Statement of Revenues, Expenditures and Changes in Fund Balance \u2014 Budget and Actual '
+        + '(Non-GAAP Budgetary Basis)`. It is NOT what is loaded. The extractor\u2019s anchor requires '
+        + 'the words `Governmental Funds`, which the budgetary statement does not carry, and the '
+        + 'library\u2019s own exclusion list carries `budget and actual`.',
+    },
+  },
+  {
     id: 'hi-local-acfr-gf',
     // ⚠ Byte-identical to this id's pattern in fundScopeRegistry.mjs and
     // reportingEntityRegistry.mjs. Anchored so it cannot claim the HI STATE
