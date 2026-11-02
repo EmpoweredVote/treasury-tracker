@@ -11,7 +11,7 @@ describe('fund scope values', () => {
     // Drift between this list and the constraint means the UI can be handed a
     // value it has no copy for. Asserted rather than assumed.
     expect([...FUND_SCOPE_VALUES].sort()).toEqual(
-      ['all_funds', 'general_fund', 'total_governmental', 'unknown'],
+      ['all_funds', 'general_fund', 'governmental_operating', 'total_governmental', 'unknown'],
     );
   });
 
@@ -49,10 +49,24 @@ describe('normalizeScope — absent must mean unknown, never a guess', () => {
 });
 
 describe('isComparableScope — the cross-entity guard', () => {
-  it('permits the three established scopes', () => {
+  it('permits the four established scopes', () => {
     expect(isComparableScope('general_fund')).toBe(true);
+    expect(isComparableScope('governmental_operating')).toBe(true);
     expect(isComparableScope('total_governmental')).toBe(true);
     expect(isComparableScope('all_funds')).toBe(true);
+  });
+
+  it('keeps governmental_operating comparable with ITSELF but nothing else', () => {
+    // The point of giving Virginia its own value rather than the blanket
+    // non-comparable flag: 174 VA localities share one publisher and one set of
+    // definitions, so they are comparable with each other. areComparable() is
+    // what keeps them away from every OTHER scope, by requiring equality.
+    const va = { fundScope: 'governmental_operating', basis: 'actual',
+      reportingEntity: 'primary_government' } as const;
+    expect(areComparable(va, { ...va })).toBe(true);
+    expect(areComparable(va, { ...va, fundScope: 'total_governmental' })).toBe(false);
+    expect(areComparable(va, { ...va, fundScope: 'general_fund' })).toBe(false);
+    expect(areComparable(va, { ...va, fundScope: 'all_funds' })).toBe(false);
   });
 
   it('refuses unknown', () => {

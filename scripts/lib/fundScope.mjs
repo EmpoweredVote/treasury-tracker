@@ -44,9 +44,27 @@
  * than quietly erased: a scope was inferred from a `data_source` label, which is
  * precisely what `classify()` refuses to let a registry entry do. Read a loader's
  * actual input before believing what its source string calls itself.
+ *
+ * ── `governmental_operating` was added 2026-11-02, for Virginia ──────────────
+ * The VA APA Comparative Report publishes a scope none of the other three names:
+ * general government OPERATING activity, with capital projects (Exhibit D), debt
+ * service (Exhibit E) and enterprise (Exhibit F) each reported separately and
+ * excluded. It is NOT `total_governmental` — D and E are governmental-fund
+ * outflows that label would assert are included — and NOT `general_fund`, since
+ * the school operating fund is inside it.
+ *
+ * ⚠ It is added to the vocabulary but deliberately NOT to NON_COMPARABLE_SCOPES.
+ * Two VA localities ARE comparable with each other: same publisher, same Notes,
+ * same definitions, 161 of them in TT. `areComparable()` already refuses a
+ * governmental_operating figure against a total_governmental one by requiring
+ * the scopes to be EQUAL, so the blanket flag would buy nothing and would print
+ * "not compared across places" on 608 rows that are comparable among themselves.
+ * Declaring two figures incomparable without evidence is the same error as
+ * declaring them comparable without evidence.
  */
 export const SCOPE = Object.freeze({
   GENERAL_FUND: 'general_fund',
+  GOVERNMENTAL_OPERATING: 'governmental_operating',
   TOTAL_GOVERNMENTAL: 'total_governmental',
   ALL_FUNDS: 'all_funds',
   UNKNOWN: 'unknown',
@@ -103,6 +121,13 @@ export function isComparableScope(scope) {
 export function isComparablePair(a, b) {
   if (!a || !b) return false;
   if (!isComparableScope(a.scope) || !isComparableScope(b.scope)) return false;
+  // ⚠ ADDED 2026-11-02. Until now this function checked only that each scope was
+  // individually comparable and then compared the BASES, so it returned true for
+  // general_fund against all_funds — the exact claim this module exists to
+  // refuse. It has no runtime consumer (SCOPE-02 Task note: "unused elsewhere"),
+  // which is why the gap survived; adding a fifth scope value would have widened
+  // it. The fund scope is half the predicate's own documented contract.
+  if (a.scope !== b.scope) return false;
   const known = (v) => typeof v === 'string' && v !== '' && v !== 'unknown';
   // Absence never blocks. See the warning above.
   if (!known(a.accountingBasis) || !known(b.accountingBasis)) return true;

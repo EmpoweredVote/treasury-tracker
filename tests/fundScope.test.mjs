@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   classify, validateRegistry, compareTallies, auditClassified, SCOPE, SCOPE_VALUES,
-  NON_COMPARABLE_SCOPES, isComparableScope,
+  NON_COMPARABLE_SCOPES, isComparableScope, isComparablePair,
 } from '../scripts/lib/fundScope.mjs';
 import { FUND_SCOPE_REGISTRY } from '../scripts/data/fundScopeRegistry.mjs';
 
@@ -269,7 +269,7 @@ describe('SCOPE', () => {
     // Drift between this enum and the constraint is a write that fails in
     // production, so the two are asserted equal rather than assumed so.
     expect([...SCOPE_VALUES].sort()).toEqual(
-      ['all_funds', 'general_fund', 'total_governmental', 'unknown'],
+      ['all_funds', 'general_fund', 'governmental_operating', 'total_governmental', 'unknown'],
     );
     expect(Object.values(SCOPE).sort()).toEqual([...SCOPE_VALUES].sort());
   });
@@ -338,8 +338,9 @@ describe('comparability', () => {
     expect(isComparableScope(SCOPE.UNKNOWN)).toBe(false);
   });
 
-  it('treats the three whole-entity totals as comparable', () => {
+  it('treats the four whole-entity totals as comparable', () => {
     expect(isComparableScope(SCOPE.GENERAL_FUND)).toBe(true);
+    expect(isComparableScope(SCOPE.GOVERNMENTAL_OPERATING)).toBe(true);
     expect(isComparableScope(SCOPE.TOTAL_GOVERNMENTAL)).toBe(true);
     expect(isComparableScope(SCOPE.ALL_FUNDS)).toBe(true);
   });
@@ -347,6 +348,42 @@ describe('comparability', () => {
   it('does not treat an unrecognised value as comparable', () => {
     expect(isComparableScope('enterprise')).toBe(false);
     expect(isComparableScope(undefined)).toBe(false);
+  });
+});
+
+describe('isComparablePair — the fund scope is half the predicate', () => {
+  const row = (scope, accountingBasis) => ({ scope, accountingBasis });
+
+  it('REFUSES two different scopes, whatever the basis says', () => {
+    // ⚠ This is the regression. Before 2026-11-02 the function checked only that
+    // each scope was individually comparable and then compared the BASES, so
+    // every one of these returned true -- a General Fund figure declared
+    // comparable to an All Funds one, which is the precise claim this module
+    // exists to refuse. Nothing calls it at runtime, so nothing caught it.
+    expect(isComparablePair(row('general_fund', 'gaap'), row('all_funds', 'gaap'))).toBe(false);
+    expect(isComparablePair(row('general_fund', 'gaap'), row('total_governmental', 'gaap')))
+      .toBe(false);
+    expect(isComparablePair(row('governmental_operating', 'gaap'), row('total_governmental', 'gaap')))
+      .toBe(false);
+    // and with the basis absent on both sides, where the basis check cannot help
+    expect(isComparablePair(row('general_fund', null), row('all_funds', null))).toBe(false);
+  });
+
+  it('still permits the same scope on the same basis', () => {
+    expect(isComparablePair(row('general_fund', 'gaap'), row('general_fund', 'gaap'))).toBe(true);
+    expect(isComparablePair(
+      row('governmental_operating', 'unknown'), row('governmental_operating', 'gaap'),
+    )).toBe(true); // absence never blocks -- the documented rule, unchanged
+  });
+
+  it('still refuses a PROVEN basis mismatch at the same scope', () => {
+    expect(isComparablePair(row('general_fund', 'cash'), row('general_fund', 'gaap'))).toBe(false);
+    expect(isComparablePair(row('general_fund', 'cash'), row('general_fund', 'modified_cash')))
+      .toBe(false);
+  });
+
+  it('still refuses unknown on either side', () => {
+    expect(isComparablePair(row('unknown', 'gaap'), row('unknown', 'gaap'))).toBe(false);
   });
 });
 
@@ -513,7 +550,10 @@ describe('the shipped registry', () => {
     // later cannot quietly start claiming a family that owes evidence.
     for (const s of [
       'CA State Controller — Government Compensation in California (publicpay.ca.gov)',
-      'Virginia APA Comparative Report',
+      // 'Virginia APA Comparative Report' moved OUT of this list on 2026-11-02,
+      // the same way the MA DLS and ACFR-GF families did: it is now evidenced,
+      // by the APA's own "Notes to the Comparative Report", and is asserted
+      // below to be claimed by `va-apa-comparative-report`.
       'Transparent Utah',
       // The three MA DLS families moved OUT of this list when MA-01 evidenced
       // them; 'Acushnet — MA DLS Schedule A — Special Revenue Funds' stays
@@ -532,6 +572,25 @@ describe('the shipped registry', () => {
       'Gresham All Funds Requirements FY2025',
     ]) {
       expect(classify(s, FUND_SCOPE_REGISTRY), s).toEqual({ scope: SCOPE.UNKNOWN, entryId: null });
+    }
+  });
+
+  it('claims the Virginia APA family as governmental_operating, and nothing near it', () => {
+    expect(classify('Virginia APA Comparative Report', FUND_SCOPE_REGISTRY)).toEqual({
+      scope: SCOPE.GOVERNMENTAL_OPERATING, entryId: 'va-apa-comparative-report',
+    });
+
+    // ⚠ ANCHORED BOTH ENDS. TT already holds Virginia entities whose names
+    // collide with North Carolina's (`Mecklenburg County`, `Charlotte County,
+    // VA`, `Charlottesville`) — see the nc-local-acfr-gf warning above — and a
+    // Virginia ACFR load is a live possibility. None of these may be claimed:
+    for (const s of [
+      'Virginia APA Comparative Report 2024',
+      'Amended Virginia APA Comparative Report',
+      'Mecklenburg County ACFR — General Fund Expenditure by Function',
+      'State of Virginia ACFR — General Fund Revenue (FY2025 actual, GAAP basis)',
+    ]) {
+      expect(classify(s, FUND_SCOPE_REGISTRY).entryId, s).not.toBe('va-apa-comparative-report');
     }
   });
 

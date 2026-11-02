@@ -54,6 +54,7 @@ const VERIFIED_TONE =
 
 export const TONE: Record<FundScope, string> = {
   general_fund: VERIFIED_TONE,
+  governmental_operating: VERIFIED_TONE,
   total_governmental: VERIFIED_TONE,
   all_funds: VERIFIED_TONE,
   // Neutral grey, NOT red/amber: an unverified scope is a gap in our checking,
