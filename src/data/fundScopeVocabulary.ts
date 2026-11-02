@@ -15,10 +15,11 @@
  * SCOPE object in scripts/lib/fundScope.mjs.
  */
 
-export type FundScope = 'general_fund' | 'total_governmental' | 'all_funds' | 'unknown';
+export type FundScope =
+  'general_fund' | 'governmental_operating' | 'total_governmental' | 'all_funds' | 'unknown';
 
 export const FUND_SCOPE_VALUES: readonly FundScope[] = [
-  'general_fund', 'total_governmental', 'all_funds', 'unknown',
+  'general_fund', 'governmental_operating', 'total_governmental', 'all_funds', 'unknown',
 ] as const;
 
 /**
@@ -28,6 +29,13 @@ export const FUND_SCOPE_VALUES: readonly FundScope[] = [
  * behind `isComparableScope()` rather than inlined as `!== 'unknown'`, because
  * the set has already changed once during this milestone and SCOPE-02 adds a
  * `reporting_entity` dimension that will need folding in here.
+ *
+ * ⚠ `governmental_operating` is NOT here, and that is deliberate — see the long
+ * note in scripts/lib/fundScope.mjs. Virginia's localities are comparable with
+ * EACH OTHER; `areComparable()` below already keeps them away from every other
+ * scope by requiring equality. Listing it here would print "not compared across
+ * places" (ScopeLabel.tsx) on 608 rows that are in fact comparable among
+ * themselves, which is a false statement about our own checking.
  */
 export const NON_COMPARABLE_SCOPES: readonly FundScope[] = ['unknown'] as const;
 
@@ -72,6 +80,19 @@ export const FUND_SCOPE_COPY: Record<FundScope, FundScopeCopy> = {
       + 'directly, like water or electricity. It is usually the figure elected officials argue '
       + 'over at budget time, which is why it is often called "the budget" even though it is '
       + 'only part of the money.',
+  },
+  governmental_operating: {
+    label: 'Governmental Operating',
+    short: 'The day-to-day running of government — no construction, no debt payments.',
+    long:
+      'Governmental Operating covers what it costs to run the government day to day, across all '
+      + 'the tax-supported funds that pay for it — so it includes schools, policing, roads '
+      + 'maintenance, social services and administration together, not just the General Fund. '
+      + 'What it leaves out is money spent on building things and money spent paying off '
+      + 'borrowing: the publisher reports construction projects and debt payments as their own '
+      + 'separate totals. It also leaves out services that bill their customers directly, like '
+      + 'water. It is a narrower figure than Total Governmental and a wider one than the General '
+      + 'Fund, which is why it needs its own name rather than being filed under either.',
   },
   total_governmental: {
     label: 'Total Governmental',

@@ -18,7 +18,9 @@
  * `fundScopeVocabulary`, never the reverse, to avoid a circular import.
  */
 
-import { normalizeScope, normalizeBasis, type FundScope, type Basis } from './fundScopeVocabulary';
+import {
+  normalizeScope, normalizeBasis, FUND_SCOPE_COPY, type FundScope, type Basis,
+} from './fundScopeVocabulary';
 
 export { normalizeBasis, type Basis } from './fundScopeVocabulary';
 
@@ -55,8 +57,12 @@ export interface DatasetEntry {
 export const SCOPE_RANK: Record<FundScope, number> = {
   unknown: 0,
   general_fund: 1,
-  all_funds: 2,
-  total_governmental: 3,
+  // Between general_fund and all_funds: wider than the General Fund (it carries
+  // the school operating fund), narrower than Total Governmental (its publisher
+  // reports capital projects and debt service separately and excludes them).
+  governmental_operating: 2,
+  all_funds: 3,
+  total_governmental: 4,
 };
 
 export const BASIS_RANK: Record<Basis, number> = {
@@ -116,9 +122,10 @@ export function seriesLabel(key: SeriesKey): string {
   const basisWord = key.basis === 'actual' ? 'actuals'
     : key.basis === 'adopted' ? 'adopted budget'
     : 'basis not established';
-  const scopeWord = key.fundScope === 'unknown' ? 'Scope not established'
-    : key.fundScope === 'general_fund' ? 'General Fund'
-    : key.fundScope === 'total_governmental' ? 'Total Governmental'
-    : 'All Funds';
+  // ⚠ Read from FUND_SCOPE_COPY rather than a ladder ending in a bare `: 'All
+  // Funds'`. That ladder silently labelled any value it did not name as "All
+  // Funds", so adding a scope to the vocabulary mislabelled it as the WIDEST
+  // scope there is — the most overstated answer available — and no test failed.
+  const scopeWord = FUND_SCOPE_COPY[normalizeScope(key.fundScope)].label;
   return `${scopeWord} · ${basisWord}`;
 }

@@ -55,10 +55,42 @@ export const EXPECTED_ROWS = Object.freeze({
   // ⚠ This is a STATEWIDE year, not an LA one: 482 CA cities and 54 county
   // governments all ride this feed and are still at FY2024. When the rest of CA
   // is loaded these two numbers move again, by far more than one.
-  'ca-sco-city-exp': 10453,
-  'ca-sco-city-rev': 10453,
-  'ca-sco-county-exp': 1188,
-  'ca-sco-county-rev': 1188,
+  // ⭐⭐ RE-MEASURED 2026-11-02, and this is the move the note directly above
+  // PREDICTED ("when the rest of CA is loaded these two numbers move again, by
+  // far more than one"). The CA FY2025 fleet load (#313, 7a89a4e8, 2026-10-31)
+  // extended all four State Controller series onto FY2025; the gate was never
+  // re-run afterwards, so it has been failing on this since that merge — not on
+  // anything the Virginia work did.
+  //
+  // TABLE GREW, not a pattern bug, and the header's three conditions all hold:
+  // every claimed string is the entry's own (1 string per city/county series),
+  // no string is double-claimed (the partition closes exactly:
+  // claimed 553,886 + unknown 31,745 = 585,631 / 585,631), and the entity count
+  // reconciles with that load's own record (109/112 units, 3 parked).
+  //
+  //   entry                rows / DISTINCT ids / strings / entities   of which FY2025
+  //   ca-sco-city-exp     10,932 / 10,932 / 1 / 480                             480
+  //   ca-sco-city-rev     10,932 / 10,932 / 1 / 480                             480
+  //   ca-sco-county-exp    1,245 /  1,245 / 1 /  57                              57
+  //   ca-sco-county-rev    1,245 /  1,245 / 1 /  57                              57
+  //   ca-sco-derived-tg    8,622 /  8,622 / 4 / 494                             972
+  //
+  // ⭐ THE ARITHMETIC TIES EXACTLY TO THE PRIOR BASELINE, which is what makes
+  // this a re-measurement rather than a number nudged until green. Every one of
+  // these entries holds its OLD pre-FY2025 count untouched:
+  //   cities    10,452 pre-FY2025 (the figure the +4/+4 LA-02 note established)
+  //             + 480 FY2025 = 10,932. The old 10,453 was 10,452 + LA City's
+  //             single FY2025 row; the delta is the 479 cities that joined it.
+  //   counties   1,188 pre-FY2025 (unchanged) + 57 FY2025 = 1,245.
+  //   derived    7,650 pre-FY2025 — exactly SCOPE-04's own recorded figure
+  //             below — + 972 FY2025 = 8,622. Old 7,652 = 7,650 + LA's 2.
+  // Deltas +479 +479 +57 +57 +970 = 2,042, which is #313's own record to the
+  // row: 1,072 new (480+480+57+57 less LA's 2 already present) + 970 derived.
+  // ⚠ rows == DISTINCT ids on all five (reference_paged_reads_need_total_order).
+  'ca-sco-city-exp': 10932,
+  'ca-sco-city-rev': 10932,
+  'ca-sco-county-exp': 1245,
+  'ca-sco-county-rev': 1245,
   'state-acfr-gf': 1448,
   // SCOPE-04, measured from the ACTUAL post-write count, never the estimate.
   // 7,650 = 7,664 eligible − 8 quarantined − 6 excluded. Ids are committed in
@@ -81,7 +113,9 @@ export const EXPECTED_ROWS = Object.freeze({
   // existing rows were untouched and keep their ids.
   // TG stays well under all_funds in both datasets and the ratio barely moves
   // (operating 55.9% -> 53.7%, revenue 49.0% -> 48.7% of all_funds).
-  'ca-sco-derived-tg': 7652,
+  // 7,650 pre-FY2025 (the figure recorded just above) + 972 FY2025 = 8,622.
+  // Re-measured 2026-11-02 with the four CA entries above; see that block.
+  'ca-sco-derived-tg': 8622,
   // AUSTIN-TRAVIS-01, measured 2026-08-19: Austin 32 + Travis County 44. A NEW
   // family, so no pre-existing count moved.
   // Evidence: docs/superpowers/plans/AUSTIN-TRAVIS-01-SCOPE-RECON.md §1.
@@ -651,4 +685,18 @@ export const EXPECTED_ROWS = Object.freeze({
   'sf-own-portal-rev': 4,
   'sd-own-portal-exp': 1,
   'sd-own-portal-rev': 1,
+  // Virginia APA Comparative Report, measured 2026-11-02 — the first
+  // `governmental_operating` family. House style, rows / DISTINCT ids / strings
+  // / entities:  608 / 608 / 1 / 161.
+  // One data_source string for the whole family (not the per-entity-year shape
+  // the ACFR families use), and it splits evenly, which is why the total is a
+  // round pairing rather than a residue:
+  //     FY2023  operating 150 + revenue_local_only 150
+  //     FY2024  operating 154 + revenue_local_only 154
+  // Every entity-year carries BOTH faces — 161 entities across the two years
+  // (150 in FY2023, 154 in FY2024), no row unpaired.
+  // ⚠ 161 is TT's holding, not the report's coverage: the APA publishes 174
+  // localities. The gap is entities TT has not onboarded, not rows dropped by
+  // the loader, so a later onboarding wave moves this number legitimately.
+  'va-apa-comparative-report': 608,
 });
