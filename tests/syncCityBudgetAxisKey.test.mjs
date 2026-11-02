@@ -49,19 +49,54 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
  * ever stamped.
  */
 
-/** Callers that legitimately omit the axis params, with the reason. */
+/**
+ * Callers that legitimately omit the axis params, with the reason AND the
+ * `data_source` the reason is a claim about.
+ *
+ * ⚠⚠⚠ EVERY REASON HERE IS A MEASUREMENT WITH A DATE, AND THE STATIC CHECKS
+ * BELOW CANNOT SEE ONE GO STALE. That is not hypothetical: `loadVAComparativeReport.js`
+ * sat in this object reading "608 rows, unknown/unknown" — true the day it was
+ * written — and #320 then stamped the whole family. From that merge the loader
+ * was a duplicate-generator, and nothing went red, because the merge touched
+ * neither this list nor the loader. It was caught by a human re-reading the
+ * list, which is not a control.
+ *
+ * ⭐ `family` exists so the claim can be CHECKED rather than believed. The
+ * live-measurement block at the bottom of this file re-measures every one of
+ * these against treasury.budgets and fails the moment a single row is stamped.
+ * It needs a database and skips in CI like the other DB-backed tests, so the
+ * static guards above it still run everywhere — this is a second net, not a
+ * replacement.
+ *
+ * ⚠ Three loaders share ONE family. The publicpay rows are written by
+ * loadCASalaries, sweepCASalaries and sweepOCSalaries alike, so stamping it
+ * moves all three at once.
+ */
+const PUBLICPAY = 'CA State Controller — Government Compensation in California (publicpay.ca.gov)';
+
 const EXEMPT = {
-  'loadCASalaries.js':
-    'publicpay compensation, 7,682 rows, measured 2026-08-29: fund_scope and basis are '
-    + 'BOTH still unknown on every row. Passing real values would stop the lookup matching.',
-  'sweepCASalaries.js': 'Same publicpay family as loadCASalaries.js — unstamped.',
-  'sweepOCSalaries.js': 'Same publicpay family as loadCASalaries.js — unstamped.',
-  'loadLACountySalaries.js':
-    '"LA County Open Data - Employee Salaries", 1 row, unknown/unknown.',
-  'loadUtahTransparency.js':
-    '"Transparent Utah", 539 rows, unknown/unknown (measured 2026-08-29).',
-  'loadWICMREB.js':
-    'Wisconsin DOR CMREB, 20 rows, unknown/unknown.',
+  'loadCASalaries.js': {
+    family: PUBLICPAY,
+    why: 'publicpay compensation, 7,682 rows: fund_scope and basis are BOTH still unknown on '
+      + 'every row. Passing real values would stop the lookup matching. Re-measured 2026-11-02 '
+      + '— 7,682 rows / 7,682 distinct ids / 0 stamped.',
+  },
+  'sweepCASalaries.js': { family: PUBLICPAY, why: 'Same publicpay family as loadCASalaries.js — unstamped.' },
+  'sweepOCSalaries.js': { family: PUBLICPAY, why: 'Same publicpay family as loadCASalaries.js — unstamped.' },
+  'loadLACountySalaries.js': {
+    family: 'LA County Open Data - Employee Salaries',
+    why: '1 row, unknown/unknown. Re-measured 2026-11-02 — 1 row / 1 distinct id / 0 stamped.',
+  },
+  'loadUtahTransparency.js': {
+    family: 'Transparent Utah',
+    why: '539 rows, unknown/unknown. Re-measured 2026-11-02 — 539 rows / 539 distinct ids / '
+      + '0 stamped. ⚠ See the Utah BigQuery cost incident before re-running this loader.',
+  },
+  'loadWICMREB.js': {
+    family: 'Wisconsin DOR County and Municipal Revenues and Expenditures (unaudited MFR)',
+    why: '20 rows, unknown/unknown. Re-measured 2026-11-02 — 20 rows / 20 distinct ids / '
+      + '0 stamped.',
+  },
 };
 
 /**
@@ -316,7 +351,7 @@ describe('treasury_sync_city_budget callers pass the axis pair that is in its lo
     });
   }
 
-  for (const [file, why] of Object.entries(EXEMPT)) {
+  for (const [file, { why }] of Object.entries(EXEMPT)) {
     it(`${file} is exempt and must stay exempt while its family is unstamped — ${why}`, () => {
       const sites = found.filter((c) => c.file === file);
       if (sites.length === 0) return; // file removed; harmless
@@ -348,4 +383,78 @@ describe('the sibling RPC is keyed differently, and that is why cron is safe', (
     expect(keyed.length, 'the migration that put data_source in the budget-tree key is gone')
       .toBeGreaterThan(0);
   });
+});
+
+/**
+ * ⭐⭐ THE LIVE CHECK — this is the one that would have caught Virginia.
+ *
+ * Everything above reasons about SOURCE FILES. It can prove a loader passes the
+ * axis pair or omits it; it cannot prove the omission is still correct, because
+ * correctness depends on the table, not the file. The Virginia defect lived
+ * exactly in that gap: #320 stamped 608 rows and the EXEMPT reason went from
+ * true to false with no file changing.
+ *
+ * So each exemption is re-measured here against its own family. One stamped row
+ * is enough to fail: the moment a family is classified, every loader that omits
+ * the axes starts asking for the `unknown`/`unknown` row that no longer exists,
+ * matches nothing, takes the INSERT branch and duplicates on every run — while
+ * the RPC reports success.
+ *
+ * ⚠⚠ NEEDS A DATABASE AND SKIPS WITHOUT ONE, like tests/registryGateRpc.test.mjs
+ * — the repo keeps no service-role key in Actions on purpose (PR #90). The
+ * static guards above run everywhere; this is a SECOND NET, not a replacement,
+ * and a green CI run has not exercised it.
+ *
+ * ⚠ READ-ONLY. It writes nothing.
+ */
+describe('EXEMPT is a claim about the live table, so measure it', () => {
+  const KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const URL = process.env.SUPABASE_URL || 'https://kxsdzaojfaibhuzmclfq.supabase.co';
+  const REASON = 'no SUPABASE_SERVICE_KEY — the exemptions were NOT re-measured';
+  if (!KEY) console.warn(`\n  ⚠ syncCityBudgetAxisKey live check SKIPPED: ${REASON}\n`);
+
+  /** Distinct families, so the three publicpay loaders cost one query. */
+  const families = [...new Set(Object.values(EXEMPT).map((e) => e.family))];
+
+  let client = null;
+  const measure = async (family) => {
+    if (!client) {
+      const { createClient } = await import('@supabase/supabase-js');
+      client = createClient(URL, KEY);
+    }
+    const { data, error } = await client.schema('treasury')
+      .from('budgets').select('id, fund_scope, basis')
+      .eq('data_source', family).limit(50000);
+    if (error) throw new Error(`${family}: ${error.message}`);
+    return data;
+  };
+
+  for (const family of families) {
+    const owners = Object.entries(EXEMPT)
+      .filter(([, e]) => e.family === family).map(([f]) => f);
+
+    it(`"${family}" is still wholly unknown/unknown — exempts ${owners.join(', ')}`,
+      { skip: !KEY && REASON }, async () => {
+        const rows = await measure(family);
+
+        // ⚠ A family with no rows cannot support an exemption: the reason
+        // claims something about rows that are not there, and the loader's
+        // first write would be an INSERT either way. Catches a renamed
+        // data_source, which otherwise reads as a silent pass.
+        expect(rows.length,
+          `no rows carry data_source "${family}". Either the family was renamed or it was `
+          + 'never loaded — an exemption cannot rest on a measurement of nothing.')
+          .toBeGreaterThan(0);
+
+        const stamped = rows.filter((r) => r.fund_scope !== 'unknown' || r.basis !== 'unknown');
+        const combos = [...new Set(stamped.map((r) => `${r.fund_scope}/${r.basis}`))];
+        expect(stamped.length,
+          `${stamped.length} of ${rows.length} rows in "${family}" are STAMPED (${combos.join(', ')}). `
+          + `The exemption for ${owners.join(', ')} is stale: each of those loaders now asks the `
+          + 'RPC for an unknown/unknown row that no longer exists, so a re-run INSERTS duplicates '
+          + 'and reports success. Move them to REQUIRED and make them pass the real axis pair — '
+          + 'this is exactly what happened to loadVAComparativeReport.js between #320 and #321.')
+          .toBe(0);
+      });
+  }
 });
