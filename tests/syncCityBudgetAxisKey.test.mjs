@@ -71,6 +71,16 @@ const EXEMPT = {
  * would be duplicated by a re-run if they stopped.
  */
 const REQUIRED = {
+  // ⭐ CITY OF LOS ANGELES AUDITED ACFR — 20 rows, general_fund / actual,
+  // FY2016-FY2025 x 2 datasets. Audit-grade milestone piece 2: the AUDITED
+  // series the reader switches TO.
+  // ⚠⚠ THE PAIR IS WHAT KEEPS IT BESIDE THE OTHER TWO RATHER THAN OVER THEM.
+  // This city already carries all_funds/actual (SCO, FY2003-FY2025) and a
+  // derived total_governmental/actual (FY2017-FY2025). Omitting p_fund_scope
+  // would ask for unknown/unknown, match neither, and insert a THIRD set of
+  // duplicates on every re-run while looking entirely successful (#110).
+  'loadLaCityAcfr.mjs': 'LA City audited ACFR — 20 rows, general_fund / actual (FY2016-FY2025 x 2 datasets)',
+
   // ⚠⚠ The NY OSC city load is the SECOND two-scope caller, and by far the
   // largest: 61 cities x 27 fiscal years x 2 datasets x 2 scopes. Measured in
   // the live table after the 2026-10-11 load:

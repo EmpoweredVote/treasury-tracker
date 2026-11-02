@@ -37,6 +37,41 @@ import { SCOPE } from '../lib/fundScope.mjs';
 /** @type {import('../lib/fundScope.mjs').RegistryEntry[]} */
 export const FUND_SCOPE_REGISTRY = [
   {
+    // ⭐ CITY OF LOS ANGELES — the AUDITED series, added 2026-10-31 as piece 2
+    // of the audit-grade milestone. It exists so the reader has something to
+    // switch TO: TT already holds this city's unaudited all-funds series from
+    // the State Controller, FY2003-FY2025.
+    //
+    // ⚠⚠⚠ A SECOND SERIES, NEVER A CORRECTION OF THE FIRST. The audited
+    // General Fund is ~$6.7B (FY2023); the Controller's all-funds figure for the
+    // same city and year is ~$23.5B, because it counts the airport, the port and
+    // the utility. Both are right and they will never agree.
+    // ⚠⚠ BYTE-IDENTICAL to this id's pattern in the other three axis
+    // registries, so they cannot disagree about who is in this family.
+    // ⚠⚠ YEARS ENUMERATED TO THE READ WINDOW (FY2016-FY2025), never
+    // `FY\d{4}`: a bare pattern would describe a future year's filing the
+    // moment it loaded, off a document nobody had opened. FY2026 must fail
+    // to match and load `unknown` until somebody reads it.
+    // ⚠ Anchored at BOTH ends. `Los Angeles` is a prefix of nothing here,
+    // but EIN 956000735 also carries `Port of Los Angeles` and `Los Angeles
+    // World Airports`, and LA County is a different government again.
+    id: 'la-city-acfr-gf',
+    match: /^Los Angeles ACFR — General Fund (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[6-9]|2[0-5]) actual, GAAP basis\)$/,
+    scope: SCOPE.GENERAL_FUND,
+    evidence: {
+      document: 'The statement titled `Statement of Revenues, Expenditures and Changes in Fund '
+        + 'Balances \u2014 Governmental Funds` in each of the ten ACFRs, whose FIRST money column is '
+        + 'headed `General`. scripts/extractLosAngelesCA.py reads `target_column=0` and nothing else.',
+      figures: 'FY2023 General Fund TOTAL REVENUES 6,744,996 (thousands) against the same '
+        + 'statement\u2019s Special Revenue 1,092 and Debt Service 1,080 \u2014 the General Fund column is '
+        + 'unambiguous and is the one extracted. \u26a0 The audited TOTAL GOVERNMENTAL column is '
+        + 'deliberately NOT read: TT already holds a derived `total_governmental` series for this '
+        + 'city built from the State Controller\u2019s governmental schedule, and the city\u2019s own '
+        + 'audited total includes redevelopment successor-agency funds that the derived one does not. '
+        + 'Two differently-built figures under one label is the collision the General Fund avoids.',
+    },
+  },
+  {
     // ⚠⚠ A NEW FAMILY LANDS `unknown` UNTIL IT IS REGISTERED HERE, and the
     // loader stamps what this registry says. Hawaii's 67 rows loaded reading
     // `unknown` on all three axes for exactly that reason — the same omission

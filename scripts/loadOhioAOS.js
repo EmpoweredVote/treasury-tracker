@@ -54,6 +54,7 @@
 
 import { parseArgs } from 'node:util';
 import { ohioMonthFor } from './lib/loaderFiscalCalendars.mjs';
+import { buildOhioTree } from './lib/ohioTree.mjs';
 import { fileURLToPath } from 'node:url';
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -216,6 +217,36 @@ function readSheetHeaders(ws, headerRow) {
   return map;
 }
 
+/**
+ * The nearest GROUP heading above a column, for telling two same-named leaves
+ * apart.
+ *
+ * ⚠⚠ THE HEADER IS FOUR ROWS DEEP, not one. In the FY2024 GAAP city workbook:
+ * row 4 section (Revenues / Expenditures), row 5 group (Current / Debt
+ * Service), row 6 subgroup (Security Of Persons And Property), row 7 leaf.
+ * "Other" is a leaf TWICE — col 19 under Security, col 33 under Debt Service —
+ * and reading only row 7 collapsed them into one name.
+ *
+ * ⚠ Walks UPWARD from the row directly above the leaf and takes the first
+ * heading it finds, because the useful distinction is the closest one.
+ *
+ * ⚠ No rightward carry: ExcelJS already reports a merged group's value on
+ * every column of its span (row 6 reads "Security Of Persons And Property" at
+ * cols 17, 18 AND 19). Carrying would smear that group across every column to
+ * its right, labelling Public Services and General Government as Security.
+ */
+function readGroupHeaders(ws, headerRow) {
+  const groups = new Map();
+  for (let row = headerRow - 1; row >= 1 && row >= headerRow - 3; row -= 1) {
+    const r = ws.getRow(row);
+    for (let c = 1; c <= ws.columnCount; c += 1) {
+      const text = cellText(r.getCell(c));
+      if (text && !groups.has(c)) groups.set(c, text);
+    }
+  }
+  return groups;
+}
+
 /** @deprecated Use readSheetHeaders(ws, layout.headerRow) */
 function readSoreacifbHeaders(ws) {
   return readSheetHeaders(ws, SOREACIFB_HEADER_ROW);
@@ -252,15 +283,16 @@ export function buildRevenueTree(workbook, cityName, entityType = 'city') {
   const headers = readSheetHeaders(ws, layout.headerRow);
   const dataRow = findCityRow(ws, layout.dataStart, cityName, layout.entityCol);
 
-  const tree = [];
-  for (const col of layout.revSourceCols) {
-    const label = headers.get(col);
-    if (!label) continue;
-    const a = cellNum(dataRow.getCell(col));
-    if (!Number.isFinite(a) || a === 0) continue;
-    tree.push({ n: label, a });
-  }
-  tree.sort((x, y) => y.a - x.a);
+  // ⚠ buildOhioTree drops the publisher's verbatim repeated column (cols 11
+  // and 12 are both "Rentals" with the IDENTICAL value in 237 of 237 cities)
+  // and tells apart a leaf label reused under two groups. Before it, revenue
+  // tied to the published Total for 146 of 237 cities; after, 237 of 237.
+  const groups = readGroupHeaders(ws, layout.headerRow);
+  const { tree } = buildOhioTree(layout.revSourceCols.map((col) => ({
+    label: headers.get(col),
+    amount: cellNum(dataRow.getCell(col)),
+    group: groups.get(col),
+  })));
 
   // Total from the Total column
   let total = cellNum(dataRow.getCell(layout.revTotalCol));
@@ -282,15 +314,15 @@ export function buildExpenditureTree(workbook, cityName, entityType = 'city') {
   const headers = readSheetHeaders(ws, layout.headerRow);
   const dataRow = findCityRow(ws, layout.dataStart, cityName, layout.entityCol);
 
-  const tree = [];
-  for (const col of layout.expFuncCols) {
-    const label = headers.get(col);
-    if (!label) continue;
-    const a = cellNum(dataRow.getCell(col));
-    if (!Number.isFinite(a) || a === 0) continue;
-    tree.push({ n: label, a });
-  }
-  tree.sort((x, y) => y.a - x.a);
+  // ⚠ Same rule as the revenue side. "Other" is a leaf TWICE here — col 19
+  // under Security Of Persons And Property and col 33 under Debt Service —
+  // and those must be told apart, not merged.
+  const groups = readGroupHeaders(ws, layout.headerRow);
+  const { tree } = buildOhioTree(layout.expFuncCols.map((col) => ({
+    label: headers.get(col),
+    amount: cellNum(dataRow.getCell(col)),
+    group: groups.get(col),
+  })));
 
   // Total from the Total column
   let total = cellNum(dataRow.getCell(layout.expTotalCol));

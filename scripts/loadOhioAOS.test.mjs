@@ -558,3 +558,49 @@ test(
       `City expenditure tree must have no numeric node names; numeric: ${JSON.stringify(numericNodes.map((n) => n.n))}`);
   }
 );
+
+// ── Duplicate root categories (2026-11-01) ───────────────────────────────────
+// ⚠⚠ 1,778 Ohio budgets across 212 entities reached the database with two root
+// categories sharing one name, and 1,765 of those carry a total that does not
+// equal the sum of their own tree. Two distinct quirks of the four-row header:
+//
+//   cols 11 and 12 are BOTH "Rentals" with the IDENTICAL value — 237 of 237
+//   cities — and the publisher's Total counts it ONCE, so reading both
+//   double-counts. Revenue tied for 146/237 before the fix and 237/237 after.
+//
+//   "Other" is a leaf TWICE on the expenditure side: col 19 under Security Of
+//   Persons And Property, col 33 under Debt Service. Different money.
+//
+// This walks every city in the sample rather than spot-checking one, because
+// the defect was invisible per-city: each tree looked plausible on its own.
+const DUP_SAMPLES = [
+  join(__dirname, '..', '_oh-recon', 'City_2024_GAAP_Summarized.XLSX'),
+  join(__dirname, '..', 'docs', 'OhioAOS', 'City_2024_GAAP_Summarized.XLSX'),
+];
+const DUP_SAMPLE = DUP_SAMPLES.find((p) => existsSync(p));
+
+test(
+  'every city tree has unique root names and ties to its published total',
+  { skip: !DUP_SAMPLE && 'no City_2024_GAAP sample in _oh-recon/ or docs/OhioAOS/' },
+  async () => {
+    const book = new ExcelJS.Workbook();
+    await book.xlsx.readFile(DUP_SAMPLE);
+    const cities = enumerateCities(book, 'city');
+    assert.ok(cities.length > 200, `expected the full city sheet, saw ${cities.length}`);
+
+    const duplicates = [];
+    const untied = [];
+    for (const entry of cities) {
+      const name = typeof entry === 'string' ? entry : entry.name;
+      for (const build of [buildRevenueTree, buildExpenditureTree]) {
+        const { tree, total } = build(book, name, 'city');
+        const names = tree.map((n) => n.n);
+        if (names.length !== new Set(names).size) duplicates.push(`${name} ${build.name}`);
+        const sum = tree.reduce((s, n) => s + n.a, 0);
+        if (Math.abs(sum - total) > 1) untied.push(`${name} ${build.name} ${sum} vs ${total}`);
+      }
+    }
+    assert.deepEqual(duplicates, [], 'root category names must be unique within a tree');
+    assert.deepEqual(untied, [], 'every tree must sum to its published total');
+  },
+);

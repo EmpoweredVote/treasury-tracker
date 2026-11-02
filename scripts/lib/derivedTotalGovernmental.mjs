@@ -68,3 +68,28 @@ export function deriveTotalGovernmental(roots) {
   }
   return { totalGovernmental, enterprise, unrecognised };
 }
+
+/**
+ * Is this parent row one this derivation covers at all?
+ *
+ * ⚠⚠ THE SCOPE USED TO BE IMPLICIT, AND THAT BROKE A TRIPWIRE. Every row in
+ * the era-B all_funds population was triaged, so 50,304 rows belonging to New
+ * York, Michigan, Pennsylvania and the rest fell through the enterprise-root
+ * test into `skip-no-enterprise` and made it read 51,257 against an
+ * `expect 852` that had only ever described the 953 CA State Controller rows
+ * that genuinely have no enterprise root. The expectation was never stale; the
+ * MEASUREMENT had quietly become a different quantity.
+ *
+ * ⚠ It only worked because no non-SCO loader happens to name a root
+ * "Enterprise" — measured, 0 of 50,304. That is luck. A row that did would sail
+ * past the enterprise filter into the vocabulary guard and HALT the entire run
+ * over a government this derivation was never about.
+ *
+ * ⚠ A PREFIX, not the four known labels, on purpose: an unregistered CA SCO
+ * family must stay IN scope so it reaches the "no derived label" HALT and gets
+ * registered. A new family loading unregistered has happened twice with no gate
+ * seeing it. \b stops it matching a label that merely mentions the SCO.
+ */
+export function isInDerivationScope(dataSource) {
+  return typeof dataSource === 'string' && /^CA State Controller\b/.test(dataSource);
+}

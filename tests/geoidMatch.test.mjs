@@ -21,8 +21,8 @@ import {
   buildCountyIndex, resolveCounty,
   buildPlaceIndex, resolvePlace,
   buildMcdIndex, resolveTownship,
-  buildMcdStateIndex, resolveMcdByState,
-  buildPlaceCountyIndex,
+  buildMcdStateIndex, resolveMcdByState, buildMcdCountyIndex, resolveMcdByCounty,
+  buildPlaceCountyIndex, preferResolved, classifyGeoidWrites, dropCollidingGeoids,
 } from '../scripts/lib/geoid.mjs';
 
 describe('STATE_FIPS', () => {
@@ -403,5 +403,530 @@ describe('⚠⚠ collisions the uniqueness check caught after the first national
       { SUMLEV: '162', STATE: '12', PLACE: '21525', NAME: 'Everglades city' },
     ]);
     expect(resolvePlace(idx, 'Everglades City', { entityType: 'city' }).geoid).toBe('1221525');
+  });
+});
+
+/**
+ * ⚠⚠ A SECOND LOOKUP MUST NEVER RESCUE AN AMBIGUITY. Two resolvers in
+ * backfillGeoids are allowed a second try after the first comes up empty — the
+ * New England MCD fallback, and the forward Census vintage that names a
+ * government incorporated after the base vintage was cut (Mountain House,
+ * 2024-07-01). Both are safe only because they run after a CLEAN MISS. An
+ * ambiguous result means two real governments competed and the matcher
+ * declined; a looser second lookup would "resolve" it by picking one.
+ */
+describe('preferResolved', () => {
+  const hit = { geoid: '0649582', basis: 'census-pep-162-exact', reason: null };
+  const miss = { geoid: null, basis: null, reason: 'no place match for "Mountain House"' };
+  const ambiguous = { geoid: null, basis: null, reason: 'ambiguous: 2 candidates for "Lincoln"' };
+
+  it('keeps a primary hit and never calls the fallback', () => {
+    let called = false;
+    const r = preferResolved(hit, () => { called = true; return miss; });
+    expect(r).toBe(hit);
+    expect(called).toBe(false);
+  });
+
+  it('takes the fallback hit after a clean miss', () => {
+    expect(preferResolved(miss, () => hit)).toBe(hit);
+  });
+
+  it('keeps the PRIMARY reason when the fallback also misses', () => {
+    const other = { geoid: null, basis: null, reason: 'not in forward vintage' };
+    expect(preferResolved(miss, () => other)).toBe(miss);
+  });
+
+  it('refuses to let a fallback rescue an ambiguous primary', () => {
+    let called = false;
+    const r = preferResolved(ambiguous, () => { called = true; return hit; });
+    expect(r).toBe(ambiguous);
+    expect(called).toBe(false);
+  });
+
+  it('is a no-op when there is no fallback to try', () => {
+    expect(preferResolved(miss, null)).toBe(miss);
+  });
+});
+
+/**
+ * ⚠⚠ APPLYING A REGENERATED BACKFILL IS NOT THE SAME ACT AS WRITING NULLS.
+ * The committed artifact holds every resolution, most of which are already in
+ * the database. Three outcomes hide in one file: a null being FILLED, a value
+ * being confirmed, and a value being CHANGED to a different government. The
+ * third is a matcher defect in the shape that once gave Elizabeth and
+ * Elizabethtown (IN) the same geoid — it must be surfaced and refused, never
+ * swept along with 10,000 no-ops.
+ */
+describe('classifyGeoidWrites', () => {
+  const cur = (geoid, basis) => ({ geoid, basis });
+
+  it('calls a null current value a fill', () => {
+    const r = classifyGeoidWrites(
+      [{ id: 'a', geoid: '3626880', basis: 'census-pep-162-exact' }],
+      new Map([['a', cur(null, null)]]),
+    );
+    expect(r.fill.map((t) => t.id)).toEqual(['a']);
+  });
+
+  it('calls an identical value the same, so it is never rewritten', () => {
+    const r = classifyGeoidWrites(
+      [{ id: 'a', geoid: '3626880', basis: 'census-pep-162-exact' }],
+      new Map([['a', cur('3626880', 'census-pep-162-exact')]]),
+    );
+    expect(r.same).toHaveLength(1);
+    expect(r.fill).toHaveLength(0);
+    expect(r.change).toHaveLength(0);
+  });
+
+  it('calls a DIFFERENT geoid a change — the dangerous one', () => {
+    const r = classifyGeoidWrites(
+      [{ id: 'a', geoid: '4227456', basis: 'census-pep-162-exact' }],
+      new Map([['a', cur('4284376', 'census-pep-162-exact')]]),
+    );
+    expect(r.change).toHaveLength(1);
+    expect(r.change[0]).toMatchObject({ id: 'a', from: '4284376', to: '4227456' });
+  });
+
+  it('separates a basis-only correction from a change of government', () => {
+    const r = classifyGeoidWrites(
+      [{ id: 'a', geoid: '2512345', basis: 'census-pep-061-state-scoped' }],
+      new Map([['a', cur('2512345', 'census-pep-162-exact')]]),
+    );
+    expect(r.change).toHaveLength(0);
+    expect(r.basisOnly).toHaveLength(1);
+  });
+
+  it('never writes to an entity that is no longer in the table', () => {
+    const r = classifyGeoidWrites(
+      [{ id: 'gone', geoid: '3626880', basis: 'census-pep-162-exact' }],
+      new Map(),
+    );
+    expect(r.absent.map((t) => t.id)).toEqual(['gone']);
+    expect(r.fill).toHaveLength(0);
+  });
+
+  it('partitions every tuple into exactly one bucket', () => {
+    const tuples = [
+      { id: 'f', geoid: '1', basis: 'b' }, { id: 's', geoid: '2', basis: 'b' },
+      { id: 'c', geoid: '3', basis: 'b' }, { id: 'r', geoid: '4', basis: 'b2' },
+      { id: 'x', geoid: '5', basis: 'b' },
+    ];
+    const r = classifyGeoidWrites(tuples, new Map([
+      ['f', cur(null, null)], ['s', cur('2', 'b')], ['c', cur('9', 'b')], ['r', cur('4', 'b')],
+    ]));
+    expect(r.fill.length + r.same.length + r.change.length + r.basisOnly.length + r.absent.length)
+      .toBe(tuples.length);
+    expect(r.toWrite.map((t) => t.id).sort()).toEqual(['f', 'r']);
+  });
+});
+
+/**
+ * ⚠⚠⚠ THE CHECK THAT WAS MISSING, AND IT COST A LIVE REPAIR.
+ *
+ * On 2026-10-31 the regenerated backfill filled 2,279 nulls and created 255
+ * DUPLICATE geoids — 514 New York rows, every one a village and its containing
+ * town claiming the same government. Adams village and Adams town are separate
+ * governments with separate budgets; one geoid cannot mean both.
+ *
+ * Nothing stopped it. The applier checked that the tuples' IDS were distinct,
+ * which they were, and the per-tuple classification only ever compared a tuple
+ * to its OWN current value. A collision lives BETWEEN rows, so no per-row check
+ * can see it. It took the post-hoc verifier to catch, after the write.
+ */
+describe('classifyGeoidWrites — collisions between entities', () => {
+  const cur = (geoid) => ({ geoid, basis: geoid ? 'census-pep-162-exact' : null });
+
+  it('refuses a geoid another entity already holds', () => {
+    const r = classifyGeoidWrites(
+      [{ id: 'village', geoid: '3600199', basis: 'census-pep-162-exact' }],
+      new Map([['village', cur(null)], ['town', cur('3600199')]]),
+    );
+    expect(r.collision).toHaveLength(1);
+    expect(r.collision[0]).toMatchObject({ id: 'village', heldBy: 'town' });
+    expect(r.toWrite).toHaveLength(0);
+  });
+
+  it('refuses BOTH tuples when one file claims a geoid twice', () => {
+    const r = classifyGeoidWrites(
+      [{ id: 'village', geoid: '3600199', basis: 'b' }, { id: 'town', geoid: '3600199', basis: 'b' }],
+      new Map([['village', cur(null)], ['town', cur(null)]]),
+    );
+    // ⚠ Neither is written. The matcher cannot say which government it is, and
+    // picking one is how a reader lands on the wrong budget.
+    expect(r.collision).toHaveLength(2);
+    expect(r.toWrite).toHaveLength(0);
+  });
+
+  it('is not tripped by an entity keeping the geoid it already has', () => {
+    const r = classifyGeoidWrites(
+      [{ id: 'town', geoid: '3600199', basis: 'census-pep-162-exact' }],
+      new Map([['town', cur('3600199')]]),
+    );
+    expect(r.collision).toHaveLength(0);
+    expect(r.same).toHaveLength(1);
+  });
+
+  it('still fills a geoid nobody else claims', () => {
+    const r = classifyGeoidWrites(
+      [{ id: 'a', geoid: '0649582', basis: 'census-pep-162-exact' }],
+      new Map([['a', cur(null)], ['b', cur('3600199')]]),
+    );
+    expect(r.collision).toHaveLength(0);
+    expect(r.toWrite.map((t) => t.id)).toEqual(['a']);
+  });
+});
+
+/**
+ * ⚠⚠ THE GENERATOR MUST NOT EMIT A GEOID TWICE. The applier's collision guard
+ * protects the database, but the committed migration is replayed on a fresh
+ * environment by plain SQL, which has no guard at all. A file claiming one
+ * government for two entities recreates the 255 duplicates on every rebuild.
+ */
+describe('dropCollidingGeoids', () => {
+  it('keeps a geoid claimed exactly once', () => {
+    const r = dropCollidingGeoids([['a', '0649582', 'b'], ['c', '3600199', 'b']]);
+    expect(r.kept).toHaveLength(2);
+    expect(r.collided).toHaveLength(0);
+  });
+
+  it('drops EVERY claimant of a geoid claimed twice, not just the later one', () => {
+    const r = dropCollidingGeoids([['town', '3600199', 'b'], ['village', '3600199', 'b']]);
+    expect(r.kept).toHaveLength(0);
+    expect(r.collided).toHaveLength(2);
+  });
+
+  it('reports the collided geoid once per claimant, so the count is the row count', () => {
+    const r = dropCollidingGeoids([
+      ['t', '3601033', 'b'], ['v', '3601033', 'b'], ['w', '3601033', 'b'], ['x', '0649582', 'b'],
+    ]);
+    expect(r.kept.map((u) => u[0])).toEqual(['x']);
+    expect(r.collided).toHaveLength(3);
+  });
+});
+
+/**
+ * ⚠⚠⚠ A DESIGNATOR IS NOT A PREFERENCE, IT IS PART OF THE IDENTITY.
+ *
+ * resolvePlace used to try the entity's own type FIRST and then fall through
+ * to every other designator. In New York that is catastrophic: a town is a
+ * county subdivision (SUMLEV 061) and a village is a place (162), the two
+ * routinely share a name, and they are different governments with different
+ * budgets. "Adams" the town found no "Adams town" place and happily took
+ * "Adams village" — 255 duplicate geoids over 514 rows, measured 2026-10-31.
+ *
+ * Falling through is never right. If the census has no place of the entity's
+ * own kind, the answer is that there is no place — let the MCD layer answer.
+ */
+describe('resolvePlace — the designator must AGREE, not merely be preferred', () => {
+  const nyIdx = () => buildPlaceIndex([
+    { SUMLEV: '162', STATE: '36', PLACE: '00199', NAME: 'Adams village' },
+  ]);
+
+  it('refuses to give a TOWN a village\'s place record', () => {
+    const r = resolvePlace(nyIdx(), 'Adams', { entityType: 'town' });
+    expect(r.geoid).toBeNull();
+    expect(r.reason).toMatch(/no place match/);
+  });
+
+  it('still gives the VILLAGE its own place record', () => {
+    expect(resolvePlace(nyIdx(), 'Adams', { entityType: 'village' }).geoid).toBe('3600199');
+  });
+
+  it('refuses to give a TOWN a city\'s place record (NY Geneva city vs Geneva town)', () => {
+    const idx = buildPlaceIndex([{ SUMLEV: '162', STATE: '36', PLACE: '28640', NAME: 'Geneva city' }]);
+    expect(resolvePlace(idx, 'Geneva', { entityType: 'town' }).geoid).toBeNull();
+    expect(resolvePlace(idx, 'Geneva', { entityType: 'city' }).geoid).toBe('3628640');
+  });
+
+  it('still resolves a town that IS a place — Indiana towns are places', () => {
+    const idx = buildPlaceIndex([{ SUMLEV: '162', STATE: '18', PLACE: '20674', NAME: 'Elizabeth town' }]);
+    expect(resolvePlace(idx, 'Elizabeth', { entityType: 'town' }).geoid).toBe('1820674');
+  });
+
+  it('sends an MA "Town" municipality to the MCD layer instead of a city place', () => {
+    // ⚠ "Agawam Town city" is a city-form government whose legal name carries
+    // "Town". TT types it `town`, so the place no longer answers and the MCD
+    // fallback does — which is exactly the 10-digit value production holds.
+    const idx = buildPlaceIndex([{ SUMLEV: '162', STATE: '25', PLACE: '00840', NAME: 'Agawam Town city' }]);
+    expect(resolvePlace(idx, 'Agawam Town', { entityType: 'town' }).geoid).toBeNull();
+  });
+
+  it('keeps the PA borough/city separation it already had', () => {
+    const idx = buildPlaceIndex([
+      { SUMLEV: '162', STATE: '42', PLACE: '27456', NAME: 'Franklin city' },
+      { SUMLEV: '162', STATE: '42', PLACE: '27432', NAME: 'Franklin borough' },
+    ]);
+    expect(resolvePlace(idx, 'Franklin', { entityType: 'borough' }).geoid).toBe('4227432');
+    expect(resolvePlace(idx, 'Franklin', { entityType: 'city' }).geoid).toBe('4227456');
+  });
+
+  it('stays permissive when the entity carries no usable type', () => {
+    // ⚠ An unknown type is not a statement that the designator is wrong, so
+    // refusing everything would turn missing metadata into missing geoids.
+    expect(resolvePlace(nyIdx(), 'Adams', {}).geoid).toBe('3600199');
+  });
+});
+
+/**
+ * ⚠⚠⚠ THE MCD INDEX HAD THE ELIZABETH/ELIZABETHTOWN DEFECT TOO, and the place
+ * index's two-key design is exactly the cure. Keying on the whole Census name
+ * makes "German town" key as `germantown` — which is also what TT's
+ * "Germantown" keys as. New York has both, in different counties:
+ *
+ *     061,017,28739  German town        (Chenango)
+ *     061,021,28772  Germantown town    (Columbia)
+ *     061,027,05452  Beekman town       (Dutchess)
+ *     061,019,05485  Beekmantown town   (Clinton)
+ *
+ * Splitting bare name from designator separates them: `german|town` versus
+ * `germantown|town`. Nothing is manufactured into the bare key.
+ */
+describe('resolveMcdByState — name/designator fusion and the village rule', () => {
+  const ny = () => buildMcdStateIndex([
+    { SUMLEV: '061', STATE: '36', COUNTY: '017', COUSUB: '28739', NAME: 'German town' },
+    { SUMLEV: '061', STATE: '36', COUNTY: '021', COUSUB: '28772', NAME: 'Germantown town' },
+    { SUMLEV: '061', STATE: '36', COUNTY: '025', COUSUB: '02132', NAME: 'Andes town' },
+  ]);
+
+  it('does not hand "Germantown" the geoid of "German town"', () => {
+    expect(resolveMcdByState(ny(), 'Germantown', { entityType: 'town' }).geoid).toBe('3602128772');
+  });
+
+  it('still resolves "German" to its own town', () => {
+    expect(resolveMcdByState(ny(), 'German', { entityType: 'town' }).geoid).toBe('3601728739');
+  });
+
+  it('refuses a VILLAGE outright — a village is a place, never a county subdivision', () => {
+    // ⚠ The village of Andes sits inside the town of Andes. Letting the MCD
+    // layer answer gave both the town's geoid.
+    const r = resolveMcdByState(ny(), 'Andes', { entityType: 'village' });
+    expect(r.geoid).toBeNull();
+    expect(r.reason).toMatch(/village/i);
+  });
+
+  it('still answers for the town of the same name', () => {
+    expect(resolveMcdByState(ny(), 'Andes', { entityType: 'town' }).geoid).toBe('3602502132');
+  });
+
+  it('keeps Massachusetts working, where the designator CONTRADICTS the type', () => {
+    // ⚠ "Amherst Town city" is a city-form government TT types `town`. The MCD
+    // layer must stay permissive about the designator or MA loses 300+ towns.
+    const ma = buildMcdStateIndex([
+      { SUMLEV: '061', STATE: '25', COUNTY: '015', COUSUB: '01370', NAME: 'Amherst Town city' },
+    ]);
+    expect(resolveMcdByState(ma, 'Amherst', { entityType: 'town' }).geoid).toBe('2501501370');
+  });
+});
+
+/**
+ * ⭐ COUNTY-SCOPED MCDs FOR TOWNS, not just townships.
+ *
+ * `resolveTownship` has always scoped by county, but `buildMcdIndex` admits
+ * only Census names ending in "township", so New York — where every MCD is
+ * named "X town" — could never use it. Two towns named Albion, in Orleans and
+ * Oswego counties, were therefore AMBIGUOUS to the state-scoped lookup and
+ * left null, even though TT's own names say which county each one is in:
+ *
+ *     061,073,01044  Albion town   (Orleans)   TT "Albion, Orleans County"
+ *     061,075,01055  Albion town   (Oswego)    TT "Albion, Oswego County"
+ *
+ * The county is already in the stored name. Nothing needs to be guessed.
+ */
+describe('resolveMcdByCounty', () => {
+  const rows = [
+    { SUMLEV: '061', STATE: '36', COUNTY: '073', COUSUB: '01044', NAME: 'Albion town' },
+    { SUMLEV: '061', STATE: '36', COUNTY: '075', COUSUB: '01055', NAME: 'Albion town' },
+    { SUMLEV: '162', STATE: '36', PLACE: '01033', NAME: 'Albion village' },
+  ];
+  const counties = new Map([['orleans', '073'], ['oswego', '075']]);
+  const idx = () => buildMcdCountyIndex(rows);
+
+  it('separates two same-named towns by the county in the stored name', () => {
+    expect(resolveMcdByCounty(idx(), counties, 'Albion, Orleans County', { entityType: 'town' }).geoid)
+      .toBe('3607301044');
+    expect(resolveMcdByCounty(idx(), counties, 'Albion, Oswego County', { entityType: 'town' }).geoid)
+      .toBe('3607501055');
+  });
+
+  it('carries the county-scoped basis, not the state-scoped one', () => {
+    const r = resolveMcdByCounty(idx(), counties, 'Albion, Orleans County', { entityType: 'town' });
+    expect(r.basis).toBe('census-pep-061-county-scoped');
+  });
+
+  it('ignores SUMLEV 162 rows — a place is not a county subdivision', () => {
+    // ⚠ The village of Albion is a 162 row in county 073. Admitting it would
+    // put a place geoid behind a county-scoped MCD basis.
+    const r = resolveMcdByCounty(idx(), counties, 'Albion, Orleans County', { entityType: 'town' });
+    expect(r.geoid).not.toBe('3601033');
+  });
+
+  it('refuses a village here too — a village is a place', () => {
+    const r = resolveMcdByCounty(idx(), counties, 'Albion, Orleans County', { entityType: 'village' });
+    expect(r.geoid).toBeNull();
+    expect(r.reason).toMatch(/village/i);
+  });
+
+  it('misses cleanly when the stored name carries no county', () => {
+    const r = resolveMcdByCounty(idx(), counties, 'Albion', { entityType: 'town' });
+    expect(r.geoid).toBeNull();
+    expect(r.reason).toMatch(/no county/i);
+  });
+
+  it('misses when the county is not one this state has', () => {
+    const r = resolveMcdByCounty(idx(), counties, 'Albion, Nowhere County', { entityType: 'town' });
+    expect(r.geoid).toBeNull();
+  });
+});
+
+/**
+ * ⚠⚠ ALASKA'S CONSOLIDATED GOVERNMENTS — the name form runs the OTHER WAY.
+ *
+ * Every other state writes the designator LAST ("Juneau city"); TT stores
+ * Alaska's unified governments the way they style themselves, with the
+ * designator FIRST: "City and Borough of Juneau", "Municipality of
+ * Anchorage". nameVariants stripped "City of"/"Town of"/"Borough of" but not
+ * these, so five entities that publish current budgets matched nothing.
+ *
+ * ⚠ The Census writes them "Juneau city and borough", and "city and borough"
+ * was not a known designator, so the trailing-designator split grabbed the
+ * last word and keyed the bare name as "Juneau city and".
+ *
+ * ⭐ THE TIER FOLLOWS TT'S TYPE, and both tiers really exist:
+ *     162  0236400  Juneau city and borough   (boundary G4110)
+ *     050  02110    Juneau City and Borough   (boundary G4020)
+ *   Juneau/Sitka/Wrangell/Anchorage are `city` -> place, as San Francisco and
+ *   Philadelphia already are. Yakutat is `county` -> county, and has no 162
+ *   row at all, which is why it is typed that way.
+ */
+describe('Alaska consolidated city-boroughs', () => {
+  const places = () => buildPlaceIndex([
+    { SUMLEV: '162', STATE: '02', PLACE: '36400', NAME: 'Juneau city and borough' },
+    { SUMLEV: '162', STATE: '02', PLACE: '70540', NAME: 'Sitka city and borough' },
+    { SUMLEV: '162', STATE: '02', PLACE: '86380', NAME: 'Wrangell city and borough' },
+    { SUMLEV: '162', STATE: '02', PLACE: '03000', NAME: 'Anchorage municipality' },
+  ]);
+
+  it('resolves "City and Borough of X" to its place', () => {
+    expect(resolvePlace(places(), 'City and Borough of Juneau', { entityType: 'city' }).geoid)
+      .toBe('0236400');
+    expect(resolvePlace(places(), 'City and Borough of Sitka', { entityType: 'city' }).geoid)
+      .toBe('0270540');
+    expect(resolvePlace(places(), 'City and Borough of Wrangell', { entityType: 'city' }).geoid)
+      .toBe('0286380');
+  });
+
+  it('resolves "Municipality of X"', () => {
+    expect(resolvePlace(places(), 'Municipality of Anchorage', { entityType: 'city' }).geoid)
+      .toBe('0203000');
+  });
+
+  it('resolves the county-typed one against the COUNTY file', () => {
+    const counties = buildCountyIndex([
+      { SUMLEV: '050', STATE: '02', COUNTY: '282', CTYNAME: 'Yakutat City and Borough' },
+    ], '02');
+    expect(resolveCounty(counties, '02', 'City and Borough of Yakutat').geoid).toBe('02282');
+  });
+
+  it('still splits a plain borough on its own designator', () => {
+    // ⚠ "city and borough" must not shadow "borough" for the 949 PA boroughs.
+    const idx = buildPlaceIndex([{ SUMLEV: '162', STATE: '42', PLACE: '27432', NAME: 'Franklin borough' }]);
+    expect(resolvePlace(idx, 'Franklin', { entityType: 'borough' }).geoid).toBe('4227432');
+  });
+});
+
+/**
+ * ⚠⚠ CONSOLIDATED GOVERNMENTS: "(balance)" AND THE LONG DESIGNATORS.
+ *
+ * Georgia's unified governments are named by the Census as "Athens-Clarke
+ * County unified government (balance)" while TT stores "Athens-Clarke County".
+ * Two things defeated the match: `unified government` was not a known
+ * designator, and the trailing "(balance)" meant the designator was not at the
+ * end of the string at all, so the split found nothing and keyed the whole
+ * name.
+ *
+ * Scanning every cached place file for names no known designator ends gives
+ * the complete list, which is why these are fixed as a CLASS and not one
+ * state at a time:
+ *
+ *     5  metro township                     (Utah)
+ *     3  unified government                 (Georgia)
+ *     2  unified government (balance)
+ *     1  consolidated government (balance)  Augusta-Richmond
+ *     1  city (balance)                     Indianapolis
+ *     1  metro government (balance)         Louisville/Jefferson County
+ *     1  metropolitan government (balance)  Nashville-Davidson
+ *
+ * ⚠ "(balance)" is the consolidated government MINUS any separately
+ * incorporated municipality inside it — Athens-Clarke's balance excludes
+ * Winterville and Bogart. It is nonetheless the only place-level identifier
+ * the Census publishes for these governments, and it is the geoid the
+ * boundary set carries (1303440, G4110), so it is the one that matches.
+ */
+describe('consolidated governments — "(balance)" and long designators', () => {
+  const idx = () => buildPlaceIndex([
+    { SUMLEV: '162', STATE: '13', PLACE: '03440', NAME: 'Athens-Clarke County unified government (balance)' },
+    { SUMLEV: '162', STATE: '13', PLACE: '04204', NAME: 'Augusta-Richmond County consolidated government (balance)' },
+    { SUMLEV: '162', STATE: '13', PLACE: '81128', NAME: 'Webster County unified government' },
+    { SUMLEV: '162', STATE: '18', PLACE: '36003', NAME: 'Indianapolis city (balance)' },
+    { SUMLEV: '162', STATE: '47', PLACE: '52006', NAME: 'Nashville-Davidson metropolitan government (balance)' },
+    { SUMLEV: '162', STATE: '49', PLACE: '16110', NAME: 'Copperton metro township' },
+  ]);
+
+  it('resolves a unified government carrying "(balance)"', () => {
+    expect(resolvePlace(idx(), 'Athens-Clarke County', { entityType: 'city' }).geoid).toBe('1303440');
+  });
+
+  it('resolves a consolidated government carrying "(balance)"', () => {
+    expect(resolvePlace(idx(), 'Augusta-Richmond County', { entityType: 'city' }).geoid).toBe('1304204');
+  });
+
+  it('resolves a unified government with no "(balance)" suffix', () => {
+    expect(resolvePlace(idx(), 'Webster County', { entityType: 'city' }).geoid).toBe('1381128');
+  });
+
+  it('resolves a plain city that merely carries "(balance)"', () => {
+    expect(resolvePlace(idx(), 'Indianapolis', { entityType: 'city' }).geoid).toBe('1836003');
+  });
+
+  it('resolves "metropolitan government", not just "metro government"', () => {
+    expect(resolvePlace(idx(), 'Nashville-Davidson', { entityType: 'city' }).geoid).toBe('4752006');
+  });
+
+  it('resolves a Utah metro township', () => {
+    expect(resolvePlace(idx(), 'Copperton', { entityType: 'township' }).geoid).toBe('4916110');
+  });
+});
+
+/**
+ * ⚠⚠ A SPELLING THE PUBLISHER AND THE CENSUS DISAGREE ON.
+ *
+ * PA DCED writes "Upper Mahantango Township, Schuylkill County"; the Census
+ * writes "Upper Mahantongo township" — one vowel. No normalisation reaches
+ * that, and fuzzy matching must not be invented for it: the whole matcher is
+ * built on refusing to guess between two real governments.
+ *
+ * ⭐ Safe here because it is DECLARED and because the state holds exactly ONE
+ * "Mahant*" county subdivision, checked across the whole PA file. The alias
+ * names a specific government; it does not loosen matching for anything else.
+ */
+describe('declared spelling aliases', () => {
+  const mcd = () => buildMcdIndex([
+    { SUMLEV: '061', STATE: '42', COUNTY: '107', COUSUB: '79120', NAME: 'Upper Mahantongo township' },
+  ]);
+  const counties = new Map([['schuylkill', '107']]);
+
+  it('resolves the PA township the Census spells with an o', () => {
+    expect(resolveTownship(mcd(), counties, '42', 'Upper Mahantango Township, Schuylkill County').geoid)
+      .toBe('4210779120');
+  });
+
+  it('still resolves the Census spelling unchanged', () => {
+    expect(resolveTownship(mcd(), counties, '42', 'Upper Mahantongo Township, Schuylkill County').geoid)
+      .toBe('4210779120');
+  });
+
+  it('invents nothing for an unrelated name', () => {
+    expect(resolveTownship(mcd(), counties, '42', 'Lower Mahantango Township, Schuylkill County').geoid)
+      .toBeNull();
   });
 });

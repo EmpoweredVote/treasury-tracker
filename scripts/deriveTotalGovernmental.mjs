@@ -24,7 +24,7 @@ import { parseArgs } from 'node:util';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { getSupabase } from './lib/scopeDb.mjs';
-import { deriveTotalGovernmental, isEnterpriseRoot } from './lib/derivedTotalGovernmental.mjs';
+import { deriveTotalGovernmental, isEnterpriseRoot, isInDerivationScope } from './lib/derivedTotalGovernmental.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const IDS_PATH = join(HERE, 'data', 'scope04CreatedIds.json');
@@ -45,8 +45,61 @@ const IDS_PATH = join(HERE, 'data', 'scope04CreatedIds.json');
  * ⚠ It WILL move again, by far more than 2, when the rest of CA is loaded onto
  * FY2025: 482 cities and 54 county governments ride the same feeds and are all
  * still at FY2024.
+ *
+ * 7,666 -> 8,637 on 2026-10-31: that load happened (issue #313). It created
+ * 1,072 new all_funds rows — 480 city expenditure + 480 city revenue + 57
+ * county expenditure + 57 county revenue, less the 2 LA City rows already
+ * counted above. Eligible moved by +971, not +1,072, and the 101-row gap was
+ * checked rather than waved through:
+ *
+ *     FY2022   1,066 parents -> 954 derived   89.5%
+ *     FY2023   1,066 parents -> 961 derived   90.2%
+ *     FY2024   1,066 parents -> 961 derived   90.2%
+ *     FY2025   1,074 parents -> 971 eligible  90.4%   <- in line
+ *
+ * ⭐ ~10% of CA State Controller rows carry NO enterprise root every year, so
+ * Total Governmental cannot be derived from them and they land in
+ * `skip-no-enterprise`. FY2025's 9.6% is the normal rate, not a defect.
+ *
+ * ⚠⚠ 480 CITIES, NOT 483. Fremont, Sacramento and San Jose refused: they have
+ * no State Controller BUDGET history at all — only publicpay salaries — so the
+ * RPC had no fiscal_year_start_month to inherit and declined rather than
+ * defaulting. That is the standing "no SCO backfill for flagship custom-source
+ * cities" decision being enforced by the database.
+ *
+ * ⚠ RESOLVED 2026-10-31, and it was NOT a stale number: `skip-no-enterprise`
+ * printed `expect 852` against a measured 51,257 because the counter had
+ * quietly become a different quantity. 852 always described CA State
+ * Controller rows; the measurement had grown to include 50,304 rows from every
+ * other state, which this derivation never covered and which reached that
+ * bucket only because no non-SCO loader happens to name a root "Enterprise".
+ * Scope is now declared (`isInDerivationScope`), so the counter means again
+ * what the expectation says. See the measurement below.
  */
-const EXPECTED_ELIGIBLE = 7666;
+const EXPECTED_ELIGIBLE = 8637;
+
+/**
+ * The other two triage buckets, which partition the same in-scope population:
+ * 8,637 + 953 + 12 = 9,602 CA State Controller era-B all_funds rows.
+ *
+ * Measured 2026-10-31 against the live database, by root category:
+ *
+ *     in scope (data_source LIKE 'CA State Controller%')   9,602
+ *       has an enterprise/ISF root  -> eligible              8,637
+ *       has roots, none enterprise  -> skip-no-enterprise      953
+ *       no root categories at all   -> skip-rootless            12
+ *     out of scope (every other data_source)              50,304
+ *
+ * ⚠ 953 is 852 + 101, and 101 is exactly FY2025's no-enterprise share from the
+ * #313 load — the same 101 rows that made 1,072 new parents yield +971
+ * eligible. The two numbers reconcile; neither was a surprise.
+ *
+ * ⚠ ~10% of CA SCO rows carry no enterprise root EVERY year, so this constant
+ * moves with every CA load, the same way EXPECTED_ELIGIBLE does. Re-measure it
+ * deliberately; do not nudge it to make a run quiet.
+ */
+const EXPECTED_NO_ENTERPRISE = 953;
+const EXPECTED_ROOTLESS = 12;
 
 /** Parent data_source -> the derived row's OWN label. */
 const DERIVED_SOURCE = {
@@ -141,6 +194,20 @@ async function main() {
     const m = munis.get(b.municipality_id);
     return [b.id, { ...b, name: m?.name ?? '(unknown)', state: m?.state ?? '', cats: [] }];
   }));
+
+  // ── scope, BEFORE anything expensive ──────────────────────────────────────
+  // ⚠⚠ This derivation only ever covered the CA State Controller family, but
+  // it used to triage the whole era-B population and let the other states fall
+  // out at the enterprise-root test — which is what made `skip-no-enterprise`
+  // read 51,257 against an `expect 852` describing 953 rows. Stating the scope
+  // fixes the counter AND stops reading 50,304 rows' categories to discard
+  // them: measured 2026-10-31, 9,602 of 59,906 rows are in scope.
+  const outOfScope = [];
+  for (const [id, b] of byId) {
+    if (!isInDerivationScope(b.data_source)) { outOfScope.push(b); byId.delete(id); }
+  }
+  console.log(`  in scope (CA State Controller): ${byId.size.toLocaleString()}`
+    + `   out of scope: ${outOfScope.length.toLocaleString()}`);
 
   // ── categories (roots + children; max_depth is 1 for this corpus) ─────────
   const ids = [...byId.keys()];
@@ -238,8 +305,8 @@ async function main() {
   for (const b of quarantined) console.log(`      ${named(b)}`);
   console.log(`  → excluded       ${excluded.length}`);
   for (const r of excluded) console.log(`      ${named(r.b)} — ${r.why}`);
-  console.log(`skip-no-enterprise ${noEnterprise.length}   (expect 852)`);
-  console.log(`skip-rootless      ${rootless.length}   (expect 12)`);
+  console.log(`skip-no-enterprise ${noEnterprise.length}   (expect ${EXPECTED_NO_ENTERPRISE})`);
+  console.log(`skip-rootless      ${rootless.length}   (expect ${EXPECTED_ROOTLESS})`);
   for (const b of rootless) console.log(`      ${named(b)}  (total_budget ${b.total_budget})`);
   console.log(`flag-neg-enterprise-root ${negEnterpriseRoot.length}`);
   console.log(`flag-neg-operating-expenses ${negOpEx.length}`);
@@ -252,6 +319,20 @@ async function main() {
     console.error('   An unrecognised root means the era-B vocabulary changed and Task 1\'s');
     console.error('   guard is doing its job. Investigate before re-running.');
     process.exit(1);
+  }
+  // ⚠⚠ A PRINTED EXPECTATION NOBODY CHECKS IS NOT A TRIPWIRE. `expect 852` sat
+  // beside a measured 51,257 through three statewide loads and never once said
+  // anything, because only `eligible` had a comparison behind it. All three
+  // counters are checked now — they partition the same population, so a silent
+  // move in any one of them is the signal.
+  for (const [label, got, want] of [
+    ['skip-no-enterprise', noEnterprise.length, EXPECTED_NO_ENTERPRISE],
+    ['skip-rootless', rootless.length, EXPECTED_ROOTLESS],
+  ]) {
+    if (got !== want) {
+      console.error(`\n⚠ ${label} is ${got.toLocaleString()}, expected ${want.toLocaleString()}`
+        + ' — the population moved. Investigate, then re-measure the constant.');
+    }
   }
   if (eligible !== EXPECTED_ELIGIBLE) {
     console.error(`\n⚠ eligible is ${eligible}, expected ${EXPECTED_ELIGIBLE.toLocaleString()} — the population moved. Investigate.`);
