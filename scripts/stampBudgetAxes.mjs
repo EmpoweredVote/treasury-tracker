@@ -65,8 +65,23 @@ export const EXPECTED_BASIS_ROWS = Object.freeze({
   // ⚠ This is a STATEWIDE year, not an LA one: 482 CA cities and 54 county
   // governments all ride this feed and are still at FY2024. When the rest of CA
   // is loaded these two numbers move again, by far more than one.
-  'ca-sco-city-exp': 10453,
-  'ca-sco-city-rev': 10453,
+  // ⭐⭐ RE-MEASURED 2026-11-02 — the same five CA entries moved in BOTH gates,
+  // from the same cause, and the full evidence is written once in
+  // scripts/data/fundScopeExpectations.mjs rather than copied here. In short:
+  // the CA FY2025 fleet load (#313, 7a89a4e8) extended all four State
+  // Controller series onto FY2025 and neither gate was re-run, so both have
+  // been failing since that merge. TABLE GREW, not a pattern bug — every
+  // pre-FY2025 count is untouched and the five deltas sum to 2,042, which is
+  // #313's own record to the row.
+  //   ca-sco-city-exp   10,932 / 10,932 ids / 1 string / 480 entities (480 FY2025)
+  //   ca-sco-city-rev   10,932 / 10,932 ids / 1 string / 480 entities (480 FY2025)
+  //   ca-sco-county-*    1,245 /  1,245 ids / 1 string /  57 entities ( 57 FY2025)
+  //   ca-sco-derived-tg  8,622 /  8,622 ids / 4 strings/ 494 entities (972 FY2025)
+  // ⚠ basis is unaffected in MEANING by any of this: every new row is a closed
+  // FY2025 actual on the same feed, which is what `actual` already asserted for
+  // FY2003-FY2024. The number moved; the classification did not.
+  'ca-sco-city-exp': 10932,
+  'ca-sco-city-rev': 10932,
   // SCOPE-04 — the derived Total Governmental rows. basis='actual', INHERITED from
   // the parent all_funds rows (all 7,664 eligible were measured uniformly actual);
   // summing a subset of a row's own roots cannot change the basis of the figure.
@@ -78,9 +93,14 @@ export const EXPECTED_BASIS_ROWS = Object.freeze({
   // FY2025 derived pair, following its all_funds pair onto the State
   // Controller's newly published FY2025. basis stays 'actual', inherited from
   // the parent rows exactly as the original 7,650 were.
-  'ca-sco-derived-tg': 7652,
-  'ca-sco-county-exp': 1188,
-  'ca-sco-county-rev': 1188,
+  // ⚠ +970 on 2026-11-02, and the arithmetic above moves once more with it:
+  // 8,622 = 7,650 original + 2 LA FY2025 + 970 from the #313 fleet load. basis
+  // stays 'actual', inherited from the parent rows exactly as the first 7,650
+  // were — the derivation sums a subset of a row's own roots, which cannot
+  // change the basis of the figure.
+  'ca-sco-derived-tg': 8622,
+  'ca-sco-county-exp': 1245,
+  'ca-sco-county-rev': 1245,
   // RE-MEASURED 2026-10-06 (phase 2): 308 -> 328, exactly +20, with nothing
   // else moved. The 20 are Duvall, WA (MCAG 0391), the tenth WA SAO entity:
   // 10 fiscal years x operating+revenue, loaded this milestone. The earlier
@@ -337,6 +357,23 @@ export const EXPECTED_BASIS_ROWS = Object.freeze({
   // consolidated entity. See the fuller note on the same id in
   // scripts/classifyFundScope.mjs.
   'tn-local-acfr-gf': 20,
+  // ⚠ MISSING ENTRY, added 2026-11-02 — not a number that moved, one that was
+  // never written. The LA City AUDITED General Fund series (piece 2 of the
+  // audit-grade milestone, 20 rows registered 2026-10-31, `0dce86f9`) got its
+  // `fund_scope` expectation but never its `basis` one, so this gate has been
+  // reading `expected 0, got 20` ever since. `fundScopeExpectations.mjs`
+  // already carries 'la-city-acfr-gf': 20 and passes, which is what makes the
+  // omission legible rather than ambiguous.
+  // MEASURED IN THE TABLE 2026-11-02: 20 rows / 20 DISTINCT ids / 20 strings /
+  // 1 entity, of which 2 are FY2025. `strings` equals rows here because each
+  // data_source names its own fiscal year and dataset — the in-county-acfr-tg
+  // shape, not the one-string-per-family shape.
+  // basis='actual': these are the printed General Fund column of an audited,
+  // closed-year ACFR. ⚠ This is the series that exists so a reader has
+  // something to switch TO — see the LA note in basisRegistry.mjs; it is a
+  // SECOND series beside the Controller's all-funds one, never a correction of
+  // it, and the two will never agree.
+  'la-city-acfr-gf': 20,
   // Florida DFS. Was 190 (Knight session 3, seven entities); re-measured
   // 2026-09-02 after the STATEWIDE sweep loaded every filing city and county.
   //
@@ -588,6 +625,23 @@ export const EXPECTED_BASIS_ROWS = Object.freeze({
   // 16,878 = 16,876 swept rows + Marion County's 2 FY2025 rows, which sit
   // OUTSIDE the loaded window and were never rewritten.
   'in-gateway-afr': 16878,
+  // ⚠ NEW ENTRY 2026-11-02 — Virginia APA Comparative Report, `basis = actual`.
+  // MEASURED IN THE TABLE the same day, not derived from the APA's roster:
+  // 608 rows / 608 DISTINCT ids / 1 string / 161 entities / FY2023-FY2024.
+  // The distinct-id count is asserted beside the row count for the reason the
+  // in-gateway-afr note gives — an unpaged read returns a plausible number
+  // (reference_paged_reads_need_total_order).
+  // It splits evenly, every entity-year carrying both faces:
+  //     FY2023 operating 150 + revenue_local_only 150
+  //     FY2024 operating 154 + revenue_local_only 154
+  // ⚠ BOTH loaded fiscal years are CLOSED, which is what lets this be `actual`
+  // at all: every Virginia locality closes June 30, and FY2024 ended
+  // 2024-06-30. The unclosed-year rule at the top of this file is the gate that
+  // would catch it otherwise.
+  // ⚠ 608 is TT's holding, not the APA's coverage — the report carries 174
+  // localities and TT holds 161 of them. A later onboarding wave moves this
+  // number legitimately; re-measure, do not assume.
+  'va-apa-comparative-report': 608,
 });
 
 export const EXPECTED_REPORTING_ENTITY_ROWS = Object.freeze({
