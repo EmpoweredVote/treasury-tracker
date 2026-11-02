@@ -297,7 +297,16 @@ test('importEntity hands the publisher id to the lookup — and null where there
   const stub = {
     rpc: async (fn, args) => {
       calls.push({ fn, args });
-      return { data: fn === 'treasury_ensure_municipality' ? 'stub-municipality-id' : { ok: true }, error: null };
+      // ⚠ The sync payload must be a shape the REAL RPC can return —
+      // {status, budget_id, rows_inserted} — not {ok:true}. classifySyncResult
+      // fails CLOSED on an unrecognised payload, by design, so an invented
+      // shape here reads as a refused write.
+      return {
+        data: fn === 'treasury_ensure_municipality'
+          ? 'stub-municipality-id'
+          : { status: 'success', budget_id: 'stub-budget-id', rows_inserted: 1 },
+        error: null,
+      };
     },
     schema: () => ({
       from: () => ({
@@ -316,7 +325,18 @@ test('importEntity hands the publisher id to the lookup — and null where there
 
   if (HAVE_COUNTY) {
     const countyCalls = [];
-    const countyStub = { ...stub, rpc: async (fn, args) => { countyCalls.push({ fn, args }); return { data: 'stub-id', error: null }; } };
+    const countyStub = {
+      ...stub,
+      rpc: async (fn, args) => {
+        countyCalls.push({ fn, args });
+        return {
+          data: fn === 'treasury_ensure_municipality'
+            ? 'stub-id'
+            : { status: 'success', budget_id: 'stub-budget-id', rows_inserted: 1 },
+          error: null,
+        };
+      },
+    };
     await importEntity(countyStub, await countyWb(), {
       entityName: 'Aitkin', municipalityName: 'Aitkin County', fiscalYear: 2021, entityType: 'county',
     });

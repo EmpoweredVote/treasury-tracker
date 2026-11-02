@@ -50,6 +50,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { parseArgs } from 'node:util';
 import { monthForSource } from './lib/loaderFiscalCalendars.mjs';
+import { classifySyncResult } from './lib/rpcResult.mjs';
 
 // ── Supabase client ──────────────────────────────────────────────────────────
 
@@ -302,6 +303,15 @@ async function syncYear(opts) {
 
   if (error) {
     console.error(`    RPC error: ${error.message}`);
+    return { total, skipped: false };
+  }
+  // ⚠⚠ `error` above is the TRANSPORT error only. A refusal travels in the
+  // payload while supabase-js reports error: null — see lib/rpcResult.mjs.
+  // ⚠ Logged and returned, matching the transport-error path immediately
+  // above, so one dataset's refusal does not abandon the others.
+  const outcome = classifySyncResult(data);
+  if (!outcome.ok) {
+    console.error(`    RPC refused: ${outcome.message}`);
     return { total, skipped: false };
   }
   console.log(`    Synced (${data?.rows_inserted ?? '?'} rows reported) — source_url=${ds.pageUrl} source_date=${fetchDate}`);

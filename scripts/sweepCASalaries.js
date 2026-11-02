@@ -38,6 +38,7 @@ import path from 'node:path';
 import os from 'node:os';
 // Shared helpers (single source of truth — see loadCASalaries.js).
 import { normalizeDeptLabel, parseMoney } from './loadCASalaries.js';
+import { classifySyncResult } from './lib/rpcResult.mjs';
 
 // ── Env / Supabase setup ─────────────────────────────────────────────────────
 
@@ -267,6 +268,15 @@ async function syncCityYear(municipalityId, year, rows, dryRun) {
 
   if (error) {
     console.error(`    RPC error: ${error.message}`);
+    return null;
+  }
+  // ⚠⚠ The transport error is not the refusal — see lib/rpcResult.mjs.
+  // ⚠ Returns null rather than throwing: the caller records a per-city gap
+  // and sets hadFailures, and the run exits non-zero on that. Throwing killed
+  // the sweep at the first refusal and skipped every remaining city.
+  const outcome = classifySyncResult(data);
+  if (!outcome.ok) {
+    console.error(`    RPC refused: ${outcome.message}`);
     return null;
   }
 

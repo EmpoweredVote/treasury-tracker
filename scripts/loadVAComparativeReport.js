@@ -51,6 +51,7 @@ import { fileURLToPath } from 'node:url';
 import ExcelJS from 'exceljs';
 
 import { ensureMunicipality } from './lib/ensureMunicipality.mjs';
+import { classifySyncResult } from './lib/rpcResult.mjs';
 export const DATA_SOURCE_NAME = 'Virginia APA Comparative Report';
 
 // ── Cell helpers ──────────────────────────────────────────────────────────────
@@ -424,6 +425,13 @@ export async function importDataset(supabase, municipalityId, fiscalYear, datase
     p_fiscal_year_start_month: monthForSource(DATA_SOURCE_NAME),
   });
   if (error) { console.error(`  RPC error (${datasetType}): ${error.message}`); return null; }
+  // ⚠⚠ THE RPC REPORTS FAILURE INSIDE A SUCCESSFUL POSTGREST CALL. `error`
+  // above is the TRANSPORT error only; a refusal travels in `data` as
+  // {error: …} and supabase-js hands back error: null. Returning `data` here
+  // handed a refused write back as if it were a written one. See
+  // lib/rpcResult.mjs and tests/rpcRefusalIsHeard.test.mjs.
+  const outcome = classifySyncResult(data);
+  if (!outcome.ok) throw new Error(`${datasetType} FY${fiscalYear}: ${outcome.message}`);
   return data;
 }
 

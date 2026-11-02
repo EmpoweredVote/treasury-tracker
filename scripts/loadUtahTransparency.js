@@ -44,6 +44,8 @@ import { utahMonthFor } from './lib/loaderFiscalCalendars.mjs';
 import { fileURLToPath } from 'node:url';
 
 import { ensureMunicipality } from './lib/ensureMunicipality.mjs';
+import { classifySyncResult } from './lib/rpcResult.mjs';
+import { assertRegisteredFamily } from './lib/registeredFamilies.mjs';
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://kxsdzaojfaibhuzmclfq.supabase.co';
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
 // ⚠ Do NOT hard-exit at import time. This module is imported by its unit tests,
@@ -547,6 +549,9 @@ async function importEntityData(municipalityName, state, rows, fiscalYear, datas
     p_fiscal_year_start_month: utahMonthFor({ entity_type: entityType }),
   });
   if (error) { console.error(`    RPC error: ${error.message}`); return null; }
+  // ⚠⚠ The transport error is not the refusal — see lib/rpcResult.mjs.
+  const outcome = classifySyncResult(result);
+  if (!outcome.ok) throw new Error(`RPC refused: ${outcome.message}`);
   return result;
 }
 
@@ -589,6 +594,14 @@ async function main() {
       console.log('  Mode: LIVE CONFIRM (will scan BigQuery and write to Supabase)');
     }
     console.log('');
+
+    // ⚠⚠⚠ STEP 0 — THE PREFLIGHT, BEFORE BIGQUERY IS TOUCHED AT ALL. The
+    // registry gate in treasury_sync_city_budget refuses an unregistered
+    // family, but that refusal arrives AFTER the scan has been billed: the
+    // sequence would be scan, pay, refuse, write nothing, and an operator
+    // with nothing to show for it re-runs. The 2026-06-19 incident was 622
+    // jobs and ~21.2 TiB in ten hours, ≈ $132. Ask the cheap question first.
+    await assertRegisteredFamily(supabase, DATA_SOURCE_NAME);
 
     // Step 1: Always run the free dry-run first (bills 0 bytes, quota-exempt).
     console.log('Running BigQuery dry-run (free, bills 0 bytes)...');
@@ -724,6 +737,9 @@ async function main() {
         errors++;
         continue;
       }
+      // ⚠⚠ The transport error is not the refusal — see lib/rpcResult.mjs.
+      const outcome = classifySyncResult(result);
+      if (!outcome.ok) throw new Error(`RPC refused (${label}): ${outcome.message}`);
 
       console.log(`  OK ${label} — total $${group.total.toLocaleString()} (${result?.rows_inserted ?? '?'} items)`);
       imported++;

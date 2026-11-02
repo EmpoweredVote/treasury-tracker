@@ -61,6 +61,8 @@ import { dirname, join } from 'node:path';
 import ExcelJS from 'exceljs';
 
 import { ensureMunicipality } from './lib/ensureMunicipality.mjs';
+import { classifySyncResult } from './lib/rpcResult.mjs';
+import { assertRegisteredFamily } from './lib/registeredFamilies.mjs';
 export const DATA_SOURCE_NAME = 'Ohio Auditor of State Summarized Annual Financial Reports';
 
 // ── Workbook layout profiles (GAAP vs CASH/MOD) ──────────────────────────────
@@ -591,6 +593,9 @@ export async function importDataset(supabase, municipalityId, entityName, fiscal
     p_fiscal_year_start_month: ohioMonthFor({ name: entityName, state: 'OH' }),
   });
   if (error) { console.error(`  RPC error (${datasetType}): ${error.message}`); return null; }
+  // ⚠⚠ The transport error is not the refusal — see lib/rpcResult.mjs.
+  const outcome = classifySyncResult(data);
+  if (!outcome.ok) throw new Error(`RPC refused (${datasetType}): ${outcome.message}`);
   return data;
 }
 
@@ -672,6 +677,10 @@ async function main() {
 
   const fiscalYear = parseInt(values.fy, 10);
   const basis      = (values.basis || 'GAAP').toUpperCase();
+  // ⚠ The registry preflight, before the workbook is opened. Cheap here —
+  // these files are local — but the same call every loader makes, so the
+  // answer is the gate's answer and not a second opinion.
+  await assertRegisteredFamily(await getSupabase(), DATA_SOURCE_NAME, { fiscalYears: [fiscalYear] });
   // Auto-resolve source_url from the manifest (D-05); --source-url overrides if provided
   const sourceUrl  = values['source-url'] || resolveSourceUrl(fiscalYear, basis) || null;
   const sourceDate = values['source-date'] || new Date().toISOString().slice(0, 10);

@@ -37,6 +37,7 @@
 import { parseArgs } from 'node:util';
 import { monthForSource } from './lib/loaderFiscalCalendars.mjs';
 import ExcelJS from 'exceljs';
+import { classifySyncResult } from './lib/rpcResult.mjs';
 
 export const DATA_SOURCE_NAME =
   'Wisconsin DOR County and Municipal Revenues and Expenditures (unaudited MFR)';
@@ -394,6 +395,9 @@ export async function importDataset(supabase, municipalityId, fiscalYear, datase
     p_fiscal_year_start_month: monthForSource(DATA_SOURCE_NAME),
   });
   if (error) throw new Error(`RPC error (${datasetType} CY${fiscalYear}): ${error.message}`);
+  // ⚠⚠ The transport error is not the refusal — see lib/rpcResult.mjs.
+  const outcome = classifySyncResult(data);
+  if (!outcome.ok) throw new Error(`RPC refused (${datasetType} CY${fiscalYear}): ${outcome.message}`);
 
   // MAD-06: Wisconsin municipalities run on a CALENDAR year, so the fiscal year
   // starts in January. The RPC does not take this, and the column's dominant
