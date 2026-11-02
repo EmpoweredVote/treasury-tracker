@@ -185,6 +185,35 @@ a new family is four entries, one of which will usually say "unknown, and here
 is why" — which is the question being asked out loud rather than defaulted
 past. *(My call. Say so if you want it relaxed to three.)*
 
+### ⚠⚠⚠ The gate must be callable as a PREFLIGHT, before the loader spends anything
+
+A refusal at write time arrives **after** the loader has already done its
+expensive work. Utah is the worst case and the reason this is in the document:
+`loadUtahTransparency.js --rollup` bills a BigQuery scan *before* it writes.
+With the gate armed and Utah unregistered, the sequence is **scan, pay, refuse,
+write nothing** — and the operator, having nothing to show for it, re-runs.
+
+The 2026-06-19 incident was 622 jobs and ~21.2 TiB in ten hours, ≈ $132, on an
+unfunded nonprofit. The rollup fix brought one refresh down to ~$0.29, but the
+shape of the hazard is unchanged: **money leaves before the gate speaks.**
+
+So the gate ships in two forms over one implementation:
+
+1. **`assertRegisteredFamily(dataSourceName)`** — a cheap, local, network-free
+   check a loader calls **first**, before fetching, scanning or downloading.
+   Same registry data, same message, no database round trip.
+2. **The RPC refusal** — the backstop that cannot be skipped or forgotten,
+   for the loader that does not call the preflight.
+
+⚠ The preflight is a courtesy, never the enforcement. A builder must not be
+tempted to drop the RPC half because every current loader calls the preflight;
+the whole premise is the loader written next year by someone who never read
+this. Both, or the gate is advisory.
+
+This applies beyond Utah — any loader that downloads before writing (PDF
+fetches, FAC pulls, the Ohio workbooks) wastes the same way, just in minutes
+rather than dollars.
+
 ### ⚠ Arming the gate makes unregistered families un-reloadable
 
 Virginia and Utah cannot be re-run, re-loaded or corrected until they are
