@@ -104,6 +104,48 @@ test('A city page shows figures and draws its chart @phone', async ({ page }) =>
   expect(box?.width ?? 0, 'the biggest chart segment has no width').toBeGreaterThan(0);
 });
 
+/**
+ * AUDIT-GRADE §5.2 — a figure read off a chart carries its source.
+ *
+ * Chris's rule: "we should only share the information with how we sourced it
+ * and our confidence in that source." The reader is a journalist deciding
+ * whether they can cite a number, and the case that decided the design is a bar
+ * read off a chart and screenshotted on its own — a source bar at the top of
+ * the page does not travel with that screenshot.
+ *
+ * ⚠ NO HARD-CODED CITY, STATE, PUBLISHER OR FISCAL YEAR. The citation's SHAPE
+ * is the contract ("grade · scope · publisher · period"); which words fill it
+ * are data and change as Treasury Tracker grades more sources.
+ */
+function chartCitation(page: Page) {
+  // "Government-reported · All Funds · CA State Controller · FY 2025" — at least
+  // three separated segments ending in a period label.
+  return page.getByText(/\u00b7.+\u00b7.+\u00b7\s*(FY \d{4}|Transition Q \d{4})\s*$/);
+}
+
+test('A figure read off a chart carries its source', async ({ page }) => {
+  await openPinnedCity(page);
+  await expect(moneyOut(page)).toBeVisible();
+  await expect(chartCitation(page).first()).toBeVisible();
+
+  // ⚠ AND AFTER DRILLING IN. App.tsx renders the chart from three separate
+  // branches — root, drill-down and leaf — so a citation wired beside one of
+  // them would vanish the moment a reader clicked into a category, which is
+  // exactly when they are most likely to screenshot a bar.
+  //
+  // ⚠⚠ THE DRILL IS ASSERTED, NOT ASSUMED. The first version of this test
+  // clicked and re-checked the citation — but if the click were a no-op (a leaf
+  // segment, a changed DOM, an intercepted pointer) the ROOT citation is still
+  // on screen and the test passes while proving nothing about depth. Found in
+  // whole-branch review. The breadcrumb is the depth signal.
+  const breadcrumb = page.getByRole('navigation', { name: /Breadcrumb/i });
+  const before = await breadcrumb.innerText();
+  const chart = page.getByRole('list', { name: /breakdown/i, includeHidden: true });
+  await chart.getByRole('listitem', { includeHidden: true }).first().click();
+  await expect(breadcrumb, 'the drill click did not navigate').not.toHaveText(before);
+  await expect(chartCitation(page).first()).toBeVisible();
+});
+
 test('Changing the year changes the figures', async ({ page }) => {
   await openPinnedCity(page);
   await expect(moneyOut(page)).toBeVisible();

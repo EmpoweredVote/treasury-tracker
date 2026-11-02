@@ -30,6 +30,24 @@ function migrationSource(nameFragment) {
   return readFileSync(join(MIGRATIONS, file), 'utf8');
 }
 
+/**
+ * The text of the LAST migration that declares `declaration`.
+ *
+ * ⚠⚠ A constraint is re-declared, not edited. Reading the migration that
+ * FIRST declared one asserts a rule that may no longer be in force, and keeps
+ * passing while the live rule says something else — the trap recorded on the
+ * audit_grade_check block below. Both constraint blocks in this file read the
+ * declaration in force through here.
+ */
+function latestDeclaring(declaration) {
+  const files = readdirSync(MIGRATIONS)
+    .filter((f) => f.endsWith('.sql'))
+    .filter((f) => readFileSync(join(MIGRATIONS, f), 'utf8').includes(declaration))
+    .sort();
+  expect(files.length, `no migration declares "${declaration}"`).toBeGreaterThan(0);
+  return readFileSync(join(MIGRATIONS, files[files.length - 1]), 'utf8');
+}
+
 describe('audit_grade column migration', () => {
   const sql = migrationSource('audit_grade_on_budgets');
 
@@ -108,6 +126,31 @@ describe('graded rows must cite a source', () => {
     expect(sql).toMatch(/audit_grade = 'unknown'/);
     expect(sql).toMatch(/source_url IS NOT NULL/);
     expect(sql).toMatch(/source_url <> ''/);
+  });
+
+  // ⚠⚠ EVERY EXEMPTION, READ FROM THE DECLARATION IN FORCE.
+  //
+  // The block above reads the migration that FIRST declared this constraint,
+  // which is the same staleness trap the audit_grade_check block at the top of
+  // this file was rewritten to escape: once a later migration re-declares the
+  // constraint, pinning the original asserts a rule that is no longer in force
+  // and keeps passing while the live one says something else.
+  //
+  // `not_applicable` is exempt alongside `unknown` (20261030000000). Both make
+  // no positive claim about assurance — one says nobody has looked, the other
+  // says there is nothing to look at — and 97.7% of the rows carrying the
+  // second have no source_url at all.
+  const inForce = latestDeclaring('ADD CONSTRAINT budgets_graded_rows_need_a_source_url');
+
+  it('exempts both no-claim values, and still binds every value that does claim', () => {
+    expect(inForce).toMatch(/audit_grade = 'unknown'/);
+    expect(inForce).toMatch(/audit_grade = 'not_applicable'/);
+    expect(inForce).toMatch(/source_url IS NOT NULL/);
+    expect(inForce).toMatch(/source_url <> ''/);
+    for (const grade of AUDIT_GRADE_VALUES.filter((g) => g !== 'unknown' && g !== 'not_applicable')) {
+      expect(inForce, `${grade} must NOT be exempted from citing a source`)
+        .not.toMatch(new RegExp(`audit_grade = '${grade}'`));
+    }
   });
 });
 

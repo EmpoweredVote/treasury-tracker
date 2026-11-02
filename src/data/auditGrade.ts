@@ -2,11 +2,12 @@
  * AUDIT-GRADE — what independent assurance stands behind a figure, in words a
  * reader who has never heard of an "unmodified opinion" can use.
  *
- * Treasury Tracker graded 88,820 budget rows across eight loading sessions. The
+ * Treasury Tracker graded 583,569 budget rows (2026-10-30; 88,820 when this
+ * module was written). The
  * column existed, was constrained, was populated — and until this module, a
  * reader could see none of it. Everything built to grade honestly reached nobody.
  *
- * ⚠⚠ THESE FIVE VALUES ARE NOT A LADDER, AND NOTHING HERE MAY RENDER THEM AS
+ * ⚠⚠ THESE SIX VALUES ARE NOT A LADDER, AND NOTHING HERE MAY RENDER THEM AS
  * ONE. `audited_ocboa` carries the SAME assurance as `audited_gaap` — an
  * independent opinion under Government Auditing Standards — on a measurement
  * basis that is not GAAP. Assurance and comparability are two different
@@ -14,15 +15,31 @@
  * why the UI distinguishes these by WORDS and not by colour or star count.
  *
  * ⚠⚠ TWO VALUES CAN LIBEL A GOVERNMENT AT SCALE if the copy drifts, and between
- * them they are 99.4% of the database (counts as of 2026-08-31):
+ * them they are 96.4% of the database (measured 2026-10-30):
  *
- *   unknown                  60,368 rows / 2,122 entities — 68.0%
- *   self_reported_unaudited  27,912 rows /   835 entities — 31.4%
- *   audited_gaap                342 rows /    15 entities —  0.4%
- *   compiled_from_audited       190 rows /     7 entities —  0.2%
- *   audited_ocboa                 8 rows /     1 entity   —  0.01%
+ *   self_reported_unaudited  530,969 rows — 91.0%
+ *   unknown                   23,694 rows —  4.1%
+ *   compiled_from_audited     19,590 rows —  3.4%
+ *   not_applicable             7,932 rows —  1.4%  (salaries and transactions)
+ *   audited_gaap               1,356 rows —  0.2%
+ *   audited_ocboa                 28 rows —  0.005%
+ *   total                    583,569 rows
  *
- * `unknown` means NOBODY HAS LOOKED. Most of those 2,122 governments are audited
+ * ⚠ THESE COUNTS GO STALE, AND THE FIRST DRAFT OF THIS VERY TABLE DID NOT EVEN
+ * RECONCILE — it mixed a pre-write measurement with a post-write row, and the
+ * seven lines summed to 591,501 against a 583,569-row table. Caught in review,
+ * in the file whose whole subject is a number that rotted. Re-measure; do not
+ * patch a line.
+ *
+ * ⚠ On 2026-08-31 this list read `unknown` 68.0% and
+ * `self_reported_unaudited` 31.4% at 88,820 rows, and a sentence derived from
+ * them reached readers and stayed false for two months (see
+ * AUDIT_GRADE_EXPLAINER.whyUnknownIsNotBad). The share did not get worse: the
+ * table grew 6.6x and honest grading kept up — New York (185k), Michigan (116k)
+ * and Pennsylvania (51k) are all state agencies compiling self-reports, graded
+ * correctly. Re-measure before quoting; never put a figure from here into copy.
+ *
+ * `unknown` means NOBODY HAS LOOKED. Most of those governments are audited
  * every year. `self_reported_unaudited` is a statutory filing a finance officer
  * signs, often drawn straight from audited books. Rendering the first as a
  * warning, or the second as "unverified", would smear thousands of governments
@@ -45,7 +62,8 @@ export type AuditGrade =
   | 'audited_ocboa'
   | 'compiled_from_audited'
   | 'self_reported_unaudited'
-  | 'unknown';
+  | 'unknown'
+  | 'not_applicable';
 
 /**
  * ⚠ Must match the CHECK constraint on treasury.budgets exactly. If the database
@@ -58,6 +76,10 @@ export const AUDIT_GRADE_VALUES: readonly AuditGrade[] = [
   'compiled_from_audited',
   'self_reported_unaudited',
   'unknown',
+  // ⚠⚠ OFF THE ASSURANCE AXIS, NOT AT THE BOTTOM OF IT. The five above answer
+  // "how much independent checking stands behind this figure"; this one denies
+  // that the question applies. Listed last so the five keep their order.
+  'not_applicable',
 ] as const;
 
 /**
@@ -89,6 +111,61 @@ export function normalizeAuditGrade(raw: unknown): AuditGrade {
  */
 export function isAudited(grade: AuditGrade): boolean {
   return grade === 'audited_gaap' || grade === 'audited_ocboa';
+}
+
+/**
+ * ⚠⚠ AN INTERNAL DISCLOSURE ORDER. NOT A RANKING, AND NEVER RENDERED.
+ *
+ * Nothing here reaches a reader: it decides which of two grades a MIXED series
+ * discloses, not which is "better". The module docstring's rule is untouched —
+ * `audited_ocboa` carries the same assurance as `audited_gaap` and sits beside
+ * it here only so that a series holding both discloses something true of both.
+ *
+ * ⚠ `not_applicable` cannot occur in a series at all: SERIES_DATASETS is
+ * `operating` and `revenue` only, and this value exists solely for `salaries`
+ * and `transactions`. It is listed to keep weakestGrade total, not because it
+ * sits above `unknown` in any meaningful sense.
+ */
+const DISCLOSURE_ORDER: readonly AuditGrade[] = [
+  'audited_gaap',
+  'audited_ocboa',
+  'compiled_from_audited',
+  'self_reported_unaudited',
+  'not_applicable',
+  'unknown',
+] as const;
+
+/**
+ * The grade a series should state when its entries do not all agree.
+ *
+ * ⚠⚠ OVER-DISCLOSE, ALWAYS. An entity whose operating side is audited and
+ * whose revenue side is not has ONE series — `seriesId()` is
+ * `${fundScope}|${basis}` and `audit_grade` is deliberately not part of it — so
+ * one label has to cover both, and the only honest one is the weaker. The
+ * failure this prevents is a reader seeing "audited" over a figure half of
+ * which is not. The same one-directional rule as AvailableSeries.derivation,
+ * and the same "mixed source takes the weaker branch" rule the loader applies
+ * in scripts/data/auditGradeRegistry.mjs — so the front end and the loader
+ * agree by construction rather than by coincidence.
+ *
+ * ⚠ Empty, or holding anything unrecognised, is `unknown`. Nothing to
+ * disclose is not a licence to assert.
+ *
+ * Measured 2026-10-30 before this shipped: across a 1,000-row sample of 42
+ * municipalities holding audited rows, ZERO (muni, fy, dataset, scope, basis)
+ * series carried two different grades. This is a guard against a future
+ * collision, not a present cleanup.
+ */
+export function weakestGrade(grades: Iterable<AuditGrade>): AuditGrade {
+  let weakest = -1;
+  let seen = false;
+  for (const raw of grades) {
+    seen = true;
+    const rank = DISCLOSURE_ORDER.indexOf(normalizeAuditGrade(raw));
+    if (rank > weakest) weakest = rank;
+  }
+  if (!seen || weakest < 0) return 'unknown';
+  return DISCLOSURE_ORDER[weakest];
 }
 
 export interface AuditGradeCopy {
@@ -178,6 +255,30 @@ export const AUDIT_GRADE_COPY: Record<AuditGrade, AuditGradeCopy> = {
       + 'guessing, because claiming an audit we have not read would be far worse than admitting '
       + 'we do not know.',
   },
+
+  // ⚠⚠ 7,932 rows — every `salaries` and `transactions` row in the database.
+  // Chris's call, 2026-10-30: "not_applicable value — salaries aren't financial
+  // statements."
+  //
+  // The failure this replaces: these rows read "Treasury Tracker has not yet
+  // established whether this figure comes from an audited report", which is a
+  // FALSE CONFESSION. Nobody failed to check. An auditor opines on financial
+  // statements; a list of what a government paid is not one, so there is no
+  // opinion to find. Issue #198's lesson — an INAPPLICABLE question is not an
+  // UNANSWERED one — and the test forbids the copy from drifting back into
+  // confessing a gap that does not exist.
+  //
+  // ⚠ The label names the RECORD, not the absence. "Not a financial statement"
+  // reads correctly over a payroll table; "no audit" reads as a complaint.
+  not_applicable: {
+    label: 'Not a financial statement',
+    short: 'A record of payments rather than a financial statement, so an audit opinion does not apply.',
+    long:
+      'This record lists what a government paid — individual salaries, or individual payments — '
+      + 'rather than summarising its finances for a year in a financial statement. Auditors publish '
+      + 'opinions on financial statements, so a record of this kind has no auditor’s opinion behind '
+      + 'it and never did. Where it came from is shown beside it, exactly as for any other figure.',
+  },
 };
 
 /**
@@ -201,11 +302,17 @@ export const AUDIT_GRADE_EXPLAINER = {
     + 'whether its financial statements present its finances fairly. Most US local governments '
     + 'are audited every year, many of them because the law requires it.',
 
+  // ⚠⚠ NO FRACTION, NO PERCENTAGE, AND NO CLAIM ABOUT WHICH NOTE IS COMMONEST.
+  // This sentence used to carry all three, and all three rotted: it said the
+  // "not established" note was "roughly two figures in every three", true at
+  // 88,820 rows on 2026-08-31 and false at 583,569 rows on 2026-10-30, where
+  // `unknown` is 6.6%. It shipped false for two months because no gate reads
+  // reader-facing copy. Two tests now fail if any of them comes back.
   whyUnknownIsNotBad:
-    'The commonest note on this site says the audit status is not established. That means we '
-    + 'have not looked yet — it is a statement about our coverage, not about the government, '
-    + 'and it is roughly two figures in every three. In the same way, a figure a government '
-    + 'filed itself is an official record signed by its finance officer, not a rumour.',
+    'Where a note says the audit status is not established, it means we have not looked yet — '
+    + 'a statement about our coverage, not about the government. And where a note says a figure '
+    + 'is government-reported, that is an official annual filing signed by a finance officer: a '
+    + 'public record, not a rumour, and not the same thing as an audited one.',
 
   whatWeDo:
     'We record an audit only when we have actually read one, source by source, and we say so '

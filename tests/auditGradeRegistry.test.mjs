@@ -15,6 +15,18 @@ describe('audit grade registry', () => {
     expect(result.missingIds).toBe(0);
   });
 
+  // ⚠⚠ `not_applicable` answers "what KIND of record is this", which the row's
+  // own `dataset_type` already says. This registry answers "what did the
+  // PUBLISHER do". An entry carrying that value would dress a row-shape fact as
+  // a publisher judgement, and would have to be repeated for all 26 salary and
+  // transaction sources and every future one. It is stamped by
+  // scripts/stampNotApplicableGrade.mjs instead.
+  it('never reaches not_applicable — that is a dataset_type fact, not a publisher one', () => {
+    for (const entry of AUDIT_GRADE_REGISTRY) {
+      expect(entry.value, `${entry.id} claims not_applicable`).not.toBe('not_applicable');
+    }
+  });
+
   it('every entry carries non-placeholder evidence', () => {
     expect(AUDIT_GRADE_REGISTRY.length).toBeGreaterThan(0);
     for (const entry of AUDIT_GRADE_REGISTRY) {
@@ -44,6 +56,71 @@ describe('gradeFor', () => {
       .toEqual({ value: 'self_reported_unaudited', entryId: 'ca-sco-city-exp' });
     expect(gradeFor('CA State Controller - Revenues'))
       .toEqual({ value: 'self_reported_unaudited', entryId: 'ca-sco-city-rev' });
+  });
+
+  /**
+   * ⭐⭐ SCOPE-04 DERIVED ROWS — D3 of the 2026-10-30 audit-grade design.
+   *
+   * 7,652 rows across four families, all `derivation = 'derived'`, all
+   * `audit_grade = 'unknown'`. Treasury Tracker computed them from its OWN
+   * graded inputs, so telling a reader "we have not checked" is LESS honest
+   * than the truth. On the LA City page this is live: toggling All Funds →
+   * Total Governmental flips the chip from "Government-reported" to "Audit
+   * status not established", for figures derived from the very rows labelled
+   * "Government-reported".
+   *
+   * ⚠⚠ INHERITANCE IS NOT UNIFORM, AND THAT IS THE WHOLE TASK. The two CITY
+   * families' parents (ca-sco-city-exp / -rev) are `self_reported_unaudited`,
+   * so they inherit it. The two COUNTY families' parents are themselves
+   * ungraded — bucket C, awaiting a publisher recon — and a derived row may
+   * never out-rank its inputs, so they must STAY unknown. Mapping all four to
+   * one value invents a claim. LA City is fixed by this; LA County is not.
+   *
+   * ⚠⚠ THE SPEC CALLED FOR A BRANCHING ENTRY AND THE CODE CANNOT EXPRESS ONE
+   * HERE. An entry whose own `value` is UNKNOWN never classifies at all:
+   * classifyAxis returns `{entryId: null}` for it (budgetAxes.mjs), and
+   * gradeFor returns immediately on a null entryId, so the branch would never
+   * run. The registry's own doctrine is the honest shape instead — an entry is
+   * created when its evidence is — so the county families simply have no entry.
+   */
+  const DERIVED_CITY = [
+    'Treasury Tracker derived: Total Governmental (CA State Controller - Expenditures)',
+    'Treasury Tracker derived: Total Governmental (CA State Controller - Revenues)',
+  ];
+  const DERIVED_COUNTY = [
+    'Treasury Tracker derived: Total Governmental (CA State Controller - County Expenditures)',
+    'Treasury Tracker derived: Total Governmental (CA State Controller - County Revenues)',
+  ];
+
+  it('grades the derived CITY families from the SCO parents they were computed from', () => {
+    for (const source of DERIVED_CITY) {
+      expect(gradeFor(source), source).toEqual({
+        value: 'self_reported_unaudited',
+        entryId: 'ca-sco-derived-total-governmental-city',
+      });
+    }
+  });
+
+  it('leaves the derived COUNTY families ungraded — their parents are ungraded too', () => {
+    for (const source of DERIVED_COUNTY) {
+      expect(gradeFor(source), source).toEqual({ value: 'unknown', entryId: null });
+    }
+  });
+
+  // The anchoring trap again, on the new entry. A pattern loose at either end
+  // would reach sources this evidence does not cover.
+  it('the derived entry is anchored at both ends', () => {
+    expect(gradeFor(`${DERIVED_CITY[0]} and more`)).toEqual({ value: 'unknown', entryId: null });
+    expect(gradeFor(`Copy of ${DERIVED_CITY[0]}`)).toEqual({ value: 'unknown', entryId: null });
+  });
+
+  // ⚠ A DERIVED ROW MAY NEVER OUT-RANK ITS INPUTS. The entry must carry exactly
+  // the parents' value, not a stronger one, and this fails if someone edits
+  // either side apart from the other.
+  it('carries exactly the grade its parents carry', () => {
+    const parent = gradeFor('CA State Controller - Expenditures');
+    const derived = gradeFor(DERIVED_CITY[0]);
+    expect(derived.value).toBe(parent.value);
   });
 
   // ⚠ THE ANCHORING TRAP, pinned. /^CA State Controller/ also matches the
