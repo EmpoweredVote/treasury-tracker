@@ -25,6 +25,17 @@
  * market are all second homes for the same PDF. "No document" is a claim with a
  * date on it, like a partition count, and this file carried three stale ones.
  *
+ * ⚠⚠ A FOURTH GAP WAS CLEARED ON 2026-11-03, AND IT WAS A DIFFERENT FAILURE
+ * MODE ENTIRELY — worth knowing, because nothing in this repo can see it.
+ * `mn-osa` LOOKED complete: every MN row carried a value, every gate was green,
+ * and no file anywhere said "unevidenced". But MN cities and MN counties share
+ * ONE `data_source` string, so one `match` regex stamped 1,380 county rows from
+ * a CITY reconciliation. A missing entry is visible as `unknown`. An entry whose
+ * evidence does not reach half the rows it stamps is visible as NOTHING.
+ * ⭐ So: when one entry spans two populations the publisher serves in two
+ * different files, evidence BOTH, and say in the entry that it cannot be split.
+ * Counties are now evidenced to the dollar on both sides — see `mn-osa` below.
+ *
  * ⚠ One family is still unevidenced ON PURPOSE: `ca-sco-county-rev`. See the
  * note at the bottom — its residue and its component unit are the same size, so
  * the arithmetic cannot tell exclusion from partial inclusion. That is a real
@@ -63,12 +74,88 @@ export const REPORTING_ENTITY_REGISTRY = [
     },
   },
   {
+    // ⭐⭐ THE ONE `incl_component_units` ENTRY, AND IT COVERS TWO FILE FORMATS.
+    //
+    // ⚠⚠ THIS ENTRY CANNOT BE SPLIT CITY/COUNTY, and that is the trap it was
+    // carrying. MN cities and MN counties share ONE `data_source` string —
+    // 'Minnesota Office of the State Auditor City/County Finances Report' — so
+    // a `match` regex cannot tell them apart. From 2026-08 until 2026-11-03
+    // this entry stamped 1,380 county rows (87 counties, FY2013-2021) on the
+    // strength of a CITY reconciliation and nothing else, because one regex
+    // silently covered both. Same publisher, two workbooks, two different
+    // layouts (the county file prints no `GovEntityID` at all) — and the city
+    // evidence does not reach the county file. Both branches are evidenced
+    // below; if you add a third branch, evidence it here too, because nothing
+    // in the stamper will notice that you did not.
+    //
+    // ⭐ The two branches reach the same value by DIFFERENT mechanisms:
+    //    cities   OSA consolidates HRA/EDA/TIF activity the city's own ACFR
+    //             presents outside the primary government (+21.7% Bloomington).
+    //    counties OSA adds the county's DISCRETELY PRESENTED GOVERNMENTAL
+    //             component units, and leaves the business-type ones out.
     id: 'mn-osa',
     match: /^Minnesota Office of the State Auditor/,
     value: REPORTING_ENTITY.INCL_COMPONENT_UNITS,
     evidence: {
-      document: 'City of Bloomington MN FY2022 ACFR vs MN OSA cired_22_data.xlsx (SCOPE-01-RECON §4.7)',
-      figures: 'OSA revenue $148,267,637 vs ACFR total governmental $121,826,437 (+21.7%); the gap is HRA/EDA/TIF component units the ACFR presents separately. Systematic: 514 of 852 MN cities carry nonzero TIF/HRA/EDA; ~7% of statewide expenditures, ~17-22% for TIF-heavy cities.',
+      document: 'CITIES: City of Bloomington MN FY2022 ACFR vs MN OSA cired_22_data.xlsx '
+              + '(SCOPE-01-RECON §4.7). '
+              + 'COUNTIES, added 2026-11-03: Dakota County MN FY2021 ACFR '
+              + '(docs/DakotaCountyMN/dakota-county-mn-fy2021-acfr.pdf) and Hennepin County MN '
+              + 'FY2021 ACFR (docs/HennepinCountyMN/hennepin-county-mn-fy2021-acfr.pdf), both '
+              + 'read against docs/MN/county_21_data.xlsx — the county workbook, NOT the cired_* '
+              + 'city workbook. Both ACFRs came from the Federal Audit Clearinghouse '
+              + '(report ids 2021-12-CENSUS-0000150696 and 2021-12-CENSUS-0000150704), which '
+              + 'serves them free and without a key.',
+      figures: 'CITIES: OSA revenue $148,267,637 vs ACFR total governmental $121,826,437 '
+             + '(+21.7%); the gap is HRA/EDA/TIF component units the ACFR presents separately. '
+             + 'Systematic: 514 of 852 MN cities carry nonzero TIF/HRA/EDA; ~7% of statewide '
+             + 'expenditures, ~17-22% for TIF-heavy cities. '
+             + '⭐⭐ COUNTIES — THE INCLUSION IS OBSERVED ON BOTH SIDES AT EXACTLY $0, which is '
+             + 'stronger than anything else on this axis. Dakota County FY2021 has TWO '
+             + 'discretely presented component units, and the arithmetic puts one IN and the '
+             + 'other OUT. Its governmental-funds statement (printed p.34-35) totals '
+             + '396,557,509 revenue and 428,973,445 expenditure, excess (32,415,936). The '
+             + 'Vermillion River Watershed District — a discretely presented unit whose own '
+             + 'fund statement is printed at p.127 — totals 1,660,810 revenue and 1,557,495 '
+             + 'expenditure, net change 103,315. Add them: '
+             + '396,557,509 + 1,660,810 = 398,218,319, and 428,973,445 + 1,557,495 = '
+             + '430,530,940. The stored figures are 398,218,319 and 430,530,940. Three ties at '
+             + 'exactly $0 — revenue, expenditure, and the excess (32,415,936 + 103,315 = '
+             + '32,312,621). '
+             + '⚠ THE OTHER DISCRETE UNIT IS OUT, and it is out by exhaustion rather than by '
+             + 'a ratio: the residue is EXACTLY the Watershed on both sides, so there is $0 '
+             + 'left over for anything else. The Dakota County Community Development Agency, '
+             + 'expenses 59,587,281 in the same Statement of Activities, is 38 times the whole '
+             + 'expenditure residue it would have to hide inside. So OSA\'s '
+             + 'county boundary is the primary government plus GOVERNMENTAL discrete units; '
+             + 'business-type discrete units stay out. `incl_component_units` is right, but it '
+             + 'is not unconditional, and a future county reconciliation should expect the '
+             + 'business-type half to be missing. '
+             + 'HENNEPIN IS THE CONTROL, and it is why the Dakota tie means what it says. '
+             + 'Hennepin has NO discretely presented component unit at all — GASB 80 moved '
+             + 'Hennepin Healthcare to a BLENDED proprietary fund in 2017, and the RRA and HRA '
+             + 'are blended governmental funds — so with nothing to add, OSA should equal the '
+             + 'county\'s own governmental funds outright, and it does: FY2020 revenue '
+             + '1,897,570,230 against the ACFR\'s 1,897,570,230, exactly $0. '
+             + '⚠ TWO RESIDUES ARE DECLARED, NOT EXPLAINED. Hennepin FY2020 expenditure is '
+             + '2,229,604,721 stored against 2,229,604,361 printed — $360 on $2.23bn. Hennepin '
+             + 'FY2021 does NOT tie: stored 1,851,255,583 / 1,834,835,822 against printed '
+             + '1,852,541,519 / 1,833,705,402, i.e. OSA is 1,285,936 LOW on revenue and '
+             + '1,130,420 HIGH on expenditure (±0.07%). The signs are OPPOSITE, so it is not an '
+             + 'added entity; it looks like taxonomy or a pre-final submission, and it is '
+             + 'recorded here unexplained rather than argued away. Neither residue is near the '
+             + 'size of any component unit, so neither touches the claim above. '
+             + '⚠⚠ The FY2020 Hennepin ACFR could NOT be used to settle the $360: its PDF text '
+             + 'layer is CIPHERED (a custom font with no ToUnicode map), and both pdftotext 4.00 '
+             + 'and poppler 25.07 return garbage for every page. The FY2021 ACFR carries FY2020 '
+             + 'as a comparative column and reads clean, which is where the FY2020 figures above '
+             + 'come from. See the WA SAO text-layer defects for why a ciphered page must never '
+             + 'be read as though it were merely an empty one. '
+             + 'PROVENANCE, verified for both counties and both years: the stored figures are '
+             + 'the workbook\'s `Total Revenues` and `Total Expenditures` columns exactly. The '
+             + 'loader correctly avoids `Total Revenues & Other Sources` and `Total Expenditures '
+             + '& Other Uses`, which sit beside them and read 2,374,376,941 and 2,378,981,132 '
+             + 'for Hennepin FY2020 — taking those would have overstated the county by 6.7%.',
     },
   },
   {

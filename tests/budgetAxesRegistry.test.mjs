@@ -76,6 +76,101 @@ describe('reporting entity classification', () => {
     expect(entityOf('CA State Controller - Revenues')).toBe('primary_government');
     expect(entityOf('CA State Controller - County Expenditures')).toBe('primary_government');
   });
+  // ── MN OSA: ONE ENTRY, TWO POPULATIONS ────────────────────────────────────
+  // ⚠⚠ The defect this guards is NOT a missing entry. Every MN row has always
+  // carried a value and every gate has always been green; what was missing was
+  // evidence for HALF the rows the entry stamps. MN cities and MN counties
+  // share one `data_source` string, so the regex cannot split them, and from
+  // 2026-08 until 2026-11-03 a CITY reconciliation (Bloomington FY2022) was the
+  // only thing standing behind 1,380 COUNTY rows. `unknown` is visible. An
+  // entry whose evidence does not reach its own rows is visible as nothing —
+  // which is why the assertions below read the evidence text itself.
+  describe('MN OSA — the county branch is evidenced, not inherited from the cities', () => {
+    const mn = REPORTING_ENTITY_REGISTRY.find((e) => e.id === 'mn-osa');
+
+    it('the entry still carries the COUNTY reconciliation, not only the city one', () => {
+      expect(mn.evidence.document).toMatch(/Dakota County/);
+      expect(mn.evidence.document).toMatch(/county_21_data\.xlsx/);
+      // The city workbook alone is what this entry used to rest on. If the
+      // county documents ever disappear from the evidence, the entry is back to
+      // stamping counties on a city's say-so.
+      expect(mn.evidence.figures).toMatch(/Vermillion River Watershed/);
+    });
+
+    it('says in terms that it cannot be split city/county', () => {
+      // Someone WILL try. The two populations share a data_source string, so a
+      // `match` regex has nothing to split on.
+      expect(mn.match.test('Minnesota Office of the State Auditor City/County Finances Report'))
+        .toBe(true);
+    });
+
+    it('Dakota FY2021 ties on BOTH sides at exactly $0, and the excess ties too', () => {
+      // Dakota County MN FY2021 ACFR, governmental funds (printed p.34-35):
+      const ACFR_REVENUE = 396_557_509;
+      const ACFR_EXPENDITURE = 428_973_445;
+      // Vermillion River Watershed District, a DISCRETELY PRESENTED component
+      // unit, its own fund statement (printed p.127):
+      const VRW_REVENUE = 1_660_810;
+      const VRW_EXPENDITURE = 1_557_495;
+      // What TT stores, = the county workbook's Total Revenues / Total
+      // Expenditures columns exactly:
+      const STORED_REVENUE = 398_218_319;
+      const STORED_EXPENDITURE = 430_530_940;
+
+      expect(ACFR_REVENUE + VRW_REVENUE).toBe(STORED_REVENUE);
+      expect(ACFR_EXPENDITURE + VRW_EXPENDITURE).toBe(STORED_EXPENDITURE);
+      // The third tie is the one that makes coincidence untenable: the excess
+      // of revenues over expenditures reconciles as well.
+      expect((ACFR_REVENUE - ACFR_EXPENDITURE) + (VRW_REVENUE - VRW_EXPENDITURE))
+        .toBe(STORED_REVENUE - STORED_EXPENDITURE);
+
+      // ⚠ The evidence text and this test must not drift apart, and asserting
+      // the digits one at a time is NOT enough to stop that: several of these
+      // figures appear more than once in the prose, so corrupting one instance
+      // leaves the others to satisfy a bare `toContain`. Measured — a mutation
+      // that changed "the stored figures are 398,218,319" alone kept all 19
+      // tests green. So pin the SENTENCES, rebuilt from the constants above.
+      const usd = (n) => n.toLocaleString('en-US');
+      expect(mn.evidence.figures)
+        .toContain(`${usd(ACFR_REVENUE)} + ${usd(VRW_REVENUE)} = ${usd(STORED_REVENUE)}`);
+      expect(mn.evidence.figures)
+        .toContain(`${usd(ACFR_EXPENDITURE)} + ${usd(VRW_EXPENDITURE)} = ${usd(STORED_EXPENDITURE)}`);
+      expect(mn.evidence.figures)
+        .toContain(`The stored figures are ${usd(STORED_REVENUE)} and ${usd(STORED_EXPENDITURE)}`);
+    });
+
+    it('the business-type discrete unit is excluded BY EXHAUSTION, not by a ratio', () => {
+      // Dakota's other discretely presented unit, the Community Development
+      // Agency, has expenses of 59,587,281. It is out because the residue is
+      // entirely spoken for by the Watershed — there is $0 left for it.
+      const residueRevenue = 398_218_319 - 396_557_509;
+      const residueExpenditure = 430_530_940 - 428_973_445;
+      expect(residueRevenue - 1_660_810).toBe(0);
+      expect(residueExpenditure - 1_557_495).toBe(0);
+      expect(mn.evidence.figures).toContain('59,587,281');
+    });
+
+    it('Hennepin is the control: no discrete unit, so OSA should equal the county outright', () => {
+      // GASB 80 made Hennepin Healthcare a BLENDED proprietary fund in 2017 and
+      // the RRA and HRA are blended governmental funds, so Hennepin has nothing
+      // discretely presented to add — and FY2020 revenue ties outright.
+      const STORED_FY2020_REVENUE = 1_897_570_230;
+      const ACFR_FY2020_REVENUE = 1_897_570_230;
+      expect(STORED_FY2020_REVENUE - ACFR_FY2020_REVENUE).toBe(0);
+      expect(mn.evidence.figures).toContain('1,897,570,230');
+
+      // ⚠ Two residues are DECLARED rather than explained, and the entry must
+      // keep saying so. The FY2021 pair is the important one: the signs are
+      // OPPOSITE, which is what rules out an added entity as the cause.
+      expect(2_229_604_721 - 2_229_604_361).toBe(360);
+      const fy2021RevenueResidue = 1_851_255_583 - 1_852_541_519;
+      const fy2021ExpenditureResidue = 1_834_835_822 - 1_833_705_402;
+      expect(fy2021RevenueResidue).toBeLessThan(0);
+      expect(fy2021ExpenditureResidue).toBeGreaterThan(0);
+      expect(mn.evidence.figures).toMatch(/unexplained/);
+    });
+  });
+
   it('⛔ CA SCO COUNTY REVENUES stays unknown, and this one is not a gap to close casually', () => {
     // The only CA SCO half whose reconciliation is NOT a dollar tie: a
     // 7,807,552 residue (0.547%). First 5 Stanislaus — the discretely presented
