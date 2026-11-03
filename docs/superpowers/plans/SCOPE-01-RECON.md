@@ -1151,14 +1151,66 @@ unknown/unknown". ⭐ **An exemption there is a measurement with a date, exactly
 count: when a stamper classifies a family, every loader that writes it moves lists in the same
 change.** Measured after the load: 304 rows, 304 distinct ids, zero duplicates.
 
-#### The strongest remaining lead, for whoever takes `reporting_entity`
+#### ✅ 2026-11-03 — §4.9.3 `reporting_entity` = `incl_component_units`. VA APA is fully classified
 
-The component-unit question raised above now has publisher-stated evidence, though not enough to
-settle it. Note 1.C: the Alleghany Highlands School Board *"is considered a component unit of the
-County of Alleghany for financial reporting purposes"*, and the APA allocates its activity into
-Exhibit C-6. So **school** component units are demonstrably consolidated. The report says nothing
-about housing authorities, EDAs or IDAs, so `incl_component_units` — which asserts the whole
-reporting entity — is not yet earned, and `reporting_entity` stays `unknown`. Start here.
+The lead recorded here — Note 1.C naming the Alleghany Highlands School Board *"a component unit
+… for financial reporting purposes"* whose activity the APA allocates into Exhibit C-6 — turned
+out to be the easy half. What settled it was the document this file twice said was missing.
+
+**`reportingEntityRegistry.mjs` listed VA APA under "expected is not evidenced — no document and
+therefore no entry".** There was a document; it was on a host nobody had tried. **The APA
+republishes localities' own ACFRs**, so the City of Virginia Beach FY2023 ACFR (406pp) came from
+`dlasprodpublic.blob.core.windows.net` — the same blob store as the Notes — after a city-website
+fetch was never attempted. ⭐ *When a scripted ACFR fetch is refused or missing, ask who ELSE
+republishes it before writing "no document": a state auditor, the FAC, or the bond market are all
+second homes for the same PDF.*
+
+**The ACFR says it in terms.** Note 1: the Schools are *"a legally separate entity"*; component
+units are *"reported in separate columns to emphasize that they are legally separate from the
+City"*. Under GASB 34 a discretely presented component unit therefore appears **only** in the
+government-wide statements — never in the governmental-**fund** statements. So if the APA's figure
+carries the schools, it is carrying something the city's own fund statements exclude.
+
+**Virginia Beach FY2023 — the three figures that settle it:**
+
+| | |
+|---|---:|
+| APA Exhibit C-6 Education | **1,017,649,747** |
+| ACFR governmental funds, Education (p.76) | **456,472,085** |
+| ACFR government-wide, Total Component Units expenses (p.72) | **995,286,575** |
+
+The APA figure is **2.23×** the primary government's and sits in the component units' range. It is
+the School Board's own operations, not the City's appropriation to them.
+
+**Whole-entity check.** APA Exhibit C total M&O 1,962,644,100 against ACFR governmental-funds
+current operating 1,324,914,972 (total expenditures 1,733,646,370 less capital outlay 254,026,978,
+leases 4,133,722, subscriptions 5,400,148, principal 106,318,292, interest 38,852,258 — the
+categories Exhibits D and E carry instead). **Gap 637,729,128: the APA reports 48.1% more
+operating than the city's own funds do**, and the Education gap of 561,177,662 is **88%** of it.
+
+⚠ **The remaining ~76.5M is NOT attributed.** State *"expenditures made on behalf of the local
+government"* (Note 1.B, inside Exhibits C-4/C-5/C-6) are only 7,063,221 for this city, so they do
+not explain it; the rest is presumed chart-of-accounts and measurement-basis difference and was not
+chased. Recorded rather than rounded away — **88% attributed is the claim, not 100%.**
+
+**Systematic, not one city.** Across all 304 loaded operating rows, 245 carry a top-level Education
+node — 64 city-years, 177 county-years, 4 town-years — averaging **44.3%** of a city's total and
+**55.5%** of a county's, up to 70.9%. The 59 rows with no Education node are **all towns**, which
+is correct rather than a gap: Virginia towns are served by their county's division except for the
+handful running their own, and those are exactly the 4 town-years that do carry it.
+
+⚠⚠ **`incl_component_units` here means "the figure demonstrably exceeds the primary government by a
+consolidated component unit", NOT "the whole GASB reporting entity."** The APA consolidates the
+school division and does **not** consolidate authorities it does not manage — Note 2 (Exhibit F)
+reports those only as *"Payments to Enterprise Type Activities … organized and operated as an
+authority and not managed by the locality"*. Virginia Beach's own CDC is a component unit this
+figure does not carry. The value is still right: it is what the axis exists to flag, and
+`primary_government` would be false by 48% on the total and 123% on Education. Same reading
+`mn-osa` uses for HRA/EDA/TIF.
+
+⭐ **All four axes are now non-`unknown` on all 608 rows**, so `areComparable()` returns true for
+two Virginia localities and false against every other scope — which is exactly what the
+`governmental_operating` decision set out to buy.
 
 ⚠ Also settled in passing, and worth having on the record given
 `reference_source_url_never_verified`: the FY2024 rows' `source_url` **was fetched back and
