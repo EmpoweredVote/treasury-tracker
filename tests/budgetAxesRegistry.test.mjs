@@ -58,10 +58,34 @@ describe('reporting entity classification', () => {
     expect(entityOf('WA State Auditor — Spokane Annual Financial Report FY2024 (General Fund, Expenditure by Function)'))
       .toBe('primary_government');
   });
-  it('Ohio stays unknown -- EXPECTED primary_government but columbus.gov returned 403', () => {
-    expect(entityOf('Ohio Auditor of State Summarized Annual Financial Reports')).toBe('unknown');
+  // ⚠⚠ THESE TWO USED TO ASSERT `unknown`, WITH THE REASON IN THE TEST NAME:
+  // "EXPECTED primary_government but columbus.gov returned 403" and "not
+  // probed". Both were true when written and neither was re-checked. On
+  // 2026-11-03 columbus.gov simply answered, and the CA document turned out to
+  // be in docs/ on the path the fund-scope entry already cited. A test that
+  // pins the ABSENCE of evidence is pinning a measurement with a date on it —
+  // it stops a silent regression, and it also quietly freezes a gap in place.
+  it('Ohio AOS is the primary government — the AOS tab IS the audited fund statement', () => {
+    // Columbus FY2025 and FY2024 both tie to the dollar, and under GASB 34 a
+    // discretely presented component unit cannot be in a fund statement.
+    expect(entityOf('Ohio Auditor of State Summarized Annual Financial Reports'))
+      .toBe('primary_government');
   });
-  it('CA SCO stays unknown -- not probed', () => {
-    expect(entityOf('CA State Controller - Expenditures')).toBe('unknown');
+  it('CA SCO cities and county expenditures are the primary government', () => {
+    expect(entityOf('CA State Controller - Expenditures')).toBe('primary_government');
+    expect(entityOf('CA State Controller - Revenues')).toBe('primary_government');
+    expect(entityOf('CA State Controller - County Expenditures')).toBe('primary_government');
+  });
+  it('⛔ CA SCO COUNTY REVENUES stays unknown, and this one is not a gap to close casually', () => {
+    // The only CA SCO half whose reconciliation is NOT a dollar tie: a
+    // 7,807,552 residue (0.547%). First 5 Stanislaus — the discretely presented
+    // component unit the figure must exclude — has program revenues of
+    // 10,623,616, the SAME ORDER as that residue, so the arithmetic cannot
+    // separate "excluded" from "partly inside". The expenditure half had a $6
+    // residue against an 11.7M unit and could.
+    // ⚠ Do not flip this because its three siblings are classified. It needs a
+    // county whose discretely presented unit is large relative to the revenue
+    // residue, or the residue decomposed to the line.
+    expect(entityOf('CA State Controller - County Revenues')).toBe('unknown');
   });
 });
