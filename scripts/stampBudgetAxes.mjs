@@ -814,6 +814,22 @@ export const EXPECTED_REPORTING_ENTITY_ROWS = Object.freeze({
   // ⚠ 161 is TT's holding, not the APA's 174 localities. A later onboarding
   // wave moves this legitimately — re-measure, do not assume.
   'va-apa-comparative-report': 608,
+  // ⚠ NEW ENTRIES 2026-11-03, measured in the table the same day. These retire
+  // two of the reportingEntityRegistry header's three "no document" families.
+  //   oh-aos             6,616 rows /  6,616 ids / 1 string / 341 entities / FY2016-FY2025
+  //   ca-sco-city-exp   10,932 rows / 10,932 ids / 1 string / 480 entities / FY2003-FY2025
+  //   ca-sco-city-rev   10,932 rows / 10,932 ids / 1 string / 480 entities / FY2003-FY2025
+  //   ca-sco-county-exp  1,245 rows /  1,245 ids / 1 string /  57 entities / FY2003-FY2025
+  // ⚠ The CA counts are the same numbers the basis gate above carries, RE-MEASURED
+  // rather than copied across — they moved once already this week when the FY2025
+  // fleet load landed, which is exactly how a copied number goes stale.
+  // ⛔ `ca-sco-county-rev` is deliberately absent: its reconciliation cannot
+  // separate the discretely presented component unit from its own residue. The
+  // reason is written at the bottom of reportingEntityRegistry.mjs.
+  'oh-aos': 6616,
+  'ca-sco-city-exp': 10932,
+  'ca-sco-city-rev': 10932,
+  'ca-sco-county-exp': 1245,
 });
 
 /** The last fiscal year that has closed. A row after this cannot be an actual. */

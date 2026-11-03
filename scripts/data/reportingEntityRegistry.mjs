@@ -3,19 +3,32 @@
  *
  * NO SHEBANG — see scripts/lib/fundScope.mjs.
  *
- * ⚠ EXPECTED IS NOT EVIDENCED. Ohio AOS is expected to be primary_government —
- * each tab restates the entity's own governmental-funds statement rather than
- * re-aggregating from a state chart of accounts the way MN OSA does — but
- * columbus.gov returned HTTP 403 to a scripted ACFR fetch, so there is no
- * document and therefore no entry. Same for CA SCO.
+ * ⚠ THIS FILE USED TO SAY "EXPECTED IS NOT EVIDENCED" OF THREE FAMILIES — Ohio
+ * AOS, CA SCO and VA APA — each expected to be primary_government but with "no
+ * document and therefore no entry", because columbus.gov had returned HTTP 403
+ * to a scripted ACFR fetch. ALL THREE WERE CLEARED ON 2026-11-02/03, and not
+ * one of them needed new reasoning. They needed the document, and in every case
+ * the document existed somewhere nobody had looked:
  *
- * ✅ VA APA sat in that list until 2026-11-03 and is now the entry at the
- * bottom of this file. What unblocked it was not persistence but a different
- * HOST: the APA republishes localities' own ACFRs itself, so the document was
- * reachable from a place nobody had tried. ⭐ When a scripted ACFR fetch is
- * refused, ask who ELSE republishes it before recording "no document" — a
- * state auditor, the Federal Audit Clearinghouse, or the bond market are all
- * second homes for the same PDF.
+ *   VA APA   the APA republishes localities' own ACFRs, so Virginia Beach's
+ *            came from the same blob store as the Comparative Report itself.
+ *   Ohio AOS columbus.gov simply ANSWERED this time. The 403 that stopped this
+ *            entry was transient and was recorded as though it were permanent.
+ *            (ohioauditor.gov, which also hosts it, is still down.)
+ *   CA SCO   docs/Modesto/modesto-fy2024.pdf was IN THE REPO, on the path the
+ *            fund-scope entry already cited. It was re-fetched from the Federal
+ *            Audit Clearinghouse before anyone checked — wasted work, and the
+ *            cheapest lesson here.
+ *
+ * ⭐⭐ SO: BEFORE RECORDING "NO DOCUMENT", (1) look in docs/, (2) retry the
+ * host, (3) ask who else republishes it — a state auditor, the FAC, or the bond
+ * market are all second homes for the same PDF. "No document" is a claim with a
+ * date on it, like a partition count, and this file carried three stale ones.
+ *
+ * ⚠ One family is still unevidenced ON PURPOSE: `ca-sco-county-rev`. See the
+ * note at the bottom — its residue and its component unit are the same size, so
+ * the arithmetic cannot tell exclusion from partial inclusion. That is a real
+ * limit, not a missing document.
  *
  * Spec: docs/superpowers/specs/2026-08-17-scope-02-design.md §1
  */
@@ -651,4 +664,140 @@ export const REPORTING_ENTITY_REGISTRY = [
              + 'handful that run their own, which are exactly the 4 town-years that do carry it.',
     },
   },
+  {
+    // ⭐ OHIO AOS — 6,616 rows / 341 entities / FY2016-FY2025. Added 2026-11-03,
+    // retiring the second of this file's three "no document" entries.
+    //
+    // ⚠ THE STORED FIGURE IS A FUND STATEMENT, WHICH IS THE WHOLE ARGUMENT.
+    // loadOhioAOS.js reads `SOREACIFB_TotalGov` (GAAP) / `SORDACIFB_TotalGov`
+    // (CASH/MOD) — the Statement of Revenues, Expenditures and Changes in Fund
+    // Balances, governmental funds, Total column. Under GASB 34 a DISCRETELY
+    // PRESENTED component unit appears only in the GOVERNMENT-WIDE statements,
+    // in its own column, so it cannot be inside a fund-statement figure. This
+    // is the same reasoning hi-local-acfr-gf rests on.
+    // ⭐ The AOS workbook ALSO carries `SOA_Gov`, the government-wide Statement
+    // of Activities, as a separate tab with different (accrual) figures — and
+    // the loader does not read it. The publisher distinguishes the two
+    // presentations and TT took the fund one; that is a structural fact about
+    // the source, not an inference.
+    // ⚠ Blended component units ARE inside this figure, as they are inside any
+    // primary-government fund statement — Columbus blends the RiverSouth
+    // Authority, Columbus Next Generation Corporation, the Recreation and Parks
+    // Foundation and the Board of Health. That is what primary_government
+    // means here, the same caveat in-gateway-afr records.
+    id: 'oh-aos',
+    // ⚠ Byte-identical to this id's pattern in fundScopeRegistry.mjs.
+    match: /^Ohio Auditor of State/,
+    value: REPORTING_ENTITY.PRIMARY,
+    evidence: {
+      document: 'City of Columbus FY2025 ACFR (372pp, columbus.gov/files/sharedassets/city/v/1/'
+              + 'city-auditor/acfr/2025-city-of-columbus-acfr-final.pdf) read against the AOS '
+              + 'City_2025_GAAP_Summarized.XLSX and City_2024_GAAP_Summarized.XLSX workbooks in '
+              + '_oh-recon/. Fetched 2026-11-03. ⚠ ohioauditor.gov, which hosts the same ACFR, '
+              + 'was still unreachable from the October 2026 outage; columbus.gov served it, '
+              + 'having previously returned 403 to the fetch that made this entry impossible.',
+      figures: 'THE AOS TAB IS THE CITY\'S OWN AUDITED FUND STATEMENT, TO THE DOLLAR, IN BOTH '
+             + 'YEARS CHECKED. Columbus files in thousands. FY2025 — AOS total revenues '
+             + '2,281,078,000 and total expenditures 2,548,162,000; ACFR governmental funds '
+             + '2,281,078 and 2,548,162. FY2024 — AOS 2,166,549,000 and 2,477,440,000; the '
+             + 'ACFR\'s ten-year statistical table carries 2,166,549 and 2,477,440 for the same '
+             + 'year. Four figures, four exact matches, no residue. '
+             + '⚠ COLUMBUS HAS NO DISCRETELY PRESENTED COMPONENT UNITS — its reporting-entity '
+             + 'note lists only BLENDED ones (RiverSouth Authority, Columbus Next Generation '
+             + 'Corporation, Columbus Recreation and Parks Foundation, Columbus Board of '
+             + 'Health), plus related organizations and joint ventures which it states are not '
+             + 'part of the reporting entity. So this city PROVES the figure is the audited '
+             + 'fund statement; it cannot by itself prove a discretely presented unit would be '
+             + 'excluded, and that half rests on the GASB 34 construction above. The entry '
+             + 'ca-sco-county-exp below is where the exclusion is actually OBSERVED.',
+    },
+  },
+  {
+    // ⭐ CA SCO — CITIES. Two entries, one per report half, because the fund-scope
+    // registry evidenced them separately and each has its own dollar tie.
+    // Added 2026-11-03, retiring the last of the "no document" three.
+    //
+    // ⚠ THE DOCUMENT WAS IN THE REPO ALL ALONG — docs/Modesto/modesto-fy2024.pdf,
+    // the path the fund-scope entry already cited. It was fetched again from the
+    // Federal Audit Clearinghouse before anyone looked, which was waste: FAC is
+    // the right fallback when a city site is down (www.modesto.gov is), but
+    // `docs/` is the first place to check, not the last.
+    id: 'ca-sco-city-exp',
+    match: /^CA State Controller - Expenditures$/,
+    value: REPORTING_ENTITY.PRIMARY,
+    evidence: {
+      document: 'City of Modesto FY2024 ACFR (docs/Modesto/modesto-fy2024.pdf), reporting-entity '
+              + 'note read 2026-11-03; the arithmetic is the CA-CITIES-01 reconciliation already '
+              + 'recorded against this id in fundScopeRegistry.mjs.',
+      figures: 'THE SCO TOTAL IS A SUM OF PRIMARY-GOVERNMENT FUND STATEMENTS, TO THE DOLLAR. '
+             + 'ACFR Total Governmental 291,641,122 + SCO enterprise & ISF 296,400,946 = '
+             + '588,042,068, equal to SCO\'s reported 588,042,068. Governmental funds, '
+             + 'enterprise funds and internal service funds are ALL primary government; a '
+             + 'discretely presented component unit is in none of them. '
+             + '⚠ MODESTO HAS NO DISCRETELY PRESENTED COMPONENT UNITS. Its note: the component '
+             + 'units "are blended into the City\'s funds" — the Modesto Public Financing '
+             + 'Authority and thirteen Community Facilities Districts, "reported on a blended '
+             + 'basis as part of the primary government". The Redevelopment Successor Agency is '
+             + 'a private-purpose TRUST fund, i.e. fiduciary and outside the tie entirely, and '
+             + 'the joint ventures are stated not to be part of the reporting entity. So the '
+             + 'exclusion of a discretely presented unit is structural here (GASB 34), not '
+             + 'observed — see ca-sco-county-exp, where it is observed.',
+    },
+  },
+  {
+    id: 'ca-sco-city-rev',
+    match: /^CA State Controller - Revenues$/,
+    value: REPORTING_ENTITY.PRIMARY,
+    evidence: {
+      document: 'City of Modesto FY2024 ACFR (docs/Modesto/modesto-fy2024.pdf), same '
+              + 'reporting-entity note as ca-sco-city-exp; the arithmetic is this id\'s own '
+              + 'revenue reconciliation in fundScopeRegistry.mjs.',
+      figures: 'ACFR Total Governmental revenue 322,089,879 + SCO enterprise & ISF revenue '
+             + '321,804,947 = 643,894,826, equal to SCO\'s reported 643,894,826 — its own dollar '
+             + 'tie, not a read-across from the expenditure half. Same reporting entity, so the '
+             + 'same conclusion and the same caveat: Modesto has only BLENDED component units, '
+             + 'so exclusion of a discretely presented one is structural rather than observed.',
+    },
+  },
+  {
+    // ⭐⭐ CA SCO — COUNTIES, EXPENDITURES. The strongest of the four, because
+    // Stanislaus HAS a discretely presented component unit and the arithmetic
+    // shows it is OUT. This is the entry the three above lean on.
+    id: 'ca-sco-county-exp',
+    match: /^CA State Controller - County Expenditures$/,
+    value: REPORTING_ENTITY.PRIMARY,
+    evidence: {
+      document: 'County of Stanislaus FY2024 ACFR '
+              + '(docs/StanislausCounty/stanislaus-county-fy2024.pdf), reporting-entity note and '
+              + 'government-wide Statement of Activities read 2026-11-03; the arithmetic is the '
+              + 'reconciliation already recorded against this id in fundScopeRegistry.mjs.',
+      figures: 'THE EXCLUSION IS OBSERVED, NOT ARGUED. Stanislaus is the one reconciled entity '
+             + 'in this group that HAS a discretely presented component unit: First 5 '
+             + 'Stanislaus, which the ACFR says "is presented separately from the primary '
+             + 'government statements" and whose government-wide expenses are 11,672,965. '
+             + 'The SCO tie is ACFR Total Governmental 1,194,047,359 + SCO enterprise & ISF '
+             + '207,325,063 = 1,401,372,422 against SCO\'s reported 1,401,372,428 — a $6 '
+             + 'residue on $1.4bn. First 5 is 11,672,965, nearly two million times that residue '
+             + 'and 0.83% of the total, so it is arithmetically impossible for it to be inside '
+             + 'the SCO figure. A structural argument would have given the same answer; this '
+             + 'measures it. '
+             + '⚠ The county\'s FOUR BLENDED units ARE inside, as primary_government means they '
+             + 'should be: the Capital Improvements Financing Authority and the Tobacco Funding '
+             + 'Corporation (both debt service funds), 29 Lighting Districts and the IHSS Public '
+             + 'Authority (both special revenue funds).',
+    },
+  },
+  // ⛔ `ca-sco-county-rev` IS DELIBERATELY ABSENT, and this is the honest half of
+  // the 2026-11-03 pass. Its fund-scope entry is the only one in that registry
+  // NOT resting on a dollar tie: a 7,807,552 residue (0.547%) that decomposes
+  // across seven taxonomies with mixed signs. That is good enough to choose
+  // all_funds over total_governmental, which differ by 15.87% — and NOT good
+  // enough for this axis, because First 5 Stanislaus's program revenues are
+  // 10,623,616, the SAME ORDER as the residue itself. The arithmetic therefore
+  // cannot separate "the component unit is excluded and the residue is
+  // reclassification" from "part of it is inside". The expenditure half had a
+  // $6 residue against an 11.7M component unit and so could. Leave it `unknown`
+  // until a county whose discretely presented unit is large relative to the
+  // revenue residue is reconciled, or until the residue is decomposed to the
+  // line against the SCO's own revenue schedule.
 ];
