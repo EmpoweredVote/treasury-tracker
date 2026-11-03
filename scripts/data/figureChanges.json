@@ -42,6 +42,12 @@
     "new": "58413113"
   },
   {
+    "id": "06bc23ea-bb70-4c5f-bea0-556d1c662b11",
+    "old": "-146328",
+    "why": "Ohio AOS city MOD layout defect (#316): stored expenditure was the \"Excess Of Receipts Over Disbursements\" column and stored revenue was a single function. Reloaded from the workbook.",
+    "new": "10941305"
+  },
+  {
     "id": "0722da1b-c1b2-4a5f-9d38-8d7e877b8149",
     "old": "1759650000",
     "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
@@ -66,6 +72,12 @@
     "new": "114197856"
   },
   {
+    "id": "0a34df04-fa36-455b-9041-c44ec747a700",
+    "old": "4167737",
+    "why": "Ohio AOS city MOD layout defect (#316): stored expenditure was the \"Excess Of Receipts Over Disbursements\" column and stored revenue was a single function. Reloaded from the workbook.",
+    "new": "10244043"
+  },
+  {
     "id": "0aca5d4c-b5b9-404e-bb6e-f0d68167df0d",
     "old": "25026005",
     "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
@@ -82,6 +94,12 @@
     "old": "30703982",
     "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
     "new": "47885400"
+  },
+  {
+    "id": "0f4c43cf-9ebd-4add-8630-3a2627162de3",
+    "old": "-412399",
+    "why": "Ohio AOS city MOD layout defect (#316): stored expenditure was the \"Excess Of Receipts Over Disbursements\" column and stored revenue was a single function. Reloaded from the workbook.",
+    "new": "6993225"
   },
   {
     "id": "0f743f85-a155-4cbb-8eea-7b8ea00cfe31",
@@ -114,6 +132,12 @@
     "new": "369382393"
   },
   {
+    "id": "137350b1-09ee-4378-bdc0-7933e6f8fba3",
+    "old": "-479642",
+    "why": "Ohio AOS city MOD layout defect (#316): stored expenditure was the \"Excess Of Receipts Over Disbursements\" column and stored revenue was a single function. Reloaded from the workbook.",
+    "new": "4301273"
+  },
+  {
     "id": "13cb7a1f-fa91-40f7-81e4-001b5dd1bdfe",
     "old": "79989182",
     "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
@@ -124,6 +148,12 @@
     "old": "99823990",
     "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
     "new": "212540014"
+  },
+  {
+    "id": "14e04b47-6f1b-489d-bced-b1825272006c",
+    "old": "3452417",
+    "why": "Ohio AOS city MOD layout defect (#316): stored expenditure was the \"Excess Of Receipts Over Disbursements\" column and stored revenue was a single function. Reloaded from the workbook.",
+    "new": "8313001"
   },
   {
     "id": "1530ab44-e150-4525-9bb1-c42a71e34b38",
@@ -154,6 +184,12 @@
     "old": "8106932",
     "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
     "new": "10522636"
+  },
+  {
+    "id": "1898ee1b-6f57-4f26-b632-cd4697f07351",
+    "old": "2122846",
+    "why": "Ohio AOS city MOD layout defect (#316): stored expenditure was the \"Excess Of Receipts Over Disbursements\" column and stored revenue was a single function. Reloaded from the workbook.",
+    "new": "4962765"
   },
   {
     "id": "19145cad-dc0d-4530-9864-14a92067b6a5",
@@ -204,6 +240,12 @@
     "new": "15847479"
   },
   {
+    "id": "20a3a804-b384-4029-b5fa-4518d5e9f6c5",
+    "old": "3893211",
+    "why": "Ohio AOS city MOD layout defect (#316): stored expenditure was the \"Excess Of Receipts Over Disbursements\" column and stored revenue was a single function. Reloaded from the workbook.",
+    "new": "9391390"
+  },
+  {
     "id": "214fd167-ab2c-41a2-ab9d-b4a3bffb4dd9",
     "old": "92075316",
     "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
@@ -238,6 +280,12 @@
     "old": "19200754",
     "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
     "new": "44026653"
+  },
+  {
+    "id": "25548d5f-cd7d-4da6-abc4-2181349b28c3",
+    "old": "3185185",
+    "why": "Ohio AOS city MOD layout defect (#316): stored expenditure was the \"Excess Of Receipts Over Disbursements\" column and stored revenue was a single function. Reloaded from the workbook.",
+    "new": "6580826"
   },
   {
     "id": "255be85a-ac42-47ec-938c-59d310b87fe9",
@@ -360,6 +408,12 @@
     "new": "62404932"
   },
   {
+    "id": "36ce11b1-463b-47c1-af04-00f2fcbc9bd5",
+    "old": "4738516",
+    "why": "Ohio AOS city MOD layout defect (#316): stored expenditure was the \"Excess Of Receipts Over Disbursements\" column and stored revenue was a single function. Reloaded from the workbook.",
+    "new": "10567545"
+  },
+  {
     "id": "382d70b6-b5f8-4900-8fcf-0a120771d4cf",
     "old": "69874145",
     "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
@@ -424,6 +478,12 @@
     "old": "170141829",
     "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
     "new": "204145129"
+  },
+  {
+    "id": "41497afc-f43a-4732-8842-541c65a066fa",
+    "old": "-12335349",
+    "why": "Ohio AOS city MOD layout defect (#316): stored expenditure was the \"Excess Of Receipts Over Disbursements\" column and stored revenue was a single function. Reloaded from the workbook.",
+    "new": "17237677"
   },
   {
     "id": "41f91e80-59f6-44d4-b18d-024324327c01",
@@ -564,6 +624,12 @@
     "new": "29708813"
   },
   {
+    "id": "56267a94-26ed-45ba-be2d-0544731c6a95",
+    "old": "6585200",
+    "why": "Ohio AOS city MOD layout defect (#316): stored expenditure was the \"Excess Of Receipts Over Disbursements\" column and stored revenue was a single function. Reloaded from the workbook.",
+    "new": "10045204"
+  },
+  {
     "id": "57180d53-2c7d-445a-8f7c-f791d687ddf1",
     "old": "39141376",
     "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
@@ -648,6 +714,12 @@
     "new": "38748555"
   },
   {
+    "id": "5df956e4-ac14-40ac-9759-310cd8080609",
+    "old": "-581544",
+    "why": "Ohio AOS city MOD layout defect (#316): stored expenditure was the \"Excess Of Receipts Over Disbursements\" column and stored revenue was a single function. Reloaded from the workbook.",
+    "new": "7476358"
+  },
+  {
     "id": "5e31f24e-e669-4887-ae76-8c8c99ccf91d",
     "old": "223212650",
     "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
@@ -664,6 +736,12 @@
     "old": "104862634",
     "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
     "new": "165909481"
+  },
+  {
+    "id": "61a6078a-8b84-452c-a51c-79e0a7574039",
+    "old": "11205195",
+    "why": "Ohio AOS city MOD layout defect (#316): stored expenditure was the \"Excess Of Receipts Over Disbursements\" column and stored revenue was a single function. Reloaded from the workbook.",
+    "new": "53271388"
   },
   {
     "id": "62da8230-dd6e-4839-8d31-9098a134e388",
@@ -756,6 +834,12 @@
     "new": "288064052"
   },
   {
+    "id": "69e6bee1-590d-4966-bb00-befca483dc8a",
+    "old": "-4040813",
+    "why": "Ohio AOS city MOD layout defect (#316): stored expenditure was the \"Excess Of Receipts Over Disbursements\" column and stored revenue was a single function. Reloaded from the workbook.",
+    "new": "16067811"
+  },
+  {
     "id": "6a1965b9-3f37-4746-b8bb-a33fba326a94",
     "old": "127321624",
     "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
@@ -840,6 +924,12 @@
     "new": "1077863081"
   },
   {
+    "id": "72650d34-7848-48d9-88a8-ca03c5ee0696",
+    "old": "151940",
+    "why": "Ohio AOS city MOD layout defect (#316): stored expenditure was the \"Excess Of Receipts Over Disbursements\" column and stored revenue was a single function. Reloaded from the workbook.",
+    "new": "5712542"
+  },
+  {
     "id": "747e8f44-3451-4634-bb74-9864c42327d2",
     "old": "369206939",
     "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
@@ -876,6 +966,12 @@
     "new": "251079944"
   },
   {
+    "id": "77a81d74-94aa-4571-aa5b-d061955b19f7",
+    "old": "528158",
+    "why": "Ohio AOS city MOD layout defect (#316): stored expenditure was the \"Excess Of Receipts Over Disbursements\" column and stored revenue was a single function. Reloaded from the workbook.",
+    "new": "6004155"
+  },
+  {
     "id": "77fe491a-90a3-47de-9b6a-552098874add",
     "old": "49040095",
     "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
@@ -892,6 +988,18 @@
     "old": "7394865",
     "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
     "new": "18953496"
+  },
+  {
+    "id": "7bf27607-ae73-4799-908e-fc22487c98ac",
+    "old": "-35461443",
+    "why": "Ohio AOS city MOD layout defect (#316): stored expenditure was the \"Excess Of Receipts Over Disbursements\" column and stored revenue was a single function. Reloaded from the workbook.",
+    "new": "88732831"
+  },
+  {
+    "id": "7dbb5747-615a-4b7c-a202-93aa13e1127d",
+    "old": "-597645",
+    "why": "Ohio AOS city MOD layout defect (#316): stored expenditure was the \"Excess Of Receipts Over Disbursements\" column and stored revenue was a single function. Reloaded from the workbook.",
+    "new": "7150030"
   },
   {
     "id": "7e1562ee-2925-4d0b-80c9-e9364d91e608",
@@ -916,6 +1024,12 @@
     "old": "171550703",
     "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
     "new": "284550732"
+  },
+  {
+    "id": "8003c2ee-649b-408a-a1df-63b1891785e8",
+    "old": "3559965",
+    "why": "Ohio AOS city MOD layout defect (#316): stored expenditure was the \"Excess Of Receipts Over Disbursements\" column and stored revenue was a single function. Reloaded from the workbook.",
+    "new": "6885561"
   },
   {
     "id": "800f3fc9-e6e0-4401-82b8-cce49c7ed1d3",
@@ -996,6 +1110,12 @@
     "new": "168443363"
   },
   {
+    "id": "8855507c-d8ab-4e87-9327-eeeff12be3bc",
+    "old": "480505",
+    "why": "Ohio AOS city MOD layout defect (#316): stored expenditure was the \"Excess Of Receipts Over Disbursements\" column and stored revenue was a single function. Reloaded from the workbook.",
+    "new": "7832496"
+  },
+  {
     "id": "8a2fe5d7-9eb5-4dd8-a347-d653f676cb0f",
     "old": "66477683",
     "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
@@ -1018,6 +1138,12 @@
     "old": "52542434",
     "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
     "new": "109393026"
+  },
+  {
+    "id": "8ce10a6a-8099-4c7c-a3d8-e63e8b06856c",
+    "old": "293959",
+    "why": "Ohio AOS city MOD layout defect (#316): stored expenditure was the \"Excess Of Receipts Over Disbursements\" column and stored revenue was a single function. Reloaded from the workbook.",
+    "new": "5524177"
   },
   {
     "id": "8ceae1d4-a6f1-46be-97c6-1513a0b0e762",
@@ -1050,10 +1176,22 @@
     "new": "122931136"
   },
   {
+    "id": "90e69384-dc53-46a5-ae0e-49fae39e2789",
+    "old": "2486816",
+    "why": "Ohio AOS city MOD layout defect (#316): stored expenditure was the \"Excess Of Receipts Over Disbursements\" column and stored revenue was a single function. Reloaded from the workbook.",
+    "new": "4411388"
+  },
+  {
     "id": "90f11382-c8a8-4647-90d2-749b0dc428cd",
     "old": "31875754",
     "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
     "new": "70742810"
+  },
+  {
+    "id": "91616aae-5f77-4540-a730-42386d0dcbdf",
+    "old": "1587462",
+    "why": "Ohio AOS city MOD layout defect (#316): stored expenditure was the \"Excess Of Receipts Over Disbursements\" column and stored revenue was a single function. Reloaded from the workbook.",
+    "new": "7803928"
   },
   {
     "id": "926faf64-95f1-4c97-be15-118c87b096fd",
@@ -1084,6 +1222,12 @@
     "old": "23832656",
     "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
     "new": "48808535"
+  },
+  {
+    "id": "9701133b-d370-43ac-ab88-144229936d9e",
+    "old": "-1495213",
+    "why": "Ohio AOS city MOD layout defect (#316): stored expenditure was the \"Excess Of Receipts Over Disbursements\" column and stored revenue was a single function. Reloaded from the workbook.",
+    "new": "11739256"
   },
   {
     "id": "970be297-f91c-485b-8323-9269c7452988",
@@ -1176,6 +1320,12 @@
     "new": "71921173"
   },
   {
+    "id": "a327fa8c-c63b-474b-9b38-f4297927ec24",
+    "old": "-2283948",
+    "why": "Ohio AOS city MOD layout defect (#316): stored expenditure was the \"Excess Of Receipts Over Disbursements\" column and stored revenue was a single function. Reloaded from the workbook.",
+    "new": "12329152"
+  },
+  {
     "id": "a3c7eee0-74ba-40ba-94aa-f31b277a7d04",
     "old": "7058690",
     "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
@@ -1254,6 +1404,18 @@
     "new": "53777458"
   },
   {
+    "id": "acc5ca3e-7be9-452b-9456-1cde8f1c5ee4",
+    "old": "2085295",
+    "why": "Ohio AOS city MOD layout defect (#316): stored expenditure was the \"Excess Of Receipts Over Disbursements\" column and stored revenue was a single function. Reloaded from the workbook.",
+    "new": "4902328"
+  },
+  {
+    "id": "ad5737dc-36ff-4b86-88b9-bf784d972e1e",
+    "old": "2813060",
+    "why": "Ohio AOS city MOD layout defect (#316): stored expenditure was the \"Excess Of Receipts Over Disbursements\" column and stored revenue was a single function. Reloaded from the workbook.",
+    "new": "5864482"
+  },
+  {
     "id": "adaf062b-9407-4794-a172-26053fb8c45d",
     "old": "807561217",
     "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
@@ -1326,10 +1488,28 @@
     "new": "339780517"
   },
   {
+    "id": "b1d797cb-d7f0-45da-a8af-a5f5dbf12acd",
+    "old": "2367920",
+    "why": "Ohio AOS city MOD layout defect (#316): stored expenditure was the \"Excess Of Receipts Over Disbursements\" column and stored revenue was a single function. Reloaded from the workbook.",
+    "new": "3821631"
+  },
+  {
     "id": "b274add1-1abc-4761-8a87-02739dafaf10",
     "old": "11748989",
     "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
     "new": "15721296"
+  },
+  {
+    "id": "b2b5ed0e-e9ba-4b88-948c-530abe76a52d",
+    "old": "2908043",
+    "why": "Ohio AOS city MOD layout defect (#316): stored expenditure was the \"Excess Of Receipts Over Disbursements\" column and stored revenue was a single function. Reloaded from the workbook.",
+    "new": "6532313"
+  },
+  {
+    "id": "b2cfba59-6286-4da2-8be9-6184ef15b26f",
+    "old": "-141543",
+    "why": "Ohio AOS city MOD layout defect (#316): stored expenditure was the \"Excess Of Receipts Over Disbursements\" column and stored revenue was a single function. Reloaded from the workbook.",
+    "new": "4186059"
   },
   {
     "id": "b4232c3c-292d-4001-aebb-cd6c75a8c9de",
@@ -1342,6 +1522,12 @@
     "old": "24266292",
     "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
     "new": "52964128"
+  },
+  {
+    "id": "b5bccc75-9b44-4918-90a8-9a4e96dd2345",
+    "old": "3256017",
+    "why": "Ohio AOS city MOD layout defect (#316): stored expenditure was the \"Excess Of Receipts Over Disbursements\" column and stored revenue was a single function. Reloaded from the workbook.",
+    "new": "6894814"
   },
   {
     "id": "b5da0f7a-6dd5-4668-8f90-be7d32c0645a",
@@ -1386,6 +1572,12 @@
     "new": "19193755"
   },
   {
+    "id": "bf8275e4-8b0f-4b33-9837-5e212f555988",
+    "old": "41570",
+    "why": "Ohio AOS city MOD layout defect (#316): stored expenditure was the \"Excess Of Receipts Over Disbursements\" column and stored revenue was a single function. Reloaded from the workbook.",
+    "new": "6843991"
+  },
+  {
     "id": "c008725e-c4b3-4988-aa1c-fae658e2e8e1",
     "old": "431070111",
     "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
@@ -1428,10 +1620,28 @@
     "new": "72496222"
   },
   {
+    "id": "c846969e-9253-497a-af43-648e84468cc1",
+    "old": "3228187",
+    "why": "Ohio AOS city MOD layout defect (#316): stored expenditure was the \"Excess Of Receipts Over Disbursements\" column and stored revenue was a single function. Reloaded from the workbook.",
+    "new": "6552385"
+  },
+  {
     "id": "c86e277a-fab6-428e-95b9-2264991be5dc",
     "old": "136501175",
     "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
     "new": "284501262"
+  },
+  {
+    "id": "c94fa35c-dd93-43eb-81e5-54d3d0645a27",
+    "old": "-2034838",
+    "why": "Ohio AOS city MOD layout defect (#316): stored expenditure was the \"Excess Of Receipts Over Disbursements\" column and stored revenue was a single function. Reloaded from the workbook.",
+    "new": "6446226"
+  },
+  {
+    "id": "cb1775aa-210e-4bb0-b5ab-79511f49c1f0",
+    "old": "2285164",
+    "why": "Ohio AOS city MOD layout defect (#316): stored expenditure was the \"Excess Of Receipts Over Disbursements\" column and stored revenue was a single function. Reloaded from the workbook.",
+    "new": "10794977"
   },
   {
     "id": "cb6954e4-867f-4f46-9beb-a599ea92ec24",
@@ -1596,6 +1806,12 @@
     "new": "131324501"
   },
   {
+    "id": "e1117c4d-31af-4dfb-a724-6ca018c5e717",
+    "old": "7823431",
+    "why": "Ohio AOS city MOD layout defect (#316): stored expenditure was the \"Excess Of Receipts Over Disbursements\" column and stored revenue was a single function. Reloaded from the workbook.",
+    "new": "12026998"
+  },
+  {
     "id": "e3c9729e-3767-4b0b-9149-ccf8df699117",
     "old": "20147218",
     "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
@@ -1728,6 +1944,12 @@
     "new": "12353596"
   },
   {
+    "id": "f5fa6f1d-ccc2-4866-a407-2be94c5f0286",
+    "old": "280663",
+    "why": "Ohio AOS city MOD layout defect (#316): stored expenditure was the \"Excess Of Receipts Over Disbursements\" column and stored revenue was a single function. Reloaded from the workbook.",
+    "new": "4682102"
+  },
+  {
     "id": "f6014bcf-da1f-4e99-8ae7-3c3e003504f3",
     "old": "53700037",
     "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
@@ -1740,10 +1962,22 @@
     "new": "13032921"
   },
   {
+    "id": "f7f3abeb-383b-4365-ad29-ea0ecd0b8e47",
+    "old": "-1145254",
+    "why": "Ohio AOS city MOD layout defect (#316): stored expenditure was the \"Excess Of Receipts Over Disbursements\" column and stored revenue was a single function. Reloaded from the workbook.",
+    "new": "11712799"
+  },
+  {
     "id": "f867eb1e-de64-4ad8-8867-c5feb7a20443",
     "old": "24578118",
     "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
     "new": "45950973"
+  },
+  {
+    "id": "f877dbfb-0e58-4826-870c-29420d0a17f6",
+    "old": "2456087",
+    "why": "Ohio AOS city MOD layout defect (#316): stored expenditure was the \"Excess Of Receipts Over Disbursements\" column and stored revenue was a single function. Reloaded from the workbook.",
+    "new": "5818136"
   },
   {
     "id": "f8a5374e-922c-4162-a060-9d0fa7ca8dbc",
@@ -1798,6 +2032,12 @@
     "old": "4446342",
     "why": "Pre-Exhibit-B-1 \"Total LOCAL Revenue\"; row now carries Exhibit A \"Total Revenue\". SCOPE-01-RECON §4.9.",
     "new": "5640633"
+  },
+  {
+    "id": "fe68fe88-71f6-40f3-9fb7-0a52890cfcbe",
+    "old": "2113942",
+    "why": "Ohio AOS city MOD layout defect (#316): stored expenditure was the \"Excess Of Receipts Over Disbursements\" column and stored revenue was a single function. Reloaded from the workbook.",
+    "new": "4044516"
   },
   {
     "id": "fee3f467-3523-46b7-8131-f55c1aa62e4d",

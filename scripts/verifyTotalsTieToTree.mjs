@@ -27,7 +27,13 @@ import { summarizeTies, summarizeCounts } from './lib/totalsTie.mjs';
 
 /** Known mismatches per source family, 2026-11-01. */
 const BASELINE = {
-  'Ohio Auditor of State Summarized Annual Financial Reports': 1765,
+  // ⚠⚠ 1,763 OHIO ROWS STILL DO NOT TIE, AND THIS IS A DIFFERENT DEFECT FROM
+  // THE ONE #316 FIXED. The city-MOD layout bug was 40 rows; reloading all 40
+  // from the workbooks moved this baseline by **2**. So the untied cohort is
+  // essentially disjoint from the MOD cohort and remains UNDIAGNOSED.
+  // ⚠ The Ohio auto-memory's heading "1,778 rows need a RELOAD" conflates the
+  // two. The reload is done; this is what is left, and a reload will not fix it.
+  'Ohio Auditor of State Summarized Annual Financial Reports': 1763,
   'Minnesota Office of the State Auditor City/County Finances Report': 1,
   'Prosper Revenue FY2023': 1,
   'Prosper Revenue FY2024': 1,
