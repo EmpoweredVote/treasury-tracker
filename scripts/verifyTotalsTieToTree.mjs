@@ -25,15 +25,21 @@ import { readFileSync } from 'node:fs';
 import { createClient } from '@supabase/supabase-js';
 import { summarizeTies, summarizeCounts } from './lib/totalsTie.mjs';
 
-/** Known mismatches per source family, 2026-11-01. */
+/** Known mismatches per source family, 2026-11-01; Ohio paid down 2026-11-03. */
 const BASELINE = {
-  // ⚠⚠ 1,763 OHIO ROWS STILL DO NOT TIE, AND THIS IS A DIFFERENT DEFECT FROM
-  // THE ONE #316 FIXED. The city-MOD layout bug was 40 rows; reloading all 40
-  // from the workbooks moved this baseline by **2**. So the untied cohort is
-  // essentially disjoint from the MOD cohort and remains UNDIAGNOSED.
-  // ⚠ The Ohio auto-memory's heading "1,778 rows need a RELOAD" conflates the
-  // two. The reload is done; this is what is left, and a reload will not fix it.
-  'Ohio Auditor of State Summarized Annual Financial Reports': 1763,
+  // ✅ OHIO IS ZERO. Diagnosed and reloaded 2026-11-03.
+  //
+  // ⚠⚠ AND THE COMMENT THAT STOOD HERE WAS WRONG ON BOTH COUNTS. It called the
+  // cohort "UNDIAGNOSED" and said "a reload will not fix it". A reload is
+  // precisely what fixed it: every one of the 1,763 carried a DUPLICATE ROOT
+  // from the publisher's verbatim repeated column, the repair had already
+  // shipped in #315 (`scripts/lib/ohioTree.mjs`), and nobody had ever re-run
+  // the loader. The fix sat in the repo, correct and unused, for weeks.
+  //
+  // ⚠ It also claimed the Ohio memory's "1,778 rows need a RELOAD" heading
+  // conflated two defects. It did not. 1,763 revenue + 13 operating = 1,776,
+  // and #327 had already repaired 2 of the original 1,778. The heading was
+  // right; the correction was the error.
   'Minnesota Office of the State Auditor City/County Finances Report': 1,
   'Prosper Revenue FY2023': 1,
   'Prosper Revenue FY2024': 1,
@@ -41,13 +47,46 @@ const BASELINE = {
 };
 
 /**
- * Known NEGATIVE headline totals, 2026-11-01. All Ohio, all with duplicate
- * root-category names. Worst: Huber Heights FY2024 operating, −$35,461,443
- * against roots summing to +$10,483,560.
+ * Known trees that repeat a root LABEL, 2026-11-03.
+ *
+ * ⚠⚠ ZERO IS THE WHOLE POINT OF THIS TABLE. A duplicate label can tie its
+ * total perfectly — Ohio's 13 `Other` rows did, for as long as this gate has
+ * existed — so nothing else here can see it. Starting at zero means the first
+ * one to reappear fails the build instead of waiting to be noticed.
+ *
+ * ⚠ THE SIX ROWS BELOW WERE FOUND BY THIS COUNTER THE FIRST TIME IT RAN, and
+ * they are NOT the Ohio defect. They are debt, recorded so Ohio's repair can
+ * land without a red light nobody can turn green — not a target, and not
+ * forgiven:
+ *
+ *   McKinney Check Register — the breakdown repeats `Fleet & Vehicles` SIX
+ *     times and `Parks & Recreation` six times, each copy a DIFFERENT amount.
+ *     Every one ties, so no gate has ever reported it. A reader sees six rows
+ *     with one name. UNDIAGNOSED — it is a check register rolled up by vendor
+ *     category, so the likely cause is a grouping key that is not unique.
+ *   San Jose General Fund Operating Budget — a root literally named
+ *     `Department`, twice. That reads like a HEADER ROW leaking into the tree,
+ *     which would mean a parse boundary is wrong, not just a label.
+ *
+ * Neither is Ohio's repeated-column bug, and neither is fixed by this PR.
  */
-const NEGATIVE_BASELINE = {
-  'Ohio Auditor of State Summarized Annual Financial Reports': 13,
+const DUPLICATE_BASELINE = {
+  'McKinney Check Register FY2022': 1,
+  'McKinney Check Register FY2023': 1,
+  'McKinney Check Register FY2024': 1,
+  'McKinney Check Register FY2025': 1,
+  'San Jose General Fund Operating Budget FY2024': 1,
+  'San Jose General Fund Operating Budget FY2025': 1,
 };
+
+/**
+ * Known NEGATIVE headline totals.
+ *
+ * ✅ Ohio's 13 went to zero in #327, when the city MOD rows were reloaded from
+ * the workbooks: the worst, Huber Heights FY2024 operating, read −$35,461,443
+ * against roots summing to +$10,483,560 and now reads +$88,732,831.
+ */
+const NEGATIVE_BASELINE = {};
 
 // ⚠ `split_part(data_source, ' —', 1)` is an EM DASH, matching how every
 // loader labels a source: "<publisher> — <dataset> (<FY>, <basis>)".
@@ -90,7 +129,7 @@ if (argv.includes('--check')) {
     process.exit(1);
   }
   const rows = JSON.parse(readFileSync(file, 'utf8'));
-  r = summarizeTies(rows, BASELINE, NEGATIVE_BASELINE);
+  r = summarizeTies(rows, BASELINE, NEGATIVE_BASELINE, DUPLICATE_BASELINE);
   examined = `${rows.length} candidate row(s) examined`;
 } else {
   // ⚠ Default path: the database aggregates, exactly as verify:frozen does.
@@ -105,7 +144,7 @@ if (argv.includes('--check')) {
     console.error('\nTry:  node scripts/verifyTotalsTieToTree.mjs --print-sql');
     process.exit(1);
   }
-  r = summarizeCounts(data, BASELINE, NEGATIVE_BASELINE);
+  r = summarizeCounts(data, BASELINE, NEGATIVE_BASELINE, DUPLICATE_BASELINE);
   examined = `${data.length} source(s) with at least one candidate row`;
 }
 
@@ -119,6 +158,14 @@ console.log(`\nNEGATIVE totals: ${negTotal}`);
 for (const [source, n] of Object.entries(r.negatives)) {
   console.log(`  ${String(n).padStart(5)}  ${source}   (baseline ${NEGATIVE_BASELINE[source] ?? 0})`);
 }
+// ⚠⚠ Reported on its OWN line, because none of the numbers above can imply it:
+// a tree that repeats a label can tie its total to the dollar.
+const dupTotal = Object.values(r.duplicates).reduce((a, b) => a + b, 0);
+console.log(`\nDUPLICATE root labels: ${dupTotal}`);
+for (const [source, n] of Object.entries(r.duplicates)) {
+  console.log(`  ${String(n).padStart(5)}  ${source}   (baseline ${DUPLICATE_BASELINE[source] ?? 0})`);
+}
+
 const rootlessTotal = Object.values(r.rootless).reduce((a, b) => a + b, 0);
 console.log(`\nrootless (no tree at all, reported not gated): ${rootlessTotal}`);
 for (const [source, n] of Object.entries(r.rootless)) console.log(`  ${String(n).padStart(5)}  ${source}`);
@@ -133,11 +180,19 @@ if (r.improvements.length) {
 if (!r.ok) {
   console.error('\n❌ REGRESSION — a total stopped tying to its own tree:');
   for (const g of r.regressions) {
-    console.error(`  ${g.source}: ${g.kind === 'negative' ? 'negative totals ' : 'mismatches '}`
-      + `${g.baseline} -> ${g.actual}`);
+    const label = { negative: 'negative totals ', duplicate: 'duplicate root labels ' }[g.kind]
+      ?? 'mismatches ';
+    console.error(`  ${g.source}: ${label}${g.baseline} -> ${g.actual}`);
   }
   console.error('\nA headline figure that contradicts its own breakdown is not publishable.');
+  console.error('Neither is a breakdown that shows the reader one label twice.');
   console.error('Fix the loader; do not raise the baseline.');
-  process.exit(1);
+  // ⚠⚠ `process.exit(1)` HERE ABORTED THE PROCESS INSTEAD OF FAILING IT. With
+  // the supabase client's keep-alive socket still open, Node on Windows trips
+  // `Assertion failed: !(handle->flags & UV_HANDLE_CLOSING)` and the run ends
+  // with code **127**, which reads as "command not found" — a gate whose
+  // failure looks like a broken invocation is a gate people route around.
+  // Setting exitCode lets the process close its handles and exit 1.
+  process.exitCode = 1;
 }
 console.log('\nOK — no source is worse than its recorded baseline.');
