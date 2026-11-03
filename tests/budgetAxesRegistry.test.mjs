@@ -171,16 +171,84 @@ describe('reporting entity classification', () => {
     });
   });
 
-  it('⛔ CA SCO COUNTY REVENUES stays unknown, and this one is not a gap to close casually', () => {
-    // The only CA SCO half whose reconciliation is NOT a dollar tie: a
-    // 7,807,552 residue (0.547%). First 5 Stanislaus — the discretely presented
-    // component unit the figure must exclude — has program revenues of
-    // 10,623,616, the SAME ORDER as that residue, so the arithmetic cannot
-    // separate "excluded" from "partly inside". The expenditure half had a $6
-    // residue against an 11.7M unit and could.
-    // ⚠ Do not flip this because its three siblings are classified. It needs a
-    // county whose discretely presented unit is large relative to the revenue
-    // residue, or the residue decomposed to the line.
-    expect(entityOf('CA State Controller - County Revenues')).toBe('unknown');
+  // ── CA SCO COUNTY REVENUES ────────────────────────────────────────────────
+  // ⚠⚠ THIS TEST USED TO ASSERT `unknown`, and it was RIGHT to. It said: the
+  // residue is 7,807,552 and First 5 Stanislaus's program revenues are
+  // 10,623,616, the SAME ORDER, so the arithmetic cannot separate "excluded"
+  // from "partly inside"; do not flip this because its siblings are classified;
+  // it needs a county whose discretely presented unit is LARGE relative to the
+  // revenue residue. On 2026-11-03 exactly that county was reconciled.
+  // ⭐ The old test is the reason this was closable at all — it named the
+  // measurement that would settle it, so a later session could go get it
+  // instead of re-deriving the doubt. An honest `unknown` is a TODO with a
+  // spec. Contrast the two assertions #324 had to retire, which pinned "not
+  // probed" and "returned 403" — facts about a moment, with no way to act.
+  describe('CA SCO county revenues — closed by ratio, not by argument', () => {
+    const rev = REPORTING_ENTITY_REGISTRY.find((e) => e.id === 'ca-sco-county-rev');
+
+    it('is primary_government', () => {
+      expect(entityOf('CA State Controller - County Revenues')).toBe('primary_government');
+    });
+
+    it('Alameda FY2024: the implied governmental figure reconciles to the ACFR', () => {
+      // SCO's stored total, and its ONLY non-governmental depth-0 root.
+      const SCO_TOTAL = 4_742_901_769;
+      const SCO_INTERNAL_SERVICE = 359_302_737;
+      // County of Alameda FY2024 ACFR p.23, Total Governmental Funds column,
+      // printed in THOUSANDS as 4,383,978.
+      const ACFR_TOTAL_GOVERNMENTAL = 4_383_978 * 1000;
+
+      const impliedGovernmental = SCO_TOTAL - SCO_INTERNAL_SERVICE;
+      expect(impliedGovernmental).toBe(4_383_599_032);
+
+      const residue = ACFR_TOTAL_GOVERNMENTAL - impliedGovernmental;
+      expect(residue).toBe(378_968);
+      expect(residue / ACFR_TOTAL_GOVERNMENTAL).toBeLessThan(0.0001); // 0.0086%
+    });
+
+    it('the excluded unit is 3,873x the residue — the ratio Stanislaus could not reach', () => {
+      // Alameda Health System, the county's ONLY discretely presented unit,
+      // from the Statement of Activities p.20 (thousands).
+      const AHS_EXPENSES = 1_458_231 * 1000;
+      const AHS_PROGRAM_REVENUES = (1_314_391 + 15 + 164) * 1000;
+      const AHS_GENERAL_REVENUES = 153_043 * 1000;
+      const AHS_TOTAL_REVENUES = AHS_PROGRAM_REVENUES + AHS_GENERAL_REVENUES;
+
+      // ⭐ The statement's own bottom line proves the components were read
+      // correctly: revenues less expenses IS the printed change in net position.
+      expect(AHS_TOTAL_REVENUES - AHS_EXPENSES).toBe(9_382 * 1000);
+      expect(AHS_TOTAL_REVENUES).toBe(1_467_613_000);
+
+      const residue = 378_968;
+      expect(Math.round(AHS_TOTAL_REVENUES / residue)).toBe(3873);
+      // Stanislaus's ratio, which is why that county could NOT settle this.
+      expect(10_623_616 / 7_807_552).toBeLessThan(1.4);
+    });
+
+    it('the expenditure side of the same county is all but a dollar tie', () => {
+      const residue = (4_244_700_272 - 401_869_333) - (3_842_829 * 1000);
+      expect(residue).toBe(1_939);
+    });
+
+    it('keeps Stanislaus, which is the only one exercising SCO enterprise funds', () => {
+      // ⚠ Alameda has NO enterprise funds at all — that is what makes its
+      // arithmetic clean AND what stops it standing alone. If a future pass
+      // retires the Stanislaus evidence as superseded, the enterprise-fund half
+      // of the taxonomy stops being covered.
+      // ⚠⚠ Matching the bare word "Alameda" or "Stanislaus" is NOT enough and
+      // was MEASURED not to be: deleting the Alameda expenditure reconciliation
+      // left all 23 tests green, because the county's name still appears in the
+      // document path and elsewhere in the same entry. This is the identical
+      // hole found in the MN guard above. Pin the ARITHMETIC SENTENCES — a
+      // county name is decoration, a reconciliation is the evidence.
+      const exp = REPORTING_ENTITY_REGISTRY.find((e) => e.id === 'ca-sco-county-exp');
+      expect(exp.evidence.figures)
+        .toContain('1,194,047,359 + SCO enterprise & ISF 207,325,063 = 1,401,372,422');
+      expect(exp.evidence.figures)
+        .toContain('4,244,700,272 - Internal Service Fund 401,869,333 = 3,842,830,939');
+      expect(exp.evidence.figures).toContain('11,672,965');   // First 5, the small unit
+      expect(exp.evidence.figures).toContain('1,458,231,000'); // AHS, the large one
+      expect(rev.evidence.figures).toMatch(/NEVER EXERCISES/);
+    });
   });
 });

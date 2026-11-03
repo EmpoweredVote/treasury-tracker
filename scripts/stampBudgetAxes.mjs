@@ -823,13 +823,21 @@ export const EXPECTED_REPORTING_ENTITY_ROWS = Object.freeze({
   // ⚠ The CA counts are the same numbers the basis gate above carries, RE-MEASURED
   // rather than copied across — they moved once already this week when the FY2025
   // fleet load landed, which is exactly how a copied number goes stale.
-  // ⛔ `ca-sco-county-rev` is deliberately absent: its reconciliation cannot
-  // separate the discretely presented component unit from its own residue. The
-  // reason is written at the bottom of reportingEntityRegistry.mjs.
+  // ✅ `ca-sco-county-rev` JOINED THEM ON 2026-11-03 and this file's comment used
+  // to say it was "deliberately absent: its reconciliation cannot separate the
+  // discretely presented component unit from its own residue". That was true of
+  // STANISLAUS, whose ratio was 1.36. The County of Alameda FY2024 settles it at
+  // a ratio of 3,873 — see the entry at the bottom of reportingEntityRegistry.mjs.
+  //   ca-sco-county-rev  1,245 rows /  1,245 ids / 1 string /  57 entities / FY2003-FY2025
+  // ⚠ 1,245 is MEASURED, not copied from ca-sco-county-exp beside it, even though
+  // the two are the same number and the same 57 counties: three independent
+  // counts agree (this gate's own `got`, the basis gate above, and a direct
+  // count of the data_source in treasury.budgets). Copying is how these go stale.
   'oh-aos': 6616,
   'ca-sco-city-exp': 10932,
   'ca-sco-city-rev': 10932,
   'ca-sco-county-exp': 1245,
+  'ca-sco-county-rev': 1245,
 });
 
 /** The last fiscal year that has closed. A row after this cannot be an actual. */

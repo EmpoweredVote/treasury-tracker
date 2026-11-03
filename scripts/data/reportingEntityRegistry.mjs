@@ -36,10 +36,19 @@
  * different files, evidence BOTH, and say in the entry that it cannot be split.
  * Counties are now evidenced to the dollar on both sides — see `mn-osa` below.
  *
- * ⚠ One family is still unevidenced ON PURPOSE: `ca-sco-county-rev`. See the
- * note at the bottom — its residue and its component unit are the same size, so
- * the arithmetic cannot tell exclusion from partial inclusion. That is a real
- * limit, not a missing document.
+ * ✅ EVERY FAMILY IN THIS REGISTRY IS NOW EVIDENCED. The last deliberate hole,
+ * `ca-sco-county-rev`, closed on 2026-11-03 — and it closed the way its own
+ * note asked for, by finding a county whose discretely presented unit is large
+ * relative to the residue, NOT by arguing the Stanislaus residue down. The
+ * ratio went from 1.36 (ambiguous) to 3,873 (decisive). See the entry at the
+ * bottom of this file for the method, which is the reusable part: the county
+ * was chosen from TT's OWN stored SCO trees, before anything was downloaded.
+ *
+ * ⚠ "Deliberately unknown" earned its keep here — it held for exactly as long
+ * as the evidence was genuinely ambiguous, and it named the measurement that
+ * would settle it. That is what made it closable by someone who had not been
+ * in the original conversation. An honest `unknown` is a TODO with a spec, not
+ * a shrug.
  *
  * Spec: docs/superpowers/specs/2026-08-17-scope-02-design.md §1
  */
@@ -871,20 +880,85 @@ export const REPORTING_ENTITY_REGISTRY = [
              + '⚠ The county\'s FOUR BLENDED units ARE inside, as primary_government means they '
              + 'should be: the Capital Improvements Financing Authority and the Tobacco Funding '
              + 'Corporation (both debt service funds), 29 Lighting Districts and the IHSS Public '
-             + 'Authority (both special revenue funds).',
+             + 'Authority (both special revenue funds). '
+             + '⭐ SECOND COUNTY, added 2026-11-03 with ca-sco-county-rev: COUNTY OF ALAMEDA '
+             + 'FY2024 (docs/AlamedaCounty/alameda-county-fy2024-acfr.pdf, thousands). '
+             + '4,244,700,272 - Internal Service Fund 401,869,333 = 3,842,830,939 against the '
+             + 'ACFR\'s printed Total Governmental Funds total expenditures of 3,842,829,000 — a '
+             + 'residue of 1,939, 0.00005%. Alameda\'s discretely presented Alameda Health System '
+             + 'has expenses of 1,458,231,000, i.e. 34.4% of the SCO total and 752,053 times the '
+             + 'residue. Stanislaus had the better residue ($6); ALAMEDA HAS THE BETTER RATIO, '
+             + 'because its excluded unit is 125 times larger. Keep BOTH: Stanislaus is the only '
+             + 'one of the two that exercises SCO\'s enterprise-fund categories, since Alameda '
+             + 'has no enterprise funds at all.',
     },
   },
-  // ⛔ `ca-sco-county-rev` IS DELIBERATELY ABSENT, and this is the honest half of
-  // the 2026-11-03 pass. Its fund-scope entry is the only one in that registry
-  // NOT resting on a dollar tie: a 7,807,552 residue (0.547%) that decomposes
-  // across seven taxonomies with mixed signs. That is good enough to choose
-  // all_funds over total_governmental, which differ by 15.87% — and NOT good
-  // enough for this axis, because First 5 Stanislaus's program revenues are
-  // 10,623,616, the SAME ORDER as the residue itself. The arithmetic therefore
-  // cannot separate "the component unit is excluded and the residue is
-  // reclassification" from "part of it is inside". The expenditure half had a
-  // $6 residue against an 11.7M component unit and so could. Leave it `unknown`
-  // until a county whose discretely presented unit is large relative to the
-  // revenue residue is reconciled, or until the residue is decomposed to the
-  // line against the SCO's own revenue schedule.
+  {
+    // ⭐⭐ `ca-sco-county-rev` WAS DELIBERATELY ABSENT UNTIL 2026-11-03, and it was
+    // closed the way its own note asked for — not by arguing the residue down.
+    //
+    // The note said: leave this `unknown` until a county whose discretely
+    // presented unit is LARGE relative to the revenue residue is reconciled.
+    // Stanislaus could not do it. Its residue was 7,807,552 and First 5
+    // Stanislaus's program revenues were 10,623,616 — a ratio of 1.36, which
+    // cannot separate "excluded, and the residue is reclassification" from
+    // "part of it is inside". ALAMEDA'S RATIO IS 3,873.
+    //
+    // ⭐ HOW THE COUNTY WAS CHOSEN, because the method is the reusable part:
+    // not by reading ACFRs looking for a big component unit, but by reading
+    // TT's OWN stored SCO trees first. Every comparable county reports a
+    // Hospital Enterprise Fund at depth 0 — Santa Clara 2,861,453,933,
+    // Riverside 986,561,418, Contra Costa 784,157,834, Ventura 624,422,293,
+    // San Joaquin 493,808,487, Monterey 435,181,412, San Mateo 378,241,086.
+    // Alameda, a county of 1.6 million people with three public hospitals,
+    // reports NONE: its only depth-0 non-governmental root is an Internal
+    // Service Fund. That absence IS the signature of a hospital held as a
+    // discretely presented authority rather than an enterprise fund, and it
+    // was visible in a single SQL query over `treasury.budget_categories`
+    // before anything was downloaded.
+    id: 'ca-sco-county-rev',
+    match: /^CA State Controller - County Revenues$/,
+    value: REPORTING_ENTITY.PRIMARY,
+    evidence: {
+      document: 'County of Alameda FY2024 ACFR '
+              + '(docs/AlamedaCounty/alameda-county-fy2024-acfr.pdf), Statement of Activities '
+              + 'p.20 and the governmental-funds Statement of Revenues, Expenditures and Changes '
+              + 'in Fund Balances p.23, read 2026-11-03 from the Federal Audit Clearinghouse '
+              + '(report id 2024-06-GSAFAC-0000355975). ⚠ THE DOCUMENT IS EXPRESSED IN '
+              + 'THOUSANDS and every figure below is scaled from it; the statements say so in '
+              + 'their own headers.',
+      figures: 'ALAMEDA HEALTH SYSTEM IS 3,873 TIMES THE RESIDUE. AHS is Alameda\'s ONLY '
+             + 'discretely presented component unit — Note 1 says it "is reported in a separate '
+             + 'column in the government-wide financial statements to emphasize that it is '
+             + 'legally separate from the County" — and the Statement of Activities gives it in '
+             + 'full: expenses 1,458,231,000, program revenues 1,314,570,000 (charges '
+             + '1,314,391 + operating grants 15 + capital grants 164, in thousands) and general '
+             + 'revenues 153,043,000, so TOTAL AHS REVENUES ARE 1,467,613,000. That figure '
+             + 'self-checks against the statement\'s own bottom line: 1,467,613 - 1,458,231 = '
+             + '9,382, the printed change in net position. '
+             + 'THE TIE: SCO reports 4,742,901,769; its only non-governmental depth-0 root is '
+             + 'an Internal Service Fund of 359,302,737; 4,742,901,769 - 359,302,737 = '
+             + '4,383,599,032 implied governmental, against the ACFR\'s printed Total '
+             + 'Governmental Funds total revenues of 4,383,978,000. Residue 378,968, which is '
+             + '0.0086% of the figure. AHS at 1,467,613,000 is 30.9% of the SCO total and 3,873 '
+             + 'times that residue, so it is arithmetically impossible for it to be inside. '
+             + '⭐ THE EXPENDITURE SIDE OF THE SAME COUNTY IS ALL BUT A DOLLAR TIE and was free '
+             + 'to compute: 4,244,700,272 - 401,869,333 = 3,842,830,939 against the ACFR\'s '
+             + 'printed 3,842,829,000 — a residue of 1,939, or 0.00005%. Two sides, one county, '
+             + 'one document. '
+             + 'STRUCTURAL CORROBORATION, independent of the arithmetic: Alameda\'s Statement of '
+             + 'Activities has NO business-type activities column at all — total primary '
+             + 'government equals total governmental activities, both 3,822,552 (thousands) — so '
+             + 'the county genuinely has no enterprise funds, which is exactly why SCO reports '
+             + 'only an Internal Service Fund for it. Two publishers, same structure. AHS also '
+             + 'files its OWN single audit with the FAC as "Alameda Health System, A Public '
+             + 'Hospital Authority", so it is a separate auditee, not a fund. '
+             + '⚠⚠ WHAT ALAMEDA DOES NOT PROVE, and why Stanislaus stays in ca-sco-county-exp: '
+             + 'having no enterprise funds is what makes this arithmetic so clean, and it also '
+             + 'means Alameda NEVER EXERCISES the enterprise-fund half of SCO\'s taxonomy. '
+             + 'Stanislaus does (Hospital 40,685,163, Solid Waste 18,055,105, Other 6,267,838). '
+             + 'The two counties together cover the taxonomy; Alameda alone would not, and a '
+             + 'future reader should not retire the Stanislaus evidence as superseded.',
+    },
+  },
 ];
