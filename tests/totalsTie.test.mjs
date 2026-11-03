@@ -147,3 +147,42 @@ describe('summarizeCounts — the RPC path ratchets the same way', () => {
     expect(r.ok).toBe(true);
   });
 });
+
+describe('a tree that TIES can still be broken for the reader', () => {
+  // ⚠⚠ THE HOLE THIS CLOSES. The tie rule compares two numbers, so a tree whose
+  // roots sum correctly passes no matter what it is NAMED. Ohio's expenditure
+  // side carries 13 budgets with `Other` twice — Current → Security Of Persons
+  // And Property → Other and Debt Service → Other — two real categories with
+  // DIFFERENT amounts. They tie to the dollar, so every gate stayed green while
+  // the reader saw one label twice with no way to tell the rows apart.
+  //
+  // ⚠ The revenue cohort was visible only because its duplicate was VERBATIM
+  // and therefore double-counted. Had the publisher repeated a column with a
+  // different value, 1,763 broken trees would have tied too.
+
+  it('counts a duplicate root name even when the total ties', () => {
+    const counts = [{ source: 'Ohio', mismatches: 0, negatives: 0, rootless: 0, duplicates: 13 }];
+    const r = summarizeCounts(counts, {}, {}, {});
+    expect(r.duplicates).toEqual({ Ohio: 13 });
+    expect(r.ok).toBe(false);
+  });
+
+  it('holds a duplicate-root baseline on its own ratchet', () => {
+    const counts = [{ source: 'Ohio', mismatches: 0, negatives: 0, rootless: 0, duplicates: 13 }];
+    expect(summarizeCounts(counts, {}, {}, { Ohio: 13 }).ok).toBe(true);
+    expect(summarizeCounts(counts, {}, {}, { Ohio: 12 }).ok).toBe(false);
+    // Reaching zero is an improvement to report, never a failure.
+    const fixed = [{ source: 'Ohio', mismatches: 0, negatives: 0, rootless: 0, duplicates: 0 }];
+    const r = summarizeCounts(fixed, {}, {}, { Ohio: 13 });
+    expect(r.ok).toBe(true);
+    expect(r.improvements).toContainEqual({ source: 'Ohio', baseline: 13, actual: 0, kind: 'duplicate' });
+  });
+
+  it('flags a duplicate root from row data too, so both callers agree', () => {
+    // One rule, two callers: --check judges rows, the default path reads the
+    // server aggregate. A second declaration is how the two drift apart.
+    const rows = [{ source: 'Ohio', total: 500, rootSum: 500, nRoots: 3, distinctRootNames: 2 }];
+    const r = summarizeTies(rows, {}, {}, {});
+    expect(r.duplicates).toEqual({ Ohio: 1 });
+  });
+});

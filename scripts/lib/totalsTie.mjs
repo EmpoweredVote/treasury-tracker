@@ -42,6 +42,29 @@ export function classifyBudgetTie({ total, rootSum, nRoots }, tolerance = TOLERA
 }
 
 /**
+ * Does this budget show a reader the same root label twice?
+ *
+ * ⚠⚠ THIS IS NOT THE TIE RULE, AND IT CANNOT BE. The tie rule compares two
+ * numbers, so a tree passes it no matter what the rows are NAMED. Ohio's
+ * expenditure side carries 13 budgets with `Other` twice — Current → Security
+ * Of Persons And Property → Other, and Debt Service → Other — two real
+ * categories with DIFFERENT amounts. They tie to the dollar, so every gate
+ * stayed green while the page showed one label twice with two numbers under it
+ * and nothing to tell them apart.
+ *
+ * ⚠ The 1,763-row revenue cohort was visible ONLY because its duplicate was
+ * verbatim and therefore double-counted into a mismatch. Had the publisher
+ * repeated a column with a different value, all 1,763 would have tied too and
+ * nothing here would ever have reported them.
+ *
+ * @param {{nRoots: number, distinctRootNames?: number}} budget
+ */
+export function hasDuplicateRoots({ nRoots, distinctRootNames }) {
+  if (distinctRootNames === undefined || distinctRootNames === null) return false;
+  return Number(nRoots) > Number(distinctRootNames);
+}
+
+/**
  * Tally per source family and compare against the recorded baselines.
  *
  * ⚠ A source with NO baseline that breaks is a regression, not a new normal.
@@ -52,10 +75,11 @@ export function classifyBudgetTie({ total, rootSum, nRoots }, tolerance = TOLERA
  * @param {Record<string, number>} baseline        known mismatches per source
  * @param {Record<string, number>} negativeBaseline known negative totals per source
  */
-export function summarizeTies(rows, baseline = {}, negativeBaseline = {}) {
+export function summarizeTies(rows, baseline = {}, negativeBaseline = {}, duplicateBaseline = {}) {
   const bySource = {};
   const negatives = {};
   const rootless = {};
+  const duplicates = {};
 
   for (const r of rows) {
     const verdict = classifyBudgetTie(r);
@@ -64,9 +88,12 @@ export function summarizeTies(rows, baseline = {}, negativeBaseline = {}) {
     // ⚠ Counted SEPARATELY and on its own baseline: a negative headline is
     // indefensible to a reader even when it ties its own tree.
     if (Number(r.total) < 0) negatives[r.source] = (negatives[r.source] ?? 0) + 1;
+    // ⚠⚠ ...and so is a repeated LABEL. See hasDuplicateRoots.
+    if (hasDuplicateRoots(r)) duplicates[r.source] = (duplicates[r.source] ?? 0) + 1;
   }
 
-  return ratchet({ bySource, negatives, rootless }, baseline, negativeBaseline);
+  return ratchet({ bySource, negatives, rootless, duplicates },
+    baseline, negativeBaseline, duplicateBaseline);
 }
 
 /**
@@ -79,19 +106,23 @@ export function summarizeTies(rows, baseline = {}, negativeBaseline = {}) {
  *
  * @param {Array<{source: string, mismatches: number, negatives: number, rootless: number}>} counts
  */
-export function summarizeCounts(counts, baseline = {}, negativeBaseline = {}) {
+export function summarizeCounts(counts, baseline = {}, negativeBaseline = {}, duplicateBaseline = {}) {
   const bySource = {};
   const negatives = {};
   const rootless = {};
+  const duplicates = {};
   for (const c of counts) {
     if (Number(c.mismatches) > 0) bySource[c.source] = Number(c.mismatches);
     if (Number(c.negatives) > 0) negatives[c.source] = Number(c.negatives);
     if (Number(c.rootless) > 0) rootless[c.source] = Number(c.rootless);
+    if (Number(c.duplicates) > 0) duplicates[c.source] = Number(c.duplicates);
   }
-  return ratchet({ bySource, negatives, rootless }, baseline, negativeBaseline);
+  return ratchet({ bySource, negatives, rootless, duplicates },
+    baseline, negativeBaseline, duplicateBaseline);
 }
 
-function ratchet({ bySource, negatives, rootless }, baseline, negativeBaseline) {
+function ratchet({ bySource, negatives, rootless, duplicates = {} },
+  baseline, negativeBaseline, duplicateBaseline = {}) {
   const regressions = [];
   const improvements = [];
   for (const [source, actual] of Object.entries(bySource)) {
@@ -107,11 +138,23 @@ function ratchet({ bySource, negatives, rootless }, baseline, negativeBaseline) 
     const want = negativeBaseline[source] ?? 0;
     if (actual > want) regressions.push({ source, baseline: want, actual, kind: 'negative' });
   }
+  for (const [source, actual] of Object.entries(duplicates)) {
+    const want = duplicateBaseline[source] ?? 0;
+    if (actual > want) regressions.push({ source, baseline: want, actual, kind: 'duplicate' });
+  }
+  // ⚠ Same rule as the tie ratchet: a source that improved all the way to zero
+  // never appears in `duplicates`, so its win can only be read off the baseline.
+  for (const [source, want] of Object.entries(duplicateBaseline)) {
+    if (want > 0 && !(source in duplicates)) {
+      improvements.push({ source, baseline: want, actual: 0, kind: 'duplicate' });
+    }
+  }
 
   return {
     bySource,
     negatives,
     rootless,
+    duplicates,
     regressions,
     improvements,
     total: Object.values(bySource).reduce((a, b) => a + b, 0),
