@@ -49,15 +49,15 @@ const BASELINE = {
 /**
  * Known trees that repeat a root LABEL, 2026-11-03.
  *
- * ⚠⚠ ZERO IS THE WHOLE POINT OF THIS TABLE. A duplicate label can tie its
- * total perfectly — Ohio's 13 `Other` rows did, for as long as this gate has
- * existed — so nothing else here can see it. Starting at zero means the first
- * one to reappear fails the build instead of waiting to be noticed.
+ * ⚠⚠ ANY FAMILY NOT LISTED HERE IS HELD AT ZERO, which is the whole point. A
+ * duplicate label can tie its total perfectly — Ohio's 13 `Other` rows did, for
+ * as long as this gate has existed — so no other counter here can see it. An
+ * absent family failing means the first duplicate to appear breaks the build
+ * instead of waiting years to be noticed.
  *
- * ⚠ THE SIX ROWS BELOW WERE FOUND BY THIS COUNTER THE FIRST TIME IT RAN, and
- * they are NOT the Ohio defect. They are debt, recorded so Ohio's repair can
- * land without a red light nobody can turn green — not a target, and not
- * forgiven:
+ * ⚠ THE SIX BELOW WERE FOUND BY THIS COUNTER THE FIRST TIME IT RAN, and they
+ * are NOT the Ohio defect. They are recorded as debt so Ohio's repair could
+ * land without a red light nobody can turn green — not a target, not forgiven:
  *
  *   McKinney Check Register — the breakdown repeats `Fleet & Vehicles` SIX
  *     times and `Parks & Recreation` six times, each copy a DIFFERENT amount.
@@ -68,7 +68,7 @@ const BASELINE = {
  *     `Department`, twice. That reads like a HEADER ROW leaking into the tree,
  *     which would mean a parse boundary is wrong, not just a label.
  *
- * Neither is Ohio's repeated-column bug, and neither is fixed by this PR.
+ * Neither is Ohio's repeated-column bug, and #328 fixed neither.
  */
 const DUPLICATE_BASELINE = {
   'McKinney Check Register FY2022': 1,
