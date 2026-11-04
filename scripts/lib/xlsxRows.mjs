@@ -245,3 +245,47 @@ export function parseAmount(v) {
   // Strip $, commas; convert parenthetical negatives (123) → -123
   return parseFloat(String(v).replace(/[$,]/g, '').replace(/\((.+)\)/, '-$1')) || 0;
 }
+
+// ── Dedup policy ─────────────────────────────────────────────────────────────
+
+/**
+ * The `source_row_id` for every row in a file, in order.
+ *
+ * ⚠⚠⚠ WHY THIS IS NOT JUST hashRow(). `treasury_sync_transactions` inserts
+ * ON CONFLICT (budget_id, source_row_id) DO NOTHING, so two rows that key alike
+ * become ONE row in the database. A content hash therefore reads "every
+ * published column matches" as "this is the same row" — which is right when a
+ * publisher exports a line twice, and WRONG when a government genuinely does
+ * the same thing twice.
+ *
+ * McKinney bought four police Tahoes at $52,962.25 on one purchase order: four
+ * identical lines, of which TT kept one. Measured across its four registers the
+ * loss is $2,821,382.19, and the publisher's own `Total` row proves it to the
+ * cent.
+ *
+ * ⚠⚠ BUT THE ANSWER IS PER PUBLISHER, WHICH IS WHY THIS IS OPT-IN. Plano prints
+ * a DocumentNumber, and its largest repeated groups repeat that too — document
+ * 16038 pays TMRS $3,482,404.02 twice on one day. A city does not pay its
+ * pension fund the same amount twice in one February payment; that is export
+ * duplication, and collapsing it is correct. Switching Plano to 'occurrence'
+ * would inflate it by about $25M. Default stays 'content'.
+ *
+ * ⚠ `occurrence` leaves the FIRST of a group keyed exactly as 'content' does,
+ * and only suffixes the second and later copies. So turning the policy on for a
+ * source ADDS its missing rows on the next load rather than re-keying the rows
+ * already stored — no force-reload required, and no duplicate if one happens.
+ *
+ * ⚠⚠ MUST BE COMPUTED OVER THE WHOLE FILE. The loader sends rows to the RPC in
+ * chunks of 500; counting occurrences inside a chunk would give two identical
+ * rows in different chunks the same key and collapse them anyway.
+ */
+export function rowKeys(rows, policy = 'content') {
+  const hashes = rows.map(hashRow);
+  if (policy !== 'occurrence') return hashes;
+  const seen = new Map();
+  return hashes.map((h) => {
+    const n = seen.get(h) ?? 0;
+    seen.set(h, n + 1);
+    return n === 0 ? h : `${h}#${n}`;
+  });
+}

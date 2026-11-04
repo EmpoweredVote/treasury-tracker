@@ -9,7 +9,7 @@
  * to the hash silently changes which rows exist.
  */
 import { describe, it, expect } from 'vitest';
-import { hashRow, parseAmount, parseCSV, splitCSVLine } from '../scripts/lib/xlsxRows.mjs';
+import { hashRow, parseAmount, parseCSV, splitCSVLine, rowKeys } from '../scripts/lib/xlsxRows.mjs';
 
 describe('hashRow — the dedup key', () => {
   it('is stable for the same row', () => {
@@ -111,5 +111,57 @@ describe('parseCSV', () => {
   it('yields two rows that collapse to one dedup key', () => {
     const { rows } = parseCSV(csv);
     expect(new Set(rows.map(hashRow)).size).toBe(1);
+  });
+});
+
+describe('rowKeys — the opt-in dedup policy', () => {
+  const bond = { check_date: '2024-04-04', payee: 'ONE TIME PAY - COURT', amount: 529 };
+  const other = { check_date: '2024-04-05', payee: 'ATMOS', amount: 76.65 };
+  const rows = [bond, other, { ...bond }, { ...bond }];
+
+  it('defaults to content hashing — unchanged behaviour', () => {
+    const keys = rowKeys(rows);
+    expect(keys).toEqual(rows.map(hashRow));
+    expect(new Set(keys).size).toBe(2);        // the three bonds collapse to one
+  });
+
+  it('is content hashing for any unknown policy name', () => {
+    expect(rowKeys(rows, 'something-else')).toEqual(rowKeys(rows));
+  });
+
+  // ⚠⚠⚠ The repair. Four police Tahoes on one PO are four rows, not one.
+  it('keeps every copy under the occurrence policy', () => {
+    const keys = rowKeys(rows, 'occurrence');
+    expect(new Set(keys).size).toBe(4);
+  });
+
+  // ⚠ This is what makes turning the policy on safe without a force-reload.
+  it('leaves the FIRST of a group keyed exactly as content hashing does', () => {
+    const keys = rowKeys(rows, 'occurrence');
+    expect(keys[0]).toBe(hashRow(bond));
+    expect(keys[1]).toBe(hashRow(other));
+    expect(keys[2]).toBe(`${hashRow(bond)}#1`);
+    expect(keys[3]).toBe(`${hashRow(bond)}#2`);
+  });
+
+  it('numbers each identical group independently', () => {
+    const a = { x: 1 }; const b = { x: 2 };
+    expect(rowKeys([a, b, { ...a }, { ...b }], 'occurrence'))
+      .toEqual([hashRow(a), hashRow(b), `${hashRow(a)}#1`, `${hashRow(b)}#1`]);
+  });
+
+  it('returns one key per row, in order', () => {
+    expect(rowKeys(rows, 'occurrence')).toHaveLength(rows.length);
+    expect(rowKeys([], 'occurrence')).toEqual([]);
+  });
+
+  // ⚠⚠ The loader sends 500 rows at a time; computing this per chunk would put
+  // two identical rows in different chunks back on the same key.
+  it('is stable however the file is later sliced', () => {
+    const whole = rowKeys(rows, 'occurrence');
+    const halves = [...rowKeys(rows.slice(0, 2), 'occurrence'), ...rowKeys(rows.slice(2), 'occurrence')];
+    expect(halves).not.toEqual(whole);   // proving the per-chunk mistake IS a mistake
+    expect(new Set(halves).size).toBe(3);
+    expect(new Set(whole).size).toBe(4);
   });
 });

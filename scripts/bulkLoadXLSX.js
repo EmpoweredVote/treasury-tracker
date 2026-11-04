@@ -26,7 +26,7 @@ import { idOrNull, linkKey } from './lib/publisherIds.mjs';
 import { isEnrolled } from './lib/transactionTreeSources.mjs';
 // ⚠ Parsing and the dedup hash live in lib so a measurement can import THE SAME
 // CODE. See scripts/lib/xlsxRows.mjs and scripts/measureXlsxDedupLoss.mjs.
-import { parseCSV, parseXLSX, hashRow, parseAmount, downloadXLSX } from './lib/xlsxRows.mjs';
+import { parseCSV, parseXLSX, parseAmount, downloadXLSX, rowKeys } from './lib/xlsxRows.mjs';
 import { rebuildBudget } from './rebuildTransactionTree.mjs';
 // ── Config ──────────────────────────────────────────────────────────────────
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://kxsdzaojfaibhuzmclfq.supabase.co';
@@ -42,9 +42,9 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 // ── Download helper ──────────────────────────────────────────────────────────
 
 // ── Build compact transaction batch for RPC ───────────────────────────────────
-function buildBatch(rows, cm) {
+function buildBatch(rows, cm, keys) {
   const vendors = new Set();
-  const txns = rows.map(r => {
+  const txns = rows.map((r, idx) => {
     const vn = r[cm.vendor_column] || 'Unknown';
     vendors.add(vn);
 
@@ -79,7 +79,10 @@ function buildBatch(rows, cm) {
       // here and surfaced to readers as `Unknown Department`. An identifier is
       // absent when it is null or blank, never when it is zero.
       lk: linkKey([r[cm.department_column], r[cm.fund_column], r[cm.expense_category_column]]),
-      rid: hashRow(r), // SHA-256 of full row — deterministic dedup key
+      // ⚠ Key supplied by the caller, computed over the WHOLE file. Counting
+      // occurrences inside this 500-row chunk would give two identical rows in
+      // different chunks the same key and collapse them anyway.
+      rid: keys[idx],
     };
   });
   return { vendors: [...vendors].map(n => ({ n })), transactions: txns };
@@ -188,9 +191,20 @@ async function syncSource(ds, opts = {}) {
   let totalInserted = 0;
   let totalSkipped = 0;
 
+  // ⚠⚠ Keys for the WHOLE file, before chunking. See rowKeys() for why the
+  // policy is per-source and why the default must stay 'content'.
+  const allKeys = rowKeys(rows, cm.dedup);
+  if (cm.dedup === 'occurrence') {
+    const extra = allKeys.length - new Set(allKeys.slice(0, allKeys.length)).size;
+    const repeats = allKeys.filter(k => k.includes('#')).length;
+    console.log('  dedup policy: occurrence — ' + repeats.toLocaleString() +
+      ' repeated row(s) kept that a content hash would have discarded' +
+      (extra ? ' (⚠ ' + extra + ' key collisions remain)' : ''));
+  }
+
   for (let i = 0; i < rows.length; i += RPC_BATCH) {
     const chunk = rows.slice(i, i + RPC_BATCH);
-    const { vendors, transactions } = buildBatch(chunk, cm);
+    const { vendors, transactions } = buildBatch(chunk, cm, allKeys.slice(i, i + RPC_BATCH));
 
     const { data, error } = await supabase.rpc('treasury_sync_transactions', {
       p_data_source_id: ds.id,
