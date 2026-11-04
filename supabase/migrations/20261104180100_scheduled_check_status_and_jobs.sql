@@ -38,8 +38,13 @@ revoke all on function treasury.scheduled_check_status() from public, anon;
 -- and no record that anything was wrong — the failure would erase its own
 -- evidence. The runner records; the assert, separately, raises.
 --
--- ⚠ Ordered AFTER treasury-daily-sync (03:07) so each night's check sees what
--- the sync wrote rather than the previous day's state.
+-- ⚠⚠ SUPERSEDED by *_right_size_transaction_tree_cadence.sql, and the claim
+-- below was WRONG. "Ordered after treasury-daily-sync (03:07) so each night's
+-- check sees what the sync wrote" assumed the daily sync writes something. It
+-- does not: 2 runs a day, 0 successes, 0 rows on almost every day. The WEEKLY
+-- full sync (Sunday 04:13) is what moves data. transaction-tree is now weekly
+-- at Sunday 05:12; zero-baseline-tie stays daily because manual loads happen on
+-- weekdays and that is when a duplicate label appears.
 --
 -- cron.schedule() upserts by job name, so re-running this migration re-points
 -- an existing job rather than creating a duplicate.
