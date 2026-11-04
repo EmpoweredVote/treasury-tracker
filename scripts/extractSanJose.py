@@ -127,6 +127,158 @@ def extract_5th_amount(line):
     return dept, v
 
 
+# ── Wrapped department names ─────────────────────────────────────────────────
+#
+# ⚠⚠ A NAME THAT WRAPS IN THE PDF LOSES HALF OF ITSELF, AND THE TWO HALVES FAIL
+# DIFFERENTLY. `page.extract_text()` returns physical lines, and a row is only
+# recognised by its five amounts, so a department whose name spans two lines
+# breaks one of two ways (both observed on p165-166 of the FY2024 book):
+#
+#   HEAD-WRAP — the amounts land on the SECOND line:
+#       'Parks, Recreation and Neighborhood Services'        <- no amounts, dropped
+#       'Department                      123,327,077'        <- name becomes 'Department'
+#     Visible: `Department` appeared twice as a root and the duplicate-root
+#     counter in scripts/lib/totalsTie.mjs caught it.
+#
+#   TAIL-WRAP — the amounts land on the FIRST line:
+#       'City Manager - Office of Economic Development  6,409,746'
+#       'and Cultural Affairs'                               <- no amounts, dropped
+#     ⚠⚠⚠ INVISIBLE. The stored name is a truncation that reads as a complete,
+#     plausible department. Nothing in this repo can detect it: it is not a
+#     duplicate, it ties, and it is spelled correctly. It was found only by
+#     printing every non-parsing line while chasing the head-wrap.
+#
+# ⚠ THE RULE MUST BE NARROW. These pages sit next to a NARRATIVE legend page
+# (p164) whose every line is a prose fragment — 'provide for the overall
+# management and', 'the Public Works and Transportation'. Joining those to a
+# row would invent department names out of body copy. Two things keep that from
+# happening: resolution runs PER PAGE over an ordered entry list, and the legend
+# page contributes ZERO rows, so neither rule has anything to attach to. The
+# capitalisation test below is the second line of defence, not the first.
+
+# A row whose whole name is one of these is a wrap tail, never a department.
+_BARE_TAIL = {'department', 'departments', 'office', 'offices'}
+
+# Connector words a genuine name-tail may start with.
+_TAIL_START = re.compile(r'^(?:and\b|&)', re.IGNORECASE)
+
+
+def _is_bare_tail(name):
+    """'Department' is never a department name — it is the end of one."""
+    return name.strip().lower() in _BARE_TAIL
+
+
+def _is_name_tail(text):
+    """
+    Could this amount-less line be the END of the name on the line above?
+
+    Requires a continuation opener (or a lowercase first letter), a capitalised
+    word somewhere (prose fragments like 'provide for the overall management
+    and' have none), and no sentence-ending period.
+    """
+    t = text.strip()
+    if not t or len(t) > 45 or t.endswith('.'):
+        return False
+    if not (_TAIL_START.match(t) or t[:1].islower()):
+        return False
+    words = re.findall(r"[A-Za-z][A-Za-z'&-]*", t)
+    return any(w[:1].isupper() for w in words)
+
+
+def resolve_wrapped_names(entries):
+    """
+    Rejoin names split across two physical lines.
+
+    `entries` is one page's surviving lines IN ORDER, each either
+    {'kind': 'row', 'name', 'amount'} or {'kind': 'text', 'text'}.
+    Returns the rows, with wrapped names repaired. Text entries that are not
+    consumed as a wrap half are discarded, exactly as before.
+    """
+    rows = []
+    i = 0
+    n = len(entries)
+    while i < n:
+        e = entries[i]
+        nxt = entries[i + 1] if i + 1 < n else None
+
+        if e['kind'] == 'text':
+            # HEAD-WRAP: this line is the start of the NEXT row's name.
+            if nxt and nxt['kind'] == 'row' and _is_bare_tail(nxt['name']):
+                rows.append({'kind': 'row',
+                             'name': f"{e['text'].strip()} {nxt['name'].strip()}",
+                             'amount': nxt['amount']})
+                i += 2
+                continue
+            i += 1
+            continue
+
+        # TAIL-WRAP: the NEXT line finishes this row's name.
+        if nxt and nxt['kind'] == 'text' and _is_name_tail(nxt['text']):
+            rows.append({'kind': 'row',
+                         'name': f"{e['name'].strip()} {nxt['text'].strip()}",
+                         'amount': e['amount']})
+            i += 2
+            continue
+
+        rows.append(e)
+        i += 1
+    return rows
+
+
+def rows_from_page_text(text):
+    """
+    Turn ONE table page's text into [{'name', 'amounts': [N]}].
+
+    ⚠⚠ PURE ON PURPOSE, AND THE REASON IS A TEST THAT PASSED WHEN IT SHOULD NOT
+    HAVE. While `resolve_wrapped_names` lived here inline, the selftest built
+    its entry lists by hand, so reverting the one line that KEEPS an amount-less
+    line — the whole fix — left all 22 tests green. The collection step and the
+    repair have to be exercised together or the repair is not actually guarded.
+    Taking page text in and rows out is what makes that possible without a PDF.
+    """
+    skip_subsection = False  # True while inside the FUND BALANCE sub-section
+    # ⚠ Collected IN ORDER — a wrapped name's two halves are adjacent lines, so
+    # order is the only thing that can reunite them.
+    entries = []
+
+    for raw_line in text.split('\n'):
+        line = raw_line.strip()
+        if not line:
+            continue
+        if _SKIP_RE.match(line):
+            continue
+        # Skip section header lines themselves (both format variants)
+        if _has_marker(line, _USES_MARKERS) or _has_marker(line, _SOURCES_MARKERS):
+            continue
+
+        # Skip FUND BALANCE sub-section items (carryover, encumbrance reserve)
+        # These are balance sheet items, not revenue sources
+        if re.match(r'^FUND BALANCE\b', line, re.IGNORECASE):
+            skip_subsection = True
+            continue
+        if re.match(r'^(?:GENERAL REVENUE|SPECIAL REVENUE|TRANSFERS AND)\b', line, re.IGNORECASE):
+            skip_subsection = False
+            continue
+        if skip_subsection:
+            continue
+
+        name, amount = extract_5th_amount(line)
+        if name is None:
+            # ⚠ KEPT, not dropped. Discarding a line with no amounts here is
+            # precisely how half of a wrapped department name was lost.
+            entries.append({'kind': 'text', 'text': line})
+            continue
+        entries.append({'kind': 'row', 'name': name, 'amount': amount})
+
+    out = []
+    for row in resolve_wrapped_names(entries):
+        # Double-check: skip any Total/Subtotal rows that slipped through
+        if re.match(r'^(?:Total|Subtotal|TOTAL)\b', row['name'], re.IGNORECASE):
+            continue
+        out.append({'name': row['name'], 'amounts': [row['amount']]})
+    return out
+
+
 def extract_budget(pdf_path):
     fiscal_year    = None
     first_page     = None
@@ -188,37 +340,7 @@ def extract_budget(pdf_path):
                 continue
 
             target = expend_items if in_uses else revenue_items
-            skip_subsection = False  # True while inside FUND BALANCE sub-section
-
-            for raw_line in text.split('\n'):
-                line = raw_line.strip()
-                if not line:
-                    continue
-                if _SKIP_RE.match(line):
-                    continue
-                # Skip section header lines themselves (both format variants)
-                if _has_marker(line, _USES_MARKERS) or _has_marker(line, _SOURCES_MARKERS):
-                    continue
-
-                # Skip FUND BALANCE sub-section items (carryover, encumbrance reserve)
-                # These are balance sheet items, not revenue sources
-                if re.match(r'^FUND BALANCE\b', line, re.IGNORECASE):
-                    skip_subsection = True
-                    continue
-                if re.match(r'^(?:GENERAL REVENUE|SPECIAL REVENUE|TRANSFERS AND)\b', line, re.IGNORECASE):
-                    skip_subsection = False
-                    continue
-                if skip_subsection:
-                    continue
-
-                name, amount = extract_5th_amount(line)
-                if name is None:
-                    continue
-                # Double-check: skip any Total/Subtotal rows that slipped through
-                if re.match(r'^(?:Total|Subtotal|TOTAL)\b', name, re.IGNORECASE):
-                    continue
-
-                target.append({'name': name, 'amounts': [amount]})
+            target.extend(rows_from_page_text(text))
 
     if not fiscal_year:
         print(f'WARNING: could not detect fiscal year from {pdf_path}', file=sys.stderr)
