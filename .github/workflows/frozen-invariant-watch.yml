@@ -21,6 +21,18 @@ on:
   # treasury.frozen_invariant_status), where no credential has to travel and no
   # rows cross the network. See supabase/migrations/*_frozen_invariant_in_db.sql.
   #
+  # ⚠⚠ UPDATE 2026-11-04. That arrangement was HALF BUILT. The weekly job
+  # recorded a verdict into treasury.frozen_invariant_runs and NOTHING EVER
+  # RAISED ON A BAD ONE -- the anon-execute sweep got its assert half, this did
+  # not. A failing invariant would have written `ok = false` and sat there
+  # unread, which is the same silence this workflow exists to end, one layer
+  # further in. `frozen-invariant-assert` now runs ten minutes after it, and
+  # refuses a verdict that is absent or over eight days old as well as one that
+  # is bad. The same run/assert pair now covers the transaction-tree and
+  # zero-baseline-tie gates. See
+  # supabase/migrations/*_scheduled_gate_watchdogs.sql and
+  # `npm run verify:watchdogs`, which reads every verdict back.
+  #
   # Left dispatchable so it can still be run by hand if a service key is ever
   # supplied deliberately. Re-enabling the schedule without one would email a red
   # build every Monday for a check that was never armed.
