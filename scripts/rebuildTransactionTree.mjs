@@ -29,14 +29,31 @@ import { parseArgs } from 'node:util';
 import { rollUpTransactions, diffTree } from './lib/transactionTree.mjs';
 import { resolverFor } from './lib/transactionTreeSources.mjs';
 
-const { values: opts } = parseArgs({
-  options: {
-    source: { type: 'string' },
-    municipality: { type: 'string' },
-    'dry-run': { type: 'boolean' },
-  },
-  allowPositionals: true,
-});
+/**
+ * ⚠⚠⚠ ARGV IS PARSED INSIDE main(), NOT AT IMPORT.
+ *
+ * This module exports rebuildBudget(), and bulkLoadXLSX.js imports it. When
+ * parseArgs ran at module scope it ran in the IMPORTER'S process, against the
+ * IMPORTER'S argv, in strict mode — so `bulkLoadXLSX.js --force-reload` died
+ * at import with "Unknown option '--force-reload'" before a single row moved.
+ *
+ * `--force-reload` was broken for every xlsx source from #331 until this was
+ * found, and nothing caught it because the loader's own tests never import it
+ * with a flag this module does not declare. A library that reads argv when it
+ * is merely imported is a library that breaks its callers.
+ */
+let opts = {};
+function parseCliArgs() {
+  return parseArgs({
+    options: {
+      source: { type: 'string' },
+      municipality: { type: 'string' },
+      'dry-run': { type: 'boolean' },
+    },
+    allowPositionals: true,
+    strict: false,
+  }).values;
+}
 
 const db = createClient(
   process.env.SUPABASE_URL || 'https://kxsdzaojfaibhuzmclfq.supabase.co',
@@ -161,6 +178,7 @@ export async function rebuildBudget(budget, { dryRun = false, quiet = false } = 
 }
 
 async function main() {
+  opts = parseCliArgs();
   const budgets = await targets();
   if (!budgets.length) {
     console.log('no enrolled budget matched — nothing to do.');
