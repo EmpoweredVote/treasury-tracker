@@ -61,22 +61,31 @@ const BASELINE = {
  *
  *   McKinney Check Register — the breakdown repeats `Fleet & Vehicles` SIX
  *     times and `Parks & Recreation` six times, each copy a DIFFERENT amount.
- *     Every one ties, so no gate has ever reported it. A reader sees six rows
- *     with one name. UNDIAGNOSED — it is a check register rolled up by vendor
- *     category, so the likely cause is a grouping key that is not unique.
- *   San Jose General Fund Operating Budget — a root literally named
- *     `Department`, twice. That reads like a HEADER ROW leaking into the tree,
- *     which would mean a parse boundary is wrong, not just a label.
+ *     Every one ties, so no gate has ever reported it.
  *
- * Neither is Ohio's repeated-column bug, and #328 fixed neither.
+ *     ⚠⚠⚠ DIAGNOSED 2026-11-03 AND IT IS NOT A LABELLING BUG. Each duplicate
+ *     carries a DISTINCT `link_key` — McKinney's own department code — so the
+ *     tree is keyed correctly and no money is wrong. The DISPLAY NAMES are the
+ *     defect: McKinney publishes a bare 4-digit code and NO department name
+ *     anywhere (checked the check register, the payroll register and the
+ *     column_mapping), so every friendly label in TT is UNSOURCED, and a
+ *     material share of them is WRONG. Measured against McKinney's own budget
+ *     book and corroborated by the publisher's own vendor lines:
+ *         2119 is IT (MICROSOFT RENEWAL, PC LEASE) — TT says `Risk Management`
+ *         4306 is Parks Maint. (LANDSCAPING MAINT) — TT says `Development
+ *              Reimbursements`
+ *     Deduplicating these labels would make an invention look more precise.
+ *     DO NOT "fix" this by appending the code. See the Ohio memory.
+ *
+ * ✅ San Jose was the other one, and it is CLOSED — a department name wrapped
+ * onto two PDF lines and the extractor kept only the half carrying the
+ * amounts. Repaired in scripts/extractSanJose.py and reloaded FY2022-FY2025.
  */
 const DUPLICATE_BASELINE = {
   'McKinney Check Register FY2022': 1,
   'McKinney Check Register FY2023': 1,
   'McKinney Check Register FY2024': 1,
   'McKinney Check Register FY2025': 1,
-  'San Jose General Fund Operating Budget FY2024': 1,
-  'San Jose General Fund Operating Budget FY2025': 1,
 };
 
 /**

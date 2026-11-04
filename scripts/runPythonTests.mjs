@@ -50,6 +50,12 @@ const SUITES = [
   // INSIDE read(), so every pure function it tests — the fragment merge, the
   // column anchor, the continuation rule — runs with no third-party dependency.
   { name: 'nySchoolAcfrGF', file: 'scripts/lib/nySchoolAcfrGF.selftest.py', requires: [] },
+  // ⚠⚠ The wrapped-department-name repair. One of the two wrap directions was
+  // INVISIBLE in production — it truncated a name into one that still read as a
+  // real department, tied its total and was not a duplicate — so these tests are
+  // the only thing standing between that defect and a silent return. It imports
+  // pdfplumber at module load, like acfrGfCoords.
+  { name: 'extractSanJose', file: 'scripts/extractSanJose.selftest.py', requires: ['pdfplumber'] },
   // ⭐⭐ THE TWO AUDIT-OPINION GATES. `checkOpinionType.py --selftest` has existed
   // since Knight session 7b and NOTHING HAS EVER RUN IT — the same omission this
   // file's own header records for the 222 acfrGF tests, for the FOURTH time.

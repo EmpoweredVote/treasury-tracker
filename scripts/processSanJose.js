@@ -28,6 +28,7 @@
  */
 
 import { execSync }        from 'node:child_process';
+import { resolvePython }   from './lib/pythonBin.mjs';
 import { createClient }    from '@supabase/supabase-js';
 import { parseArgs }       from 'node:util';
 import { readdirSync, existsSync, readFileSync } from 'node:fs';
@@ -94,8 +95,13 @@ const TAX_ITEMS = new Set([
 // Security (T-28-05): PDF path from controlled docs/SanJose/ readdir, quoted in cmd
 function extractPDF(pdfPath) {
   const pyScript = path.join(ROOT, 'scripts', 'extractSanJose.py');
-  const pythonBin = process.platform === 'win32' ? 'python' : 'python3';
-  const raw = execSync(`${pythonBin} "${pyScript}" "${pdfPath}"`, {
+  // ⚠⚠ NAMING AN INTERPRETER IS NOT FINDING ONE. `python` on Windows hits the
+  // Microsoft Store alias, which prints "Python was not found" to STDOUT and
+  // exits 0-ish — so this loader died with the alias's own advertisement in
+  // place of an extraction. `resolvePython()` PROBES for a real version string
+  // and rejects that stub; it is why scripts/lib/pythonBin.mjs exists.
+  const pythonBin = resolvePython();
+  const raw = execSync(`"${pythonBin}" "${pyScript}" "${pdfPath}"`, {
     maxBuffer: 8 * 1024 * 1024,
     encoding: 'utf8',
   });
@@ -354,7 +360,14 @@ async function processPDF(pdfAbsPath, muniId, dryRun) {
         for (const group of revTree) {
           console.log(`    ${group.n}: $${group.a.toLocaleString()} (${group.i.length} items)`);
           for (const li of group.i) {
-            console.log(`      ${li.d}: $${li.a.toLocaleString()}`);
+            // ⚠⚠ `a` is actual_amount and is LEGITIMATELY NULL whenever the book
+            // has no actuals column (actualIdx === null, set a few lines above).
+            // Printing it unguarded threw `Cannot read properties of null` —
+            // an uncaught TypeError that ABORTED THE WHOLE RUN before revenue
+            // was ever written. A log line stopped a loader. The figure that
+            // actually loads is `aa` (approved), so print that.
+            const actual = li.a === null ? '' : `  (actual $${li.a.toLocaleString()})`;
+            console.log(`      ${li.d}: $${li.aa.toLocaleString()}${actual}`);
           }
         }
 
