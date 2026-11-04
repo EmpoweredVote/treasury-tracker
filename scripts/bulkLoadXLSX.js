@@ -29,6 +29,10 @@ import { isEnrolled } from './lib/transactionTreeSources.mjs';
 import { parseCSV, parseXLSX, parseAmount, downloadXLSX, rowKeys } from './lib/xlsxRows.mjs';
 // ⚠⚠ The guard that stands between dedup:'occurrence' and money never spent.
 import { judgeDoubledExportDays, describeDoubledDays } from './lib/doubledExportDays.mjs';
+// ⚠⚠⚠ A publisher's own grand total is not a payment. See #335 follow-up.
+import {
+  findPublisherTotalRow, withoutTotalRow, assertTieToTotal, describeTotalRow,
+} from './lib/publisherTotalRow.mjs';
 import { rebuildBudget } from './rebuildTransactionTree.mjs';
 // ── Config ──────────────────────────────────────────────────────────────────
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://kxsdzaojfaibhuzmclfq.supabase.co';
@@ -155,12 +159,49 @@ async function syncSource(ds, opts = {}) {
   // ── Download + parse ────────────────────────────────────────────────────────
   const buffer = await downloadXLSX(downloadUrl);
   const isCsv = downloadUrl.toLowerCase().endsWith('.csv');
-  const { headers, rows, blankSkipped, headerDupeSkipped } = isCsv
-    ? parseCSV(buffer)
-    : await parseXLSX(buffer, cm);
+  const parsed = isCsv ? parseCSV(buffer) : await parseXLSX(buffer, cm);
+  const { headers, blankSkipped, headerDupeSkipped } = parsed;
+  let rows = parsed.rows;
   console.log('  Parsed ' + rows.length.toLocaleString() + ' data rows (' +
     blankSkipped + ' blank skipped, ' + headerDupeSkipped + ' header-dupe skipped)');
   console.log('  Headers: ' + headers.join(', '));
+
+  // ── ⚠⚠⚠ The publisher's own grand total is NOT a payment ───────────────────
+  //
+  // Frisco's registers end with a row carrying no date, no vendor and the
+  // description TOTAL. Loading it as a transaction published FY2018, FY2019 and
+  // FY2022 at EXACTLY TWICE the truth — $2,523,034,629.69 of money nobody
+  // spent — and no gate could see it, because a self-consistent file had simply
+  // been counted twice.
+  //
+  // ⭐ Once the row is out it becomes an ORACLE: the remaining rows must sum to
+  // it. That turns the thing that broke the figure into the thing that proves
+  // it, which is the same bargain McKinney's Total row gave us in #334.
+  const totalRow = findPublisherTotalRow(rows, {
+    amountColumn: cm.amount_column,
+    dateColumn: cm.date_column,
+    vendorColumn: cm.vendor_column,
+    descriptionColumn: cm.description_column,
+  });
+  if (totalRow.ambiguous) {
+    console.error('  Aborting: cannot tell which row is the publisher\'s grand total in ' + ds.name + '.');
+    for (const line of describeTotalRow(totalRow)) console.error('     ' + line);
+    console.error('  Picking one would delete a real payment. Resolve by hand.');
+    process.exit(1);
+  }
+  if (totalRow.found) {
+    for (const line of describeTotalRow(totalRow)) console.log('  publisher grand total — ' + line);
+    rows = withoutTotalRow(rows, totalRow);
+    const tie = assertTieToTotal(rows, totalRow, cm.amount_column);
+    if (!tie.ok) {
+      console.error('  Aborting: the remaining rows do not sum to the publisher\'s own total.');
+      console.error('     expected $' + tie.expected.toLocaleString(undefined, { minimumFractionDigits: 2 }) +
+        '  got $' + tie.actual.toLocaleString(undefined, { minimumFractionDigits: 2 }) +
+        '  difference $' + tie.difference.toLocaleString(undefined, { minimumFractionDigits: 2 }));
+      process.exit(1);
+    }
+    console.log('  ✅ ' + rows.length.toLocaleString() + ' data rows tie to it exactly — excluded from the load');
+  }
 
   // ── Parse error rate check (fail if > 5% of rows have bad amounts) ──────────
   let parseErrors = 0;
