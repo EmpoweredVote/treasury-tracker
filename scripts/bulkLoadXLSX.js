@@ -21,12 +21,16 @@
 import { createClient } from '@supabase/supabase-js';
 import { parseArgs } from 'node:util';
 import { createHash } from 'node:crypto';
-import { readFileSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
+import { tmpdir } from 'node:os';
+import { readFileSync, mkdtempSync, rmSync } from 'node:fs';
 import path from 'node:path';
 import ExcelJS from 'exceljs';
 
 import { listAllSourcesResult } from './lib/listAllSources.mjs';
 import { idOrNull, linkKey } from './lib/publisherIds.mjs';
+import { isEnrolled } from './lib/transactionTreeSources.mjs';
+import { rebuildBudget } from './rebuildTransactionTree.mjs';
 // ── Config ──────────────────────────────────────────────────────────────────
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://kxsdzaojfaibhuzmclfq.supabase.co';
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -50,16 +54,84 @@ async function downloadXLSX(url) {
     console.log('  Reading local file: ' + url);
     return readFileSync(url);
   }
-  const resp = await fetch(url, { redirect: 'follow' });
-  if (!resp.ok) {
-    console.error('Download failed: ' + url + ' — HTTP ' + resp.status);
-    process.exit(1);
+  let resp = null;
+  try {
+    resp = await fetch(url, { redirect: 'follow', headers: BROWSER_HEADERS });
+  } catch (e) {
+    console.warn('  fetch() threw (' + e.message + ') — retrying with curl');
   }
-  const contentType = resp.headers.get('content-type') || '';
-  if (!contentType.includes('spreadsheet') && !contentType.includes('excel') && !contentType.includes('octet-stream')) {
-    console.warn('  Warning: unexpected content-type "' + contentType + '" — may not be XLSX');
+
+  if (resp && resp.ok) {
+    const contentType = resp.headers.get('content-type') || '';
+    // ⚠ HTML is a REFUSAL, not a warning. A WAF block page and a login wall
+    // both arrive as 200 text/html, and handing one to ExcelJS yields zero rows
+    // — which reads as "the publisher removed the data" rather than "we were
+    // blocked". Other types are only warned about: some sources legitimately
+    // serve csv or octet-stream.
+    if (contentType.includes('text/html')) {
+      throw new Error(
+        'Download returned HTML, not a spreadsheet: ' + url + ' (content-type "' + contentType + '"). ' +
+        'This is a block page or an error page, not data. Refusing to parse it as a workbook.',
+      );
+    }
+    if (!contentType.includes('spreadsheet') && !contentType.includes('excel') && !contentType.includes('octet-stream')) {
+      console.warn('  Warning: unexpected content-type "' + contentType + '" — may not be XLSX');
+    }
+    return Buffer.from(await resp.arrayBuffer());
   }
-  return Buffer.from(await resp.arrayBuffer());
+
+  // ⚠⚠⚠ THIS LOADER COULD NOT DOWNLOAD McKINNEY AT ALL. mckinneytexas.org's WAF
+  // refuses Node with a flat 403 — not for want of headers: the identical
+  // User-Agent, Sec-Fetch trio, Referer and Accept all still 403 from fetch()
+  // while curl is let straight through, so it is the TLS/client fingerprint
+  // being matched, not anything we can set. Every reload of a source TT
+  // publishes would have failed at the first byte, which makes "durable against
+  // a reload" moot.
+  //
+  // curl is already how this repo fetches from hosts that block us (see
+  // fetchInCountyAcfrs.mjs, fetchScCityWaveAcfrs.mjs and a dozen others).
+  console.warn('  fetch() refused (HTTP ' + (resp ? resp.status : 'none') + ') — retrying with curl');
+  return downloadViaCurl(url);
+}
+
+const BROWSER_HEADERS = {
+  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 ' +
+                '(KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+  'Sec-Fetch-Site': 'same-origin',
+  'Sec-Fetch-Mode': 'navigate',
+  'Sec-Fetch-Dest': 'document',
+  Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+};
+
+/**
+ * Fetch with curl, which some publishers' WAFs allow where Node is refused.
+ *
+ * ⚠ Verified by MAGIC BYTES, not content-type. A block page served as 200
+ * text/html is the failure mode this guards, and the content-type is exactly
+ * what such a page lies about. Every XLSX is a zip, so it starts `PK`.
+ */
+function downloadViaCurl(url) {
+  const dir = mkdtempSync(path.join(tmpdir(), 'tt-xlsx-'));
+  const file = path.join(dir, 'download.bin');
+  const args = ['-sS', '-L', '--max-time', '600', '-o', file];
+  for (const [k, v] of Object.entries(BROWSER_HEADERS)) args.push('-H', k + ': ' + v);
+  args.push(url);
+
+  const r = spawnSync('curl', args, { encoding: 'utf8' });
+  if (r.error) throw new Error('curl is not available to retry ' + url + ': ' + r.error.message);
+  if (r.status !== 0) throw new Error('curl failed for ' + url + ': ' + (r.stderr || 'exit ' + r.status));
+
+  const buf = readFileSync(file);
+  rmSync(dir, { recursive: true, force: true });
+
+  if (buf.length < 4 || buf[0] !== 0x50 || buf[1] !== 0x4b) {
+    const head = buf.slice(0, 200).toString('utf8').replace(/\s+/g, ' ');
+    throw new Error(
+      'curl fetched ' + buf.length + ' bytes from ' + url + ' that are not a zip/XLSX ' +
+      '(starts: "' + head + '"). A block page, not data — refusing to parse it.',
+    );
+  }
+  return buf;
 }
 
 // ── CSV parsing helpers ───────────────────────────────────────────────────────
@@ -379,6 +451,33 @@ async function syncSource(ds, opts = {}) {
     totalInserted.toLocaleString() + ' inserted | ' +
     (totalSkipped + blankSkipped + headerDupeSkipped).toLocaleString() + ' skipped | ' +
     parseErrors.toLocaleString() + ' errors');
+
+  // ── Rebuild the category tree over what we just wrote ───────────────────────
+  //
+  // ⚠⚠⚠ WITHOUT THIS, A RELOAD SILENTLY BREAKS THE PAGE. treasury_sync_transactions
+  // writes transactions and recomputes budgets.total_budget; it does NOT touch
+  // budget_categories. The trees over these transactions were built once by a
+  // migration that was never committed, so --force-reload deletes and rewrites
+  // every row underneath a tree nothing re-derives. The headline still ties and
+  // the labels still look right — but a root can end up pointing at a key no
+  // transaction carries, and its drill-down returns null. That is not
+  // hypothetical: McKinney's $79.1M FY2024 root did exactly that on the live
+  // site. See supabase/migrations/20261104170000_transaction_tree_status.sql.
+  //
+  // ⚠ Only ENROLLED sources are rebuilt (scripts/lib/transactionTreeSources.mjs).
+  // Frisco, Plano and West Hollywood key their roots on vendor names, not on
+  // link_key, and rebuilding one of those would mean inventing a naming rule —
+  // the very thing that put fabricated department names on McKinney's money.
+  if (isEnrolled(ds.name)) {
+    const { data: budget, error: bErr } = await supabase.schema('treasury').from('budgets')
+      .select('id, fiscal_year, data_source, total_budget')
+      .eq('municipality_id', ds.municipality_id).eq('fiscal_year', fiscalYear)
+      .eq('dataset_type', ds.dataset_type).maybeSingle();
+    if (bErr) throw new Error('tree rebuild: budget lookup failed: ' + bErr.message);
+    if (!budget) throw new Error('tree rebuild: no budget found for ' + ds.name + ' FY' + fiscalYear);
+    const r = await rebuildBudget(budget, { quiet: true });
+    console.log('  tree rebuilt from transactions: +' + r.inserts + ' ~' + r.updates + ' -' + r.deletes);
+  }
 }
 
 // ── CLI entry point ───────────────────────────────────────────────────────────
