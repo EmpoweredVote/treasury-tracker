@@ -1,0 +1,391 @@
+{
+ "_note": "Verbatim rows from the City of McKinney Adopted Budget Worksheets, \"Expenditure Budget\" sheet (Archive.aspx?AMID=97). Columns: Account Number, Fund, Department, Division. Two non-account lines per year are included so the parser is proven to ignore them.",
+ "_urls": {
+  "2022": "https://www.mckinneytexas.org/Archive.aspx?ADID=2462",
+  "2024": "https://www.mckinneytexas.org/Archive.aspx?ADID=2624"
+ },
+ "byYear": {
+  "2022": [
+   [
+    "001-1103-411.80-05",
+    "GENERAL FUND",
+    "CITY COUNCIL",
+    "CITY COUNCIL"
+   ],
+   [
+    "001-1103-411.80-08",
+    "GENERAL FUND",
+    "CITY COUNCIL",
+    "CITY COUNCIL"
+   ],
+   [
+    "001-1103-411.80-20",
+    "GENERAL FUND",
+    "CITY COUNCIL",
+    "CITY COUNCIL"
+   ],
+   [
+    "001-1103-413.81-01",
+    "GENERAL FUND",
+    "CITY COUNCIL",
+    "CITY COUNCIL"
+   ],
+   [
+    "001-1103-413.81-03",
+    "GENERAL FUND",
+    "CITY COUNCIL",
+    "CITY COUNCIL"
+   ],
+   [
+    "001-1103-413.81-06",
+    "GENERAL FUND",
+    "CITY COUNCIL",
+    "CITY COUNCIL"
+   ],
+   [
+    "001-1103-413.81-40",
+    "GENERAL FUND",
+    "CITY COUNCIL",
+    "CITY COUNCIL"
+   ],
+   [
+    "001-1103-413.85-05",
+    "GENERAL FUND",
+    "CITY COUNCIL",
+    "CITY COUNCIL"
+   ],
+   [
+    "001-1103-413.85-06",
+    "GENERAL FUND",
+    "CITY COUNCIL",
+    "CITY COUNCIL"
+   ],
+   [
+    "001-1103-413.85-11",
+    "GENERAL FUND",
+    "CITY COUNCIL",
+    "CITY COUNCIL"
+   ],
+   [
+    "001-1103-413.85-16",
+    "GENERAL FUND",
+    "CITY COUNCIL",
+    "CITY COUNCIL"
+   ],
+   [
+    "001-1103-413.85-20",
+    "GENERAL FUND",
+    "CITY COUNCIL",
+    "CITY COUNCIL"
+   ],
+   [
+    "001-1103-413.85-25",
+    "GENERAL FUND",
+    "CITY COUNCIL",
+    "CITY COUNCIL"
+   ],
+   [
+    "001-9999-401.80-70",
+    "GENERAL FUND",
+    "NON-DEPARTMENTAL",
+    "-"
+   ],
+   [
+    "002-9999-603.87-05",
+    "FLEET MAINTENANCE FUND",
+    "NON-DEPARTMENTAL",
+    "-"
+   ],
+   [
+    "018-8701-453.81-06",
+    "LIBRARY GIFT FUND",
+    "LIBRARY GIFT FUND",
+    "SUPPORT SERVICES"
+   ],
+   [
+    "1 - GENERAL FUND",
+    null,
+    null,
+    null
+   ],
+   [
+    "80 - SALARIES",
+    null,
+    null,
+    null
+   ]
+  ],
+  "2024": [
+   [
+    "001-1241-411.80-03",
+    "GENERAL FUND",
+    "ADMINISTRATION",
+    "PLANNING"
+   ],
+   [
+    "001-1241-411.80-08",
+    "GENERAL FUND",
+    "ADMINISTRATION",
+    "PLANNING"
+   ],
+   [
+    "001-1241-411.80-11",
+    "GENERAL FUND",
+    "ADMINISTRATION",
+    "PLANNING"
+   ],
+   [
+    "001-1241-411.80-20",
+    "GENERAL FUND",
+    "ADMINISTRATION",
+    "PLANNING"
+   ],
+   [
+    "001-1241-411.80-21",
+    "GENERAL FUND",
+    "ADMINISTRATION",
+    "PLANNING"
+   ],
+   [
+    "001-1241-411.80-22",
+    "GENERAL FUND",
+    "ADMINISTRATION",
+    "PLANNING"
+   ],
+   [
+    "001-1241-411.80-24",
+    "GENERAL FUND",
+    "ADMINISTRATION",
+    "PLANNING"
+   ],
+   [
+    "001-1241-411.80-25",
+    "GENERAL FUND",
+    "ADMINISTRATION",
+    "PLANNING"
+   ],
+   [
+    "001-1241-413.81-01",
+    "GENERAL FUND",
+    "ADMINISTRATION",
+    "PLANNING"
+   ],
+   [
+    "001-1241-413.81-03",
+    "GENERAL FUND",
+    "ADMINISTRATION",
+    "PLANNING"
+   ],
+   [
+    "001-1241-413.81-04",
+    "GENERAL FUND",
+    "ADMINISTRATION",
+    "PLANNING"
+   ],
+   [
+    "001-1241-413.81-10",
+    "GENERAL FUND",
+    "ADMINISTRATION",
+    "PLANNING"
+   ],
+   [
+    "001-1241-413.81-30",
+    "GENERAL FUND",
+    "ADMINISTRATION",
+    "PLANNING"
+   ],
+   [
+    "001-1241-413.84-10",
+    "GENERAL FUND",
+    "ADMINISTRATION",
+    "PLANNING"
+   ],
+   [
+    "001-1241-413.84-11",
+    "GENERAL FUND",
+    "ADMINISTRATION",
+    "PLANNING"
+   ],
+   [
+    "001-1241-413.85-05",
+    "GENERAL FUND",
+    "ADMINISTRATION",
+    "PLANNING"
+   ],
+   [
+    "001-1241-413.85-06",
+    "GENERAL FUND",
+    "ADMINISTRATION",
+    "PLANNING"
+   ],
+   [
+    "001-1241-413.85-11",
+    "GENERAL FUND",
+    "ADMINISTRATION",
+    "PLANNING"
+   ],
+   [
+    "001-1241-413.85-13",
+    "GENERAL FUND",
+    "ADMINISTRATION",
+    "PLANNING"
+   ],
+   [
+    "001-1241-413.85-16",
+    "GENERAL FUND",
+    "ADMINISTRATION",
+    "PLANNING"
+   ],
+   [
+    "001-1241-413.85-20",
+    "GENERAL FUND",
+    "ADMINISTRATION",
+    "PLANNING"
+   ],
+   [
+    "001-1241-413.85-25",
+    "GENERAL FUND",
+    "ADMINISTRATION",
+    "PLANNING"
+   ],
+   [
+    "001-1241-413.85-33",
+    "GENERAL FUND",
+    "ADMINISTRATION",
+    "PLANNING"
+   ],
+   [
+    "001-2119-411.80-03",
+    "GENERAL FUND",
+    "INTERNAL SERVICES",
+    "INFORMATION TECHNOLOGY"
+   ],
+   [
+    "001-2119-411.80-08",
+    "GENERAL FUND",
+    "INTERNAL SERVICES",
+    "INFORMATION TECHNOLOGY"
+   ],
+   [
+    "001-2119-411.80-09",
+    "GENERAL FUND",
+    "INTERNAL SERVICES",
+    "INFORMATION TECHNOLOGY"
+   ],
+   [
+    "001-2119-411.80-10",
+    "GENERAL FUND",
+    "INTERNAL SERVICES",
+    "INFORMATION TECHNOLOGY"
+   ],
+   [
+    "001-2119-411.80-11",
+    "GENERAL FUND",
+    "INTERNAL SERVICES",
+    "INFORMATION TECHNOLOGY"
+   ],
+   [
+    "001-2119-411.80-20",
+    "GENERAL FUND",
+    "INTERNAL SERVICES",
+    "INFORMATION TECHNOLOGY"
+   ],
+   [
+    "001-2119-411.80-21",
+    "GENERAL FUND",
+    "INTERNAL SERVICES",
+    "INFORMATION TECHNOLOGY"
+   ],
+   [
+    "001-2119-411.80-22",
+    "GENERAL FUND",
+    "INTERNAL SERVICES",
+    "INFORMATION TECHNOLOGY"
+   ],
+   [
+    "001-2119-411.80-24",
+    "GENERAL FUND",
+    "INTERNAL SERVICES",
+    "INFORMATION TECHNOLOGY"
+   ],
+   [
+    "001-4306-451.80-03",
+    "GENERAL FUND",
+    "PARKS & RECREATION",
+    "PARKS MAINTENANCE"
+   ],
+   [
+    "001-4306-451.80-08",
+    "GENERAL FUND",
+    "PARKS & RECREATION",
+    "PARKS MAINTENANCE"
+   ],
+   [
+    "001-4306-451.80-10",
+    "GENERAL FUND",
+    "PARKS & RECREATION",
+    "PARKS MAINTENANCE"
+   ],
+   [
+    "001-4306-451.80-11",
+    "GENERAL FUND",
+    "PARKS & RECREATION",
+    "PARKS MAINTENANCE"
+   ],
+   [
+    "001-4306-451.80-20",
+    "GENERAL FUND",
+    "PARKS & RECREATION",
+    "PARKS MAINTENANCE"
+   ],
+   [
+    "001-4306-451.80-21",
+    "GENERAL FUND",
+    "PARKS & RECREATION",
+    "PARKS MAINTENANCE"
+   ],
+   [
+    "001-4306-451.80-22",
+    "GENERAL FUND",
+    "PARKS & RECREATION",
+    "PARKS MAINTENANCE"
+   ],
+   [
+    "001-4306-451.80-24",
+    "GENERAL FUND",
+    "PARKS & RECREATION",
+    "PARKS MAINTENANCE"
+   ],
+   [
+    "001-4306-451.80-25",
+    "GENERAL FUND",
+    "PARKS & RECREATION",
+    "PARKS MAINTENANCE"
+   ],
+   [
+    "059-1257-463.86-60",
+    "MEDC OPERATING FUND",
+    "ADMINISTRATION",
+    "PROJECTS"
+   ],
+   [
+    "060-1247-453.85-39",
+    "MCDC",
+    "ADMINISTRATION",
+    "PROJECTS"
+   ],
+   [
+    "1 - GENERAL FUND",
+    null,
+    null,
+    null
+   ],
+   [
+    "80 - SALARIES",
+    null,
+    null,
+    null
+   ]
+  ]
+ }
+}

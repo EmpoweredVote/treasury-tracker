@@ -1,0 +1,1951 @@
+{
+  "_source": "City of McKinney, Adopted Budget Worksheets (Archive.aspx?AMID=97), \"Expenditure Budget\" sheet",
+  "_urls": {
+    "2022": "https://www.mckinneytexas.org/Archive.aspx?ADID=2462",
+    "2023": "https://www.mckinneytexas.org/Archive.aspx?ADID=2535",
+    "2024": "https://www.mckinneytexas.org/Archive.aspx?ADID=2624",
+    "2025": "https://www.mckinneytexas.org/Archive.aspx?ADID=2707"
+  },
+  "_extracted": "2026-11-04",
+  "_note": "Publisher strings verbatim and ALL CAPS. Casing is applied at label time by scripts/lib/mckinneyLabels.mjs.",
+  "byYear": {
+    "2022": {
+      "1103": {
+        "dept": "CITY COUNCIL",
+        "div": "CITY COUNCIL",
+        "fund": "GENERAL FUND"
+      },
+      "1201": {
+        "dept": "ADMINISTRATION",
+        "div": "CITY MANAGER",
+        "fund": "GENERAL FUND"
+      },
+      "1203": {
+        "dept": "ADMINISTRATION",
+        "div": "ORG DEV & PERF MGMT",
+        "fund": "GENERAL FUND"
+      },
+      "1206": {
+        "dept": "ADMINISTRATION",
+        "div": "BUDGET",
+        "fund": "GENERAL FUND"
+      },
+      "1211": {
+        "dept": "ADMINISTRATION",
+        "div": "HUMAN RESOURCES",
+        "fund": "GENERAL FUND"
+      },
+      "1212": {
+        "dept": "ADMINISTRATION",
+        "div": "LEGAL",
+        "fund": "GENERAL FUND"
+      },
+      "1213": {
+        "dept": "ADMINISTRATION",
+        "div": "CITY SECRETARY",
+        "fund": "GENERAL FUND"
+      },
+      "1237": {
+        "dept": "ADMINISTRATION",
+        "div": "MUNICIPAL COURT",
+        "fund": "GENERAL FUND"
+      },
+      "1238": {
+        "dept": "ADMINISTRATION",
+        "div": "COURT TECH, SEC & JUD EFF",
+        "fund": "GENERAL FUND"
+      },
+      "1239": {
+        "dept": "ADMINISTRATION",
+        "div": "JUVENILE CASE MANAGEMENT",
+        "fund": "GENERAL FUND"
+      },
+      "1240": {
+        "dept": "ADMINISTRATION",
+        "div": "DEVELOPMENT SERVICES",
+        "fund": "GENERAL FUND"
+      },
+      "1241": {
+        "dept": "ADMINISTRATION",
+        "div": "PLANNING",
+        "fund": "GENERAL FUND"
+      },
+      "1245": {
+        "dept": "ADMINISTRATION",
+        "div": "COMMUNITY DEVELOPMENT",
+        "fund": "MCDC"
+      },
+      "1247": {
+        "dept": "ADMINISTRATION",
+        "div": "PROJECTS",
+        "fund": "MCDC"
+      },
+      "1251": {
+        "dept": "ADMINISTRATION",
+        "div": "COMM. & MARKETING",
+        "fund": "GENERAL FUND"
+      },
+      "1252": {
+        "dept": "ADMINISTRATION",
+        "div": "TOURISM",
+        "fund": "MCVB"
+      },
+      "1253": {
+        "dept": "ADMINISTRATION",
+        "div": "HOUSING & COMMUNITY DEV",
+        "fund": "GENERAL FUND"
+      },
+      "1254": {
+        "dept": "ADMINISTRATION",
+        "div": "RENTAL ASSISTANCE",
+        "fund": "COMMUNITY HOUSING FUND"
+      },
+      "1255": {
+        "dept": "ADMINISTRATION",
+        "div": "ECONOMIC DEVELOPMENT",
+        "fund": "MEDC OPERATING FUND"
+      },
+      "1257": {
+        "dept": "ADMINISTRATION",
+        "div": "PROJECTS",
+        "fund": "MEDC OPERATING FUND"
+      },
+      "1258": {
+        "dept": "ADMINISTRATION",
+        "div": "SALES TAX REVENUE BONDS",
+        "fund": "MEDC INT AND SINK FUND"
+      },
+      "1265": {
+        "dept": "ADMINISTRATION",
+        "div": "MAIN ST &COMMUNITY EVENTS",
+        "fund": "GENERAL FUND"
+      },
+      "1270": {
+        "dept": "ADMINISTRATION",
+        "div": "MPAC",
+        "fund": "MPAC"
+      },
+      "1273": {
+        "dept": "ADMINISTRATION",
+        "div": "URBAN TRANSIT DISTRICT",
+        "fund": "URBAN TRANSIT DISTRICT"
+      },
+      "1274": {
+        "dept": "ADMINISTRATION",
+        "div": "MCK HOUSING FINANCE CORP",
+        "fund": "MCKINNEY HOUSING FINANCE"
+      },
+      "1701": {
+        "dept": "CDBG",
+        "div": "CDBG ADMINISTRATION",
+        "fund": "CDBG FUND"
+      },
+      "1703": {
+        "dept": "CDBG",
+        "div": "CDBG OPERATIONS (REHAB)",
+        "fund": "CDBG FUND"
+      },
+      "1704": {
+        "dept": "CDBG",
+        "div": "CDBG NON-PUBLIC SERVICES",
+        "fund": "CDBG FUND"
+      },
+      "1705": {
+        "dept": "CDBG",
+        "div": "CDBG PUBLIC SERVICES",
+        "fund": "CDBG FUND"
+      },
+      "2100": {
+        "dept": "INTERNAL SERVICES",
+        "div": "DEVELOPMENT",
+        "fund": "CAPITAL EQUIP REPLACEMENT"
+      },
+      "2101": {
+        "dept": "INTERNAL SERVICES",
+        "div": "FINANCE",
+        "fund": "GENERAL FUND"
+      },
+      "2110": {
+        "dept": "INTERNAL SERVICES",
+        "div": "HEALTH AND DENTAL",
+        "fund": "INSURANCE / RISK MGT FUND"
+      },
+      "2111": {
+        "dept": "INTERNAL SERVICES",
+        "div": "INSURANCE & RISK MGMT.",
+        "fund": "INSURANCE / RISK MGT FUND"
+      },
+      "2114": {
+        "dept": "INTERNAL SERVICES",
+        "div": "PROCUREMENT SERVICES",
+        "fund": "GENERAL FUND"
+      },
+      "2116": {
+        "dept": "INTERNAL SERVICES",
+        "div": "WELLNESS PROGRAM",
+        "fund": "INSURANCE / RISK MGT FUND"
+      },
+      "2117": {
+        "dept": "INTERNAL SERVICES",
+        "div": "OTHER BENEFITS",
+        "fund": "INSURANCE / RISK MGT FUND"
+      },
+      "2119": {
+        "dept": "INTERNAL SERVICES",
+        "div": "INFORMATION TECHNOLOGY",
+        "fund": "GENERAL FUND"
+      },
+      "2141": {
+        "dept": "INTERNAL SERVICES",
+        "div": "GO DEBT SERVICE",
+        "fund": "G.O. DEBT SERVICE FUND"
+      },
+      "2146": {
+        "dept": "INTERNAL SERVICES",
+        "div": "REVENUE DEBT SERVICE",
+        "fund": "REVENUE BOND I AND S FUND"
+      },
+      "3100": {
+        "dept": "POLICE",
+        "div": "POLICE",
+        "fund": "CAPITAL EQUIP REPLACEMENT"
+      },
+      "3101": {
+        "dept": "POLICE",
+        "div": "POLICE ADMINISTRATION",
+        "fund": "GENERAL FUND"
+      },
+      "3102": {
+        "dept": "POLICE",
+        "div": "POLICE COMMUNICATIONS",
+        "fund": "GENERAL FUND"
+      },
+      "3119": {
+        "dept": "POLICE",
+        "div": "FIELD OPERATIONS",
+        "fund": "GENERAL FUND"
+      },
+      "3120": {
+        "dept": "POLICE",
+        "div": "INVESTIGATIONS",
+        "fund": "GENERAL FUND"
+      },
+      "3121": {
+        "dept": "POLICE",
+        "div": "INVESTIGATIVE SUPPORT",
+        "fund": "GENERAL FUND"
+      },
+      "3123": {
+        "dept": "POLICE",
+        "div": "PROFESSIONAL STANDARDS",
+        "fund": "GENERAL FUND"
+      },
+      "3124": {
+        "dept": "POLICE",
+        "div": "STATE SEIZURE FUNDS",
+        "fund": "LAW ENFORCEMENT FUND"
+      },
+      "3126": {
+        "dept": "POLICE",
+        "div": "FEDERAL SEIZURE FUNDS",
+        "fund": "LAW ENFORCEMENT FUND"
+      },
+      "3128": {
+        "dept": "POLICE",
+        "div": "DONATIONS",
+        "fund": "LAW ENFORCEMENT DONATIONS"
+      },
+      "3200": {
+        "dept": "FIRE",
+        "div": "FIRE",
+        "fund": "CAPITAL EQUIP REPLACEMENT"
+      },
+      "3201": {
+        "dept": "FIRE",
+        "div": "FIRE ADMINISTRATION",
+        "fund": "GENERAL FUND"
+      },
+      "3220": {
+        "dept": "FIRE",
+        "div": "FIRE PREVENTION",
+        "fund": "GENERAL FUND"
+      },
+      "3224": {
+        "dept": "FIRE",
+        "div": "FIRE SUPPRESSION",
+        "fund": "GENERAL FUND"
+      },
+      "3225": {
+        "dept": "FIRE",
+        "div": "EMERGENCY MANAGEMENT",
+        "fund": "GENERAL FUND"
+      },
+      "3228": {
+        "dept": "FIRE",
+        "div": "DONATIONS",
+        "fund": "FIRE DEPARTMENT DONATIONS"
+      },
+      "4100": {
+        "dept": "OPERATIONS",
+        "div": "PUBLIC WORKS",
+        "fund": "CAPITAL EQUIP REPLACEMENT"
+      },
+      "4103": {
+        "dept": "OPERATIONS",
+        "div": "ENGINEERING",
+        "fund": "GENERAL FUND"
+      },
+      "4111": {
+        "dept": "OPERATIONS",
+        "div": "PUBLIC WORKS ADMIN",
+        "fund": "GENERAL FUND"
+      },
+      "4117": {
+        "dept": "OPERATIONS",
+        "div": "BUILDING & EQUIP SERVICES",
+        "fund": "GENERAL FUND"
+      },
+      "4119": {
+        "dept": "OPERATIONS",
+        "div": "FIXED BASE OPERATIONS",
+        "fund": "AIRPORT"
+      },
+      "4120": {
+        "dept": "OPERATIONS",
+        "div": "AIRFIELD OPERATIONS",
+        "fund": "AIRPORT"
+      },
+      "4300": {
+        "dept": "PARKS & RECREATION",
+        "div": "PARKS",
+        "fund": "CAPITAL EQUIP REPLACEMENT"
+      },
+      "4303": {
+        "dept": "PARKS & RECREATION",
+        "div": "PARK & REC ADMINISTRATION",
+        "fund": "GENERAL FUND"
+      },
+      "4304": {
+        "dept": "PARKS & RECREATION",
+        "div": "RECREATION ADMINISTRATION",
+        "fund": "GENERAL FUND"
+      },
+      "4305": {
+        "dept": "PARKS & RECREATION",
+        "div": "PARKS DEVELOPMENT",
+        "fund": "GENERAL FUND"
+      },
+      "4306": {
+        "dept": "PARKS & RECREATION",
+        "div": "PARKS MAINTENANCE",
+        "fund": "GENERAL FUND"
+      },
+      "4330": {
+        "dept": "PARKS & RECREATION",
+        "div": "AQUATICS",
+        "fund": "GENERAL FUND"
+      },
+      "4331": {
+        "dept": "PARKS & RECREATION",
+        "div": "COMMUNITY CENTER",
+        "fund": "GENERAL FUND"
+      },
+      "4333": {
+        "dept": "PARKS & RECREATION",
+        "div": "SENIOR RECREATION CENTER",
+        "fund": "GENERAL FUND"
+      },
+      "4334": {
+        "dept": "PARKS & RECREATION",
+        "div": "OLD SETTLERS REC CTR",
+        "fund": "GENERAL FUND"
+      },
+      "4335": {
+        "dept": "PARKS & RECREATION",
+        "div": "ATHLETICS",
+        "fund": "GENERAL FUND"
+      },
+      "4336": {
+        "dept": "PARKS & RECREATION",
+        "div": "GOLF COURSE",
+        "fund": "GOLF COURSE FUND"
+      },
+      "4341": {
+        "dept": "PARKS & RECREATION",
+        "div": "APEX ADMINISTRATION",
+        "fund": "AQUATIC & FITNESS CENTER"
+      },
+      "4342": {
+        "dept": "PARKS & RECREATION",
+        "div": "APEX AQUATICS",
+        "fund": "AQUATIC & FITNESS CENTER"
+      },
+      "4343": {
+        "dept": "PARKS & RECREATION",
+        "div": "APEX FITNESS",
+        "fund": "AQUATIC & FITNESS CENTER"
+      },
+      "4344": {
+        "dept": "PARKS & RECREATION",
+        "div": "APEX RECREATION",
+        "fund": "AQUATIC & FITNESS CENTER"
+      },
+      "4345": {
+        "dept": "PARKS & RECREATION",
+        "div": "APEX MAINTENANCE",
+        "fund": "AQUATIC & FITNESS CENTER"
+      },
+      "4346": {
+        "dept": "PARKS & RECREATION",
+        "div": "APEX CUSTOMER SERVICE",
+        "fund": "AQUATIC & FITNESS CENTER"
+      },
+      "4404": {
+        "dept": "OPERATIONS",
+        "div": "ENVIRONMENTAL EDUCATION",
+        "fund": "SOLID WASTE FUND"
+      },
+      "4405": {
+        "dept": "OPERATIONS",
+        "div": "ENVIRONMENTAL SERVICES",
+        "fund": "SOLID WASTE FUND"
+      },
+      "4407": {
+        "dept": "OPERATIONS",
+        "div": "STREET LIGHTING",
+        "fund": "GENERAL FUND"
+      },
+      "4503": {
+        "dept": "SURFACE WATER",
+        "div": "ENGINEERING",
+        "fund": "SURFACE WATER DRAINAGE"
+      },
+      "4505": {
+        "dept": "SURFACE WATER",
+        "div": "DRAINAGE",
+        "fund": "SURFACE WATER DRAINAGE"
+      },
+      "4606": {
+        "dept": "STREETS",
+        "div": "STREETS MAINTENANCE",
+        "fund": "GENERAL FUND"
+      },
+      "4628": {
+        "dept": "STREETS",
+        "div": "TRAFFIC CONTROL",
+        "fund": "GENERAL FUND"
+      },
+      "4903": {
+        "dept": "OPERATIONS",
+        "div": "BUILDING INSPECTIONS",
+        "fund": "GENERAL FUND"
+      },
+      "5222": {
+        "dept": "OPERATIONS",
+        "div": "CODE SERVICES",
+        "fund": "GENERAL FUND"
+      },
+      "6100": {
+        "dept": "LIBRARY",
+        "div": "LIBRARY",
+        "fund": "CAPITAL EQUIP REPLACEMENT"
+      },
+      "6105": {
+        "dept": "LIBRARY",
+        "div": "LIBRARY SERVICES",
+        "fund": "GENERAL FUND"
+      },
+      "7106": {
+        "dept": "OPERATIONS",
+        "div": "FLEET SERVICES",
+        "fund": "FLEET MAINTENANCE FUND"
+      },
+      "8101": {
+        "dept": "UTILITIES",
+        "div": "UTILITY ENGINEERING",
+        "fund": "WATER / WASTEWATER FUND"
+      },
+      "8103": {
+        "dept": "UTILITIES",
+        "div": "CUSTOMER OPERATIONS",
+        "fund": "WATER / WASTEWATER FUND"
+      },
+      "8134": {
+        "dept": "UTILITIES",
+        "div": "METER SERVICES",
+        "fund": "WATER / WASTEWATER FUND"
+      },
+      "8205": {
+        "dept": "WATER",
+        "div": "WATER DISTRIBUTION",
+        "fund": "WATER / WASTEWATER FUND"
+      },
+      "8305": {
+        "dept": "WASTEWATER COLLECTION",
+        "div": "WASTEWATER COLLECTION",
+        "fund": "WATER / WASTEWATER FUND"
+      },
+      "8701": {
+        "dept": "LIBRARY GIFT FUND",
+        "div": "SUPPORT SERVICES",
+        "fund": "LIBRARY GIFT FUND"
+      },
+      "9999": {
+        "dept": "NON-DEPARTMENTAL",
+        "div": null,
+        "fund": "GENERAL FUND"
+      }
+    },
+    "2023": {
+      "1100": {
+        "dept": "CITY COUNCIL",
+        "div": "GENERAL GOVERNMENT",
+        "fund": "CAPITAL EQUIP REPLACEMENT"
+      },
+      "1103": {
+        "dept": "CITY COUNCIL",
+        "div": "CITY COUNCIL",
+        "fund": "GENERAL FUND"
+      },
+      "1201": {
+        "dept": "ADMINISTRATION",
+        "div": "CITY MANAGER",
+        "fund": "GENERAL FUND"
+      },
+      "1203": {
+        "dept": "ADMINISTRATION",
+        "div": "ORG DEV & PERF MGMT",
+        "fund": "GENERAL FUND"
+      },
+      "1206": {
+        "dept": "ADMINISTRATION",
+        "div": "BUDGET",
+        "fund": "GENERAL FUND"
+      },
+      "1211": {
+        "dept": "ADMINISTRATION",
+        "div": "HUMAN RESOURCES",
+        "fund": "GENERAL FUND"
+      },
+      "1212": {
+        "dept": "ADMINISTRATION",
+        "div": "LEGAL",
+        "fund": "GENERAL FUND"
+      },
+      "1213": {
+        "dept": "ADMINISTRATION",
+        "div": "CITY SECRETARY",
+        "fund": "GENERAL FUND"
+      },
+      "1237": {
+        "dept": "ADMINISTRATION",
+        "div": "MUNICIPAL COURT",
+        "fund": "GENERAL FUND"
+      },
+      "1238": {
+        "dept": "ADMINISTRATION",
+        "div": "COURT TECH, SEC & JUD EFF",
+        "fund": "GENERAL FUND"
+      },
+      "1239": {
+        "dept": "ADMINISTRATION",
+        "div": "JUVENILE CASE MANAGEMENT",
+        "fund": "GENERAL FUND"
+      },
+      "1240": {
+        "dept": "ADMINISTRATION",
+        "div": "DEVELOPMENT SERVICES",
+        "fund": "GENERAL FUND"
+      },
+      "1241": {
+        "dept": "ADMINISTRATION",
+        "div": "PLANNING",
+        "fund": "GENERAL FUND"
+      },
+      "1245": {
+        "dept": "ADMINISTRATION",
+        "div": "COMMUNITY DEVELOPMENT",
+        "fund": "MCDC"
+      },
+      "1247": {
+        "dept": "ADMINISTRATION",
+        "div": "PROJECTS",
+        "fund": "MCDC"
+      },
+      "1251": {
+        "dept": "ADMINISTRATION",
+        "div": "COMM. & MARKETING",
+        "fund": "GENERAL FUND"
+      },
+      "1252": {
+        "dept": "ADMINISTRATION",
+        "div": "TOURISM",
+        "fund": "MCVB"
+      },
+      "1253": {
+        "dept": "ADMINISTRATION",
+        "div": "HOUSING & COMMUNITY DEV",
+        "fund": "GENERAL FUND"
+      },
+      "1254": {
+        "dept": "ADMINISTRATION",
+        "div": "RENTAL ASSISTANCE",
+        "fund": "COMMUNITY HOUSING FUND"
+      },
+      "1255": {
+        "dept": "ADMINISTRATION",
+        "div": "ECONOMIC DEVELOPMENT",
+        "fund": "MEDC OPERATING FUND"
+      },
+      "1257": {
+        "dept": "ADMINISTRATION",
+        "div": "PROJECTS",
+        "fund": "MEDC OPERATING FUND"
+      },
+      "1258": {
+        "dept": "ADMINISTRATION",
+        "div": "SALES TAX REVENUE BONDS",
+        "fund": "MEDC INT AND SINK FUND"
+      },
+      "1265": {
+        "dept": "ADMINISTRATION",
+        "div": "MAIN ST &COMMUNITY EVENTS",
+        "fund": "GENERAL FUND"
+      },
+      "1270": {
+        "dept": "ADMINISTRATION",
+        "div": "MPAC",
+        "fund": "MPAC"
+      },
+      "1273": {
+        "dept": "ADMINISTRATION",
+        "div": "URBAN TRANSIT DISTRICT",
+        "fund": "URBAN TRANSIT DISTRICT"
+      },
+      "1274": {
+        "dept": "ADMINISTRATION",
+        "div": "MCK HOUSING FINANCE CORP",
+        "fund": "MCKINNEY HOUSING FINANCE"
+      },
+      "1701": {
+        "dept": "CDBG",
+        "div": "CDBG ADMINISTRATION",
+        "fund": "CDBG FUND"
+      },
+      "1703": {
+        "dept": "CDBG",
+        "div": "CDBG OPERATIONS (HOUSING)",
+        "fund": "CDBG FUND"
+      },
+      "1704": {
+        "dept": "CDBG",
+        "div": "CDBG OPERATIONS (COM DEV)",
+        "fund": "CDBG FUND"
+      },
+      "1705": {
+        "dept": "CDBG",
+        "div": "CDBG PUBLIC SERVICES",
+        "fund": "CDBG FUND"
+      },
+      "2100": {
+        "dept": "INTERNAL SERVICES",
+        "div": "DEVELOPMENT",
+        "fund": "CAPITAL EQUIP REPLACEMENT"
+      },
+      "2101": {
+        "dept": "INTERNAL SERVICES",
+        "div": "FINANCE",
+        "fund": "GENERAL FUND"
+      },
+      "2110": {
+        "dept": "INTERNAL SERVICES",
+        "div": "HEALTH AND DENTAL",
+        "fund": "INSURANCE / RISK MGT FUND"
+      },
+      "2111": {
+        "dept": "INTERNAL SERVICES",
+        "div": "INSURANCE & RISK MGMT.",
+        "fund": "INSURANCE / RISK MGT FUND"
+      },
+      "2114": {
+        "dept": "INTERNAL SERVICES",
+        "div": "PROCUREMENT SERVICES",
+        "fund": "GENERAL FUND"
+      },
+      "2116": {
+        "dept": "INTERNAL SERVICES",
+        "div": "WELLNESS PROGRAM",
+        "fund": "INSURANCE / RISK MGT FUND"
+      },
+      "2117": {
+        "dept": "INTERNAL SERVICES",
+        "div": "OTHER BENEFITS",
+        "fund": "INSURANCE / RISK MGT FUND"
+      },
+      "2119": {
+        "dept": "INTERNAL SERVICES",
+        "div": "INFORMATION TECHNOLOGY",
+        "fund": "GENERAL FUND"
+      },
+      "2141": {
+        "dept": "INTERNAL SERVICES",
+        "div": "GO DEBT SERVICE",
+        "fund": "G.O. DEBT SERVICE FUND"
+      },
+      "2146": {
+        "dept": "INTERNAL SERVICES",
+        "div": "REVENUE DEBT SERVICE",
+        "fund": "REVENUE BOND I AND S FUND"
+      },
+      "3100": {
+        "dept": "POLICE",
+        "div": "POLICE",
+        "fund": "CAPITAL EQUIP REPLACEMENT"
+      },
+      "3101": {
+        "dept": "POLICE",
+        "div": "POLICE ADMINISTRATION",
+        "fund": "GENERAL FUND"
+      },
+      "3102": {
+        "dept": "POLICE",
+        "div": "POLICE COMMUNICATIONS",
+        "fund": "GENERAL FUND"
+      },
+      "3119": {
+        "dept": "POLICE",
+        "div": "FIELD OPERATIONS",
+        "fund": "GENERAL FUND"
+      },
+      "3120": {
+        "dept": "POLICE",
+        "div": "INVESTIGATIONS",
+        "fund": "GENERAL FUND"
+      },
+      "3121": {
+        "dept": "POLICE",
+        "div": "INVESTIGATIVE SUPPORT",
+        "fund": "GENERAL FUND"
+      },
+      "3123": {
+        "dept": "POLICE",
+        "div": "PROFESSIONAL STANDARDS",
+        "fund": "GENERAL FUND"
+      },
+      "3124": {
+        "dept": "POLICE",
+        "div": "STATE SEIZURE FUNDS",
+        "fund": "LAW ENFORCEMENT FUND"
+      },
+      "3126": {
+        "dept": "POLICE",
+        "div": "FEDERAL SEIZURE FUNDS",
+        "fund": "LAW ENFORCEMENT FUND"
+      },
+      "3128": {
+        "dept": "POLICE",
+        "div": "DONATIONS",
+        "fund": "LAW ENFORCEMENT DONATIONS"
+      },
+      "3200": {
+        "dept": "FIRE",
+        "div": "FIRE",
+        "fund": "CAPITAL EQUIP REPLACEMENT"
+      },
+      "3201": {
+        "dept": "FIRE",
+        "div": "FIRE ADMINISTRATION",
+        "fund": "GENERAL FUND"
+      },
+      "3220": {
+        "dept": "FIRE",
+        "div": "FIRE PREVENTION",
+        "fund": "GENERAL FUND"
+      },
+      "3224": {
+        "dept": "FIRE",
+        "div": "FIRE SUPPRESSION",
+        "fund": "GENERAL FUND"
+      },
+      "3225": {
+        "dept": "FIRE",
+        "div": "EMERGENCY MANAGEMENT",
+        "fund": "GENERAL FUND"
+      },
+      "3228": {
+        "dept": "FIRE",
+        "div": "DONATIONS",
+        "fund": "FIRE DEPARTMENT DONATIONS"
+      },
+      "4100": {
+        "dept": "OPERATIONS",
+        "div": "PUBLIC WORKS",
+        "fund": "CAPITAL EQUIP REPLACEMENT"
+      },
+      "4103": {
+        "dept": "OPERATIONS",
+        "div": "ENGINEERING",
+        "fund": "GENERAL FUND"
+      },
+      "4111": {
+        "dept": "OPERATIONS",
+        "div": "PUBLIC WORKS ADMIN",
+        "fund": "GENERAL FUND"
+      },
+      "4117": {
+        "dept": "OPERATIONS",
+        "div": "BUILDING & EQUIP SERVICES",
+        "fund": "GENERAL FUND"
+      },
+      "4119": {
+        "dept": "OPERATIONS",
+        "div": "FIXED BASE OPERATIONS",
+        "fund": "AIRPORT"
+      },
+      "4120": {
+        "dept": "OPERATIONS",
+        "div": "AIRFIELD OPERATIONS",
+        "fund": "AIRPORT"
+      },
+      "4300": {
+        "dept": "PARKS & RECREATION",
+        "div": "PARKS",
+        "fund": "CAPITAL EQUIP REPLACEMENT"
+      },
+      "4303": {
+        "dept": "PARKS & RECREATION",
+        "div": "PARK & REC ADMINISTRATION",
+        "fund": "GENERAL FUND"
+      },
+      "4304": {
+        "dept": "PARKS & RECREATION",
+        "div": "RECREATION ADMINISTRATION",
+        "fund": "GENERAL FUND"
+      },
+      "4305": {
+        "dept": "PARKS & RECREATION",
+        "div": "PARKS DEVELOPMENT",
+        "fund": "GENERAL FUND"
+      },
+      "4306": {
+        "dept": "PARKS & RECREATION",
+        "div": "PARKS MAINTENANCE",
+        "fund": "GENERAL FUND"
+      },
+      "4330": {
+        "dept": "PARKS & RECREATION",
+        "div": "AQUATICS",
+        "fund": "GENERAL FUND"
+      },
+      "4331": {
+        "dept": "PARKS & RECREATION",
+        "div": "COMMUNITY CENTER",
+        "fund": "GENERAL FUND"
+      },
+      "4333": {
+        "dept": "PARKS & RECREATION",
+        "div": "SENIOR RECREATION CENTER",
+        "fund": "GENERAL FUND"
+      },
+      "4334": {
+        "dept": "PARKS & RECREATION",
+        "div": "OLD SETTLERS REC CTR",
+        "fund": "GENERAL FUND"
+      },
+      "4335": {
+        "dept": "PARKS & RECREATION",
+        "div": "ATHLETICS",
+        "fund": "GENERAL FUND"
+      },
+      "4336": {
+        "dept": "PARKS & RECREATION",
+        "div": "GOLF COURSE",
+        "fund": "GOLF COURSE FUND"
+      },
+      "4341": {
+        "dept": "PARKS & RECREATION",
+        "div": "APEX ADMINISTRATION",
+        "fund": "AQUATIC & FITNESS CENTER"
+      },
+      "4342": {
+        "dept": "PARKS & RECREATION",
+        "div": "APEX AQUATICS",
+        "fund": "AQUATIC & FITNESS CENTER"
+      },
+      "4343": {
+        "dept": "PARKS & RECREATION",
+        "div": "APEX FITNESS",
+        "fund": "AQUATIC & FITNESS CENTER"
+      },
+      "4344": {
+        "dept": "PARKS & RECREATION",
+        "div": "APEX RECREATION",
+        "fund": "AQUATIC & FITNESS CENTER"
+      },
+      "4345": {
+        "dept": "PARKS & RECREATION",
+        "div": "APEX MAINTENANCE",
+        "fund": "AQUATIC & FITNESS CENTER"
+      },
+      "4346": {
+        "dept": "PARKS & RECREATION",
+        "div": "APEX CUSTOMER SERVICE",
+        "fund": "AQUATIC & FITNESS CENTER"
+      },
+      "4404": {
+        "dept": "OPERATIONS",
+        "div": "ENVIRONMENTAL EDUCATION",
+        "fund": "SOLID WASTE FUND"
+      },
+      "4405": {
+        "dept": "OPERATIONS",
+        "div": "ENVIRONMENTAL SERVICES",
+        "fund": "SOLID WASTE FUND"
+      },
+      "4407": {
+        "dept": "OPERATIONS",
+        "div": "STREET LIGHTING",
+        "fund": "GENERAL FUND"
+      },
+      "4503": {
+        "dept": "SURFACE WATER",
+        "div": "ENGINEERING",
+        "fund": "SURFACE WATER DRAINAGE"
+      },
+      "4505": {
+        "dept": "SURFACE WATER",
+        "div": "DRAINAGE",
+        "fund": "SURFACE WATER DRAINAGE"
+      },
+      "4606": {
+        "dept": "STREETS",
+        "div": "STREETS MAINTENANCE",
+        "fund": "GENERAL FUND"
+      },
+      "4628": {
+        "dept": "STREETS",
+        "div": "TRAFFIC CONTROL",
+        "fund": "GENERAL FUND"
+      },
+      "4903": {
+        "dept": "OPERATIONS",
+        "div": "BUILDING INSPECTIONS",
+        "fund": "GENERAL FUND"
+      },
+      "5222": {
+        "dept": "OPERATIONS",
+        "div": "CODE SERVICES",
+        "fund": "GENERAL FUND"
+      },
+      "6105": {
+        "dept": "LIBRARY",
+        "div": "LIBRARY SERVICES",
+        "fund": "GENERAL FUND"
+      },
+      "7106": {
+        "dept": "OPERATIONS",
+        "div": "FLEET SERVICES",
+        "fund": "FLEET MAINTENANCE FUND"
+      },
+      "8101": {
+        "dept": "UTILITIES",
+        "div": "UTILITY ENGINEERING",
+        "fund": "WATER / WASTEWATER FUND"
+      },
+      "8103": {
+        "dept": "UTILITIES",
+        "div": "CUSTOMER OPERATIONS",
+        "fund": "WATER / WASTEWATER FUND"
+      },
+      "8134": {
+        "dept": "UTILITIES",
+        "div": "METER SERVICES",
+        "fund": "WATER / WASTEWATER FUND"
+      },
+      "8205": {
+        "dept": "WATER",
+        "div": "WATER DISTRIBUTION",
+        "fund": "WATER / WASTEWATER FUND"
+      },
+      "8305": {
+        "dept": "WASTEWATER COLLECTION",
+        "div": "WASTEWATER COLLECTION",
+        "fund": "WATER / WASTEWATER FUND"
+      },
+      "9999": {
+        "dept": "NON-DEPARTMENTAL",
+        "div": null,
+        "fund": "GENERAL FUND"
+      }
+    },
+    "2024": {
+      "1100": {
+        "dept": "CITY COUNCIL",
+        "div": "GENERAL GOVERNMENT",
+        "fund": "CAPITAL EQUIP REPLACEMENT"
+      },
+      "1103": {
+        "dept": "CITY COUNCIL",
+        "div": "CITY COUNCIL",
+        "fund": "GENERAL FUND"
+      },
+      "1201": {
+        "dept": "ADMINISTRATION",
+        "div": "CITY MANAGER",
+        "fund": "GENERAL FUND"
+      },
+      "1203": {
+        "dept": "ADMINISTRATION",
+        "div": "ORG DEV & PERF MGMT",
+        "fund": "GENERAL FUND"
+      },
+      "1204": {
+        "dept": "ADMINISTRATION",
+        "div": "FACILITIES CONSTRUCTION",
+        "fund": "GENERAL FUND"
+      },
+      "1206": {
+        "dept": "ADMINISTRATION",
+        "div": "BUDGET",
+        "fund": "GENERAL FUND"
+      },
+      "1211": {
+        "dept": "ADMINISTRATION",
+        "div": "HUMAN RESOURCES",
+        "fund": "GENERAL FUND"
+      },
+      "1212": {
+        "dept": "ADMINISTRATION",
+        "div": "LEGAL",
+        "fund": "GENERAL FUND"
+      },
+      "1213": {
+        "dept": "ADMINISTRATION",
+        "div": "CITY SECRETARY",
+        "fund": "GENERAL FUND"
+      },
+      "1237": {
+        "dept": "ADMINISTRATION",
+        "div": "MUNICIPAL COURT",
+        "fund": "GENERAL FUND"
+      },
+      "1238": {
+        "dept": "ADMINISTRATION",
+        "div": "COURT TECH, SEC & JUD EFF",
+        "fund": "GENERAL FUND"
+      },
+      "1239": {
+        "dept": "ADMINISTRATION",
+        "div": "JUVENILE CASE MANAGEMENT",
+        "fund": "GENERAL FUND"
+      },
+      "1240": {
+        "dept": "ADMINISTRATION",
+        "div": "DEVELOPMENT SERVICES",
+        "fund": "GENERAL FUND"
+      },
+      "1241": {
+        "dept": "ADMINISTRATION",
+        "div": "PLANNING",
+        "fund": "GENERAL FUND"
+      },
+      "1245": {
+        "dept": "ADMINISTRATION",
+        "div": "COMMUNITY DEVELOPMENT",
+        "fund": "MCDC"
+      },
+      "1247": {
+        "dept": "ADMINISTRATION",
+        "div": "PROJECTS",
+        "fund": "MCDC"
+      },
+      "1251": {
+        "dept": "ADMINISTRATION",
+        "div": "COMM. & MARKETING",
+        "fund": "GENERAL FUND"
+      },
+      "1252": {
+        "dept": "ADMINISTRATION",
+        "div": "TOURISM",
+        "fund": "MCVB"
+      },
+      "1253": {
+        "dept": "ADMINISTRATION",
+        "div": "HOUSING & COMMUNITY DEV",
+        "fund": "GENERAL FUND"
+      },
+      "1254": {
+        "dept": "ADMINISTRATION",
+        "div": "RENTAL ASSISTANCE",
+        "fund": "COMMUNITY HOUSING FUND"
+      },
+      "1255": {
+        "dept": "ADMINISTRATION",
+        "div": "ECONOMIC DEVELOPMENT",
+        "fund": "MEDC OPERATING FUND"
+      },
+      "1257": {
+        "dept": "ADMINISTRATION",
+        "div": "PROJECTS",
+        "fund": "MEDC OPERATING FUND"
+      },
+      "1258": {
+        "dept": "ADMINISTRATION",
+        "div": "SALES TAX REVENUE BONDS",
+        "fund": "MEDC INT AND SINK FUND"
+      },
+      "1265": {
+        "dept": "ADMINISTRATION",
+        "div": "MAIN ST &COMMUNITY EVENTS",
+        "fund": "GENERAL FUND"
+      },
+      "1270": {
+        "dept": "ADMINISTRATION",
+        "div": "MPAC",
+        "fund": "MPAC"
+      },
+      "1273": {
+        "dept": "ADMINISTRATION",
+        "div": "URBAN TRANSIT DISTRICT",
+        "fund": "URBAN TRANSIT DISTRICT"
+      },
+      "1274": {
+        "dept": "ADMINISTRATION",
+        "div": "MCK HOUSING FINANCE CORP",
+        "fund": "MCKINNEY HOUSING FINANCE"
+      },
+      "1701": {
+        "dept": "CDBG",
+        "div": "CDBG ADMINISTRATION",
+        "fund": "CDBG FUND"
+      },
+      "1703": {
+        "dept": "CDBG",
+        "div": "CDBG OPERATIONS (HOUSING)",
+        "fund": "CDBG FUND"
+      },
+      "1704": {
+        "dept": "CDBG",
+        "div": "CDBG OPERATIONS (COM DEV)",
+        "fund": "CDBG FUND"
+      },
+      "1705": {
+        "dept": "CDBG",
+        "div": "CDBG PUBLIC SERVICES",
+        "fund": "CDBG FUND"
+      },
+      "2100": {
+        "dept": "INTERNAL SERVICES",
+        "div": "DEVELOPMENT",
+        "fund": "CAPITAL EQUIP REPLACEMENT"
+      },
+      "2101": {
+        "dept": "INTERNAL SERVICES",
+        "div": "FINANCE",
+        "fund": "GENERAL FUND"
+      },
+      "2110": {
+        "dept": "INTERNAL SERVICES",
+        "div": "HEALTH AND DENTAL",
+        "fund": "INSURANCE / RISK MGT FUND"
+      },
+      "2111": {
+        "dept": "INTERNAL SERVICES",
+        "div": "INSURANCE & RISK MGMT.",
+        "fund": "INSURANCE / RISK MGT FUND"
+      },
+      "2114": {
+        "dept": "INTERNAL SERVICES",
+        "div": "PROCUREMENT SERVICES",
+        "fund": "GENERAL FUND"
+      },
+      "2116": {
+        "dept": "INTERNAL SERVICES",
+        "div": "WELLNESS PROGRAM",
+        "fund": "INSURANCE / RISK MGT FUND"
+      },
+      "2117": {
+        "dept": "INTERNAL SERVICES",
+        "div": "OTHER BENEFITS",
+        "fund": "INSURANCE / RISK MGT FUND"
+      },
+      "2119": {
+        "dept": "INTERNAL SERVICES",
+        "div": "INFORMATION TECHNOLOGY",
+        "fund": "GENERAL FUND"
+      },
+      "2141": {
+        "dept": "INTERNAL SERVICES",
+        "div": "GO DEBT SERVICE",
+        "fund": "G.O. DEBT SERVICE FUND"
+      },
+      "2146": {
+        "dept": "INTERNAL SERVICES",
+        "div": "REVENUE DEBT SERVICE",
+        "fund": "REVENUE BOND I AND S FUND"
+      },
+      "3100": {
+        "dept": "POLICE",
+        "div": "POLICE",
+        "fund": "CAPITAL EQUIP REPLACEMENT"
+      },
+      "3101": {
+        "dept": "POLICE",
+        "div": "POLICE ADMINISTRATION",
+        "fund": "GENERAL FUND"
+      },
+      "3102": {
+        "dept": "POLICE",
+        "div": "POLICE COMMUNICATIONS",
+        "fund": "GENERAL FUND"
+      },
+      "3119": {
+        "dept": "POLICE",
+        "div": "FIELD OPERATIONS",
+        "fund": "GENERAL FUND"
+      },
+      "3120": {
+        "dept": "POLICE",
+        "div": "INVESTIGATIONS",
+        "fund": "GENERAL FUND"
+      },
+      "3121": {
+        "dept": "POLICE",
+        "div": "INVESTIGATIVE SUPPORT",
+        "fund": "GENERAL FUND"
+      },
+      "3123": {
+        "dept": "POLICE",
+        "div": "PROFESSIONAL STANDARDS",
+        "fund": "GENERAL FUND"
+      },
+      "3124": {
+        "dept": "POLICE",
+        "div": "STATE SEIZURE FUNDS",
+        "fund": "LAW ENFORCEMENT FUND"
+      },
+      "3126": {
+        "dept": "POLICE",
+        "div": "FEDERAL SEIZURE FUNDS",
+        "fund": "LAW ENFORCEMENT FUND"
+      },
+      "3128": {
+        "dept": "POLICE",
+        "div": "DONATIONS",
+        "fund": "LAW ENFORCEMENT DONATIONS"
+      },
+      "3200": {
+        "dept": "FIRE",
+        "div": "FIRE",
+        "fund": "CAPITAL EQUIP REPLACEMENT"
+      },
+      "3201": {
+        "dept": "FIRE",
+        "div": "FIRE ADMINISTRATION",
+        "fund": "GENERAL FUND"
+      },
+      "3220": {
+        "dept": "FIRE",
+        "div": "FIRE PREVENTION",
+        "fund": "GENERAL FUND"
+      },
+      "3224": {
+        "dept": "FIRE",
+        "div": "FIRE SUPPRESSION",
+        "fund": "GENERAL FUND"
+      },
+      "3225": {
+        "dept": "FIRE",
+        "div": "EMERGENCY MANAGEMENT",
+        "fund": "GENERAL FUND"
+      },
+      "3228": {
+        "dept": "FIRE",
+        "div": "DONATIONS",
+        "fund": "FIRE DEPARTMENT DONATIONS"
+      },
+      "4100": {
+        "dept": "OPERATIONS",
+        "div": "PUBLIC WORKS",
+        "fund": "CAPITAL EQUIP REPLACEMENT"
+      },
+      "4103": {
+        "dept": "OPERATIONS",
+        "div": "ENGINEERING",
+        "fund": "GENERAL FUND"
+      },
+      "4111": {
+        "dept": "OPERATIONS",
+        "div": "PUBLIC WORKS ADMIN",
+        "fund": "GENERAL FUND"
+      },
+      "4117": {
+        "dept": "OPERATIONS",
+        "div": "BUILDING & EQUIP SERVICES",
+        "fund": "GENERAL FUND"
+      },
+      "4119": {
+        "dept": "OPERATIONS",
+        "div": "FIXED BASE OPERATIONS",
+        "fund": "AIRPORT"
+      },
+      "4120": {
+        "dept": "OPERATIONS",
+        "div": "AIRFIELD OPERATIONS",
+        "fund": "AIRPORT"
+      },
+      "4300": {
+        "dept": "PARKS & RECREATION",
+        "div": "PARKS",
+        "fund": "CAPITAL EQUIP REPLACEMENT"
+      },
+      "4303": {
+        "dept": "PARKS & RECREATION",
+        "div": "PARK & REC ADMINISTRATION",
+        "fund": "GENERAL FUND"
+      },
+      "4304": {
+        "dept": "PARKS & RECREATION",
+        "div": "RECREATION ADMINISTRATION",
+        "fund": "GENERAL FUND"
+      },
+      "4305": {
+        "dept": "PARKS & RECREATION",
+        "div": "PARKS DEVELOPMENT",
+        "fund": "GENERAL FUND"
+      },
+      "4306": {
+        "dept": "PARKS & RECREATION",
+        "div": "PARKS MAINTENANCE",
+        "fund": "GENERAL FUND"
+      },
+      "4330": {
+        "dept": "PARKS & RECREATION",
+        "div": "AQUATICS",
+        "fund": "GENERAL FUND"
+      },
+      "4331": {
+        "dept": "PARKS & RECREATION",
+        "div": "COMMUNITY CENTER",
+        "fund": "GENERAL FUND"
+      },
+      "4333": {
+        "dept": "PARKS & RECREATION",
+        "div": "SENIOR RECREATION CENTER",
+        "fund": "GENERAL FUND"
+      },
+      "4334": {
+        "dept": "PARKS & RECREATION",
+        "div": "OLD SETTLERS REC CTR",
+        "fund": "GENERAL FUND"
+      },
+      "4335": {
+        "dept": "PARKS & RECREATION",
+        "div": "ATHLETICS",
+        "fund": "GENERAL FUND"
+      },
+      "4336": {
+        "dept": "PARKS & RECREATION",
+        "div": "GOLF COURSE",
+        "fund": "GOLF COURSE FUND"
+      },
+      "4341": {
+        "dept": "PARKS & RECREATION",
+        "div": "APEX ADMINISTRATION",
+        "fund": "AQUATIC & FITNESS CENTER"
+      },
+      "4342": {
+        "dept": "PARKS & RECREATION",
+        "div": "APEX AQUATICS",
+        "fund": "AQUATIC & FITNESS CENTER"
+      },
+      "4343": {
+        "dept": "PARKS & RECREATION",
+        "div": "APEX FITNESS",
+        "fund": "AQUATIC & FITNESS CENTER"
+      },
+      "4344": {
+        "dept": "PARKS & RECREATION",
+        "div": "APEX RECREATION",
+        "fund": "AQUATIC & FITNESS CENTER"
+      },
+      "4345": {
+        "dept": "PARKS & RECREATION",
+        "div": "APEX MAINTENANCE",
+        "fund": "AQUATIC & FITNESS CENTER"
+      },
+      "4346": {
+        "dept": "PARKS & RECREATION",
+        "div": "APEX CUSTOMER SERVICE",
+        "fund": "AQUATIC & FITNESS CENTER"
+      },
+      "4404": {
+        "dept": "OPERATIONS",
+        "div": "ENVIRONMENTAL EDUCATION",
+        "fund": "SOLID WASTE FUND"
+      },
+      "4405": {
+        "dept": "OPERATIONS",
+        "div": "ENVIRONMENTAL SERVICES",
+        "fund": "SOLID WASTE FUND"
+      },
+      "4407": {
+        "dept": "OPERATIONS",
+        "div": "STREET LIGHTING",
+        "fund": "GENERAL FUND"
+      },
+      "4503": {
+        "dept": "SURFACE WATER",
+        "div": "ENGINEERING",
+        "fund": "SURFACE WATER DRAINAGE"
+      },
+      "4505": {
+        "dept": "SURFACE WATER",
+        "div": "DRAINAGE",
+        "fund": "SURFACE WATER DRAINAGE"
+      },
+      "4606": {
+        "dept": "STREETS",
+        "div": "STREETS MAINTENANCE",
+        "fund": "GENERAL FUND"
+      },
+      "4628": {
+        "dept": "STREETS",
+        "div": "TRAFFIC CONTROL",
+        "fund": "GENERAL FUND"
+      },
+      "4903": {
+        "dept": "OPERATIONS",
+        "div": "BUILDING INSPECTIONS",
+        "fund": "GENERAL FUND"
+      },
+      "5222": {
+        "dept": "OPERATIONS",
+        "div": "CODE SERVICES",
+        "fund": "GENERAL FUND"
+      },
+      "6105": {
+        "dept": "LIBRARY",
+        "div": "LIBRARY SERVICES",
+        "fund": "GENERAL FUND"
+      },
+      "7106": {
+        "dept": "OPERATIONS",
+        "div": "FLEET SERVICES",
+        "fund": "FLEET MAINTENANCE FUND"
+      },
+      "8101": {
+        "dept": "UTILITIES",
+        "div": "UTILITY ENGINEERING",
+        "fund": "WATER / WASTEWATER FUND"
+      },
+      "8103": {
+        "dept": "UTILITIES",
+        "div": "CUSTOMER OPERATIONS",
+        "fund": "WATER / WASTEWATER FUND"
+      },
+      "8134": {
+        "dept": "UTILITIES",
+        "div": "METER SERVICES",
+        "fund": "WATER / WASTEWATER FUND"
+      },
+      "8205": {
+        "dept": "WATER",
+        "div": "WATER DISTRIBUTION",
+        "fund": "WATER / WASTEWATER FUND"
+      },
+      "8305": {
+        "dept": "WASTEWATER COLLECTION",
+        "div": "WASTEWATER COLLECTION",
+        "fund": "WATER / WASTEWATER FUND"
+      },
+      "9999": {
+        "dept": "NON-DEPARTMENTAL",
+        "div": null,
+        "fund": "GENERAL FUND"
+      }
+    },
+    "2025": {
+      "1103": {
+        "dept": "CITY COUNCIL",
+        "div": "CITY COUNCIL",
+        "fund": "GENERAL FUND"
+      },
+      "1201": {
+        "dept": "ADMINISTRATION",
+        "div": "CITY MANAGER",
+        "fund": "GENERAL FUND"
+      },
+      "1203": {
+        "dept": "ADMINISTRATION",
+        "div": "ORG DEV & PERF MGMT",
+        "fund": "GENERAL FUND"
+      },
+      "1204": {
+        "dept": "ADMINISTRATION",
+        "div": "FACILITIES CONSTRUCTION",
+        "fund": "GENERAL FUND"
+      },
+      "1206": {
+        "dept": "ADMINISTRATION",
+        "div": "BUDGET",
+        "fund": "GENERAL FUND"
+      },
+      "1211": {
+        "dept": "ADMINISTRATION",
+        "div": "HUMAN RESOURCES",
+        "fund": "GENERAL FUND"
+      },
+      "1212": {
+        "dept": "ADMINISTRATION",
+        "div": "LEGAL",
+        "fund": "GENERAL FUND"
+      },
+      "1213": {
+        "dept": "ADMINISTRATION",
+        "div": "CITY SECRETARY",
+        "fund": "GENERAL FUND"
+      },
+      "1237": {
+        "dept": "ADMINISTRATION",
+        "div": "MUNICIPAL COURT",
+        "fund": "GENERAL FUND"
+      },
+      "1238": {
+        "dept": "ADMINISTRATION",
+        "div": "COURT TECH, SEC & JUD EFF",
+        "fund": "GENERAL FUND"
+      },
+      "1239": {
+        "dept": "ADMINISTRATION",
+        "div": "JUVENILE CASE MANAGEMENT",
+        "fund": "GENERAL FUND"
+      },
+      "1240": {
+        "dept": "ADMINISTRATION",
+        "div": "DEVELOPMENT SERVICES",
+        "fund": "GENERAL FUND"
+      },
+      "1241": {
+        "dept": "ADMINISTRATION",
+        "div": "PLANNING",
+        "fund": "GENERAL FUND"
+      },
+      "1245": {
+        "dept": "ADMINISTRATION",
+        "div": "COMMUNITY DEVELOPMENT",
+        "fund": "MCDC"
+      },
+      "1247": {
+        "dept": "ADMINISTRATION",
+        "div": "PROJECTS",
+        "fund": "MCDC"
+      },
+      "1251": {
+        "dept": "ADMINISTRATION",
+        "div": "COMM. & MARKETING",
+        "fund": "GENERAL FUND"
+      },
+      "1252": {
+        "dept": "ADMINISTRATION",
+        "div": "TOURISM",
+        "fund": "MCVB"
+      },
+      "1253": {
+        "dept": "ADMINISTRATION",
+        "div": "HOUSING & COMMUNITY DEV",
+        "fund": "GENERAL FUND"
+      },
+      "1254": {
+        "dept": "ADMINISTRATION",
+        "div": "RENTAL ASSISTANCE",
+        "fund": "COMMUNITY HOUSING FUND"
+      },
+      "1255": {
+        "dept": "ADMINISTRATION",
+        "div": "ECONOMIC DEVELOPMENT",
+        "fund": "MEDC OPERATING FUND"
+      },
+      "1257": {
+        "dept": "ADMINISTRATION",
+        "div": "PROJECTS",
+        "fund": "MEDC OPERATING FUND"
+      },
+      "1258": {
+        "dept": "ADMINISTRATION",
+        "div": "SALES TAX REVENUE BONDS",
+        "fund": "MEDC INT AND SINK FUND"
+      },
+      "1265": {
+        "dept": "ADMINISTRATION",
+        "div": "MAIN ST &COMMUNITY EVENTS",
+        "fund": "GENERAL FUND"
+      },
+      "1270": {
+        "dept": "ADMINISTRATION",
+        "div": "MPAC",
+        "fund": "MPAC"
+      },
+      "1273": {
+        "dept": "ADMINISTRATION",
+        "div": "URBAN TRANSIT DISTRICT",
+        "fund": "URBAN TRANSIT DISTRICT"
+      },
+      "1274": {
+        "dept": "ADMINISTRATION",
+        "div": "MCK HOUSING FINANCE CORP",
+        "fund": "MCKINNEY HOUSING FINANCE"
+      },
+      "1701": {
+        "dept": "CDBG",
+        "div": "CDBG ADMINISTRATION",
+        "fund": "CDBG FUND"
+      },
+      "1703": {
+        "dept": "CDBG",
+        "div": "CDBG OPERATIONS (HOUSING)",
+        "fund": "CDBG FUND"
+      },
+      "1704": {
+        "dept": "CDBG",
+        "div": "CDBG OPERATIONS (COM DEV)",
+        "fund": "CDBG FUND"
+      },
+      "1705": {
+        "dept": "CDBG",
+        "div": "CDBG PUBLIC SERVICES",
+        "fund": "CDBG FUND"
+      },
+      "2100": {
+        "dept": "INTERNAL SERVICES",
+        "div": "DEVELOPMENT",
+        "fund": "CAPITAL EQUIP REPLACEMENT"
+      },
+      "2101": {
+        "dept": "INTERNAL SERVICES",
+        "div": "FINANCE",
+        "fund": "GENERAL FUND"
+      },
+      "2110": {
+        "dept": "INTERNAL SERVICES",
+        "div": "HEALTH AND DENTAL",
+        "fund": "INSURANCE / RISK MGT FUND"
+      },
+      "2111": {
+        "dept": "INTERNAL SERVICES",
+        "div": "INSURANCE & RISK MGMT.",
+        "fund": "INSURANCE / RISK MGT FUND"
+      },
+      "2114": {
+        "dept": "INTERNAL SERVICES",
+        "div": "PROCUREMENT SERVICES",
+        "fund": "GENERAL FUND"
+      },
+      "2116": {
+        "dept": "INTERNAL SERVICES",
+        "div": "WELLNESS PROGRAM",
+        "fund": "INSURANCE / RISK MGT FUND"
+      },
+      "2117": {
+        "dept": "INTERNAL SERVICES",
+        "div": "OTHER BENEFITS",
+        "fund": "INSURANCE / RISK MGT FUND"
+      },
+      "2119": {
+        "dept": "INTERNAL SERVICES",
+        "div": "INFORMATION TECHNOLOGY",
+        "fund": "GENERAL FUND"
+      },
+      "2141": {
+        "dept": "INTERNAL SERVICES",
+        "div": "GO DEBT SERVICE",
+        "fund": "G.O. DEBT SERVICE FUND"
+      },
+      "2146": {
+        "dept": "INTERNAL SERVICES",
+        "div": "REVENUE DEBT SERVICE",
+        "fund": "REVENUE BOND I AND S FUND"
+      },
+      "3100": {
+        "dept": "POLICE",
+        "div": "POLICE",
+        "fund": "CAPITAL EQUIP REPLACEMENT"
+      },
+      "3101": {
+        "dept": "POLICE",
+        "div": "POLICE ADMINISTRATION",
+        "fund": "GENERAL FUND"
+      },
+      "3102": {
+        "dept": "POLICE",
+        "div": "POLICE COMMUNICATIONS",
+        "fund": "GENERAL FUND"
+      },
+      "3119": {
+        "dept": "POLICE",
+        "div": "FIELD OPERATIONS",
+        "fund": "GENERAL FUND"
+      },
+      "3120": {
+        "dept": "POLICE",
+        "div": "INVESTIGATIONS",
+        "fund": "GENERAL FUND"
+      },
+      "3121": {
+        "dept": "POLICE",
+        "div": "INVESTIGATIVE SUPPORT",
+        "fund": "GENERAL FUND"
+      },
+      "3123": {
+        "dept": "POLICE",
+        "div": "PROFESSIONAL STANDARDS",
+        "fund": "GENERAL FUND"
+      },
+      "3124": {
+        "dept": "POLICE",
+        "div": "STATE SEIZURE FUNDS",
+        "fund": "LAW ENFORCEMENT FUND"
+      },
+      "3126": {
+        "dept": "POLICE",
+        "div": "FEDERAL SEIZURE FUNDS",
+        "fund": "LAW ENFORCEMENT FUND"
+      },
+      "3128": {
+        "dept": "POLICE",
+        "div": "DONATIONS",
+        "fund": "LAW ENFORCEMENT DONATIONS"
+      },
+      "3200": {
+        "dept": "FIRE",
+        "div": "FIRE",
+        "fund": "CAPITAL EQUIP REPLACEMENT"
+      },
+      "3201": {
+        "dept": "FIRE",
+        "div": "FIRE ADMINISTRATION",
+        "fund": "GENERAL FUND"
+      },
+      "3220": {
+        "dept": "FIRE",
+        "div": "FIRE PREVENTION",
+        "fund": "GENERAL FUND"
+      },
+      "3224": {
+        "dept": "FIRE",
+        "div": "FIRE SUPPRESSION",
+        "fund": "GENERAL FUND"
+      },
+      "3225": {
+        "dept": "FIRE",
+        "div": "EMERGENCY MANAGEMENT",
+        "fund": "GENERAL FUND"
+      },
+      "3228": {
+        "dept": "FIRE",
+        "div": "DONATIONS",
+        "fund": "FIRE DEPARTMENT DONATIONS"
+      },
+      "4100": {
+        "dept": "OPERATIONS",
+        "div": "PUBLIC WORKS",
+        "fund": "CAPITAL EQUIP REPLACEMENT"
+      },
+      "4103": {
+        "dept": "OPERATIONS",
+        "div": "ENGINEERING",
+        "fund": "GENERAL FUND"
+      },
+      "4111": {
+        "dept": "OPERATIONS",
+        "div": "PUBLIC WORKS ADMIN",
+        "fund": "GENERAL FUND"
+      },
+      "4117": {
+        "dept": "OPERATIONS",
+        "div": "BUILDING & EQUIP SERVICES",
+        "fund": "GENERAL FUND"
+      },
+      "4119": {
+        "dept": "OPERATIONS",
+        "div": "FIXED BASE OPERATIONS",
+        "fund": "AIRPORT"
+      },
+      "4120": {
+        "dept": "OPERATIONS",
+        "div": "AIRFIELD OPERATIONS",
+        "fund": "AIRPORT"
+      },
+      "4300": {
+        "dept": "PARKS & RECREATION",
+        "div": "PARKS",
+        "fund": "CAPITAL EQUIP REPLACEMENT"
+      },
+      "4303": {
+        "dept": "PARKS & RECREATION",
+        "div": "PARK & REC ADMINISTRATION",
+        "fund": "GENERAL FUND"
+      },
+      "4304": {
+        "dept": "PARKS & RECREATION",
+        "div": "RECREATION ADMINISTRATION",
+        "fund": "GENERAL FUND"
+      },
+      "4305": {
+        "dept": "PARKS & RECREATION",
+        "div": "PARKS DEVELOPMENT",
+        "fund": "GENERAL FUND"
+      },
+      "4306": {
+        "dept": "PARKS & RECREATION",
+        "div": "PARKS MAINTENANCE",
+        "fund": "GENERAL FUND"
+      },
+      "4330": {
+        "dept": "PARKS & RECREATION",
+        "div": "AQUATICS",
+        "fund": "GENERAL FUND"
+      },
+      "4331": {
+        "dept": "PARKS & RECREATION",
+        "div": "COMMUNITY CENTER",
+        "fund": "GENERAL FUND"
+      },
+      "4333": {
+        "dept": "PARKS & RECREATION",
+        "div": "SENIOR RECREATION CENTER",
+        "fund": "GENERAL FUND"
+      },
+      "4334": {
+        "dept": "PARKS & RECREATION",
+        "div": "OLD SETTLERS REC CTR",
+        "fund": "GENERAL FUND"
+      },
+      "4335": {
+        "dept": "PARKS & RECREATION",
+        "div": "ATHLETICS",
+        "fund": "GENERAL FUND"
+      },
+      "4336": {
+        "dept": "PARKS & RECREATION",
+        "div": "GOLF COURSE",
+        "fund": "GOLF COURSE FUND"
+      },
+      "4341": {
+        "dept": "PARKS & RECREATION",
+        "div": "APEX ADMINISTRATION",
+        "fund": "AQUATIC & FITNESS CENTER"
+      },
+      "4342": {
+        "dept": "PARKS & RECREATION",
+        "div": "APEX AQUATICS",
+        "fund": "AQUATIC & FITNESS CENTER"
+      },
+      "4343": {
+        "dept": "PARKS & RECREATION",
+        "div": "APEX FITNESS",
+        "fund": "AQUATIC & FITNESS CENTER"
+      },
+      "4344": {
+        "dept": "PARKS & RECREATION",
+        "div": "APEX RECREATION",
+        "fund": "AQUATIC & FITNESS CENTER"
+      },
+      "4345": {
+        "dept": "PARKS & RECREATION",
+        "div": "APEX MAINTENANCE",
+        "fund": "AQUATIC & FITNESS CENTER"
+      },
+      "4346": {
+        "dept": "PARKS & RECREATION",
+        "div": "APEX CUSTOMER SERVICE",
+        "fund": "AQUATIC & FITNESS CENTER"
+      },
+      "4404": {
+        "dept": "OPERATIONS",
+        "div": "ENVIRONMENTAL EDUCATION",
+        "fund": "SOLID WASTE FUND"
+      },
+      "4405": {
+        "dept": "OPERATIONS",
+        "div": "ENVIRONMENTAL SERVICES",
+        "fund": "SOLID WASTE FUND"
+      },
+      "4407": {
+        "dept": "OPERATIONS",
+        "div": "STREET LIGHTING",
+        "fund": "GENERAL FUND"
+      },
+      "4503": {
+        "dept": "SURFACE WATER",
+        "div": "ENGINEERING",
+        "fund": "SURFACE WATER DRAINAGE"
+      },
+      "4505": {
+        "dept": "SURFACE WATER",
+        "div": "DRAINAGE",
+        "fund": "SURFACE WATER DRAINAGE"
+      },
+      "4606": {
+        "dept": "STREETS",
+        "div": "STREETS MAINTENANCE",
+        "fund": "GENERAL FUND"
+      },
+      "4628": {
+        "dept": "STREETS",
+        "div": "TRAFFIC CONTROL",
+        "fund": "GENERAL FUND"
+      },
+      "4903": {
+        "dept": "OPERATIONS",
+        "div": "BUILDING INSPECTIONS",
+        "fund": "GENERAL FUND"
+      },
+      "5222": {
+        "dept": "OPERATIONS",
+        "div": "CODE SERVICES",
+        "fund": "GENERAL FUND"
+      },
+      "6105": {
+        "dept": "LIBRARY",
+        "div": "LIBRARY SERVICES",
+        "fund": "GENERAL FUND"
+      },
+      "7106": {
+        "dept": "OPERATIONS",
+        "div": "FLEET SERVICES",
+        "fund": "FLEET MAINTENANCE FUND"
+      },
+      "8101": {
+        "dept": "UTILITIES",
+        "div": "UTILITY ENGINEERING",
+        "fund": "WATER / WASTEWATER FUND"
+      },
+      "8103": {
+        "dept": "UTILITIES",
+        "div": "CUSTOMER OPERATIONS",
+        "fund": "WATER / WASTEWATER FUND"
+      },
+      "8134": {
+        "dept": "UTILITIES",
+        "div": "METER SERVICES",
+        "fund": "WATER / WASTEWATER FUND"
+      },
+      "8205": {
+        "dept": "WATER",
+        "div": "WATER DISTRIBUTION",
+        "fund": "WATER / WASTEWATER FUND"
+      },
+      "8305": {
+        "dept": "WASTEWATER COLLECTION",
+        "div": "WASTEWATER COLLECTION",
+        "fund": "WATER / WASTEWATER FUND"
+      },
+      "9999": {
+        "dept": "NON-DEPARTMENTAL",
+        "div": null,
+        "fund": "GENERAL FUND"
+      }
+    }
+  }
+}
