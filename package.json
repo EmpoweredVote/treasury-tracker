@@ -26,6 +26,7 @@
     "verify:totals": "node scripts/verifyTotalsTieToTree.mjs",
     "verify:txn-trees": "node scripts/verifyTransactionTrees.mjs",
     "verify:watchdogs": "node scripts/verifyScheduledChecks.mjs",
+    "verify:doubled-days": "node scripts/detectDoubledExportDays.mjs",
     "verify:provenance": "node scripts/verifyProvenanceGate.mjs",
     "verify:registry-mirror": "node scripts/syncRegisteredFamilies.mjs --check",
     "verify:registry-parity": "node scripts/verifyRegistryPatternParity.mjs",

@@ -1,0 +1,459 @@
+{
+  "measured_at": "2026-11-04T21:31:59.891Z",
+  "results": [
+    {
+      "source": "Frisco Check Register FY2018",
+      "fiscal_year": 2018,
+      "dedup_policy": "content",
+      "parsed_rows": 23184,
+      "supported": true,
+      "reason": null,
+      "doubled_days": [],
+      "rows_doubled": 0,
+      "amount_doubled": 0,
+      "background_rows": 491,
+      "background_amount": 156091.12
+    },
+    {
+      "source": "Frisco Check Register FY2019",
+      "fiscal_year": 2019,
+      "dedup_policy": "content",
+      "parsed_rows": 25427,
+      "supported": true,
+      "reason": null,
+      "doubled_days": [
+        {
+          "date": "2019-06-03",
+          "rows": 2,
+          "distinct": 1,
+          "extra": 1,
+          "even_share": 1,
+          "once_share": 0,
+          "amount": 312038.58,
+          "spillover": true
+        },
+        {
+          "date": "2019-06-04",
+          "rows": 563,
+          "distinct": 273,
+          "extra": 290,
+          "even_share": 0.9963,
+          "once_share": 0.0037,
+          "amount": 8382182.87,
+          "spillover": false
+        },
+        {
+          "date": "2019-06-06",
+          "rows": 496,
+          "distinct": 243,
+          "extra": 253,
+          "even_share": 1,
+          "once_share": 0,
+          "amount": 962418.02,
+          "spillover": false
+        },
+        {
+          "date": "2019-06-07",
+          "rows": 4,
+          "distinct": 2,
+          "extra": 2,
+          "even_share": 1,
+          "once_share": 0,
+          "amount": 44324.24,
+          "spillover": true
+        },
+        {
+          "date": "2019-06-11",
+          "rows": 462,
+          "distinct": 231,
+          "extra": 231,
+          "even_share": 1,
+          "once_share": 0,
+          "amount": 1900200.33,
+          "spillover": false
+        },
+        {
+          "date": "2019-06-13",
+          "rows": 486,
+          "distinct": 236,
+          "extra": 250,
+          "even_share": 1,
+          "once_share": 0,
+          "amount": 3367791.66,
+          "spillover": false
+        }
+      ],
+      "rows_doubled": 1027,
+      "amount_doubled": 14968955.7,
+      "background_rows": 497,
+      "background_amount": 2024165.53
+    },
+    {
+      "source": "Frisco Check Register FY2020",
+      "fiscal_year": 2020,
+      "dedup_policy": "content",
+      "parsed_rows": 20139,
+      "supported": true,
+      "reason": null,
+      "doubled_days": [],
+      "rows_doubled": 0,
+      "amount_doubled": 0,
+      "background_rows": 401,
+      "background_amount": 110309.72
+    },
+    {
+      "source": "Frisco Check Register FY2021",
+      "fiscal_year": 2021,
+      "dedup_policy": "content",
+      "parsed_rows": 14989,
+      "supported": true,
+      "reason": null,
+      "doubled_days": [],
+      "rows_doubled": 0,
+      "amount_doubled": 0,
+      "background_rows": 246,
+      "background_amount": 139532.76
+    },
+    {
+      "source": "Frisco Check Register FY2022",
+      "fiscal_year": 2022,
+      "dedup_policy": "content",
+      "parsed_rows": 17786,
+      "supported": true,
+      "reason": null,
+      "doubled_days": [],
+      "rows_doubled": 0,
+      "amount_doubled": 0,
+      "background_rows": 297,
+      "background_amount": 61402.19
+    },
+    {
+      "source": "Frisco Check Register FY2023",
+      "fiscal_year": 2023,
+      "dedup_policy": "content",
+      "parsed_rows": 16404,
+      "supported": true,
+      "reason": null,
+      "doubled_days": [],
+      "rows_doubled": 0,
+      "amount_doubled": 0,
+      "background_rows": 395,
+      "background_amount": 153076.44
+    },
+    {
+      "source": "Frisco Check Register FY2024",
+      "fiscal_year": 2024,
+      "dedup_policy": "content",
+      "parsed_rows": 16696,
+      "supported": true,
+      "reason": null,
+      "doubled_days": [],
+      "rows_doubled": 0,
+      "amount_doubled": 0,
+      "background_rows": 416,
+      "background_amount": 130391.48
+    },
+    {
+      "source": "Frisco Check Register FY2025",
+      "fiscal_year": 2025,
+      "dedup_policy": "content",
+      "parsed_rows": 16750,
+      "supported": true,
+      "reason": null,
+      "doubled_days": [],
+      "rows_doubled": 0,
+      "amount_doubled": 0,
+      "background_rows": 392,
+      "background_amount": 72796.47
+    },
+    {
+      "source": "Frisco Check Register FY2026",
+      "fiscal_year": 2026,
+      "dedup_policy": "content",
+      "parsed_rows": 17909,
+      "supported": true,
+      "reason": null,
+      "doubled_days": [],
+      "rows_doubled": 0,
+      "amount_doubled": 0,
+      "background_rows": 314,
+      "background_amount": 71756.88
+    },
+    {
+      "source": "McKinney Check Register FY2022",
+      "fiscal_year": 2022,
+      "dedup_policy": "occurrence",
+      "parsed_rows": 45844,
+      "supported": true,
+      "reason": null,
+      "doubled_days": [],
+      "rows_doubled": 0,
+      "amount_doubled": 0,
+      "background_rows": 1585,
+      "background_amount": 879789.04
+    },
+    {
+      "source": "McKinney Check Register FY2023",
+      "fiscal_year": 2023,
+      "dedup_policy": "occurrence",
+      "parsed_rows": 47169,
+      "supported": true,
+      "reason": null,
+      "doubled_days": [],
+      "rows_doubled": 0,
+      "amount_doubled": 0,
+      "background_rows": 1151,
+      "background_amount": 923373.5
+    },
+    {
+      "source": "McKinney Check Register FY2024",
+      "fiscal_year": 2024,
+      "dedup_policy": "occurrence",
+      "parsed_rows": 47324,
+      "supported": true,
+      "reason": null,
+      "doubled_days": [],
+      "rows_doubled": 0,
+      "amount_doubled": 0,
+      "background_rows": 1119,
+      "background_amount": 502576.04
+    },
+    {
+      "source": "McKinney Check Register FY2025",
+      "fiscal_year": 2025,
+      "dedup_policy": "occurrence",
+      "parsed_rows": 50096,
+      "supported": true,
+      "reason": null,
+      "doubled_days": [],
+      "rows_doubled": 0,
+      "amount_doubled": 0,
+      "background_rows": 1109,
+      "background_amount": 515643.61
+    },
+    {
+      "source": "McKinney Payroll Register FY2022",
+      "fiscal_year": 2022,
+      "dedup_policy": "content",
+      "parsed_rows": 39790,
+      "supported": true,
+      "reason": null,
+      "doubled_days": [],
+      "rows_doubled": 0,
+      "amount_doubled": 0,
+      "background_rows": 0,
+      "background_amount": 0
+    },
+    {
+      "source": "McKinney Payroll Register FY2023",
+      "fiscal_year": 2023,
+      "dedup_policy": "content",
+      "parsed_rows": 40577,
+      "supported": true,
+      "reason": null,
+      "doubled_days": [],
+      "rows_doubled": 0,
+      "amount_doubled": 0,
+      "background_rows": 0,
+      "background_amount": 0
+    },
+    {
+      "source": "McKinney Payroll Register FY2024",
+      "fiscal_year": 2024,
+      "dedup_policy": "content",
+      "parsed_rows": 42573,
+      "supported": true,
+      "reason": null,
+      "doubled_days": [],
+      "rows_doubled": 0,
+      "amount_doubled": 0,
+      "background_rows": 0,
+      "background_amount": 0
+    },
+    {
+      "source": "McKinney Payroll Register FY2025",
+      "fiscal_year": 2025,
+      "dedup_policy": "content",
+      "parsed_rows": 44451,
+      "supported": true,
+      "reason": null,
+      "doubled_days": [],
+      "rows_doubled": 0,
+      "amount_doubled": 0,
+      "background_rows": 3,
+      "background_amount": 5523.99
+    },
+    {
+      "source": "Plano Check Register FY2020",
+      "fiscal_year": 2020,
+      "dedup_policy": "content",
+      "parsed_rows": 42869,
+      "supported": true,
+      "reason": null,
+      "doubled_days": [
+        {
+          "date": "2020-04-10",
+          "rows": 1756,
+          "distinct": 852,
+          "extra": 904,
+          "even_share": 1,
+          "once_share": 0,
+          "amount": 5993893.92,
+          "spillover": false
+        }
+      ],
+      "rows_doubled": 904,
+      "amount_doubled": 5993893.92,
+      "background_rows": 662,
+      "background_amount": 418639.34
+    },
+    {
+      "source": "Plano Check Register FY2021",
+      "fiscal_year": 2021,
+      "dedup_policy": "content",
+      "parsed_rows": 29054,
+      "supported": true,
+      "reason": null,
+      "doubled_days": [
+        {
+          "date": "2021-07-30",
+          "rows": 1238,
+          "distinct": 609,
+          "extra": 629,
+          "even_share": 1,
+          "once_share": 0,
+          "amount": 1461973.86,
+          "spillover": false
+        }
+      ],
+      "rows_doubled": 629,
+      "amount_doubled": 1461973.86,
+      "background_rows": 418,
+      "background_amount": 130719.09
+    },
+    {
+      "source": "Plano Check Register FY2022",
+      "fiscal_year": 2022,
+      "dedup_policy": "content",
+      "parsed_rows": 29724,
+      "supported": true,
+      "reason": null,
+      "doubled_days": [
+        {
+          "date": "2022-03-15",
+          "rows": 2,
+          "distinct": 1,
+          "extra": 1,
+          "even_share": 1,
+          "once_share": 0,
+          "amount": 3482404.02,
+          "spillover": true
+        },
+        {
+          "date": "2022-03-17",
+          "rows": 10,
+          "distinct": 5,
+          "extra": 5,
+          "even_share": 1,
+          "once_share": 0,
+          "amount": 656343.73,
+          "spillover": true
+        },
+        {
+          "date": "2022-03-18",
+          "rows": 1082,
+          "distinct": 532,
+          "extra": 550,
+          "even_share": 1,
+          "once_share": 0,
+          "amount": 5928865.28,
+          "spillover": false
+        },
+        {
+          "date": "2022-07-29",
+          "rows": 1050,
+          "distinct": 524,
+          "extra": 526,
+          "even_share": 1,
+          "once_share": 0,
+          "amount": 2278451.13,
+          "spillover": false
+        }
+      ],
+      "rows_doubled": 1082,
+      "amount_doubled": 12346064.16,
+      "background_rows": 429,
+      "background_amount": 171476.79
+    },
+    {
+      "source": "Plano Check Register FY2023",
+      "fiscal_year": 2023,
+      "dedup_policy": "content",
+      "parsed_rows": 29632,
+      "supported": true,
+      "reason": null,
+      "doubled_days": [],
+      "rows_doubled": 0,
+      "amount_doubled": 0,
+      "background_rows": 679,
+      "background_amount": 236037.14
+    },
+    {
+      "source": "Plano Check Register FY2024",
+      "fiscal_year": 2024,
+      "dedup_policy": "content",
+      "parsed_rows": 29557,
+      "supported": true,
+      "reason": null,
+      "doubled_days": [],
+      "rows_doubled": 0,
+      "amount_doubled": 0,
+      "background_rows": 694,
+      "background_amount": 257357.95
+    },
+    {
+      "source": "Plano Check Register FY2025",
+      "fiscal_year": 2025,
+      "dedup_policy": "content",
+      "parsed_rows": 24747,
+      "supported": true,
+      "reason": null,
+      "doubled_days": [
+        {
+          "date": "2024-12-04",
+          "rows": 6,
+          "distinct": 3,
+          "extra": 3,
+          "even_share": 1,
+          "once_share": 0,
+          "amount": 79066.38,
+          "spillover": true
+        },
+        {
+          "date": "2024-12-05",
+          "rows": 10,
+          "distinct": 5,
+          "extra": 5,
+          "even_share": 1,
+          "once_share": 0,
+          "amount": 655906.09,
+          "spillover": true
+        },
+        {
+          "date": "2024-12-06",
+          "rows": 792,
+          "distinct": 369,
+          "extra": 423,
+          "even_share": 1,
+          "once_share": 0,
+          "amount": 3566567.63,
+          "spillover": false
+        }
+      ],
+      "rows_doubled": 431,
+      "amount_doubled": 4301540.1,
+      "background_rows": 500,
+      "background_amount": 141583.74
+    }
+  ]
+}

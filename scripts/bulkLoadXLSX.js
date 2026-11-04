@@ -27,6 +27,8 @@ import { isEnrolled } from './lib/transactionTreeSources.mjs';
 // ⚠ Parsing and the dedup hash live in lib so a measurement can import THE SAME
 // CODE. See scripts/lib/xlsxRows.mjs and scripts/measureXlsxDedupLoss.mjs.
 import { parseCSV, parseXLSX, parseAmount, downloadXLSX, rowKeys } from './lib/xlsxRows.mjs';
+// ⚠⚠ The guard that stands between dedup:'occurrence' and money never spent.
+import { judgeDoubledExportDays, describeDoubledDays } from './lib/doubledExportDays.mjs';
 import { rebuildBudget } from './rebuildTransactionTree.mjs';
 // ── Config ──────────────────────────────────────────────────────────────────
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://kxsdzaojfaibhuzmclfq.supabase.co';
@@ -171,6 +173,48 @@ async function syncSource(ds, opts = {}) {
       (parseErrors / rows.length * 100).toFixed(1) + '% exceeds 5% threshold (' +
       parseErrors + '/' + rows.length + ' rows)');
     process.exit(1);
+  }
+
+  // ── ⚠⚠⚠ Doubled-export guard, for occurrence-keyed sources only ────────────
+  //
+  // 'occurrence' KEEPS every copy of an identical row. That is the whole point
+  // for a 132-line uniform-rental invoice, and it is catastrophic for a day the
+  // publisher exported twice — every duplicate would be money never spent, and
+  // this loader would faithfully insert all of it.
+  //
+  // ⚠⚠ THE PUBLISHER'S TOTAL ROW CANNOT CATCH IT. McKinney's register carries
+  // its own Total, and that oracle is what proved the repair in #334 — but the
+  // same report generates the data rows and the total, so a doubled export
+  // doubles both and they still agree to the cent. Only the shape of the counts
+  // can tell, so it is checked here, before anything is written.
+  //
+  // ⚠ Runs BEFORE the dry-run exit on purpose: a dry run is exactly when
+  // someone is deciding whether a file is safe to load.
+  if (cm.dedup === 'occurrence') {
+    const verdict = judgeDoubledExportDays(rows, {
+      dateColumn: cm.date_column,
+      amountColumn: cm.amount_column,
+    });
+    if (!verdict.supported) {
+      console.error('  Aborting: cannot check ' + ds.name + ' for doubled export days — ' + verdict.reason);
+      console.error('  A source keyed by occurrence must be checkable. Fix column_mapping, or move it back to the default content dedup.');
+      process.exit(1);
+    }
+    if (verdict.certified.length) {
+      console.error('\n  ⛔ Aborting: ' + ds.name + ' contains ' + verdict.certified.length +
+        ' day(s) the publisher appears to have EXPORTED TWICE.');
+      for (const line of describeDoubledDays(verdict)) console.error('     ' + line);
+      console.error('\n  On those days every distinct row appears an even number of times and' +
+        '\n  (almost) none appears exactly once. An ordinary day is ~99% rows-that-occur-once.' +
+        '\n  Because this source is keyed by occurrence, loading would ADD ' +
+        verdict.rowsDoubled.toLocaleString() + ' row(s) worth $' +
+        verdict.amountDoubled.toLocaleString(undefined, { minimumFractionDigits: 2 }) +
+        '\n  that was never spent. The publisher\'s own Total row would NOT disagree.' +
+        '\n\n  Re-publish from the source, or move this source back to the default content' +
+        '\n  dedup, which discards the duplicates correctly. See scripts/lib/doubledExportDays.mjs.');
+      process.exit(1);
+    }
+    console.log('  doubled-export check: clean across ' + verdict.days.length.toLocaleString() + ' publication date(s)');
   }
 
   // ── Dry-run: preview and exit ───────────────────────────────────────────────
