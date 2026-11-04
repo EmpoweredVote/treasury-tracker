@@ -98,4 +98,90 @@ export const FRISCO_REGISTER_ANOMALIES = [
       + '"exported twice" conclusion from the sources. MUST NOT be promoted to '
       + 'src/data/figureFlags.ts until it has been.',
   },
+
+  {
+    key: 'frisco-tx-fy2018-fy2019-repeated-allocation-rows',
+    municipality: 'Frisco',
+    state: 'TX',
+    fiscalYears: [2018, 2019],
+    dataset: 'transactions',
+    loaded: true,
+
+    /**
+     * ⚠⚠ The figure is AS PUBLISHED — Frisco's own TOTAL row agrees with it to
+     * the cent. The publisher's file says $1,081,755,767.17 and TT says
+     * $1,081,599,676.05 (the difference is only content-dedup). What the
+     * publisher's own total CANNOT say is whether the underlying rows
+     * double-count, and the audited ACFR says they do.
+     */
+    disposition: 'loaded-as-published',
+    severity: 'scope-overstatement',
+
+    what:
+      "Frisco's FY2018 and FY2019 check registers repeat the FULL payment amount on "
+      + 'EVERY account-allocation line, instead of splitting it across them. One payment '
+      + 'to North Texas Municipal Water District on 2017-10-31 appears NINE times at '
+      + '$6,905,317.56, once per service line; another on 2017-11-21 appears ELEVEN times '
+      + 'at $4,359,026.75. The descriptions differ, so the row-dedup hash cannot see them. '
+      + 'No other Frisco year does this.',
+
+    magnitude: [
+      'FY2018: 5,135 of 23,183 rows (22.1%) sit in same-date/same-vendor/same-amount '
+        + 'groups with differing descriptions, carrying $702,170,403.95 of repeat.',
+      'FY2019: 5,859 of 25,426 rows (23.0%), carrying $628,422,920.10.',
+      'Every other year is 0.0%–0.3%. FY2025 has none at all.',
+    ],
+
+    /**
+     * ⭐⭐ THE ORACLE IS THE AUDITED ACFR, and it is decisive because it sets a
+     * BAND from the years that are not in question. A check register covers
+     * governmental AND enterprise cash, so it should sit a little ABOVE
+     * governmental expenditures — and in every ordinary year it does, by
+     * 0.92x to 1.14x. FY2018 and FY2019 sit at 3.07x and 3.00x.
+     */
+    verifiedBecause: [
+      "Frisco's FY2025 ACFR, 'Changes in Fund Balances of Governmental Funds, Last Ten "
+        + "Fiscal Years' (p.150-151), gives total governmental expenditures of "
+        + '$352,020,545 (FY2018) and $328,138,720 (FY2019). The column mapping was '
+        + 'confirmed by making each year\'s seven components sum to its stated total '
+        + 'exactly, for five separate years — the extraction is not an assumption.',
+      'TT against audited, by year: FY2018 3.07x, FY2019 3.00x, then FY2020 1.06x, '
+        + 'FY2021 0.92x, FY2022 1.11x, FY2023 1.14x, FY2024 1.01x, FY2025 1.11x. Two '
+        + 'years stand three times outside a band the other six hold.',
+      'Removing one copy per repeated-allocation group puts FY2018 at $379,585,363.22 '
+        + '(1.08x) and FY2019 at $372,921,631.12 (1.14x) — INSIDE that band, from the '
+        + 'high end. The structural fix and the external oracle agree without being '
+        + 'tuned to each other.',
+      'The paired descriptions are account lines, not separate purchases: '
+        + '"CURRENT PORTION-LT DEBT" beside "NOTES PAYABLE"; "CAPITAL EXP-TRAFFIC SYS '
+        + 'IMPROV" beside "RETAINAGE PAYABLE". A genuine split would apportion the '
+        + 'payment across them, not repeat it whole on each.',
+    ],
+
+    benignExplanations: [
+      'A city CAN pay one vendor the same amount twice in a day for different purposes. '
+        + '⚠ FY2026 contains a real example: FRISCO STADIUM LLC appears twice monthly at '
+        + 'the same amount as "CAPITAL EXP-BLDGS/IMPRVMNTS" and "TRANSFER OUT - CAPITAL '
+        + 'PROJECT" — plausibly an expenditure and the interfund transfer funding it. '
+        + 'That is why a blanket date+vendor+amount collapse would be WRONG, and why no '
+        + 'figure has been changed on this finding.',
+      'Nine identical lines could in principle be nine separate invoices settled '
+        + "together — but then the ACFR's governmental total would not be a third of what "
+        + 'the register reports, in exactly the two years that show the pattern.',
+    ],
+
+    supportingContext:
+      'The repaired series reads as a coherent curve for a fast-growing city with a COVID '
+      + 'dip: ~380M (FY2018), ~373M (FY2019), 378M, 317M, 440M, 525M, 565M, 807M, 938M. '
+      + 'As published, FY2018 and FY2019 tower over FY2020 and FY2021 by ~3x and then '
+      + 'collapse, which is what prompted the question.',
+
+    corroboration:
+      '⚠ PARTIAL. One analyst, 2026-11-04, but TWO INDEPENDENT LINES OF EVIDENCE reached '
+      + "from different directions: the file's internal structure (repeated allocation "
+      + "rows) and an external audited document (the city's own ACFR). They agree to "
+      + 'within the band set by six other years. ⛔ This still does not meet the '
+      + 'src/data/figureFlags.ts bar, which requires independent AGENTS, not merely '
+      + 'independent sources. MUST NOT be promoted until that is done.',
+  },
 ];
