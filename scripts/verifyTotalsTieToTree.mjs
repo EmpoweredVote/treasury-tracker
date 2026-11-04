@@ -47,46 +47,40 @@ const BASELINE = {
 };
 
 /**
- * Known trees that repeat a root LABEL, 2026-11-03.
+ * Known trees that repeat a root LABEL. ✅ EMPTY since 2026-11-04.
  *
- * ⚠⚠ ANY FAMILY NOT LISTED HERE IS HELD AT ZERO, which is the whole point. A
- * duplicate label can tie its total perfectly — Ohio's 13 `Other` rows did, for
- * as long as this gate has existed — so no other counter here can see it. An
- * absent family failing means the first duplicate to appear breaks the build
- * instead of waiting years to be noticed.
+ * ⚠⚠ EVERY FAMILY IS HELD AT ZERO, which is the whole point. A duplicate label
+ * can tie its total perfectly — Ohio's 13 `Other` rows did, for as long as this
+ * gate has existed — so no other counter here can see it. Holding at zero means
+ * the first duplicate to appear breaks the build instead of waiting years to be
+ * noticed.
  *
- * ⚠ THE SIX BELOW WERE FOUND BY THIS COUNTER THE FIRST TIME IT RAN, and they
- * are NOT the Ohio defect. They are recorded as debt so Ohio's repair could
- * land without a red light nobody can turn green — not a target, not forgiven:
+ * ── THE SIX THIS COUNTER FOUND THE FIRST TIME IT RAN ───────────────────────
  *
- *   McKinney Check Register — the breakdown repeats `Fleet & Vehicles` SIX
- *     times and `Parks & Recreation` six times, each copy a DIFFERENT amount.
- *     Every one ties, so no gate has ever reported it.
+ * ✅ San Jose (2 budgets) — a department name wrapped onto two PDF lines and
+ * the extractor kept only the half carrying the amounts. Repaired in
+ * scripts/extractSanJose.py and reloaded FY2022-FY2025 (#329).
  *
- *     ⚠⚠⚠ DIAGNOSED 2026-11-03 AND IT IS NOT A LABELLING BUG. Each duplicate
- *     carries a DISTINCT `link_key` — McKinney's own department code — so the
- *     tree is keyed correctly and no money is wrong. The DISPLAY NAMES are the
- *     defect: McKinney publishes a bare 4-digit code and NO department name
- *     anywhere (checked the check register, the payroll register and the
- *     column_mapping), so every friendly label in TT is UNSOURCED, and a
- *     material share of them is WRONG. Measured against McKinney's own budget
- *     book and corroborated by the publisher's own vendor lines:
- *         2119 is IT (MICROSOFT RENEWAL, PC LEASE) — TT says `Risk Management`
- *         4306 is Parks Maint. (LANDSCAPING MAINT) — TT says `Development
- *              Reimbursements`
- *     Deduplicating these labels would make an invention look more precise.
- *     DO NOT "fix" this by appending the code. See the Ohio memory.
+ * ✅ McKinney (4 budgets) — and the duplicate was the SYMPTOM, not the disease.
+ * Each duplicate root carried a DISTINCT `link_key` (McKinney's own department
+ * code), so the tree was keyed correctly and no money was wrong; the DISPLAY
+ * NAMES were invented. The phase record admits it: migration
+ * `rename_mckinney_dept_categories` mapped the codes to names "derived from
+ * top-vendor analysis", over a `vendor_column` that is really an INVOICE
+ * DESCRIPTION. TT showed $8.1M of Information Technology as `Risk Management`.
  *
- * ✅ San Jose was the other one, and it is CLOSED — a department name wrapped
- * onto two PDF lines and the extractor kept only the half carrying the
- * amounts. Repaired in scripts/extractSanJose.py and reloaded FY2022-FY2025.
+ * Fixed by SOURCING the names, not by deduplicating them: McKinney publishes an
+ * Adopted Budget Worksheet per year whose `Expenditure Budget` sheet carries the
+ * account number beside a Department and a Division column. 378 labels replaced
+ * across FY2022-FY2025; 8 roots the publisher never names keep the publisher's
+ * own identifier (`Department 7777`) rather than a guess.
+ *
+ * ⚠⚠ THE RULE THAT STILL STANDS: a duplicate label is never to be fixed by
+ * appending its code. `Fleet & Vehicles (3224)` would have made a fabrication
+ * look sourced, and this gate would have gone green over it.
+ * See scripts/lib/mckinneyLabels.mjs and scripts/data/mckinneyDepartments.json.
  */
-const DUPLICATE_BASELINE = {
-  'McKinney Check Register FY2022': 1,
-  'McKinney Check Register FY2023': 1,
-  'McKinney Check Register FY2024': 1,
-  'McKinney Check Register FY2025': 1,
-};
+const DUPLICATE_BASELINE = {};
 
 /**
  * Known NEGATIVE headline totals.

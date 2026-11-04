@@ -348,15 +348,38 @@ function assertNonZeroBudget(ds: any, fy: number, rowCount: number, total: numbe
   );
 }
 
+/**
+ * ⚠⚠⚠ AN IDENTIFIER IS ABSENT WHEN IT IS NULL OR BLANK — NEVER WHEN IT IS ZERO.
+ *
+ * `r[col] || null` and `[...].filter(Boolean)` both discard the integer 0, and
+ * both read as obviously correct. McKinney's check register numbers its
+ * `Department` column from zero: code `0` (the `0000` account segment) carried
+ * $79,113,310 in FY2024 and reached readers as `Unknown Department`, because
+ * `0 || null` is null. Nothing failed — the total tied, the tree was intact,
+ * the gates were green. The same two patterns are live for every source this
+ * function serves, so they are fixed here and not only in the XLSX loader.
+ *
+ * Mirrors scripts/lib/publisherIds.mjs; this file cannot import from the repo.
+ */
+function idOrNull(value: any): string | null {
+  if (value === null || value === undefined) return null;
+  const s = String(value).trim();
+  return s === "" ? null : s;
+}
+function linkKey(parts: any[]): string | null {
+  const kept = parts.map(idOrNull).filter((v) => v !== null);
+  return kept.length ? kept.join("|") : null;
+}
+
 function buildTxnBatch(rows: any[], cm: any) {
   const vs = new Set<string>();
   const ridCol = cm.source_row_id_column; // e.g. transaction_id for LA, demand for WeHo
   const txns = rows.map(r => { const vn = r[cm.vendor_column] || "Unknown"; vs.add(vn);
-    return { a: amt(r[cm.amount_column]), d: r[cm.description_column] || null, dt: r[cm.date_column] || null,
-      pm: r[cm.payment_method_column] || null, inv: r[cm.invoice_number_column] || null, f: r[cm.fund_column] || null,
-      ec: r[cm.expense_category_column] || null, dept: r[cm.department_column] || null, prog: r[cm.program_column] || null, vn,
-      lk: [r[cm.department_column], r[cm.fund_column], r[cm.expense_category_column]].filter(Boolean).join("|") || null,
-      rid: ridCol ? (r[ridCol] || null) : null }; });
+    return { a: amt(r[cm.amount_column]), d: idOrNull(r[cm.description_column]), dt: r[cm.date_column] || null,
+      pm: idOrNull(r[cm.payment_method_column]), inv: idOrNull(r[cm.invoice_number_column]), f: idOrNull(r[cm.fund_column]),
+      ec: idOrNull(r[cm.expense_category_column]), dept: idOrNull(r[cm.department_column]), prog: idOrNull(r[cm.program_column]), vn,
+      lk: linkKey([r[cm.department_column], r[cm.fund_column], r[cm.expense_category_column]]),
+      rid: ridCol ? idOrNull(r[ridCol]) : null }; });
   return { vendors: [...vs].map(n => ({ n })), transactions: txns };
 }
 

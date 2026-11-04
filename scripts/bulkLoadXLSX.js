@@ -26,6 +26,7 @@ import path from 'node:path';
 import ExcelJS from 'exceljs';
 
 import { listAllSourcesResult } from './lib/listAllSources.mjs';
+import { idOrNull, linkKey } from './lib/publisherIds.mjs';
 // ── Config ──────────────────────────────────────────────────────────────────
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://kxsdzaojfaibhuzmclfq.supabase.co';
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -219,17 +220,21 @@ function buildBatch(rows, cm) {
 
     return {
       a: parseAmount(r[cm.amount_column]),
-      d: r[cm.description_column] || null,
+      d: idOrNull(r[cm.description_column]),
       dt,
-      pm: r[cm.payment_method_column] || null,
-      inv: r[cm.invoice_number_column] || null,
-      f: r[cm.fund_column] || null,
-      ec: r[cm.expense_category_column] || null,
-      dept: r[cm.department_column] || null,
-      prog: r[cm.program_column] || null,
+      pm: idOrNull(r[cm.payment_method_column]),
+      inv: idOrNull(r[cm.invoice_number_column]),
+      f: idOrNull(r[cm.fund_column]),
+      ec: idOrNull(r[cm.expense_category_column]),
+      dept: idOrNull(r[cm.department_column]),
+      prog: idOrNull(r[cm.program_column]),
       vn,
-      lk: [r[cm.department_column], r[cm.fund_column], r[cm.expense_category_column]]
-        .filter(Boolean).join('|') || null,
+      // ⚠⚠⚠ `.filter(Boolean)` DROPPED THE INTEGER ZERO. McKinney's department
+      // column is numeric and code `0` is real — the `0000` account segment,
+      // carrying $79,113,310 in FY2024 alone. Every dollar of it lost its key
+      // here and surfaced to readers as `Unknown Department`. An identifier is
+      // absent when it is null or blank, never when it is zero.
+      lk: linkKey([r[cm.department_column], r[cm.fund_column], r[cm.expense_category_column]]),
       rid: hashRow(r), // SHA-256 of full row — deterministic dedup key
     };
   });
