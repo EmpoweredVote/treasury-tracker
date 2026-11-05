@@ -203,4 +203,78 @@ export const FRISCO_REGISTER_ANOMALIES = [
       + 'src/data/figureFlags.ts bar, which requires independent AGENTS, not merely '
       + 'independent sources. MUST NOT be promoted until that is done.',
   },
+
+  {
+    key: 'frisco-tx-register-coverage-gaps',
+    municipality: 'Frisco',
+    state: 'TX',
+    fiscalYears: [2019, 2021, 2026],
+    dataset: 'transactions',
+    loaded: true,
+
+    /**
+     * ⚠⚠ The figures are as published. What is NOT as published is the
+     * implication that each one covers a year: FY2021's does not.
+     */
+    disposition: 'loaded-as-published',
+    severity: 'incomplete-period',
+
+    what:
+      "Three of Frisco's registers do not cover the period their fiscal-year label "
+      + 'implies. FY2021 is the serious one: it contains only TEN months, October 2020 '
+      + 'through July 2021. August and September 2021 are absent entirely.',
+
+    magnitude: [
+      'FY2021: 10 of 12 months. TT publishes $316,736,239.27 as a YEAR total; it is a '
+        + 'ten-month total. At the file\'s own run rate the missing two months are worth '
+        + 'roughly $63M.',
+      'FY2026: one business day missing — 2025-10-01, a WEDNESDAY, and the first day of '
+        + 'the fiscal year. The file starts 2025-10-02 and FY2025 ends 2025-09-30, so that '
+        + 'day is absent from TT entirely. A 1 October elsewhere in the series is worth '
+        + '$104,857.97 (2024), $2,201,936.88 (2019) and $4,560,172.99 (2021), so the '
+        + 'amount at stake is unknowable rather than small.',
+      'FY2019: one row dated 2009-04-05 — ten years outside its own fiscal year — and '
+        + 'the file ends 2019-09-26, missing Friday the 27th and Monday the 30th.',
+    ],
+
+    /**
+     * ⭐⭐ THE ACFR BAND CORROBORATES FY2021 INDEPENDENTLY. A check register
+     * covers governmental AND enterprise cash, so every complete Frisco year
+     * sits a little ABOVE audited governmental expenditures. FY2021 is the
+     * ONLY year below 1.0, and the only year missing months.
+     */
+    verifiedBecause: [
+      'Read from the published files, not inferred: FY2021 lists months 2020-10 through '
+        + '2021-07 and nothing after. Checked in BOTH formats Frisco publishes — the XLSX '
+        + '(Archive ADID 3781) and the PDF (ADID 3780) — and the PDF has zero rows in '
+        + 'August or September 2021 either. It is the publisher\'s omission, not a '
+        + 'parsing or format artifact, and nothing in TT can recover it.',
+      'FY2021 is 0.92x its audited governmental expenditures ($316,736,239.27 against '
+        + '$345,843,297) — the only year in the series below 1.0. Every complete year runs '
+        + '1.01x to 1.14x. Ten months at the file\'s own rate would reach about $380M, or '
+        + '1.10x, squarely inside that band.',
+      'The gaps at other year boundaries are NOT gaps. FY2023 starts 2022-10-03 because '
+        + '1 October was a Saturday and the 2nd a Sunday; FY2024 starts 2023-10-02 because '
+        + '1 October was a Sunday. Only FY2026 begins after a missed WEEKDAY.',
+    ],
+
+    benignExplanations: [
+      'A city can have a quiet day. 2025-10-01 carrying no payments is possible, and TT '
+        + 'cannot distinguish "no cheques issued" from "not published" for a single date.',
+      'The FY2021 omission is harder to explain away: two consecutive months, in both '
+        + 'published formats, in the one year whose total falls below the audited figure.',
+    ],
+
+    supportingContext:
+      '⚠ Unlike Plano, none of this is TT asking for the wrong range. Frisco publishes '
+      + 'static files at fixed archive URLs and TT loads what is in them, so there is no '
+      + 'query to correct — only the gap to declare. Contrast Plano, where an exclusive '
+      + 'SD/ED bound silently dropped 1,349 rows and the fix was TT\'s to make.',
+
+    corroboration:
+      '⚠ PARTIAL. One analyst, 2026-11-05. The month census is a direct reading of the '
+      + 'published files and is not in doubt; the ACFR band agreeing with it is '
+      + 'independent of that reading. ⛔ Still short of the src/data/figureFlags.ts bar, '
+      + 'which requires independent AGENTS. MUST NOT be promoted until that is done.',
+  },
 ];
