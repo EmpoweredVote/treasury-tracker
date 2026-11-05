@@ -27,6 +27,7 @@ import { parseArgs } from 'node:util';
 
 import { listAllSourcesResult } from './lib/listAllSources.mjs';
 import { idOrNull, linkKey } from './lib/publisherIds.mjs';
+import { vendorLinkKey } from './lib/vendorKey.mjs';
 import { isEnrolled } from './lib/transactionTreeSources.mjs';
 // ⚠ Parsing and the dedup hash live in lib so a measurement can import THE SAME
 // CODE. See scripts/lib/xlsxRows.mjs and scripts/measureXlsxDedupLoss.mjs.
@@ -117,7 +118,20 @@ export function buildBatch(rows, cm, keys) {
       // carrying $79,113,310 in FY2024 alone. Every dollar of it lost its key
       // here and surfaced to readers as `Unknown Department`. An identifier is
       // absent when it is null or blank, never when it is zero.
-      lk: linkKey([r[cm.department_column], r[cm.fund_column], r[cm.expense_category_column]]),
+      //
+      // ⚠⚠⚠ AND WHEN THE PUBLISHER GIVES NONE OF THOSE THREE COLUMNS, FALL
+      // BACK TO THE VENDOR. Frisco's mapping has no department, fund or
+      // expense_category, so this produced NULL on every row of every reload —
+      // while the tree above those rows was keyed on the VENDOR NAME by the
+      // migration that first built it. The two silently stopped describing
+      // each other, and FY2018/2019/2022/2026 kept trees holding pre-reload
+      // figures, including a $2.52B phantom "Unknown" root. See
+      // scripts/lib/vendorKey.mjs for the rule and how it was recovered.
+      //
+      // ⚠ A structural key still WINS where one exists: McKinney keeps its
+      // department|fund|category key and its tree is unaffected.
+      lk: linkKey([r[cm.department_column], r[cm.fund_column], r[cm.expense_category_column]])
+        ?? vendorLinkKey(vn),
       // ⚠ Key supplied by the caller, computed over the WHOLE file. Counting
       // occurrences inside this 500-row chunk would give two identical rows in
       // different chunks the same key and collapse them anyway.

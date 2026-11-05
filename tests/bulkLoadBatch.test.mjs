@@ -129,3 +129,70 @@ describe('no module-scope database client', () => {
     expect(offenders).toEqual([]);
   });
 });
+
+/**
+ * ── ⚠⚠⚠ THE LINK KEY, WHICH THE LOADER USED TO ERASE ──────────────────────
+ *
+ * `treasury_sync_transactions` writes `link_key` from `t.lk` and does NOT
+ * touch `budget_categories`. buildBatch only ever computed a key from
+ * department|fund|expense_category — three columns Frisco's mapping does not
+ * have — so every Frisco reload wrote NULL on every row while the tree above
+ * them stayed keyed on the VENDOR NAME.
+ *
+ * The two silently stopped describing each other. When #336 removed the
+ * publisher TOTAL row and #339 collapsed the repeated allocation rows, the
+ * headlines were corrected and the TREES kept the old figures — including a
+ * phantom root called "Unknown" holding $2.52 BILLION across three years,
+ * still clickable on the live site.
+ */
+describe('buildBatch — the link key', () => {
+  const KEY = (n) => Array.from({ length: n }, (_, i) => `row-${i}`);
+
+  it('prefers a structural key when the publisher gives one', () => {
+    const cm = { department_column: 'dept', fund_column: 'fund', amount_column: 'amount',
+                 vendor_column: 'payee' };
+    const rows = [{ dept: 2119, fund: '100', amount: 5, payee: 'ACME' }];
+    expect(buildBatch(rows, cm, KEY(1)).transactions[0].lk).toBe('2119|100');
+  });
+
+  /** ⚠ The McKinney defect: department code 0 is REAL and must keep its key. */
+  it('keeps the integer zero in a structural key', () => {
+    const cm = { department_column: 'dept', amount_column: 'amount', vendor_column: 'payee' };
+    const rows = [{ dept: 0, amount: 5, payee: 'ACME' }];
+    expect(buildBatch(rows, cm, KEY(1)).transactions[0].lk).toBe('0');
+  });
+
+  it('falls back to the vendor when there is no structural column at all', () => {
+    const cm = { amount_column: 'amount', vendor_column: 'payee' };
+    const rows = [{ amount: 5, payee: 'NORTH TEXAS MUNICIPAL WATER DISTRICT' }];
+    expect(buildBatch(rows, cm, KEY(1)).transactions[0].lk)
+      .toBe('north-texas-municipal-water-district');
+  });
+
+  it('keys the vendor exactly as the stored Frisco trees do', () => {
+    const cm = { amount_column: 'amount', vendor_column: 'payee' };
+    const rows = [{ amount: 1, payee: 'CITY OF FRISCO - BIWEEKLY PAYROLL' },
+                  { amount: 1, payee: 'A TO T LAMPS INC    ' },
+                  { amount: 1, payee: 'A&M MAINTENANCE SERVICES, INC.' }];
+    expect(buildBatch(rows, cm, KEY(3)).transactions.map((t) => t.lk))
+      .toEqual(['city-of-frisco-biweekly-payroll', 'a-to-t-lamps-inc', 'a-m-maintenance-services-inc-']);
+  });
+
+  /**
+   * ⚠⚠ Plano has NO vendor column (#340 removed it: the payee is truncated to
+   * five characters). There is nothing to key on and the honest answer is a
+   * NULL key, not a key derived from a label TT refuses to publish.
+   */
+  it('emits a NULL key when there is neither a structural column nor a vendor', () => {
+    const cm = { amount_column: 'amount' };
+    expect(buildBatch([{ amount: 5 }], cm, KEY(1)).transactions[0].lk).toBeNull();
+  });
+
+  it('never keys on the literal string "Unknown" for a blank payee', () => {
+    // A blank payee becomes the vendor NAME "Unknown"; keying on it would
+    // rebuild the very root this work removed.
+    const cm = { amount_column: 'amount', vendor_column: 'payee' };
+    const lk = buildBatch([{ amount: 5, payee: '' }], cm, KEY(1)).transactions[0].lk;
+    expect(lk).toBe('unknown');
+  });
+});

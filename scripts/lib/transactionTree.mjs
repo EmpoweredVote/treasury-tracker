@@ -37,7 +37,7 @@
  * label nobody could trace and a drill-down that returned nothing. If a key is
  * missing, the loader lost it — fix the loader.
  */
-export function rollUpTransactions(txns, resolveNames) {
+export function rollUpTransactions(txns, resolveNames, opts = {}) {
   const groups = new Map();
   let unkeyed = 0;
   let unkeyedAmount = 0;
@@ -66,6 +66,51 @@ export function rollUpTransactions(txns, resolveNames) {
 
   if (!groups.size) throw new Error('no transactions to roll up — refusing to write an empty tree');
 
+  // ⚠ Round to cents ONCE, here, so the roots sum to the same number the
+  // database total does. Summing floats and rounding per row does not.
+  // ⚠⚠ Computed BEFORE any bucketing, from every group, so the total cannot
+  // depend on how the tail is gathered.
+  const total = [...groups.values()].reduce((a, g) => a + g.amount, 0);
+
+  /**
+   * ── ⚠⚠ THE TAIL BUCKET ───────────────────────────────────────────────
+   *
+   * A vendor-keyed source has thousands of distinct payees and a readable
+   * breakdown cannot have thousands of roots. Every transaction-backed tree
+   * already in the database keeps the LARGEST `keepTop` and gathers the rest
+   * into one bucket — Frisco is 30 named vendors + "Other Vendors" in all
+   * eight of its years, measured, not chosen here.
+   *
+   * ⚠ This is opt-in. McKinney passes no `keepTop` and keeps one root per
+   * department, exactly as before.
+   *
+   * ⚠⚠ The tail is gathered by AMOUNT and the bucket is NOT handed to the
+   * resolver — its name is fixed. Asking a sourced naming rule to name an
+   * aggregate TT invented is how an invented label starts looking sourced.
+   */
+  const { keepTop = null, tailKey = null, tailName = null } = opts;
+  if (keepTop !== null && (!tailKey || !tailName)) {
+    throw new Error('keepTop needs both tailKey and tailName — a bucket with no name is an invented label');
+  }
+
+  let tail = null;
+  if (keepTop !== null && groups.size > keepTop) {
+    const ranked = [...groups.values()].sort(
+      (a, b) => b.amount - a.amount || a.link_key.localeCompare(b.link_key),
+    );
+    tail = { link_key: tailKey, amount: 0, item_count: 0 };
+    for (const g of ranked.slice(keepTop)) {
+      tail.amount += g.amount;
+      tail.item_count += g.item_count;
+      groups.delete(g.link_key);
+    }
+    // ⚠ A publisher may genuinely have a vendor whose own key collides with
+    // the bucket's. Two roots with one key is a tree that cannot be diffed.
+    if (groups.has(tailKey)) {
+      throw new Error(`a real vendor already keys as ${JSON.stringify(tailKey)} — the tail bucket would collide with it`);
+    }
+  }
+
   const keys = [...groups.keys()];
   const names = resolveNames(keys);
 
@@ -74,9 +119,10 @@ export function rollUpTransactions(txns, resolveNames) {
     throw new Error(`the name resolver returned nothing for ${missing.length} key(s), first: ${missing[0]}`);
   }
 
-  // ⚠ Round to cents ONCE, here, so the roots sum to the same number the
-  // database total does. Summing floats and rounding per row does not.
-  const total = [...groups.values()].reduce((a, g) => a + g.amount, 0);
+  if (tail) {
+    groups.set(tailKey, tail);
+    names.set(tailKey, tailName);
+  }
 
   const roots = [...groups.values()]
     .map((g) => ({
@@ -92,7 +138,24 @@ export function rollUpTransactions(txns, resolveNames) {
       item_count: g.item_count,
       percentage: total === 0 ? 0 : Number(((g.amount / total) * 100).toFixed(4)),
     }))
-    .sort((a, b) => b.amount - a.amount || a.link_key.localeCompare(b.link_key));
+    /**
+     * ⚠⚠ THE TAIL BUCKET SORTS LAST, HOWEVER LARGE IT IS. Every stored Frisco
+     * year puts "Other Vendors" at sort_order 31 even though it outweighs
+     * every named vendor — it is a remainder, and a remainder reads as the
+     * bottom of a list, not the top of one.
+     *
+     * Found by measurement: sorting it by amount like any other root moved it
+     * to position 1 and pushed all 30 named vendors down one, so a rebuild of
+     * an ALREADY-CORRECT year rewrote all 31 rows. That would have destroyed
+     * the property this file depends on — that a no-change rebuild is a
+     * no-op, and therefore that a diff means real drift.
+     */
+    .sort((a, b) => {
+      if (a.link_key === b.link_key) return 0;
+      if (tailKey !== null && a.link_key === tailKey) return 1;
+      if (tailKey !== null && b.link_key === tailKey) return -1;
+      return b.amount - a.amount || a.link_key.localeCompare(b.link_key);
+    });
 
   // ⚠ 1-BASED, matching every transaction-backed tree already in the database
   // (Frisco 1..31, McKinney 1..97). A rebuild reproduces the existing

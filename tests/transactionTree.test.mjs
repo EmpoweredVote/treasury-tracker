@@ -150,8 +150,20 @@ describe('transactionTreeSources — enrolment is opt-in', () => {
     expect(isEnrolled('McKinney Check Register FY2024')).toBe(true);
   });
 
+  /**
+   * ⚠ Frisco was on this list and has been DELIBERATELY moved off it. Its
+   * naming rule is now checked: the label is the publisher's own vendor_name,
+   * carried through unchanged, and the key rule was recovered by measurement
+   * against the five years no reload had touched (10,892 keys, 0 differences).
+   * Leaving it unenrolled was what let its trees keep a $2.52B phantom root
+   * after #336 corrected the headlines above them.
+   */
+  it('enrols the Frisco check registers, whose labels are the publisher’s own', () => {
+    expect(isEnrolled('Frisco Check Register FY2026')).toBe(true);
+  });
+
   it('does NOT enrol sources whose naming rule nobody has checked', () => {
-    for (const s of ['Frisco Check Register FY2026', 'Plano Check Register FY2025',
+    for (const s of ['Plano Check Register FY2025',
                      'West Hollywood Demand Register FY2024-25', 'McKinney Payroll Register FY2024']) {
       expect(isEnrolled(s), s).toBe(false);
       expect(resolverFor(s, 2024)).toBeNull();
@@ -212,5 +224,143 @@ describe('a rebuild is a no-op when nothing changed', () => {
     const a = rollUpTransactions(txns, resolve);
     const b = rollUpTransactions([...txns].reverse(), resolve);
     expect(b.roots).toEqual(a.roots);
+  });
+});
+
+/**
+ * ── THE TAIL BUCKET ───────────────────────────────────────────────────────
+ *
+ * ⚠⚠ Added for Frisco, whose roots are VENDORS: ~2,400 distinct payees a year,
+ * which no reader can use as a breakdown. Every stored Frisco year keeps the
+ * 30 largest and gathers the rest into "Other Vendors".
+ *
+ * The sort test below is the one that matters. Sorting the bucket by amount
+ * like any other root put it FIRST (it outweighs every named vendor) and
+ * pushed all 30 down one place — so a rebuild of an already-correct year
+ * rewrote all 31 rows, and "a diff means real drift" stopped being true.
+ */
+describe('rollUpTransactions — the tail bucket', () => {
+  const many = (n) => Array.from({ length: n }, (_, i) => ({
+    link_key: `v${String(i).padStart(3, '0')}`, amount: (n - i) * 100,
+  }));
+  const names = (keys) => new Map(keys.map((k) => [k, k.toUpperCase()]));
+  const OPTS = { keepTop: 3, tailKey: 'other-vendors', tailName: 'Other Vendors' };
+
+  it('keeps one root per key when no keepTop is given', () => {
+    const { roots } = rollUpTransactions(many(10), names);
+    expect(roots).toHaveLength(10);
+    expect(roots.map((r) => r.link_key)).not.toContain('other-vendors');
+  });
+
+  it('keeps the largest keepTop and buckets the rest', () => {
+    const { roots } = rollUpTransactions(many(10), names, OPTS);
+    expect(roots).toHaveLength(4);
+    expect(roots.map((r) => r.link_key)).toEqual(['v000', 'v001', 'v002', 'other-vendors']);
+  });
+
+  it('puts the bucket LAST even though it is the largest root', () => {
+    const { roots } = rollUpTransactions(many(10), names, OPTS);
+    const tail = roots.find((r) => r.link_key === 'other-vendors');
+    expect(tail.sort_order).toBe(4);
+    expect(tail.amount).toBeGreaterThan(roots[0].amount); // bigger, still last
+  });
+
+  it('preserves the total exactly — the bucket loses no money', () => {
+    const rows = many(10);
+    const expected = rows.reduce((a, r) => a + r.amount, 0);
+    const { roots, total } = rollUpTransactions(rows, names, OPTS);
+    expect(total).toBe(expected);
+    expect(roots.reduce((a, r) => a + r.amount, 0)).toBe(expected);
+  });
+
+  it('sums the bucket’s item_count over every row it swallowed', () => {
+    const { roots } = rollUpTransactions(many(10), names, OPTS);
+    expect(roots.find((r) => r.link_key === 'other-vendors').item_count).toBe(7);
+  });
+
+  it('does not bucket when there are no more keys than keepTop', () => {
+    const { roots } = rollUpTransactions(many(3), names, OPTS);
+    expect(roots).toHaveLength(3);
+    expect(roots.map((r) => r.link_key)).not.toContain('other-vendors');
+  });
+
+  it('never asks the resolver to name the bucket', () => {
+    const seen = [];
+    rollUpTransactions(many(10), (keys) => { seen.push(...keys); return names(keys); }, OPTS);
+    expect(seen).not.toContain('other-vendors');
+  });
+
+  it('refuses a keepTop with no name for the bucket', () => {
+    expect(() => rollUpTransactions(many(10), names, { keepTop: 3 }))
+      .toThrow(/invented label/);
+  });
+
+  /**
+   * ⚠ Only a collider large enough to SURVIVE into the kept roots is a
+   * collision. One small enough to fall into the tail is simply absorbed by
+   * it, which is the right answer and must not throw — so both halves are
+   * asserted here.
+   */
+  it('refuses when a surviving vendor already keys as the bucket', () => {
+    const rows = [...many(10), { link_key: 'other-vendors', amount: 999999 }];
+    expect(() => rollUpTransactions(rows, names, OPTS)).toThrow(/collide/);
+  });
+
+  it('absorbs a same-keyed vendor that falls into the tail anyway', () => {
+    const rows = [...many(10), { link_key: 'other-vendors', amount: 1 }];
+    const { roots, total } = rollUpTransactions(rows, names, OPTS);
+    expect(roots).toHaveLength(4);
+    expect(total).toBe(rows.reduce((a, r) => a + r.amount, 0));
+  });
+
+  it('is still insensitive to the order rows arrive in', () => {
+    const rows = many(10);
+    const a = rollUpTransactions(rows, names, OPTS);
+    const b = rollUpTransactions([...rows].reverse(), names, OPTS);
+    expect(b.roots).toEqual(a.roots);
+  });
+});
+
+describe('Frisco is enrolled, and names nothing it was not given', () => {
+  it('is enrolled with the measured 30 + Other Vendors shape', () => {
+    const r = resolverFor('Frisco Check Register FY2019', 2019);
+    expect(r).toBeTruthy();
+    expect(r.keepTop).toBe(30);
+    expect(r.tailKey).toBe('other-vendors');
+    expect(r.tailName).toBe('Other Vendors');
+  });
+
+  it('labels a root with the publisher’s own vendor name', () => {
+    const r = resolverFor('Frisco Check Register FY2019', 2019);
+    const vendorNameByKey = new Map([['north-texas-municipal-water-district', 'NORTH TEXAS MUNICIPAL WATER DISTRICT']]);
+    const out = r.resolveNames(['north-texas-municipal-water-district'], { vendorNameByKey });
+    expect(out.get('north-texas-municipal-water-district')).toBe('NORTH TEXAS MUNICIPAL WATER DISTRICT');
+  });
+
+  /**
+   * ⚠⚠ A key with no vendor behind it means the read came back short. The
+   * resolver returns nothing and rollUpTransactions refuses — it must NOT
+   * invent "Unknown", which is the exact label that put $79.1M of McKinney
+   * money under a root that led nowhere.
+   */
+  it('returns NOTHING for a key it has no name for', () => {
+    const r = resolverFor('Frisco Check Register FY2019', 2019);
+    const out = r.resolveNames(['missing-vendor'], { vendorNameByKey: new Map() });
+    expect(out.get('missing-vendor')).toBeUndefined();
+    expect(() => rollUpTransactions(
+      [{ link_key: 'missing-vendor', amount: 1 }],
+      (keys) => r.resolveNames(keys, { vendorNameByKey: new Map() }),
+    )).toThrow(/resolver returned nothing/);
+  });
+
+  /** ⚠ Plano's payee is truncated to 5 characters — #340 removed that axis. */
+  it('does NOT enrol Plano', () => {
+    expect(isEnrolled('Plano Check Register FY2023')).toBe(false);
+    expect(resolverFor('Plano Check Register FY2023', 2023)).toBeNull();
+  });
+
+  it('leaves McKinney with no bucket, one root per department', () => {
+    const r = resolverFor('McKinney Check Register FY2024', 2024);
+    expect(r.keepTop).toBeNull();
   });
 });

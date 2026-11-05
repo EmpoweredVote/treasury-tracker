@@ -57,7 +57,8 @@
     "ny:verify-municipal": "node --env-file=.env scripts/verifyNyOscMunicipal.mjs",
     "verify:live-sync": "node scripts/liveSyncExclusions.mjs --check",
     "verify:grants": "node scripts/verifyAnonExecute.mjs",
-    "check:single-copy": "node scripts/checkSingleCopy.mjs"
+    "check:single-copy": "node scripts/checkSingleCopy.mjs",
+    "verify:out-of-period": "node scripts/verifyOutOfPeriodTransactions.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.122.0",
