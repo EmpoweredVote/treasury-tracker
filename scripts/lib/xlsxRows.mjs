@@ -132,6 +132,37 @@ export function splitCSVLine(line) {
   return result;
 }
 
+/**
+ * Is this buffer an XLSX workbook?
+ *
+ * ⚠⚠ CONTENT, NOT THE URL. The loader used to pick its parser with
+ * `url.endsWith('.csv')`, which works only while every publisher is polite
+ * about file extensions. Plano's own register serves CSV from
+ *
+ *   ReportExport.aspx?ET=AP&Detail=T&A=-1&...&SD=10/1/2022&ED=9/30/2023
+ *
+ * — a query string with no suffix at all — and a suffix test hands that CSV
+ * straight to the XLSX parser.
+ *
+ * Every XLSX is a zip, so it starts `PK`. That is the same magic-byte reasoning
+ * downloadViaCurl already uses to catch a WAF block page served as 200
+ * text/html, and for the same reason: content-type is exactly what a wrong
+ * response lies about.
+ */
+export function looksLikeXlsx(buffer) {
+  return buffer.length > 1 && buffer[0] === 0x50 && buffer[1] === 0x4b;
+}
+
+/**
+ * ⚠ Guard the OTHER direction too. Without this, an HTML error page fed to the
+ * CSV parser yields a header row of nonsense and zero data rows — a silent
+ * empty load — where the XLSX parser would at least have thrown.
+ */
+export function looksLikeHtml(buffer) {
+  const head = buffer.slice(0, 512).toString('utf8').trimStart().toLowerCase();
+  return head.startsWith('<!doctype html') || head.startsWith('<html') || head.startsWith('<?xml');
+}
+
 export function parseCSV(buffer) {
   const lines = buffer.toString('utf8').split(/\r?\n/);
   const headers = splitCSVLine(lines[0]).map(h => h.trim().toLowerCase().replace(/\s+/g, '_'));

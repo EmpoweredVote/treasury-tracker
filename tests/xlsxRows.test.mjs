@@ -9,7 +9,9 @@
  * to the hash silently changes which rows exist.
  */
 import { describe, it, expect } from 'vitest';
-import { hashRow, parseAmount, parseCSV, splitCSVLine, rowKeys } from '../scripts/lib/xlsxRows.mjs';
+import {
+  hashRow, parseAmount, parseCSV, splitCSVLine, rowKeys, looksLikeXlsx, looksLikeHtml,
+} from '../scripts/lib/xlsxRows.mjs';
 
 describe('hashRow — the dedup key', () => {
   it('is stable for the same row', () => {
@@ -163,5 +165,36 @@ describe('rowKeys — the opt-in dedup policy', () => {
     expect(halves).not.toEqual(whole);   // proving the per-chunk mistake IS a mistake
     expect(new Set(halves).size).toBe(3);
     expect(new Set(whole).size).toBe(4);
+  });
+});
+
+describe('looksLikeXlsx / looksLikeHtml — choosing a parser by content', () => {
+  // ⚠⚠ The loader used to pick by `url.endsWith('.csv')`. Plano's own register
+  // serves CSV from `ReportExport.aspx?ET=AP&Detail=T&...` — a query string
+  // with no suffix — so a suffix test hands that CSV to the XLSX parser.
+  it('recognises an XLSX by its zip magic bytes', () => {
+    expect(looksLikeXlsx(Buffer.from([0x50, 0x4b, 0x03, 0x04]))).toBe(true);
+  });
+
+  it('does not mistake CSV text for a workbook', () => {
+    expect(looksLikeXlsx(Buffer.from('CheckDate,PayeeName,Amount\n'))).toBe(false);
+  });
+
+  it('survives an empty or one-byte buffer', () => {
+    expect(looksLikeXlsx(Buffer.alloc(0))).toBe(false);
+    expect(looksLikeXlsx(Buffer.from([0x50]))).toBe(false);
+  });
+
+  // ⚠ Guard the other direction: an HTML block page fed to the CSV parser
+  // yields a nonsense header and zero rows — a SILENT EMPTY LOAD — where the
+  // XLSX parser would at least have thrown.
+  it('spots an HTML error or block page', () => {
+    expect(looksLikeHtml(Buffer.from('<!DOCTYPE html>\n<html>'))).toBe(true);
+    expect(looksLikeHtml(Buffer.from('  \n<html lang="en">'))).toBe(true);
+    expect(looksLikeHtml(Buffer.from('<?xml version="1.0"?>'))).toBe(true);
+  });
+
+  it('does not flag real CSV as HTML', () => {
+    expect(looksLikeHtml(Buffer.from('CheckDate,PayeeName,Amount\n10/1/2023,HOME ,1.00'))).toBe(false);
   });
 });
