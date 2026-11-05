@@ -51,12 +51,53 @@ function mckinneyResolver(fiscalYear) {
   };
 }
 
+/**
+ * ── FRISCO: THE VENDOR NAME AS THE PUBLISHER WROTE IT ────────────────────
+ *
+ * ⚠⚠ This is the narrowest possible naming rule and that is deliberate. It
+ * INVENTS NOTHING: the label is the `vendor_name` cell from Frisco's own
+ * check register, carried through unchanged. There is no map, no lookup and
+ * no judgement — which is what separates it from McKinney, whose roots are
+ * numeric department CODES that needed a published name map before anything
+ * could be called by a name.
+ *
+ * ⚠ Frisco's names are full ("NORTH TEXAS MUNICIPAL WATER DISTRICT"), unlike
+ * PLANO's, which the publisher truncates to five characters — which is why
+ * Plano's vendor axis was removed in #340 and must NOT be enrolled here.
+ *
+ * The key is `vendorLinkKey`, recovered by measurement against the five years
+ * no reload touched: 10,892 distinct keys, 10,892 exact matches.
+ */
+function friscoResolver() {
+  return (keys, ctx = {}) => {
+    const byKey = ctx.vendorNameByKey instanceof Map ? ctx.vendorNameByKey : new Map();
+    const out = new Map();
+    // ⚠ No fallback. A key with no vendor name behind it means the join came
+    // back short, and rollUpTransactions refuses rather than labelling money
+    // with something TT made up.
+    for (const k of keys) out.set(k, byKey.get(k));
+    return out;
+  };
+}
+
 const SOURCES = [
   {
     // "McKinney Check Register FY2024"
     match: /^McKinney Check Register FY(\d{4})$/,
     resolver: mckinneyResolver,
     source: MCKINNEY._source,
+  },
+  {
+    // "Frisco Check Register FY2019"
+    match: /^Frisco Check Register FY(\d{4})$/,
+    resolver: friscoResolver,
+    source: "The vendor_name column of Frisco's published check register, unchanged.",
+    // ⚠ MEASURED from all eight stored Frisco years, every one of which holds
+    // exactly 30 named roots plus one "Other Vendors". Reproducing the stored
+    // convention is what keeps a no-change rebuild a no-op.
+    keepTop: 30,
+    tailKey: 'other-vendors',
+    tailName: 'Other Vendors',
   },
 ];
 
@@ -67,7 +108,15 @@ const SOURCES = [
 export function resolverFor(dataSourceName, fiscalYear) {
   for (const s of SOURCES) {
     if (s.match.test(String(dataSourceName || ''))) {
-      return { resolveNames: s.resolver(fiscalYear), source: s.source };
+      return {
+        resolveNames: s.resolver(fiscalYear),
+        source: s.source,
+        // ⚠ Undefined for a source with no tail bucket, which is what
+        // rollUpTransactions treats as "one root per key" — McKinney's shape.
+        keepTop: s.keepTop ?? null,
+        tailKey: s.tailKey ?? null,
+        tailName: s.tailName ?? null,
+      };
     }
   }
   return null;

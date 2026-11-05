@@ -277,4 +277,57 @@ export const FRISCO_REGISTER_ANOMALIES = [
       + 'independent of that reading. ⛔ Still short of the src/data/figureFlags.ts bar, '
       + 'which requires independent AGENTS. MUST NOT be promoted until that is done.',
   },
+
+  {
+    key: 'frisco-tx-fy2019-row-dated-2009',
+    municipality: 'Frisco',
+    state: 'TX',
+    fiscalYears: [2019],
+    dataset: 'operating',
+    loaded: true,
+    disposition: 'loaded-as-published',
+    severity: 'publisher-date-error',
+
+    what:
+      "The first data row of Frisco's FY2019 check register is dated 2009-04-05 — ten "
+      + 'years outside its own fiscal year — for $2,556,546.04 ("CITY OF FRISCO - BIWEEKLY '
+      + 'PAYROLL" / "CASH - PAYROLL"). TT reads the file correctly; the published XLSX '
+      + 'really does carry that date. Five independent signals all place it on 2019-04-05, '
+      + 'a single-digit keying slip.',
+
+    magnitude: [
+      '$2,556,546.04 — 0.70% of the $365,021,764.02 TT publishes for Frisco FY2019.',
+      '⚠ The YEAR TOTAL IS UNAFFECTED either way. The row is in the publisher’s FY2019 '
+        + 'file and belongs in the FY2019 total; only the date is wrong. Nothing about '
+        + "TT's published figure for Frisco FY2019 changes because of this entry.",
+    ],
+
+    benignExplanations: [
+      'A 2009-for-2019 typo in the first row of an export. Nothing here implies anything '
+        + 'beyond a keying slip: the amount is ordinary for the payroll series and the '
+        + 'money is accounted for in the right fiscal year.',
+    ],
+
+    /**
+     * ⚠⚠ ONE DEFECT, ONE AUTHORITY. The evidence, the exact row count and the
+     * gate that enforces it live in scripts/data/outOfPeriodExceptions.mjs.
+     * Restating the five signals here would give the project two copies that
+     * drift apart, and the copy without a test is the one that goes stale.
+     */
+    supportingContext:
+      '⭐ The full evidence and the enforced row count are in '
+      + 'scripts/data/outOfPeriodExceptions.mjs (key frisco-tx-fy2019-row-dated-2009), '
+      + 'checked continuously by `npm run verify:out-of-period`. In short: the biweekly '
+      + 'payroll runs on FRIDAYS 14 days apart 25 times; its only 28-day gap is '
+      + '2019-03-22 → 2019-04-19; no row in the file is dated 2019-04-05; 2019-04-05 was '
+      + 'a Friday and 2009-04-05 a Sunday; and the amount sits inside the series’ '
+      + 'contemporaneous $2.37M–$2.68M range.',
+
+    corroboration:
+      '⚠ PARTIAL. One analyst, 2026-11-05, reading the publisher’s own XLSX with the '
+      + "loader's own parser. The date in the file is not in doubt; that it was MEANT to "
+      + 'be 2019-04-05 is an inference, however well supported. ⛔ Short of the '
+      + 'src/data/figureFlags.ts bar, which requires independent AGENTS. Not reader-facing '
+      + '— and no reader sees a date today, because payment_date has no consumer.',
+  },
 ];

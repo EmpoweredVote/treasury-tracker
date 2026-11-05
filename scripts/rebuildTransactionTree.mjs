@@ -80,8 +80,12 @@ function db() {
 async function transactionsOf(budgetId) {
   const rows = [];
   for (let from = 0; ; from += 1000) {
+    // ⚠ The vendor NAME comes along because a vendor-keyed source labels its
+    // roots with it (Frisco). McKinney ignores it. Joining here keeps the
+    // naming rule a pure function of what was read, with no second query that
+    // could come back describing a different set of rows.
     const { data, error } = await db().schema('treasury').from('transactions')
-      .select('id, amount, link_key').eq('budget_id', budgetId)
+      .select('id, amount, link_key, vendors(name)').eq('budget_id', budgetId)
       .order('id').range(from, from + 999);
     if (error) throw new Error(`transactions read failed: ${error.message}`);
     rows.push(...data);
@@ -137,7 +141,22 @@ export async function rebuildBudget(budget, { dryRun = false, quiet = false } = 
   }
 
   const txns = await transactionsOf(budget.id);
-  const { roots, total } = rollUpTransactions(txns, r.resolveNames);
+
+  // ⚠ Built from the SAME rows the roll-up sees, so a key can never resolve to
+  // a name that came from a different read.
+  const vendorNameByKey = new Map();
+  for (const t of txns) {
+    const name = t.vendors?.name;
+    if (t.link_key != null && name != null && !vendorNameByKey.has(t.link_key)) {
+      vendorNameByKey.set(t.link_key, name);
+    }
+  }
+
+  const { roots, total } = rollUpTransactions(
+    txns,
+    (keys) => r.resolveNames(keys, { vendorNameByKey }),
+    { keepTop: r.keepTop, tailKey: r.tailKey, tailName: r.tailName },
+  );
   const existing = await rootsOf(budget.id);
   const { inserts, updates, deletes } = diffTree(existing, roots);
 
