@@ -33,6 +33,10 @@ import { judgeDoubledExportDays, describeDoubledDays } from './lib/doubledExport
 import {
   findPublisherTotalRow, withoutTotalRow, assertTieToTotal, describeTotalRow,
 } from './lib/publisherTotalRow.mjs';
+// ⚠⚠⚠ Frisco FY2018/19 wrote the CHECK TOTAL on every GL line. Opt-in only.
+import {
+  collapseAllocationRows, describeAllocation, MIN_SHARE_TO_APPLY,
+} from './lib/allocationRows.mjs';
 import { rebuildBudget } from './rebuildTransactionTree.mjs';
 // ── Config ──────────────────────────────────────────────────────────────────
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://kxsdzaojfaibhuzmclfq.supabase.co';
@@ -214,6 +218,45 @@ async function syncSource(ds, opts = {}) {
       (parseErrors / rows.length * 100).toFixed(1) + '% exceeds 5% threshold (' +
       parseErrors + '/' + rows.length + ' rows)');
     process.exit(1);
+  }
+
+  // ── ⚠⚠⚠ Repeated-allocation collapse, opt-in per source ───────────────────
+  //
+  // Frisco FY2018/FY2019 repeat the FULL payment amount on every GL line. One
+  // check to NTMWD appears 11 times at $4,359,026.75 — TT read $47,949,294.25
+  // for a $4.36M payment, and both years published at ~3x the audited total.
+  //
+  // ⚠⚠ The share threshold is the real guard. Identical amounts on one day are
+  // NOT always a repeated allocation: Frisco FY2026 pays FRISCO STADIUM LLC
+  // twice monthly at the same amount, as an expenditure and the transfer
+  // funding it, and collapsing there would delete $63,167,944.48 that really
+  // moved. Broken years run 22-23% of rows; healthy ones 0.3%.
+  if (cm.allocation_rows === 'repeat-payment-total') {
+    const collapsed = collapseAllocationRows(rows, {
+      dateColumn: cm.date_column,
+      vendorColumn: cm.vendor_column,
+      amountColumn: cm.amount_column,
+      descriptionColumn: cm.description_column,
+    });
+    const v = collapsed.verdict;
+    if (!v.supported) {
+      console.error('  Aborting: cannot judge repeated allocations in ' + ds.name + ' — ' + v.reason);
+      process.exit(1);
+    }
+    if (v.share < MIN_SHARE_TO_APPLY) {
+      console.error('\n  ⛔ Aborting: ' + ds.name + ' does NOT have the repeated-allocation shape.');
+      for (const line of describeAllocation(v)) console.error('     ' + line);
+      console.error('\n  Only ' + (v.share * 100).toFixed(1) + '% of rows are in identical-amount groups; the' +
+        '\n  policy needs at least ' + (MIN_SHARE_TO_APPLY * 100).toFixed(0) + '%. Frisco FY2018 and FY2019 run 22-23%; a healthy' +
+        '\n  file runs 0.3%, and those few groups are usually REAL — an expenditure' +
+        '\n  beside the interfund transfer funding it. Collapsing here would delete $' +
+        v.moneyRemoved.toLocaleString(undefined, { minimumFractionDigits: 2 }) +
+        '\n  that was actually moved. Remove allocation_rows from this source\'s column_mapping.');
+      process.exit(1);
+    }
+    for (const line of describeAllocation(v)) console.log('  repeated allocations — ' + line);
+    rows = collapsed.rows;
+    console.log('  ✅ collapsed to ' + rows.length.toLocaleString() + ' payment row(s)');
   }
 
   // ── ⚠⚠⚠ Doubled-export guard, for occurrence-keyed sources only ────────────

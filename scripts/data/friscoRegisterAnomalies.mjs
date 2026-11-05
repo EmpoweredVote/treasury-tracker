@@ -36,8 +36,11 @@ export const FRISCO_REGISTER_ANOMALIES = [
 
     /**
      * ⚠⚠ NOT 'loaded-as-published', and this is the whole reason the entry
-     * exists. TT publishes $984,351,429.99 where Frisco's own file states
-     * $1,001,344,551.22. TT is BELOW the publisher's stated total on purpose.
+     * exists. TT publishes $365,021,764.02 where Frisco's own file states
+     * $1,001,344,551.22. TT is BELOW the publisher's stated total on purpose,
+     * for TWO independent reasons that compose: the four doubled export days
+     * described here, and the repeated allocation rows described in the next
+     * entry, which is much the larger of the two.
      */
     disposition: 'loaded-below-publisher-total',
     severity: 'publisher-export-artifact',
@@ -49,8 +52,13 @@ export const FRISCO_REGISTER_ANOMALIES = [
       + 'includes them, because the same report generated both the data rows and the total.',
 
     magnitude: [
-      "Frisco's own TOTAL row: $1,001,344,551.22. TT publishes $984,351,429.99. "
-        + 'The difference is $16,993,121.23 — 1.70%.',
+      "Frisco's own TOTAL row: $1,001,344,551.22. Removing ONLY these duplicates "
+        + 'would give $984,351,429.99, a difference of $16,993,121.23 (1.70%).',
+      '⚠ TT now publishes $365,021,764.02, because the repeated allocation rows in '
+        + 'the next entry are collapsed as well. The two defects OVERLAP and compose '
+        + 'correctly: SHI Government Solutions appears four times on 2019-06-04 at '
+        + '$1,081,182.43 — two account lines, each written twice by the doubled export. '
+        + 'One payment of $1,081,182.43 survives, which is what the city paid.',
       'The duplicated rows are 1,027 of the file\'s 25,426 data rows, concentrated on '
         + '2019-06-03, 06-04, 06-06, 06-07, 06-11 and 06-13.',
       'Largest single duplicated payment: TMRS retirement, $2,301,072.23, twice on '
@@ -108,13 +116,19 @@ export const FRISCO_REGISTER_ANOMALIES = [
     loaded: true,
 
     /**
-     * ⚠⚠ The figure is AS PUBLISHED — Frisco's own TOTAL row agrees with it to
-     * the cent. The publisher's file says $1,081,755,767.17 and TT says
-     * $1,081,599,676.05 (the difference is only content-dedup). What the
-     * publisher's own total CANNOT say is whether the underlying rows
-     * double-count, and the audited ACFR says they do.
+     * ⚠⚠ TT DEPARTS FROM THE PUBLISHER'S STATED TOTAL HERE, deliberately.
+     *
+     * Frisco's own TOTAL row says $1,081,755,767.17 for FY2018 and agrees with
+     * its own data rows to the cent — but what a publisher's total CANNOT say
+     * is whether the rows beneath it double-count. The audited ACFR says they
+     * do, by a factor of three, so TT collapses them and now publishes
+     * $379,429,772.10.
+     *
+     * ⚠ That makes this a Milledgeville-rule departure: the figure is NOT as
+     * published, and a reader comparing TT to the raw file will find a gap.
+     * It is recorded here for exactly that reason.
      */
-    disposition: 'loaded-as-published',
+    disposition: 'collapsed-repeated-allocations',
     severity: 'scope-overstatement',
 
     what:
@@ -163,18 +177,23 @@ export const FRISCO_REGISTER_ANOMALIES = [
         + '⚠ FY2026 contains a real example: FRISCO STADIUM LLC appears twice monthly at '
         + 'the same amount as "CAPITAL EXP-BLDGS/IMPRVMNTS" and "TRANSFER OUT - CAPITAL '
         + 'PROJECT" — plausibly an expenditure and the interfund transfer funding it. '
-        + 'That is why a blanket date+vendor+amount collapse would be WRONG, and why no '
-        + 'figure has been changed on this finding.',
+        + 'That is why a blanket date+vendor+amount collapse would be WRONG, and why the '
+        + 'repair is OPT-IN per source behind a share threshold: FY2026 has 0.3% of rows '
+        + 'in such groups and the loader REFUSES to collapse it, naming the '
+        + '$63,167,944.48 it would have deleted.',
       'Nine identical lines could in principle be nine separate invoices settled '
         + "together — but then the ACFR's governmental total would not be a third of what "
         + 'the register reports, in exactly the two years that show the pattern.',
     ],
 
     supportingContext:
-      'The repaired series reads as a coherent curve for a fast-growing city with a COVID '
-      + 'dip: ~380M (FY2018), ~373M (FY2019), 378M, 317M, 440M, 525M, 565M, 807M, 938M. '
-      + 'As published, FY2018 and FY2019 tower over FY2020 and FY2021 by ~3x and then '
-      + 'collapse, which is what prompted the question.',
+      'REPAIRED 2026-11-05. FY2018 now publishes $379,429,772.10 (1.08x audited) and '
+      + 'FY2019 $365,021,764.02 (1.11x). Every one of the eight years for which the ACFR '
+      + 'gives a figure now sits between 0.92x and 1.14x; before the repair, two of them '
+      + 'sat at 3.07x and 3.00x. The series reads as a coherent curve for a fast-growing '
+      + 'city with a COVID dip — 379M, 365M, 378M, 317M, 440M, 525M, 565M, 807M, 938M — '
+      + 'where previously FY2018 and FY2019 towered over FY2020 and FY2021 by ~3x and '
+      + 'then collapsed, which is what prompted the question.',
 
     corroboration:
       '⚠ PARTIAL. One analyst, 2026-11-04, but TWO INDEPENDENT LINES OF EVIDENCE reached '

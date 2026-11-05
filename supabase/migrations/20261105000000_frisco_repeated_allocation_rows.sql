@@ -1,0 +1,58 @@
+-- Frisco FY2018 and FY2019 opt in to collapsing repeated allocation rows.
+--
+-- ⚠⚠⚠ WHAT IS WRONG WITH THOSE TWO FILES. They repeat the FULL payment amount
+-- on every account-allocation line instead of splitting it across them. TT
+-- loaded each line as its own payment, so both years published at roughly
+-- THREE TIMES the truth.
+--
+-- ⭐ THE PUBLISHER CHANGED FORMAT, and the same vendor proves it:
+--
+--   FY2018, 2017-11-21, North Texas Municipal Water District
+--     11 rows, ONE distinct amount -- $4,359,026.75 on every line, including
+--     the balance-sheet lines AR - OTHER and ACCRUED ACCOUNTS PAYABLE.
+--     The check was $4,359,026.75. TT read $47,949,294.25.
+--
+--   FY2020, 2019-11-07, the same vendor
+--     8 rows, EIGHT distinct amounts, including a NEGATIVE AR - OTHER of
+--     -$838,754.28, summing to the net disbursement of $3,669,218.05.
+--
+-- ⭐⭐ THE ORACLE IS THE AUDITED ACFR, and it works by setting a BAND from the
+-- years that are not in question. A check register covers governmental AND
+-- enterprise cash, so it should sit a little ABOVE governmental expenditures.
+-- From Frisco's FY2025 ACFR, "Changes in Fund Balances of Governmental Funds,
+-- Last Ten Fiscal Years" (p.150-151):
+--
+--     FY      audited gov't    TT register     ratio
+--     2018     352,020,545   1,081,599,676     3.07x   <- broken
+--     2019     328,138,720     984,351,430     3.00x   <- broken
+--     2020     356,090,005     377,922,892     1.06x
+--     2021     345,843,297     316,736,239     0.92x
+--     2022     397,352,632     439,872,909     1.11x
+--     2023     459,400,825     524,901,563     1.14x
+--     2024     559,518,293     564,849,086     1.01x
+--     2025     724,462,533     807,342,811     1.11x
+--
+-- Collapsing puts FY2018 at $379,585,363.22 (1.08x) and FY2019 at
+-- $372,921,631.12 (1.14x) -- inside the band six other years hold, reached
+-- without tuning anything to the ACFR.
+--
+-- ⚠⚠ OPT-IN, AND THE LOADER REFUSES TO APPLY IT TO A HEALTHY FILE. Identical
+-- amounts on one day are NOT always a repeated allocation: Frisco FY2026 pays
+-- FRISCO STADIUM LLC twice a month at the same amount, as
+-- "CAPITAL EXP-BLDGS/IMPRVMNTS" and "TRANSFER OUT - CAPITAL PROJECT" -- an
+-- expenditure and the interfund transfer funding it. Both are real, and
+-- collapsing there would delete $63,167,944.48 that actually moved.
+--
+--     FY2018  22.1% of rows       FY2020  0.3%
+--     FY2019  23.0% of rows       FY2026  0.3%
+--
+-- Two orders of magnitude apart. scripts/lib/allocationRows.mjs refuses below
+-- 5%, so this cannot be enabled quietly on a file that does not need it.
+--
+-- ⚠ Do not turn this on for a source without an oracle that proves the
+-- direction. The ACFR band is what made FY2018 and FY2019 provable; no other
+-- Frisco year needs it and no other publisher has been shown to do this.
+
+update treasury.data_sources
+   set column_mapping = column_mapping || '{"allocation_rows":"repeat-payment-total"}'::jsonb
+ where name in ('Frisco Check Register FY2018', 'Frisco Check Register FY2019');
