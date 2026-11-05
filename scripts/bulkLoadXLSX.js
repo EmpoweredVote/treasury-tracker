@@ -1,4 +1,8 @@
-#!/usr/bin/env node
+/**
+ * ⚠ NO SHEBANG. tests/waSao.test.mjs forbids one on any module a test
+ * imports, and tests/bulkLoadBatch.test.mjs imports buildBatch from here.
+ * Always invoked as `node scripts/bulkLoadXLSX.js`, never as `./...`.
+ */
 /**
  * Bulk XLSX Loader for Treasury Tracker
  *
@@ -52,11 +56,20 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 // ── Download helper ──────────────────────────────────────────────────────────
 
 // ── Build compact transaction batch for RPC ───────────────────────────────────
-function buildBatch(rows, cm, keys) {
+export function buildBatch(rows, cm, keys) {
   const vendors = new Set();
   const txns = rows.map((r, idx) => {
-    const vn = r[cm.vendor_column] || 'Unknown';
-    vendors.add(vn);
+    // ⚠⚠⚠ NO vendor_column means the publisher gives TT nothing usable to name
+    // a payee with, and the honest answer is SILENCE — not a row attributed to
+    // a vendor called "Unknown".
+    //
+    // Plano is why. Its PayeeName is truncated to a 5-character fixed width in
+    // every row of every file: TT's largest Plano payee read "MO MI" and held
+    // $483,527,652.16. Worse than a bad label, it MIS-AGGREGATES — "COLLI"
+    // merges Collin County with Collin Creek — and a wrong aggregation with a
+    // plausible name is the kind of number that gets quoted.
+    const vn = cm.vendor_column ? (r[cm.vendor_column] || 'Unknown') : null;
+    if (vn !== null) vendors.add(vn);
 
     // Date: normalize to ISO date string (YYYY-MM-DD)
     let dt = null;
@@ -461,4 +474,14 @@ async function main() {
   console.log('\nDone.');
 }
 
-main().catch(err => { console.error('Fatal:', err); process.exit(1); });
+// ⚠⚠⚠ RUN ONLY AS A CLI, never on import. This module exports buildBatch so
+// the vendor and link-key rules can be tested, and without this guard merely
+// importing it would DOWNLOAD AND LOAD EVERY xlsx SOURCE.
+//
+// ⚠ pathToFileURL, not `file://${process.argv[1]}` — on Windows the naive form
+// compares `file:///C:/...` against `file://C:\...`, never matches, and the
+// script silently does nothing. That cost a session once already.
+const { pathToFileURL } = await import('node:url');
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main().catch(err => { console.error('Fatal:', err); process.exit(1); });
+}
