@@ -1,4 +1,8 @@
-#!/usr/bin/env node
+/**
+ * ⚠ NO SHEBANG. tests/waSao.test.mjs forbids one on any module a test
+ * imports, and tests/bulkLoadBatch.test.mjs imports buildBatch from here.
+ * Always invoked as `node scripts/bulkLoadXLSX.js`, never as `./...`.
+ */
 /**
  * Bulk XLSX Loader for Treasury Tracker
  *
@@ -39,24 +43,47 @@ import {
 } from './lib/allocationRows.mjs';
 import { rebuildBudget } from './rebuildTransactionTree.mjs';
 // ── Config ──────────────────────────────────────────────────────────────────
-const SUPABASE_URL = process.env.SUPABASE_URL || 'https://kxsdzaojfaibhuzmclfq.supabase.co';
-const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-if (!SUPABASE_KEY) {
-  console.error('Missing SUPABASE_SERVICE_KEY env var');
-  process.exit(1);
+/**
+ * ⚠⚠⚠ LAZY, and the missing-key check moved in here with it.
+ *
+ * This block used to run at module scope — including process.exit(1) when no
+ * key was set. Importing this module to test buildBatch would therefore have
+ * KILLED THE TEST RUNNER outright on any machine without credentials, which
+ * is exactly what CI is. A module that exports a function must not exit a
+ * process merely by being imported.
+ */
+let _supabase = null;
+function client() {
+  const key = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!key) {
+    console.error('Missing SUPABASE_SERVICE_KEY env var');
+    process.exit(1);
+  }
+  if (!_supabase) {
+    _supabase = createClient(
+      process.env.SUPABASE_URL || 'https://kxsdzaojfaibhuzmclfq.supabase.co', key,
+    );
+  }
+  return _supabase;
 }
-
-const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // ── Download helper ──────────────────────────────────────────────────────────
 
 // ── Build compact transaction batch for RPC ───────────────────────────────────
-function buildBatch(rows, cm, keys) {
+export function buildBatch(rows, cm, keys) {
   const vendors = new Set();
   const txns = rows.map((r, idx) => {
-    const vn = r[cm.vendor_column] || 'Unknown';
-    vendors.add(vn);
+    // ⚠⚠⚠ NO vendor_column means the publisher gives TT nothing usable to name
+    // a payee with, and the honest answer is SILENCE — not a row attributed to
+    // a vendor called "Unknown".
+    //
+    // Plano is why. Its PayeeName is truncated to a 5-character fixed width in
+    // every row of every file: TT's largest Plano payee read "MO MI" and held
+    // $483,527,652.16. Worse than a bad label, it MIS-AGGREGATES — "COLLI"
+    // merges Collin County with Collin Creek — and a wrong aggregation with a
+    // plausible name is the kind of number that gets quoted.
+    const vn = cm.vendor_column ? (r[cm.vendor_column] || 'Unknown') : null;
+    if (vn !== null) vendors.add(vn);
 
     // Date: normalize to ISO date string (YYYY-MM-DD)
     let dt = null;
@@ -334,7 +361,7 @@ async function syncSource(ds, opts = {}) {
     const chunk = rows.slice(i, i + RPC_BATCH);
     const { vendors, transactions } = buildBatch(chunk, cm, allKeys.slice(i, i + RPC_BATCH));
 
-    const { data, error } = await supabase.rpc('treasury_sync_transactions', {
+    const { data, error } = await client().rpc('treasury_sync_transactions', {
       p_data_source_id: ds.id,
       p_fiscal_year: fiscalYear,
       p_vendors: vendors,
@@ -383,7 +410,7 @@ async function syncSource(ds, opts = {}) {
   // link_key, and rebuilding one of those would mean inventing a naming rule —
   // the very thing that put fabricated department names on McKinney's money.
   if (isEnrolled(ds.name)) {
-    const { data: budget, error: bErr } = await supabase.schema('treasury').from('budgets')
+    const { data: budget, error: bErr } = await client().schema('treasury').from('budgets')
       .select('id, fiscal_year, data_source, total_budget')
       .eq('municipality_id', ds.municipality_id).eq('fiscal_year', fiscalYear)
       .eq('dataset_type', ds.dataset_type).maybeSingle();
@@ -407,7 +434,7 @@ async function main() {
   });
 
   // Fetch all data sources
-  const { data: sources, error } = await listAllSourcesResult(supabase);
+  const { data: sources, error } = await listAllSourcesResult(client());
   if (error) {
     console.error('Failed to list sources:', error.message);
     process.exit(1);
@@ -444,7 +471,7 @@ async function main() {
 
   for (const src of targets) {
     // Fetch full config (column_mapping, fiscal_year, download_url, etc.)
-    const { data: ds, error: cfgErr } = await supabase.rpc('treasury_get_data_source_config', {
+    const { data: ds, error: cfgErr } = await client().rpc('treasury_get_data_source_config', {
       p_data_source_id: src.id,
     });
     if (cfgErr || !ds) {
@@ -461,4 +488,14 @@ async function main() {
   console.log('\nDone.');
 }
 
-main().catch(err => { console.error('Fatal:', err); process.exit(1); });
+// ⚠⚠⚠ RUN ONLY AS A CLI, never on import. This module exports buildBatch so
+// the vendor and link-key rules can be tested, and without this guard merely
+// importing it would DOWNLOAD AND LOAD EVERY xlsx SOURCE.
+//
+// ⚠ pathToFileURL, not `file://${process.argv[1]}` — on Windows the naive form
+// compares `file:///C:/...` against `file://C:\...`, never matches, and the
+// script silently does nothing. That cost a session once already.
+const { pathToFileURL } = await import('node:url');
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main().catch(err => { console.error('Fatal:', err); process.exit(1); });
+}
