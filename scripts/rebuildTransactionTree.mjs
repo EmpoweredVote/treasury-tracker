@@ -55,16 +55,32 @@ function parseCliArgs() {
   }).values;
 }
 
-const db = createClient(
-  process.env.SUPABASE_URL || 'https://kxsdzaojfaibhuzmclfq.supabase.co',
-  process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || '',
-);
+/**
+ * ⚠⚠⚠ LAZY. createClient() THROWS when no key is present, so building the
+ * client at module scope made this module impossible to import without
+ * credentials — which broke CI the moment a test imported bulkLoadXLSX.js,
+ * since that imports rebuildBudget from here.
+ *
+ * This is the same lesson as the argv parsing above, in the same file: a
+ * module that exports a function must not DO anything merely by being
+ * imported. Build the client when a caller actually needs it.
+ */
+let _db = null;
+function db() {
+  if (!_db) {
+    _db = createClient(
+      process.env.SUPABASE_URL || 'https://kxsdzaojfaibhuzmclfq.supabase.co',
+      process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || '',
+    );
+  }
+  return _db;
+}
 
 /** ⚠ Paged. A budget's transactions run to tens of thousands; PostgREST caps at 1,000. */
 async function transactionsOf(budgetId) {
   const rows = [];
   for (let from = 0; ; from += 1000) {
-    const { data, error } = await db.schema('treasury').from('transactions')
+    const { data, error } = await db().schema('treasury').from('transactions')
       .select('id, amount, link_key').eq('budget_id', budgetId)
       .order('id').range(from, from + 999);
     if (error) throw new Error(`transactions read failed: ${error.message}`);
@@ -77,7 +93,7 @@ async function transactionsOf(budgetId) {
 async function rootsOf(budgetId) {
   const rows = [];
   for (let from = 0; ; from += 1000) {
-    const { data, error } = await db.schema('treasury').from('budget_categories')
+    const { data, error } = await db().schema('treasury').from('budget_categories')
       .select('id, name, amount, actual_amount, percentage, item_count, sort_order, link_key')
       .eq('budget_id', budgetId).is('parent_id', null)
       .order('id').range(from, from + 999);
@@ -90,13 +106,13 @@ async function rootsOf(budgetId) {
 
 /** Budgets to rebuild, resolved from --source or --municipality. */
 async function targets() {
-  let q = db.schema('treasury').from('budgets')
+  let q = db().schema('treasury').from('budgets')
     .select('id, fiscal_year, dataset_type, data_source, total_budget, municipality_id');
 
   if (opts.source) {
     q = q.eq('data_source', opts.source);
   } else if (opts.municipality) {
-    const { data: m, error } = await db.schema('treasury').from('municipalities')
+    const { data: m, error } = await db().schema('treasury').from('municipalities')
       .select('id').ilike('name', opts.municipality);
     if (error) throw new Error(error.message);
     if (!m.length) throw new Error(`no municipality named ${JSON.stringify(opts.municipality)}`);
@@ -153,7 +169,7 @@ export async function rebuildBudget(budget, { dryRun = false, quiet = false } = 
   // ⚠ UPDATE the columns this script owns and no others. `description` and
   // `why_matters` are enrichment and must survive a rebuild untouched.
   for (const u of updates) {
-    const { error } = await db.schema('treasury').from('budget_categories')
+    const { error } = await db().schema('treasury').from('budget_categories')
       .update({
         name: u.after.name, amount: u.after.amount, actual_amount: u.after.actual_amount,
         percentage: u.after.percentage, item_count: u.after.item_count, sort_order: u.after.sort_order,
@@ -161,7 +177,7 @@ export async function rebuildBudget(budget, { dryRun = false, quiet = false } = 
     if (error) throw new Error(`update ${u.id} failed: ${error.message}`);
   }
   if (inserts.length) {
-    const { error } = await db.schema('treasury').from('budget_categories')
+    const { error } = await db().schema('treasury').from('budget_categories')
       .insert(inserts.map((i) => ({
         budget_id: budget.id, parent_id: null, depth: 0,
         name: i.name, amount: i.amount, actual_amount: i.actual_amount,
@@ -170,7 +186,7 @@ export async function rebuildBudget(budget, { dryRun = false, quiet = false } = 
     if (error) throw new Error(`insert failed: ${error.message}`);
   }
   for (const d of deletes) {
-    const { error } = await db.schema('treasury').from('budget_categories').delete().eq('id', d.id);
+    const { error } = await db().schema('treasury').from('budget_categories').delete().eq('id', d.id);
     if (error) throw new Error(`delete ${d.id} failed: ${error.message}`);
   }
 

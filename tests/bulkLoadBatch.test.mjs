@@ -13,9 +13,23 @@ import { buildBatch } from '../scripts/bulkLoadXLSX.js';
 const KEYS = (n) => Array.from({ length: n }, (_, i) => `key-${i}`);
 
 describe('importing the loader', () => {
-  it('does not run it', () => {
-    // Reaching this line at all proves the guard held: an unguarded import
-    // would have tried to reach the database before vitest got here.
+  /**
+   * ⚠⚠⚠ THIS TEST IS THE GUARD, and CI is what makes it bite.
+   *
+   * The import above has to survive with NO SUPABASE CREDENTIALS, which is
+   * exactly the environment CI runs in. Two separate module-scope side effects
+   * broke that and were only caught here:
+   *
+   *   rebuildTransactionTree.mjs  createClient() at module scope — it THROWS
+   *                               without a key ("supabaseKey is required")
+   *   bulkLoadXLSX.js             process.exit(1) at module scope when no key
+   *                               was set, which KILLS THE TEST RUNNER
+   *
+   * Both ran green locally, because a developer has a .env. Only the
+   * credential-free run told the truth. If this file ever starts failing with
+   * a connection or key error, something has moved back to module scope.
+   */
+  it('does not run it, and needs no credentials', () => {
     expect(typeof buildBatch).toBe('function');
   });
 });

@@ -43,15 +43,29 @@ import {
 } from './lib/allocationRows.mjs';
 import { rebuildBudget } from './rebuildTransactionTree.mjs';
 // ── Config ──────────────────────────────────────────────────────────────────
-const SUPABASE_URL = process.env.SUPABASE_URL || 'https://kxsdzaojfaibhuzmclfq.supabase.co';
-const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-if (!SUPABASE_KEY) {
-  console.error('Missing SUPABASE_SERVICE_KEY env var');
-  process.exit(1);
+/**
+ * ⚠⚠⚠ LAZY, and the missing-key check moved in here with it.
+ *
+ * This block used to run at module scope — including process.exit(1) when no
+ * key was set. Importing this module to test buildBatch would therefore have
+ * KILLED THE TEST RUNNER outright on any machine without credentials, which
+ * is exactly what CI is. A module that exports a function must not exit a
+ * process merely by being imported.
+ */
+let _supabase = null;
+function client() {
+  const key = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!key) {
+    console.error('Missing SUPABASE_SERVICE_KEY env var');
+    process.exit(1);
+  }
+  if (!_supabase) {
+    _supabase = createClient(
+      process.env.SUPABASE_URL || 'https://kxsdzaojfaibhuzmclfq.supabase.co', key,
+    );
+  }
+  return _supabase;
 }
-
-const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // ── Download helper ──────────────────────────────────────────────────────────
 
@@ -347,7 +361,7 @@ async function syncSource(ds, opts = {}) {
     const chunk = rows.slice(i, i + RPC_BATCH);
     const { vendors, transactions } = buildBatch(chunk, cm, allKeys.slice(i, i + RPC_BATCH));
 
-    const { data, error } = await supabase.rpc('treasury_sync_transactions', {
+    const { data, error } = await client().rpc('treasury_sync_transactions', {
       p_data_source_id: ds.id,
       p_fiscal_year: fiscalYear,
       p_vendors: vendors,
@@ -396,7 +410,7 @@ async function syncSource(ds, opts = {}) {
   // link_key, and rebuilding one of those would mean inventing a naming rule —
   // the very thing that put fabricated department names on McKinney's money.
   if (isEnrolled(ds.name)) {
-    const { data: budget, error: bErr } = await supabase.schema('treasury').from('budgets')
+    const { data: budget, error: bErr } = await client().schema('treasury').from('budgets')
       .select('id, fiscal_year, data_source, total_budget')
       .eq('municipality_id', ds.municipality_id).eq('fiscal_year', fiscalYear)
       .eq('dataset_type', ds.dataset_type).maybeSingle();
@@ -420,7 +434,7 @@ async function main() {
   });
 
   // Fetch all data sources
-  const { data: sources, error } = await listAllSourcesResult(supabase);
+  const { data: sources, error } = await listAllSourcesResult(client());
   if (error) {
     console.error('Failed to list sources:', error.message);
     process.exit(1);
@@ -457,7 +471,7 @@ async function main() {
 
   for (const src of targets) {
     // Fetch full config (column_mapping, fiscal_year, download_url, etc.)
-    const { data: ds, error: cfgErr } = await supabase.rpc('treasury_get_data_source_config', {
+    const { data: ds, error: cfgErr } = await client().rpc('treasury_get_data_source_config', {
       p_data_source_id: src.id,
     });
     if (cfgErr || !ds) {
