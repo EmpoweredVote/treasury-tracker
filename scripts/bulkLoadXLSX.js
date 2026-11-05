@@ -30,7 +30,9 @@ import { idOrNull, linkKey } from './lib/publisherIds.mjs';
 import { isEnrolled } from './lib/transactionTreeSources.mjs';
 // ⚠ Parsing and the dedup hash live in lib so a measurement can import THE SAME
 // CODE. See scripts/lib/xlsxRows.mjs and scripts/measureXlsxDedupLoss.mjs.
-import { parseCSV, parseXLSX, parseAmount, downloadXLSX, rowKeys } from './lib/xlsxRows.mjs';
+import {
+  parseCSV, parseXLSX, parseAmount, downloadXLSX, rowKeys, looksLikeXlsx, looksLikeHtml,
+} from './lib/xlsxRows.mjs';
 // ⚠⚠ The guard that stands between dedup:'occurrence' and money never spent.
 import { judgeDoubledExportDays, describeDoubledDays } from './lib/doubledExportDays.mjs';
 // ⚠⚠⚠ A publisher's own grand total is not a payment. See #335 follow-up.
@@ -158,7 +160,7 @@ async function syncSource(ds, opts = {}) {
   // budget via municipality_id + fiscal_year + dataset_type, then delete
   // only its transactions — leaving other fiscal years of the same source untouched.
   if (opts.forceReload) {
-    const { data: matchBudgets, error: findErr } = await supabase
+    const { data: matchBudgets, error: findErr } = await client()
       .schema('treasury')
       .from('budgets')
       .select('id')
@@ -173,7 +175,7 @@ async function syncSource(ds, opts = {}) {
       console.log('  --force-reload: no existing budget found for FY' + fiscalYear + ' (nothing to clear)');
     } else {
       for (const budget of matchBudgets) {
-        const { error: delErr } = await supabase
+        const { error: delErr } = await client()
           .schema('treasury')
           .from('transactions')
           .delete()
@@ -189,7 +191,16 @@ async function syncSource(ds, opts = {}) {
 
   // ── Download + parse ────────────────────────────────────────────────────────
   const buffer = await downloadXLSX(downloadUrl);
-  const isCsv = downloadUrl.toLowerCase().endsWith('.csv');
+  // ⚠⚠ Pick the parser by CONTENT, not by the URL's suffix. Plano's register
+  // serves CSV from ReportExport.aspx?...&Detail=T — a query string with no
+  // suffix — and the old `endsWith('.csv')` test would have handed that CSV to
+  // the XLSX parser. Every XLSX is a zip, so it starts `PK`.
+  if (looksLikeHtml(buffer)) {
+    console.error('  Aborting: ' + downloadUrl + ' returned HTML, not a workbook or CSV.');
+    console.error('  That is usually a WAF block page or an error page served as 200.');
+    process.exit(1);
+  }
+  const isCsv = !looksLikeXlsx(buffer);
   const parsed = isCsv ? parseCSV(buffer) : await parseXLSX(buffer, cm);
   const { headers, blankSkipped, headerDupeSkipped } = parsed;
   let rows = parsed.rows;

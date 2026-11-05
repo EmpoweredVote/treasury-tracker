@@ -100,3 +100,32 @@ describe('buildBatch — the key it was handed', () => {
     expect(transactions.map((t) => t.rid)).toEqual(['abc', 'def#1']);
   });
 });
+
+describe('no module-scope database client', () => {
+  /**
+   * ⚠⚠ The lazy-client refactor missed two call sites inside the
+   * --force-reload branch, and nothing caught it: the import test only proves
+   * the module LOADS, and buildBatch never touches the database. The bug
+   * surfaced as `ReferenceError: supabase is not defined` on a real reload.
+   *
+   * This is a source-level guard, in the spirit of the shebang check in
+   * tests/waSao.test.mjs — cheap, and it covers every branch at once.
+   */
+  it('reaches the client only through client() / db()', async () => {
+    const { readFileSync } = await import('node:fs');
+    const offenders = [];
+    for (const f of ['scripts/bulkLoadXLSX.js', 'scripts/rebuildTransactionTree.mjs']) {
+      readFileSync(f, 'utf8').split('\n').forEach((line, i) => {
+        // A bare `supabase.` / `db.` call, not `client()` / `db()`, and not a
+        // comment, a URL, an env var, or the memoised private field.
+        if (/^\s*(\/\/|\*)/.test(line)) return;
+        if (/\b(?:await\s+)?supabase\s*$|\bsupabase\s*\.\s*(?:schema|from|rpc)\b/.test(line)
+          && !/_supabase|supabase\.co|SUPABASE_|@supabase/.test(line)) {
+          offenders.push(`${f}:${i + 1}`);
+        }
+        if (/\bdb\s*\.\s*(?:schema|from|rpc)\b/.test(line)) offenders.push(`${f}:${i + 1}`);
+      });
+    }
+    expect(offenders).toEqual([]);
+  });
+});
