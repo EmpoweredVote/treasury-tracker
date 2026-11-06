@@ -60,6 +60,22 @@ jobs:
       - run: python -m pip install --disable-pip-version-check -r requirements-dev.txt
       - run: npm run test:acfr
 
+  # ESLint. Until 2026-11-06 nothing ran it in CI, so errors built up unseen
+  # on main (75 of them) until a manual cleanup (#345).
+  # A separate job so it shows as its own `lint` check. Errors fail it;
+  # warnings do not (eslint exits non-zero only on errors).
+  lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run lint
+
   # Supabase Edge Functions (supabase/functions/*) are Deno code, deployed with
   # the Supabase CLI and run by cron against production treasury data. They sit
   # outside this repo's `tsc -b` projects, so until 2026-11-06 nothing
