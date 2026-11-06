@@ -42,7 +42,7 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_SECRET_KEY);
 
 let dbSyncKey: string | null = null;
 async function getDbSyncKey(): Promise<string> {
-  if (!dbSyncKey) { const { data } = await supabase.rpc('treasury_get_sync_key'); dbSyncKey = data || ''; }
+  if (!dbSyncKey) { const { data } = await supabase.rpc('treasury_get_sync_key'); dbSyncKey = (data as string | null) || ''; }
   return dbSyncKey;
 }
 
@@ -59,9 +59,59 @@ async function checkAuth(req: Request): Promise<boolean> {
   return !!dbKey && (k === dbKey || b === dbKey);
 }
 
+/** One row of treasury_list_sources(), trimmed to what is read. */
+interface SourceListing {
+  id: string;
+  name: string;
+  sync_frequency: string;
+  last_synced_at: string | null;
+}
+
+/** The jsonb returned by treasury_get_data_source_config(), trimmed to what is read. */
+interface DataSourceConfig {
+  id: string;
+  name: string;
+  dataset_type: string;
+  fiscal_years: number[] | null;
+}
+
+/** One fiscal year's outcome as treasury-sync reports it (its YearResult). */
+interface WorkerResult {
+  status?: string;
+  error?: string;
+  rows_fetched?: number;
+  rows_inserted?: number;
+  offset_end?: number;
+  has_more?: boolean;
+}
+
+/** treasury-sync's response body: per-year `results`, or a bare `error` on 4xx/5xx. */
+interface WorkerResponse extends WorkerResult {
+  results?: WorkerResult[];
+}
+
+interface OrchestratorRequest {
+  force?: boolean;
+  data_source_id?: string | null;
+  fiscal_year?: number | null;
+  triggered_by?: string;
+}
+
+/** One line of this function's response. */
+interface SourceResult {
+  data_source: string;
+  fiscal_year?: number;
+  status: string;
+  error?: string;
+  rows_fetched?: number;
+  rows_inserted?: number;
+  batches?: number;
+  resume_offset?: number;
+}
+
 const FREQ_DAYS: Record<string, number> = { daily: 1, weekly: 7, monthly: 28, quarterly: 84, manual: Infinity };
 
-async function callSyncWorker(dsId: string, fy: number, triggeredBy: string, offset: number = 0): Promise<any> {
+async function callSyncWorker(dsId: string, fy: number, triggeredBy: string, offset: number = 0): Promise<WorkerResponse> {
   // Worker-to-worker auth uses the Vault-backed sync key. FAIL LOUDLY if it cannot
   // be read: sending an empty key would 401 against treasury-sync and land in the
   // logs as a per-source sync error rather than the configuration fault it is.
@@ -151,7 +201,7 @@ Deno.serve(async (req: Request) => {
       'treasury_frozen_invariant_verdict', 'frozen-figure invariant', 'frozen-invariant-weekly');
     if (!frozen.ok) console.error(`FROZEN INVARIANT NOT OK: ${frozen.detail}`);
 
-    const body = await req.json().catch(() => ({}));
+    const body: OrchestratorRequest = await req.json().catch(() => ({}));
     const { force = false, data_source_id = null, fiscal_year = null, triggered_by = "scheduler" } = body;
 
     // Get all enabled socrata sources.
@@ -179,11 +229,11 @@ Deno.serve(async (req: Request) => {
       }), { status: 500 });
     }
 
-    let sources = allSources || [];
-    if (data_source_id) sources = sources.filter((s: any) => s.id === data_source_id);
+    let sources: SourceListing[] = allSources || [];
+    if (data_source_id) sources = sources.filter((s: SourceListing) => s.id === data_source_id);
 
     const now = new Date();
-    const due = sources.filter((ds: any) => {
+    const due = sources.filter((ds: SourceListing) => {
       if (force || data_source_id) return true;
       if (ds.sync_frequency === 'manual') return false;
       if (!ds.last_synced_at) return true;
@@ -196,23 +246,30 @@ Deno.serve(async (req: Request) => {
     }
 
     // Get full config for each due source
-    const results: any[] = [];
+    const results: SourceResult[] = [];
     for (const src of due) {
-      const { data: ds } = await supabase.rpc('treasury_get_data_source_config', { p_data_source_id: src.id });
+      const { data: dsData } = await supabase.rpc('treasury_get_data_source_config', { p_data_source_id: src.id });
+      const ds: DataSourceConfig | null = dsData;
       if (!ds) {
         // Leaves a trace: this happens before treasury-sync is ever called, so
         // nothing downstream would have recorded it.
+        //
+        // ⚠ `.then(undefined, ...)`, NOT `.catch(...)`: a supabase-js query builder
+        // is a thenable with no `catch` method. The `.catch(() => {})` that stood
+        // here threw "catch is not a function" before the request was even sent,
+        // so this branch aborted the whole run with a 500 instead of logging and
+        // moving on to the next source. Found by `deno check` (2026-11-06).
         await supabase.rpc('treasury_log_sync_failure', {
           p_data_source_id: src.id, p_fiscal_year: null,
           p_error: 'treasury_get_data_source_config returned no config',
           p_stage: 'orchestrator_get_config', p_rows_fetched: 0,
           p_triggered_by: triggered_by, p_status: 'error',
-        }).catch(() => {});
+        }).then(undefined, () => {});
         results.push({ data_source: src.name, status: 'error', error: 'Config not found' });
         continue;
       }
 
-      const years = fiscal_year ? [fiscal_year] : (ds.fiscal_years || [now.getFullYear()]).slice(-2);
+      const years: number[] = fiscal_year ? [fiscal_year] : (ds.fiscal_years || [now.getFullYear()]).slice(-2);
 
       for (const fy of years) {
         console.log(`\n=== ${ds.name} FY${fy} (${ds.dataset_type}) ===`);
@@ -259,5 +316,5 @@ Deno.serve(async (req: Request) => {
       frozen_invariant: frozen,
       results,
     }, null, 2), { headers: { "Content-Type": "application/json" } });
-  } catch (e) { console.error("Orchestrator error:", e); return new Response(JSON.stringify({ error: e.message }), { status: 500 }); }
+  } catch (e) { console.error("Orchestrator error:", e); return new Response(JSON.stringify({ error: (e as Error).message }), { status: 500 }); }
 });

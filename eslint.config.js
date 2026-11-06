@@ -23,16 +23,4 @@ export default defineConfig([
       globals: globals.browser,
     },
   },
-  {
-    // Supabase Edge Functions are Deno code, deployed with the Supabase CLI.
-    // They are outside this repo's `tsc -b` projects, so no check here can
-    // verify a type written for them. They handle untyped external JSON
-    // (Socrata rows, column_mapping configs), and typing that by hand without
-    // a type-checker would add claims nothing confirms. Revisit if a
-    // `deno check` step is ever added.
-    files: ['supabase/functions/**/*.ts'],
-    rules: {
-      '@typescript-eslint/no-explicit-any': 'off',
-    },
-  },
 ])

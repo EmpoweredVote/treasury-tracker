@@ -40,9 +40,119 @@ const SUPABASE_SECRET_KEY = resolveSecretKey();
 const ENV_SYNC_KEY = Deno.env.get("TREASURY_SYNC_API_KEY") || "";
 const supabase = createClient(SUPABASE_URL, SUPABASE_SECRET_KEY);
 
+/**
+ * One Socrata row: JSON keyed by column name. SODA usually returns text, but
+ * nothing here guarantees it (McKinney numbers a column from 0), so a cell is
+ * `unknown` and every reader narrows or coerces it.
+ */
+type SocrataRow = Record<string, unknown>;
+
+/**
+ * Read one cell by a column name taken from column_mapping. The name may be
+ * absent or null in the config; the untyped code indexed with it anyway, which
+ * reads `row["undefined"]` / `row["null"]`, i.e. undefined. The cast keeps that
+ * exact behaviour while letting optional mapping keys type-check.
+ */
+function cell(r: SocrataRow, col: string | null | undefined): unknown {
+  return r[col as string];
+}
+
+/** A per-year binding in a wide-format source (see resolveYearColumns). */
+interface YearColumnEntry {
+  amount_column?: string | null;
+  basis?: unknown;
+  actual_amount_column?: string | null;
+  approved_amount_column?: string | null;
+}
+
+type Basis = 'actual' | 'adopted';
+function isBasis(v: unknown): v is Basis {
+  return v === 'actual' || v === 'adopted';
+}
+
+/**
+ * treasury.data_sources.column_mapping, as this function reads it. Every key is
+ * optional: the jsonb is hand-written per source, and several are stored as
+ * explicit nulls. Keys only the repo loaders read (category_column, ...) are
+ * left out on purpose.
+ */
+interface ColumnMapping {
+  // Year filter (buildFyFilter)
+  fiscal_year_column?: string | null;
+  fiscal_year_type?: string | null;
+  skip_fy_filter?: boolean | string | null;
+  note?: unknown;
+  where_extra?: string | null;
+  // Wide-format sources (resolveYearColumns)
+  year_columns?: Record<string, YearColumnEntry> | null;
+  basis?: string | null;
+  // Budget / revenue trees
+  hierarchy_columns?: string[] | null;
+  amount_column?: string | null;
+  actual_amount_column?: string | null;
+  approved_amount_column?: string | null;
+  description_column?: string | null;
+  fund_column?: string | null;
+  expense_type_column?: string | null;
+  // Salaries
+  last_name_column?: string | null;
+  first_name_column?: string | null;
+  base_pay_column?: string | null;
+  benefits_column?: string | null;
+  overtime_column?: string | null;
+  other_column?: string | null;
+  // Transactions
+  source_row_id_column?: string | null;
+  vendor_column?: string | null;
+  date_column?: string | null;
+  payment_method_column?: string | null;
+  invoice_number_column?: string | null;
+  expense_category_column?: string | null;
+  department_column?: string | null;
+  program_column?: string | null;
+}
+
+/** The jsonb returned by treasury_get_data_source_config(), trimmed to what is read. */
+interface DataSourceConfig {
+  id: string;
+  name: string;
+  api_type: string;
+  dataset_type: string;
+  base_url: string;
+  dataset_id: string;
+  column_mapping: ColumnMapping;
+  fiscal_years: number[] | null;
+  default_filters: Record<string, unknown> | null;
+}
+
+/** Socrata query parameters. `$where` is always a string once buildFyFilter has run. */
+type SocrataFilters = Record<string, unknown> & { $where?: string };
+
+interface SyncRequest {
+  data_source_id?: string;
+  fiscal_year?: number;
+  triggered_by?: string;
+  offset?: number;
+}
+
+/** One fiscal year's outcome, as returned to the caller (and read by the orchestrator). */
+interface YearResult {
+  fiscal_year?: number;
+  status?: string;
+  error?: string;
+  rows_fetched?: number;
+  rows_inserted?: number;
+  [k: string]: unknown;
+}
+
+interface SalaryItem { d: unknown; a: number; b: number | null; bf: number | null; o: number | null; x: number | null }
+interface SalaryNode { n: unknown; a: number; c?: SalaryNode[]; i?: SalaryItem[] }
+interface BudgetLineItem { d: unknown; a: number | null; aa: number; f: unknown; e: unknown }
+interface BudgetNode { n: unknown; a: number; c?: BudgetNode[]; i?: BudgetLineItem[] }
+
 let dbSyncKey: string | null = null;
 async function getDbSyncKey(): Promise<string> {
-  if (!dbSyncKey) { const { data } = await supabase.rpc('treasury_get_sync_key'); dbSyncKey = data || ''; }
+  if (!dbSyncKey) { const { data } = await supabase.rpc('treasury_get_sync_key'); dbSyncKey = (data as string | null) || ''; }
   return dbSyncKey;
 }
 async function checkAuth(req: Request): Promise<boolean> {
@@ -58,7 +168,7 @@ async function checkAuth(req: Request): Promise<boolean> {
   return !!dbKey && (k === dbKey || b === dbKey);
 }
 
-async function fetchPage(baseUrl: string, did: string, off: number, lim: number, f: Record<string, any>, ord?: string): Promise<any[]> {
+async function fetchPage(baseUrl: string, did: string, off: number, lim: number, f: SocrataFilters, ord?: string): Promise<SocrataRow[]> {
   const p = new URLSearchParams();
   p.set("$limit", String(lim)); p.set("$offset", String(off));
   if (ord) p.set("$order", ord); if (f.$where) p.set("$where", f.$where);
@@ -66,12 +176,12 @@ async function fetchPage(baseUrl: string, did: string, off: number, lim: number,
   if (!r.ok) throw new Error(`Socrata ${r.status}`);
   return await r.json();
 }
-async function fetchAll(baseUrl: string, did: string, f: Record<string, any>, ord?: string): Promise<any[]> {
-  let off = 0, all: any[] = [];
+async function fetchAll(baseUrl: string, did: string, f: SocrataFilters, ord?: string): Promise<SocrataRow[]> {
+  let off = 0, all: SocrataRow[] = [];
   while (true) { const pg = await fetchPage(baseUrl, did, off, 10000, f, ord); all = all.concat(pg); if (pg.length < 10000) break; off += 10000; }
   return all;
 }
-function amt(v: any): number {
+function amt(v: unknown): number {
   if (v == null || v === "") return 0; if (typeof v === "number") return v;
   return parseFloat(String(v).replace(/[,$]/g, "").replace(/\((.+)\)/, "-$1")) || 0;
 }
@@ -91,8 +201,9 @@ function amt(v: any): number {
  * Precedence: default_filters.$where, then the year predicate (unless
  * skip_fy_filter), then where_extra appended verbatim with its own leading AND.
  */
-function buildFyFilter(cm: any, fy: number, defaultFilters: any): Record<string, any> {
-  const filters = { ...(defaultFilters || {}) };
+function buildFyFilter(cm: ColumnMapping, fy: number,
+                       defaultFilters: Record<string, unknown> | null | undefined): SocrataFilters {
+  const filters: Record<string, unknown> = { ...(defaultFilters || {}) };
   const parts: string[] = [];
   if (filters.$where) parts.push(String(filters.$where).trim());
 
@@ -113,10 +224,11 @@ function buildFyFilter(cm: any, fy: number, defaultFilters: any): Record<string,
       : String(cm.where_extra).trim());
   }
 
-  if (parts.length === 0) { delete filters.$where; return filters; }
+  // Both exits leave $where either deleted or a string, which is what SocrataFilters claims.
+  if (parts.length === 0) { delete filters.$where; return filters as SocrataFilters; }
   filters.$where = parts.reduce((acc, p) =>
     !acc ? p : (/^\s*(AND|OR)\s+/i.test(p) ? `${acc} ${p}` : `${acc} AND ${p}`), '');
-  return filters;
+  return filters as SocrataFilters;
 }
 
 /**
@@ -129,8 +241,8 @@ function buildFyFilter(cm: any, fy: number, defaultFilters: any): Record<string,
  * fiscal year to its own column and states whether that column holds an actual
  * or an adopted figure. See the repo module for the full reasoning.
  */
-function resolveYearColumns(cm: any, fy: number | string, sourceName = 'source'):
-    { cm: any; basis: string | null } {
+function resolveYearColumns(cm: ColumnMapping, fy: number | string, sourceName = 'source'):
+    { cm: ColumnMapping; basis: Basis | null } {
   const yc = cm?.year_columns;
   const has = !!yc && typeof yc === 'object' && !Array.isArray(yc) && Object.keys(yc).length > 0;
   if (!has) return { cm, basis: null };
@@ -152,7 +264,7 @@ function resolveYearColumns(cm: any, fy: number | string, sourceName = 'source')
       `Refusing to sync ${sourceName} FY${fy}: year_columns["${key}"] has no ` +
       `amount_column, so every row would be read as 0.`);
   }
-  if (!['actual', 'adopted'].includes(entry.basis)) {
+  if (!isBasis(entry.basis)) {
     throw new Error(
       `Refusing to sync ${sourceName} FY${fy}: year_columns["${key}"].basis is ` +
       `${JSON.stringify(entry.basis ?? null)}, but a declared year must say whether its ` +
@@ -174,7 +286,7 @@ function resolveYearColumns(cm: any, fy: number | string, sourceName = 'source')
 }
 
 /** Mirrors yearColumnsCoverageProblem() in scripts/lib/yearColumnMapping.mjs. */
-function yearColumnsCoverageProblem(cm: any, years: number[]): string | null {
+function yearColumnsCoverageProblem(cm: ColumnMapping, years: number[]): string | null {
   const yc = cm?.year_columns;
   const has = !!yc && typeof yc === 'object' && !Array.isArray(yc) && Object.keys(yc).length > 0;
   if (!has) return null;
@@ -211,8 +323,8 @@ function yearColumnsCoverageProblem(cm: any, years: number[]): string | null {
  * every requested year with a DISTINCT column: those rows repeat by design, the
  * money does not.
  */
-function assertSingleYearWhenSkippingFyFilter(ds: any, years: number[]) {
-  const cm = ds.column_mapping || {};
+function assertSingleYearWhenSkippingFyFilter(ds: DataSourceConfig, years: number[]) {
+  const cm: ColumnMapping = ds.column_mapping || {};
   const skipFy = cm.skip_fy_filter === true || cm.skip_fy_filter === 'true';
   if (!skipFy || years.length <= 1) return;
 
@@ -231,27 +343,27 @@ function assertSingleYearWhenSkippingFyFilter(ds: any, years: number[]) {
     `Sync one explicit fiscal year at a time.`);
 }
 
-function buildSalaryTree(rows: any[], cm: any) {
+function buildSalaryTree(rows: SocrataRow[], cm: ColumnMapping) {
   const hCols = cm.hierarchy_columns || ["department", "title"];
-  const dm = new Map<string, Map<string, any[]>>();
+  const dm = new Map<unknown, Map<unknown, SalaryItem[]>>();
   for (const r of rows) {
     const d = r[hCols[0]] || "Unknown", t = hCols.length > 1 ? (r[hCols[1]] || "Unknown") : "Staff";
     if (!dm.has(d)) dm.set(d, new Map()); const tm = dm.get(d)!;
     if (!tm.has(t)) tm.set(t, []);
-    tm.get(t)!.push({ d: [r[cm.last_name_column], r[cm.first_name_column]].filter(Boolean).join(", ") || t, a: amt(r[cm.amount_column]),
+    tm.get(t)!.push({ d: [cell(r, cm.last_name_column), cell(r, cm.first_name_column)].filter(Boolean).join(", ") || t, a: amt(cell(r, cm.amount_column)),
       b: cm.base_pay_column ? amt(r[cm.base_pay_column]) : null, bf: cm.benefits_column ? amt(r[cm.benefits_column]) : null,
       o: cm.overtime_column ? amt(r[cm.overtime_column]) : null, x: cm.other_column ? amt(r[cm.other_column]) : null });
   }
-  let total = 0; const tree: any[] = [];
-  for (const [dn, tm] of dm) { let da = 0; const c: any[] = [];
-    for (const [tn, items] of tm) { const ta = items.reduce((s: number, i: any) => s + i.a, 0); da += ta; c.push({ n: tn, a: ta, i: items }); }
+  let total = 0; const tree: SalaryNode[] = [];
+  for (const [dn, tm] of dm) { let da = 0; const c: SalaryNode[] = [];
+    for (const [tn, items] of tm) { const ta = items.reduce((s: number, i: SalaryItem) => s + i.a, 0); da += ta; c.push({ n: tn, a: ta, i: items }); }
     c.sort((a, b) => b.a - a.a); total += da; tree.push({ n: dn, a: da, c }); }
   tree.sort((a, b) => b.a - a.a); return { tree, total };
 }
-function buildBudgetTree(rows: any[], cm: any) {
+function buildBudgetTree(rows: SocrataRow[], cm: ColumnMapping) {
   const hCols = cm.hierarchy_columns || ["department_name", "fund_name", "account_name"];
   const ac = cm.amount_column || "total_budget";
-  type N = { a: number; ch: Map<string, N>; rs: any[] };
+  type N = { a: number; ch: Map<unknown, N>; rs: SocrataRow[] };
   const mk = (): N => ({ a: 0, ch: new Map(), rs: [] }); const root = mk();
   let droppedZero = 0;
   for (const r of rows) {
@@ -270,7 +382,7 @@ function buildBudgetTree(rows: any[], cm: any) {
   }
   if (droppedZero) console.log(`  dropped ${droppedZero} all-zero row(s)`);
   function rc(n: N): number { if (n.ch.size === 0) return n.a; let t = 0; for (const [, c] of n.ch) t += rc(c); n.a = t; return t; } rc(root);
-  function tj(n: N): any[] { const a: any[] = []; for (const [nm, ch] of n.ch) { const o: any = { n: nm, a: ch.a };
+  function tj(n: N): BudgetNode[] { const a: BudgetNode[] = []; for (const [nm, ch] of n.ch) { const o: BudgetNode = { n: nm, a: ch.a };
     // _treasury_insert_tree maps i.aa -> budget_line_items.approved_amount and
     // i.a -> budget_line_items.actual_amount. So when a source declares an explicit
     // actual_amount_column, `a` must read THAT, not the rollup amount_column —
@@ -285,7 +397,7 @@ function buildBudgetTree(rows: any[], cm: any) {
     //   actual   := actual_amount_column ?? NULL — never the budget. Falling back to the
     //     rollup amount made every row claim the city spent its appropriation to the
     //     cent, which is the bug PR #83 shipped and then had to undo for Dallas.
-    if (ch.ch.size === 0 && ch.rs.length > 0) { o.i = ch.rs.map(r => ({ d: r[cm.description_column] || nm,
+    if (ch.ch.size === 0 && ch.rs.length > 0) { o.i = ch.rs.map(r => ({ d: cell(r, cm.description_column) || nm,
       a: cm.actual_amount_column ? amt(r[cm.actual_amount_column]) : null,
       aa: cm.approved_amount_column ? amt(r[cm.approved_amount_column]) : amt(r[ac]), f: cm.fund_column ? r[cm.fund_column] : null, e: cm.expense_type_column ? r[cm.expense_type_column] : null })); }
     else if (ch.ch.size > 0) o.c = tj(ch); a.push(o); } a.sort((x, y) => y.a - x.a); return a; }
@@ -314,7 +426,7 @@ async function logFailure(dsId: string, fy: number | null, err: string, stage: s
     });
     if (error) console.error(`could not record ${stage} failure: ${error.message}`);
   } catch (e) {
-    console.error(`could not record ${stage} failure: ${e?.message}`);
+    console.error(`could not record ${stage} failure: ${(e as Error | undefined)?.message}`);
   }
 }
 
@@ -335,10 +447,10 @@ async function logFailure(dsId: string, fy: number | null, err: string, stage: s
  * Throwing here happens BEFORE treasury_sync_budget_tree is called, so the RPC's
  * destructive category delete never runs and existing good data cannot be wiped.
  */
-function assertNonZeroBudget(ds: any, fy: number, rowCount: number, total: number, tree: any[]) {
+function assertNonZeroBudget(ds: DataSourceConfig, fy: number, rowCount: number, total: number, tree: BudgetNode[]) {
   if (total > 0) return;
-  const cm = ds.column_mapping || {};
-  const topNames = tree.slice(0, 3).map((t: any) => t.n).join(", ") || "(empty tree)";
+  const cm: ColumnMapping = ds.column_mapping || {};
+  const topNames = tree.slice(0, 3).map((t: BudgetNode) => t.n).join(", ") || "(empty tree)";
   throw new Error(
     `Refusing to write a $0 budget for ${ds.name} FY${fy} (${ds.dataset_type}): ` +
     `fetched ${rowCount} rows but computed total is ${total}. Top-level categories: ${topNames}. ` +
@@ -361,35 +473,35 @@ function assertNonZeroBudget(ds: any, fy: number, rowCount: number, total: numbe
  *
  * Mirrors scripts/lib/publisherIds.mjs; this file cannot import from the repo.
  */
-function idOrNull(value: any): string | null {
+function idOrNull(value: unknown): string | null {
   if (value === null || value === undefined) return null;
   const s = String(value).trim();
   return s === "" ? null : s;
 }
-function linkKey(parts: any[]): string | null {
+function linkKey(parts: unknown[]): string | null {
   const kept = parts.map(idOrNull).filter((v) => v !== null);
   return kept.length ? kept.join("|") : null;
 }
 
-function buildTxnBatch(rows: any[], cm: any) {
-  const vs = new Set<string>();
+function buildTxnBatch(rows: SocrataRow[], cm: ColumnMapping) {
+  const vs = new Set<unknown>();
   const ridCol = cm.source_row_id_column; // e.g. transaction_id for LA, demand for WeHo
-  const txns = rows.map(r => { const vn = r[cm.vendor_column] || "Unknown"; vs.add(vn);
-    return { a: amt(r[cm.amount_column]), d: idOrNull(r[cm.description_column]), dt: r[cm.date_column] || null,
-      pm: idOrNull(r[cm.payment_method_column]), inv: idOrNull(r[cm.invoice_number_column]), f: idOrNull(r[cm.fund_column]),
-      ec: idOrNull(r[cm.expense_category_column]), dept: idOrNull(r[cm.department_column]), prog: idOrNull(r[cm.program_column]), vn,
-      lk: linkKey([r[cm.department_column], r[cm.fund_column], r[cm.expense_category_column]]),
+  const txns = rows.map(r => { const vn = cell(r, cm.vendor_column) || "Unknown"; vs.add(vn);
+    return { a: amt(cell(r, cm.amount_column)), d: idOrNull(cell(r, cm.description_column)), dt: cell(r, cm.date_column) || null,
+      pm: idOrNull(cell(r, cm.payment_method_column)), inv: idOrNull(cell(r, cm.invoice_number_column)), f: idOrNull(cell(r, cm.fund_column)),
+      ec: idOrNull(cell(r, cm.expense_category_column)), dept: idOrNull(cell(r, cm.department_column)), prog: idOrNull(cell(r, cm.program_column)), vn,
+      lk: linkKey([cell(r, cm.department_column), cell(r, cm.fund_column), cell(r, cm.expense_category_column)]),
       rid: ridCol ? idOrNull(r[ridCol]) : null }; });
   return { vendors: [...vs].map(n => ({ n })), transactions: txns };
 }
 
-async function syncTxnPaginated(ds: any, fy: number, triggered_by: string, startOffset: number = 0) {
+async function syncTxnPaginated(ds: DataSourceConfig, fy: number, triggered_by: string, startOffset: number = 0) {
   const cm = ds.column_mapping;
   const filters = buildFyFilter(cm, fy, ds.default_filters);
   const PAGE = 5000, MAX_PAGES = 4;
   let totalFetched = 0, totalInserted = 0, totalSkipped = 0, offset = startOffset, pages = 0, hasMore = true;
   while (pages < MAX_PAGES && hasMore) {
-    const rows = await fetchPage(ds.base_url, ds.dataset_id, offset, PAGE, filters, cm.date_column);
+    const rows = await fetchPage(ds.base_url, ds.dataset_id, offset, PAGE, filters, cm.date_column ?? undefined);
     totalFetched += rows.length;
     if (rows.length === 0) { hasMore = false; break; } if (rows.length < PAGE) hasMore = false;
     const { vendors, transactions } = buildTxnBatch(rows, cm);
@@ -415,32 +527,34 @@ Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "*" } });
   if (!(await checkAuth(req))) return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
   try {
-    const { data_source_id, fiscal_year, triggered_by = "manual", offset = 0 } = await req.json();
+    const body: SyncRequest = await req.json();
+    const { data_source_id, fiscal_year, triggered_by = "manual", offset = 0 } = body;
     if (!data_source_id) return new Response(JSON.stringify({ error: "data_source_id required" }), { status: 400 });
-    const { data: ds, error: dsErr } = await supabase.rpc('treasury_get_data_source_config', { p_data_source_id: data_source_id });
+    const { data: dsData, error: dsErr } = await supabase.rpc('treasury_get_data_source_config', { p_data_source_id: data_source_id });
+    const ds: DataSourceConfig | null = dsData;
     if (dsErr || !ds) {
       await logFailure(data_source_id, fiscal_year ?? null,
         `Config lookup failed: ${dsErr?.message || 'no config returned'}`, 'get_config', 0, triggered_by);
       return new Response(JSON.stringify({ error: `Config: ${dsErr?.message}` }), { status: 500 });
     }
     if (ds.api_type !== 'socrata') return new Response(JSON.stringify({ error: `Unsupported: ${ds.api_type}` }), { status: 400 });
-    const years = fiscal_year ? [fiscal_year] : (ds.fiscal_years || [new Date().getFullYear()]);
-    const cm = ds.column_mapping; const results: any[] = [];
+    const years: number[] = fiscal_year ? [fiscal_year] : (ds.fiscal_years || [new Date().getFullYear()]);
+    const cm = ds.column_mapping; const results: YearResult[] = [];
 
     if (ds.dataset_type === 'operating' || ds.dataset_type === 'revenue') {
       try {
         assertSingleYearWhenSkippingFyFilter(ds, years);
       } catch (e) {
-        await logFailure(data_source_id, null, e.message, 'skip_fy_multi_year', 0, triggered_by);
+        await logFailure(data_source_id, null, (e as Error).message, 'skip_fy_multi_year', 0, triggered_by);
         return new Response(JSON.stringify({ data_source: ds.name, dataset_type: ds.dataset_type,
-          fiscal_years: years, results: [{ status: 'error', error: e.message }] }, null, 2),
+          fiscal_years: years, results: [{ status: 'error', error: (e as Error).message }] }, null, 2),
           { headers: { "Content-Type": "application/json" } });
       }
     }
     for (const fy of years) {
       console.log(`Syncing ${ds.name} FY${fy} (${ds.dataset_type})...`);
       const filters = buildFyFilter(cm, fy, ds.default_filters);
-      let res: any;
+      let res: YearResult;
       // Once an RPC is entered it writes its own sync_logs row (success or, via its
       // EXCEPTION block, error). Only failures BEFORE that point need logging here,
       // or every failure would be recorded twice.
@@ -500,10 +614,10 @@ Deno.serve(async (req: Request) => {
           }
         }
       } catch (e) {
-        res = { status: 'error', error: e.message };
+        res = { status: 'error', error: (e as Error).message };
         // Reaching the RPC means it already logged; anything earlier would vanish.
         if (!rpcReached) {
-          await logFailure(data_source_id, fy, e.message, 'pre_rpc', 0, triggered_by);
+          await logFailure(data_source_id, fy, (e as Error).message, 'pre_rpc', 0, triggered_by);
         }
       }
       results.push({ fiscal_year: fy, ...res });
@@ -512,5 +626,5 @@ Deno.serve(async (req: Request) => {
       total_fetched: results.reduce((s, r) => s + (r.rows_fetched || 0), 0),
       total_inserted: results.reduce((s, r) => s + (r.rows_inserted || 0), 0) }, null, 2),
       { headers: { "Content-Type": "application/json" } });
-  } catch (e) { console.error("Error:", e); return new Response(JSON.stringify({ error: e.message }), { status: 500 }); }
+  } catch (e) { console.error("Error:", e); return new Response(JSON.stringify({ error: (e as Error).message }), { status: 500 }); }
 });
