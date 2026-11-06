@@ -1,5 +1,5 @@
 import { SERIES_TOGGLE_COPY, DERIVED_COPY } from '../data/fundScopeVocabulary';
-import { TONE } from './ScopeLabel';
+import { TONE } from './scopeTones';
 import { spanLabel, type AvailableSeries } from '../data/seriesSelection';
 import type { SeriesKey } from '../data/budgetSeries';
 

@@ -201,7 +201,6 @@ async function main() {
 
   let bad = false;
   for (const s of (only ? [only] : VERIFIABLE_STATES)) {
-    // eslint-disable-next-line no-await-in-loop
     if (await verifyState(db, s)) bad = true;
   }
 

@@ -48,7 +48,7 @@ describe('curated banner registry — every banner is attributed', () => {
 
   it('keys every banner as slug|STATE, so a shared slug cannot cross states', () => {
     for (const key of Object.keys(CURATED_CITY_BANNERS)) {
-      expect(key, key).toMatch(/^[a-z0-9.\-]+\|[A-Z]{2}$/);
+      expect(key, key).toMatch(/^[a-z0-9.-]+\|[A-Z]{2}$/);
     }
   });
 

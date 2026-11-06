@@ -249,6 +249,7 @@ function App() {
 
   useEffect(() => {
     const q = parentsQueryFor(selectedEntity);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- clears the previous entity's parents when this one has none
     if (!q) { setParentPool([]); return; }
     let live = true;
     fetchEntities(q).then(rows => { if (live) setParentPool(rows); }).catch(() => { if (live) setParentPool([]); });
@@ -259,10 +260,12 @@ function App() {
   // switcher to trigger `onFirstOpen` — so fire the same (memoized) load the
   // moment the landing view is the one on screen.
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- loadIndex starts the memoized index fetch and sets its loading flag
     if (appView === 'landing') loadIndex();
   }, [appView, loadIndex]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- clears the previous entity's panel pool
     if (!selectedEntity) { setPanelPool([]); return; }
     const q = panelQueryFor(selectedEntity);
     if (!q) { setPanelPool([]); return; }
@@ -276,6 +279,7 @@ function App() {
   const [countyParent, setCountyParent] = useState<Municipality | null>(null);
   useEffect(() => {
     const id = selectedEntity?.county_id;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- deliberate clear before fetch; see the note below
     if (!id) { setCountyParent(null); return; }
     // ⚠ Cleared BEFORE the fetch starts, not just on failure. Otherwise the
     // PREVIOUS entity's county survives in state for one round trip, and the
@@ -330,6 +334,7 @@ function App() {
   // Resolve the hero banner (shared bucket → Wikipedia fallback) when entity changes
   useEffect(() => {
     if (!selectedEntity) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- clears the previous entity's banner while the new one loads
     setHeroImage(null); // clear while loading
     getHeroImage(selectedEntity).then(setHeroImage);
   }, [selectedEntity]);
@@ -381,6 +386,7 @@ function App() {
   // Assigned during render, not in an effect, so the seeding effect below always
   // reads the current value regardless of effect ordering.
   const activeDatasetRef = useRef(activeDataset);
+  // eslint-disable-next-line react-hooks/refs -- deliberate render-time write; see the note above
   activeDatasetRef.current = activeDataset;
 
   const [defaultSeriesSeed, setDefaultSeriesSeed] = useState<SeriesKey | null>(null);
@@ -466,6 +472,7 @@ function App() {
     const { token, moved } = resolveSeriesYear(
       selectedEntity.available_datasets, effectiveSeries, activeDataset, selectedYear);
     const note = SERIES_TOGGLE_COPY.yearClamped(selectedYear, token, effectiveSeriesLabel);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- year clamp must follow a series change; see resolveClampNote (UAT G5)
     setClampState((prev) => resolveClampNote(prev, moved, token, note, selectedYear));
     if (moved) setSelectedYear(token);
   }, [selectedEntity, effectiveSeries, activeDataset, selectedYear, effectiveSeriesLabel]);
@@ -805,6 +812,7 @@ function App() {
         .then(data => setAllFundsRequirementsData(data))
         .catch(() => setAllFundsRequirementsData(null));
     } else {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- clears all-funds data when this year has none
       setAllFundsRequirementsData(null);
     }
   }, [selectedYear, selectedEntity, effectiveSeries]);
@@ -818,6 +826,7 @@ function App() {
     // carry the data) have nothing to load — render the directory, not an error.
     // Attempting a load here would throw "No budget found" and trip the error screen.
     if ((selectedEntity.available_datasets?.length ?? 0) === 0) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- budget-less entity: reset the loader state instead of loading
       setBudgetData(null);
       setBudgetLoadError(false);
       setLoading(false);
@@ -907,6 +916,7 @@ function App() {
   // EV (nonprofit) reconciled financial summary — Phase 76. Fetch per entity+year;
   // null for any non-nonprofit entity (never leaks across entities) and on failure.
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- clears the summary for non-nonprofit entities
     if (selectedEntity?.entity_type !== 'nonprofit') { setOrgSummary(null); return; }
     loadOrgFinancialSummary(selectedEntity.id, parsePeriod(selectedYear).fiscalYear)
       .then(setOrgSummary)
@@ -934,6 +944,7 @@ function App() {
   // pre-2005 per-taxpayer, etc.), fall back to dollars so we never show a wrong figure.
   useEffect(() => {
     if (!federalDenominators) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- falls back to dollars when the scale has no denominator
     if (federalScale === 'perPerson' && !federalDenominators.population) setFederalScale('dollars');
     if (federalScale === 'perTaxpayer' && !federalDenominators.taxReturns) setFederalScale('dollars');
   }, [federalDenominators, federalScale]);
@@ -980,6 +991,7 @@ function App() {
 
   // Lazy-load linked transactions when navigating into a category (operating only)
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- clears the previous category's transactions before loading
     setLinkedTransactions(null);
     setLinkedTxStatus('idle');
 
