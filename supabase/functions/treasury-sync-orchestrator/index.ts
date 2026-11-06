@@ -253,12 +253,18 @@ Deno.serve(async (req: Request) => {
       if (!ds) {
         // Leaves a trace: this happens before treasury-sync is ever called, so
         // nothing downstream would have recorded it.
+        //
+        // ⚠ `.then(undefined, ...)`, NOT `.catch(...)`: a supabase-js query builder
+        // is a thenable with no `catch` method. The `.catch(() => {})` that stood
+        // here threw "catch is not a function" before the request was even sent,
+        // so this branch aborted the whole run with a 500 instead of logging and
+        // moving on to the next source. Found by `deno check` (2026-11-06).
         await supabase.rpc('treasury_log_sync_failure', {
           p_data_source_id: src.id, p_fiscal_year: null,
           p_error: 'treasury_get_data_source_config returned no config',
           p_stage: 'orchestrator_get_config', p_rows_fetched: 0,
           p_triggered_by: triggered_by, p_status: 'error',
-        }).catch(() => {});
+        }).then(undefined, () => {});
         results.push({ data_source: src.name, status: 'error', error: 'Config not found' });
         continue;
       }
