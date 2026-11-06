@@ -152,7 +152,7 @@ interface BudgetNode { n: unknown; a: number; c?: BudgetNode[]; i?: BudgetLineIt
 
 let dbSyncKey: string | null = null;
 async function getDbSyncKey(): Promise<string> {
-  if (!dbSyncKey) { const { data } = await supabase.rpc('treasury_get_sync_key'); dbSyncKey = data || ''; }
+  if (!dbSyncKey) { const { data } = await supabase.rpc('treasury_get_sync_key'); dbSyncKey = (data as string | null) || ''; }
   return dbSyncKey;
 }
 async function checkAuth(req: Request): Promise<boolean> {

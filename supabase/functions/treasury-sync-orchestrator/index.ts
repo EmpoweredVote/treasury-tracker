@@ -42,7 +42,7 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_SECRET_KEY);
 
 let dbSyncKey: string | null = null;
 async function getDbSyncKey(): Promise<string> {
-  if (!dbSyncKey) { const { data } = await supabase.rpc('treasury_get_sync_key'); dbSyncKey = data || ''; }
+  if (!dbSyncKey) { const { data } = await supabase.rpc('treasury_get_sync_key'); dbSyncKey = (data as string | null) || ''; }
   return dbSyncKey;
 }
 
