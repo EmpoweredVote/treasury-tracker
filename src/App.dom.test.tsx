@@ -463,6 +463,17 @@ describe('nonprofit summary', () => {
     expect(h.props.PlainLanguageSummary.orgSummary).toBeNull();
     expect(probe('OrgTransparencyPanel')).toBeNull();
   });
+
+  it('coming back to the nonprofit does not show the summary from the last visit', async () => {
+    await mountAt('?entity=helping-org-ca&year=2024');
+    await run(() => h.props.EntitySwitcher.onEntityChange(ALPHA));
+    const summary = deferred<any>();
+    h.impl.loadOrgFinancialSummary = () => summary.promise;
+    await run(() => h.props.EntitySwitcher.onEntityChange(CHARITY));
+    expect(h.props.PlainLanguageSummary.orgSummary).toBeNull();
+    await run(() => summary.resolve({ marker: 'fresh' }));
+    expect(h.props.PlainLanguageSummary.orgSummary).toEqual({ marker: 'fresh' });
+  });
 });
 
 describe('federal per-capita scale', () => {
