@@ -19,7 +19,7 @@ function resolveSecretKey(): string {
       console.log("supabase client key: SUPABASE_SECRET_KEYS.supabase_edge_functions");
       return keys.supabase_edge_functions;
     }
-  } catch (_) { /* malformed or absent — fall through */ }
+  } catch { /* malformed or absent — fall through */ }
   console.log("supabase client key: legacy SUPABASE_SERVICE_ROLE_KEY");
   return Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 }

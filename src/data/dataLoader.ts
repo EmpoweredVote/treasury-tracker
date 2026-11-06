@@ -251,7 +251,7 @@ async function findCityByName(
   municipalityState: string
 ): Promise<Municipality> {
   const cities = await fetchCityList();
-  const city = cities.find((c: any) =>
+  const city = cities.find((c) =>
     c.name?.toLowerCase() === municipalityName.toLowerCase() &&
     (!municipalityState || c.state?.toLowerCase() === municipalityState.toLowerCase())
   );
@@ -293,7 +293,7 @@ async function fetchBudgetData(
   const effectiveSeries = series ?? chooseDisplaySeries(hydrated.available_datasets, dataset);
   const budget = pickBudgetForSeries(budgets, dataset, periodLabel ?? null, effectiveSeries);
   if (!budget?.id) {
-    const datasetHasRows = budgets.some((b: any) => b.dataset_type === dataset);
+    const datasetHasRows = budgets.some((b) => b.dataset_type === dataset);
     if (effectiveSeries && datasetHasRows) {
       // The dataset exists for this city-year but not in the chosen series. The
       // caller renders an absent tile; it must not render an error screen.
@@ -329,9 +329,39 @@ async function fetchBudgetData(
  *
  * ⚠ Rejections are evicted, for the reason given on `cache` above.
  */
-const cityBudgetsCache: Map<string, Promise<any[]>> = new Map();
+/**
+ * A budget row as `/treasury/cities/:id/budgets` returns it. Only the fields this
+ * file reads are listed. Older payloads used camelCase, so both spellings are
+ * optional. The scope/basis/grade axes stay `unknown`: their normalisers decide
+ * what an absent or unrecognised value means.
+ */
+export interface ApiBudgetRow {
+  id: string;
+  fiscal_year?: number;
+  fiscalYear?: number;
+  dataset_type?: string;
+  datasetType?: string;
+  period_label?: string | null;
+  total_budget?: number;
+  totalBudget?: number;
+  generated_at?: string;
+  generatedAt?: string;
+  hierarchy?: string[];
+  data_source?: string;
+  dataSource?: string;
+  data_source_info?: BudgetData['metadata']['dataSourceInfo'];
+  dataSourceInfo?: BudgetData['metadata']['dataSourceInfo'];
+  municipality?: { name?: string; population?: number };
+  fund_scope?: unknown;
+  basis?: unknown;
+  reporting_entity?: unknown;
+  audit_grade?: unknown;
+  accounting_basis?: unknown;
+}
 
-function fetchCityBudgets(cityId: string, year: number): Promise<any[]> {
+const cityBudgetsCache: Map<string, Promise<ApiBudgetRow[]>> = new Map();
+
+function fetchCityBudgets(cityId: string, year: number): Promise<ApiBudgetRow[]> {
   const key = `${cityId}:${year}`;
   let pending = cityBudgetsCache.get(key);
   if (!pending) {
@@ -347,9 +377,9 @@ function fetchCityBudgets(cityId: string, year: number): Promise<any[]> {
   return pending;
 }
 
-const budgetCategoriesCache: Map<string, Promise<any>> = new Map();
+const budgetCategoriesCache: Map<string, Promise<BudgetCategory[]>> = new Map();
 
-function fetchBudgetCategories(budgetId: string): Promise<any> {
+function fetchBudgetCategories(budgetId: string): Promise<BudgetCategory[]> {
   let pending = budgetCategoriesCache.get(budgetId);
   if (!pending) {
     pending = (async () => {
@@ -410,23 +440,23 @@ export async function loadLinkedTransactions(
  * series' figure is exactly the defect this milestone removes.
  */
 export function pickBudgetForSeries(
-  budgets: any[],
+  budgets: ApiBudgetRow[],
   dataset: string,
   periodLabel: string | null,
   series: SeriesKey | null,
-): any | undefined {
+): ApiBudgetRow | undefined {
   const sameSlot = budgets.filter(
-    (b: any) => b.dataset_type === dataset && (b.period_label ?? null) === (periodLabel ?? null),
+    (b) => b.dataset_type === dataset && (b.period_label ?? null) === (periodLabel ?? null),
   );
 
   if (!series) {
     // No series chosen (e.g. the API has not deployed the new columns yet):
     // preserve the previous behaviour rather than failing closed.
-    return sameSlot[0] ?? budgets.find((b: any) => b.dataset_type === dataset);
+    return sameSlot[0] ?? budgets.find((b) => b.dataset_type === dataset);
   }
 
   return sameSlot.find(
-    (b: any) => normalizeScope(b.fund_scope) === series.fundScope
+    (b) => normalizeScope(b.fund_scope) === series.fundScope
              && normalizeBasis(b.basis) === series.basis,
   );
 }
@@ -440,12 +470,17 @@ export function pickBudgetForSeries(
  * place "absent means unknown" is decided. Testing it through a mocked fetch
  * would test the mock. See src/data/dataLoader.accountingBasis.test.ts.
  */
-export function transformAPIResponse(budget: any, categories: BudgetCategory[], city?: any): BudgetData {
+export function transformAPIResponse(
+  budget: ApiBudgetRow,
+  categories: BudgetCategory[],
+  city?: Pick<Municipality, 'name' | 'population'>,
+): BudgetData {
   return {
     budgetId: budget.id,
     metadata: {
       cityName: city?.name || budget.municipality?.name || 'Unknown',
-      fiscalYear: budget.fiscal_year || budget.fiscalYear,
+      // Every API row carries a fiscal year under one spelling or the other.
+      fiscalYear: (budget.fiscal_year || budget.fiscalYear)!,
       population: city?.population || budget.municipality?.population || 0,
       totalBudget: budget.total_budget ?? budget.totalBudget ?? 0,
       generatedAt: budget.generated_at || budget.generatedAt || new Date().toISOString(),

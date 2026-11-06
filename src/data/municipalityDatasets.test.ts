@@ -211,7 +211,9 @@ describe('the city list is requested in summary mode', () => {
   // assertion is on the URL because that is the only place the saving lives.
   it('asks for ?datasets=summary', async () => {
     clearCache();
-    const fetchMock = vi.fn(async (_url: string) => ({ ok: true, json: async () => [] }));
+    const fetchMock = vi.fn<(url: string) => Promise<{ ok: boolean; json: () => Promise<unknown[]> }>>(
+      async () => ({ ok: true, json: async () => [] }),
+    );
     vi.stubGlobal('fetch', fetchMock);
     const { listMunicipalities } = await import('./dataLoader');
     await listMunicipalities();

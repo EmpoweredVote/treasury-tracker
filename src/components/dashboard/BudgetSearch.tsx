@@ -51,7 +51,6 @@ const BudgetSearch: React.FC<BudgetSearchProps> = ({
   const [hasSearched, setHasSearched] = useState(false);
   const [focused, setFocused] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const runSearch = useCallback(
     async (q: string) => {
@@ -71,20 +70,29 @@ const BudgetSearch: React.FC<BudgetSearchProps> = ({
     [cityId, fiscalYear]
   );
 
-  useEffect(() => {
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    if (query.trim().length < 2) {
+  // When the query or the search scope changes, reset or mark loading straight
+  // away. Done during render (React's "adjust state when inputs change" pattern)
+  // rather than in the effect below, so it lands in the same commit.
+  const isQueryLongEnough = query.trim().length >= 2;
+  const searchKey = JSON.stringify([query, cityId ?? null, fiscalYear]);
+  const [lastSearchKey, setLastSearchKey] = useState(searchKey);
+  if (lastSearchKey !== searchKey) {
+    setLastSearchKey(searchKey);
+    if (isQueryLongEnough) {
+      setLoading(true);
+    } else {
       setResults([]);
       setHasSearched(false);
       setLoading(false);
-      return;
     }
-    setLoading(true);
-    debounceRef.current = setTimeout(() => runSearch(query), 350);
-    return () => {
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-    };
-  }, [query, runSearch]);
+  }
+
+  // Debounce: run the search 350ms after the last change.
+  useEffect(() => {
+    if (!isQueryLongEnough) return;
+    const timer = setTimeout(() => runSearch(query), 350);
+    return () => clearTimeout(timer);
+  }, [query, isQueryLongEnough, runSearch]);
 
   const handleClear = () => {
     setQuery('');
