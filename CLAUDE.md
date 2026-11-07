@@ -29,3 +29,16 @@ Journeys in `e2e/` test what users do. If your change alters a journey on purpos
 the same PR. Run `npm run e2e` locally (first time: `npx playwright install chromium`; if port 4174 is
 taken, set `E2E_PORT`). They run on every PR as the `journeys` job, against the PR's own build and the
 live API. A test marked `test.fail()` guards a known open bug; the PR that fixes the bug removes the mark.
+
+## Render settings live in ev-infra
+
+This repo's Render services (`treasury-tracker-frontend`) are managed by the Render Blueprint in
+[`EmpoweredVote/ev-infra`](https://github.com/EmpoweredVote/ev-infra) (`render.yaml`).
+
+- Build and start commands, rewrites, headers, custom domains, plans, cron
+  schedules and build filters change **only through a PR to ev-infra**. Render
+  syncs its `main` branch automatically.
+- A setting changed in the Render dashboard is **undone on the next sync**.
+- Env var **values** are the exception: set them in the Render dashboard. Add a
+  new variable's name to ev-infra (with `sync: false`) so the record stays complete.
+- Do not add a `render.yaml` to this repo. Render does not read it.
