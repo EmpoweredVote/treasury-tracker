@@ -6,7 +6,10 @@ import tseslint from 'typescript-eslint'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
-  globalIgnores(['dist']),
+  // .claude/ holds Claude Code workflow scripts. Their bodies run inside a
+  // function the workflow runner supplies (they end in a top-level `return`),
+  // so they are not valid standalone modules and cannot be parsed here.
+  globalIgnores(['dist', '.claude']),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [

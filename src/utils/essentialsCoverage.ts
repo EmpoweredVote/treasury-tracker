@@ -220,18 +220,16 @@ export function matchEntityToCoverage(
  * This is the seam Phase 126 consumes to decide whether to render the tether icon.
  */
 export function useEssentialsCoverage(entity: Municipality | null): CoverageRecord | null {
-  const [record, setRecord] = useState<CoverageRecord | null>(null);
+  // The result is stored with the entity id it belongs to. A result for any
+  // other entity reads as null, which is what clears it while resolving.
+  const [resolved, setResolved] = useState<{ entityId: string; record: CoverageRecord | null } | null>(null);
 
   useEffect(() => {
-    if (!entity) {
-      setRecord(null);
-      return;
-    }
-    setRecord(null); // clear while resolving
+    if (!entity) return;
     let cancelled = false;
     fetchCoverage().then((catalog) => {
       if (cancelled) return;
-      setRecord(matchEntityToCoverage(entity, catalog));
+      setResolved({ entityId: entity.id, record: matchEntityToCoverage(entity, catalog) });
     });
     return () => {
       cancelled = true;
@@ -239,5 +237,5 @@ export function useEssentialsCoverage(entity: Municipality | null): CoverageReco
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [entity?.id]);
 
-  return record;
+  return entity && resolved?.entityId === entity.id ? resolved.record : null;
 }

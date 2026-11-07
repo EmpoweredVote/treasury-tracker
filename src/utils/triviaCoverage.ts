@@ -178,18 +178,16 @@ export function matchEntityToTrivia(
  * `useEssentialsCoverage`.
  */
 export function useTriviaCoverage(entity: Municipality | null): TriviaRecord | null {
-  const [record, setRecord] = useState<TriviaRecord | null>(null);
+  // The result is stored with the entity id it belongs to. A result for any
+  // other entity reads as null, which is what clears it while resolving.
+  const [resolved, setResolved] = useState<{ entityId: string; record: TriviaRecord | null } | null>(null);
 
   useEffect(() => {
-    if (!entity) {
-      setRecord(null);
-      return;
-    }
-    setRecord(null); // clear while resolving
+    if (!entity) return;
     let cancelled = false;
     fetchTriviaCollections().then((collections) => {
       if (cancelled) return;
-      setRecord(matchEntityToTrivia(entity, collections));
+      setResolved({ entityId: entity.id, record: matchEntityToTrivia(entity, collections) });
     });
     return () => {
       cancelled = true;
@@ -197,5 +195,5 @@ export function useTriviaCoverage(entity: Municipality | null): TriviaRecord | n
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [entity?.id]);
 
-  return record;
+  return entity && resolved?.entityId === entity.id ? resolved.record : null;
 }

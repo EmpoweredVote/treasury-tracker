@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { TONE } from '../src/components/ScopeLabel.tsx';
+import { TONE } from '../src/components/scopeTones.ts';
 import { FUND_SCOPE_VALUES } from '../src/data/fundScopeVocabulary.ts';
 
 /**

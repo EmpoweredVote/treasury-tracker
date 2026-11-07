@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react'
+import { useAdjustOnChange } from './hooks/useAdjustOnChange';
 import { scaleMoney } from './data/scaleMoney';
 import { FileText, Heart } from 'lucide-react'
 import { AppHeader } from './components/AppHeader';
@@ -161,6 +162,25 @@ function getDatasetLabel(type: DatasetType): string {
 
 const isFinancialsHost = window.location.hostname === 'financials.empowered.vote';
 
+// A grouper county (e.g. Orange County) has no budget of its own; its cities do.
+function isBudgetless(entity: HydratedMunicipality): boolean {
+  return (entity.available_datasets?.length ?? 0) === 0;
+}
+
+// The linked-transactions request for the category on screen, or null when there
+// is nothing to load: not Money Out, not drilled in, no data yet, or a category
+// or budget without the keys the lookup needs.
+function linkedTxRequest(
+  activeDataset: DatasetType, navigationPath: BudgetCategory[], budgetData: BudgetData | null,
+): { budgetId: string; linkKey: string } | null {
+  if (activeDataset !== 'operating' || navigationPath.length === 0 || !budgetData) return null;
+  const linkKey = navigationPath[navigationPath.length - 1].linkKey;
+  if (!linkKey) return null;
+  const budgetId = budgetData.budgetId;
+  if (!budgetId) return null;
+  return { budgetId, linkKey };
+}
+
 // The source chip's entity types live in data/sourceChipTypes.ts — membership of
 // that set is a real defect surface (it is what failed AUSTIN-TRAVIS-01 UAT test 5),
 // and only a pure module can carry a test for it.
@@ -228,13 +248,19 @@ function App() {
   // the landing search each used to read an empty index as "no jurisdictions
   // match" while it was still in flight. See Finding 4.
   const [indexLoading, setIndexLoading] = useState(false);
-  const loadIndex = useCallback(() => {
-    setIndexLoading(true);
+  // Split in two so the landing trigger below can raise the loading flag during
+  // render and start only the fetch from its effect. The switcher's
+  // `onFirstOpen` is an event handler, so it does both at once.
+  const startIndexFetch = useCallback(() => {
     fetchEntityIndex()
       .then(rows => setEntityIndex(rows as unknown as Municipality[]))
       .catch(() => setEntityIndex([]))
       .finally(() => setIndexLoading(false));
   }, []);
+  const loadIndex = useCallback(() => {
+    setIndexLoading(true);
+    startIndexFetch();
+  }, [startIndexFetch]);
   // ⚠⚠ HYDRATED, not a bare list entry. The list is fetched with
   // `?datasets=summary` and carries no `available_datasets`, so every read
   // below — the series picker, the year picker, the dataset tabs — would see
@@ -247,9 +273,15 @@ function App() {
   const [parentPool, setParentPool] = useState<Municipality[]>([]);
   const [panelPool, setPanelPool] = useState<Municipality[]>([]);
 
+  // ⚠ Pools are cleared only when the new entity has NO query. One that has a
+  // query keeps the previous pool until its own fetch lands, as it always has.
+  // The clear happens during render (useAdjustOnChange), the fetch in the effect.
+  useAdjustOnChange([selectedEntity], () => {
+    if (!parentsQueryFor(selectedEntity)) setParentPool([]);
+  });
   useEffect(() => {
     const q = parentsQueryFor(selectedEntity);
-    if (!q) { setParentPool([]); return; }
+    if (!q) return;
     let live = true;
     fetchEntities(q).then(rows => { if (live) setParentPool(rows); }).catch(() => { if (live) setParentPool([]); });
     return () => { live = false; };
@@ -257,15 +289,23 @@ function App() {
 
   // The landing page's search needs the index too, and it never opens the
   // switcher to trigger `onFirstOpen` — so fire the same (memoized) load the
-  // moment the landing view is the one on screen.
+  // moment the landing view is the one on screen. ⚠ On EVERY arrival at the
+  // landing view, not just the first: fetchEntityIndex forgets a failed
+  // request, so this is also the retry.
+  useAdjustOnChange([appView], () => {
+    if (appView === 'landing') setIndexLoading(true);
+  });
   useEffect(() => {
-    if (appView === 'landing') loadIndex();
-  }, [appView, loadIndex]);
+    if (appView === 'landing') startIndexFetch();
+  }, [appView, startIndexFetch]);
 
+  useAdjustOnChange([selectedEntity], () => {
+    if (!selectedEntity || !panelQueryFor(selectedEntity)) setPanelPool([]);
+  });
   useEffect(() => {
-    if (!selectedEntity) { setPanelPool([]); return; }
+    if (!selectedEntity) return;
     const q = panelQueryFor(selectedEntity);
-    if (!q) { setPanelPool([]); return; }
+    if (!q) return;
     let live = true;
     fetchEntities(q).then(rows => { if (live) setPanelPool(rows); }).catch(() => { if (live) setPanelPool([]); });
     return () => { live = false; };
@@ -274,14 +314,14 @@ function App() {
   // The county parent, fetched by id — the one jurisdiction not covered by
   // parentsQuery()'s federal+states fetch.
   const [countyParent, setCountyParent] = useState<Municipality | null>(null);
+  // ⚠ Cleared BEFORE the fetch starts, not just on failure. Otherwise the
+  // PREVIOUS entity's county survives in state for one round trip, and the
+  // breadcrumb names and links to a government that is not this entity's
+  // parent until the fetch resolves.
+  useAdjustOnChange([selectedEntity?.county_id], () => setCountyParent(null));
   useEffect(() => {
     const id = selectedEntity?.county_id;
-    if (!id) { setCountyParent(null); return; }
-    // ⚠ Cleared BEFORE the fetch starts, not just on failure. Otherwise the
-    // PREVIOUS entity's county survives in state for one round trip, and the
-    // breadcrumb names and links to a government that is not this entity's
-    // parent until the fetch resolves.
-    setCountyParent(null);
+    if (!id) return;
     let live = true;
     fetchEntityById(id)
       .then(row => { if (live) setCountyParent(row); })
@@ -309,8 +349,9 @@ function App() {
   // usually served from cache while the first is still on the network — so
   // without these the stale response lands last and stamps its own state over
   // the good one. UAT 2026-08-22 (G6). See data/latestRequest.ts.
-  const tilesSequence = useRef(createRequestSequence()).current;
-  const chartSequence = useRef(createRequestSequence()).current;
+  // Lazy state with no setter: created once, the same object on every render.
+  const [tilesSequence] = useState(createRequestSequence);
+  const [chartSequence] = useState(createRequestSequence);
 
   const [budgetData, setBudgetData] = useState<BudgetData | null>(null);
   const [operatingBudgetData, setOperatingBudgetData] = useState<BudgetData | null>(null);
@@ -328,9 +369,12 @@ function App() {
   const [heroImage, setHeroImage] = useState<HeroImage | null>(null);
 
   // Resolve the hero banner (shared bucket → Wikipedia fallback) when entity changes
+  // Cleared while the new one loads.
+  useAdjustOnChange([selectedEntity], () => {
+    if (selectedEntity) setHeroImage(null);
+  });
   useEffect(() => {
     if (!selectedEntity) return;
-    setHeroImage(null); // clear while loading
     getHeroImage(selectedEntity).then(setHeroImage);
   }, [selectedEntity]);
 
@@ -378,11 +422,6 @@ function App() {
   // all — and blanked BOTH tiles. Seeding from whichever dataset the reader
   // arrives on preserves first paint without that coupling.
   //
-  // Assigned during render, not in an effect, so the seeding effect below always
-  // reads the current value regardless of effect ordering.
-  const activeDatasetRef = useRef(activeDataset);
-  activeDatasetRef.current = activeDataset;
-
   const [defaultSeriesSeed, setDefaultSeriesSeed] = useState<SeriesKey | null>(null);
 
   // The series in force: the reader's choice if they made one and it still exists
@@ -420,19 +459,18 @@ function App() {
   // one sent. The year was already resolved from the URL, so the page rendered
   // FY2025 adopted figures under an "All Funds · actuals, FY 2024" label.
   // Found by UAT 2026-08-21; the predicate is tested in seriesSelection.test.ts.
-  const previousEntityIdRef = useRef<string | null>(null);
-  useEffect(() => {
-    const nextEntityId = selectedEntity?.id ?? null;
-    if (shouldResetSeries(previousEntityIdRef.current, nextEntityId)) {
+  //
+  // ⚠ Seeded during render (useAdjustOnChange), so it reads the tab of the SAME
+  // render that brought the entity: on a deep link that is the URL-restore
+  // batch's ?dataset=, which is what makes the Plano rule hold on arrival.
+  useAdjustOnChange([selectedEntity] as const, ([previousEntity]) => {
+    if (shouldResetSeries(previousEntity?.id ?? null, selectedEntity?.id ?? null)) {
       setSelectedSeries(null);
     }
-    previousEntityIdRef.current = nextEntityId;
     setDefaultSeriesSeed(
-      selectedEntity
-        ? defaultSeries(selectedEntity.available_datasets, activeDatasetRef.current)
-        : null,
+      selectedEntity ? defaultSeries(selectedEntity.available_datasets, activeDataset) : null,
     );
-  }, [selectedEntity?.id, selectedEntity]);
+  });
 
   // Derive available years and datasets from selected entity
   // Period tokens: annual years descending, with the FY1976 Transition Quarter
@@ -459,16 +497,23 @@ function App() {
   // used to see an available year, return early, and leave the reader on a blank
   // tile whose copy told them to choose the set they had just chosen. Found by UAT
   // 2026-08-21. `resolveSeriesYear` judges a budget dataset on the rows the series
-  // has FOR IT; its tests are in seriesSelection.test.ts because this file cannot
-  // be tested at all.
-  useEffect(() => {
-    if (!selectedEntity) return;
-    const { token, moved } = resolveSeriesYear(
-      selectedEntity.available_datasets, effectiveSeries, activeDataset, selectedYear);
-    const note = SERIES_TOGGLE_COPY.yearClamped(selectedYear, token, effectiveSeriesLabel);
-    setClampState((prev) => resolveClampNote(prev, moved, token, note, selectedYear));
-    if (moved) setSelectedYear(token);
-  }, [selectedEntity, effectiveSeries, activeDataset, selectedYear, effectiveSeriesLabel]);
+  // has FOR IT; its tests are in seriesSelection.test.ts, and App.dom.test.tsx
+  // pins what the reader sees.
+  //
+  // ⚠ Adjusted during render, so the stranded year is never committed: no URL
+  // push and no budget request for a year the series cannot show. The note's
+  // survival across its own move is still resolveClampNote's job (G5).
+  useAdjustOnChange(
+    [selectedEntity, effectiveSeries, activeDataset, selectedYear, effectiveSeriesLabel],
+    () => {
+      if (!selectedEntity) return;
+      const { token, moved } = resolveSeriesYear(
+        selectedEntity.available_datasets, effectiveSeries, activeDataset, selectedYear);
+      const note = SERIES_TOGGLE_COPY.yearClamped(selectedYear, token, effectiveSeriesLabel);
+      setClampState((prev) => resolveClampNote(prev, moved, token, note, selectedYear));
+      if (moved) setSelectedYear(token);
+    },
+  );
 
   const availableDatasetTypes = useMemo(() => {
     if (!selectedEntity) return ['operating', 'revenue', 'salaries'];
@@ -739,6 +784,16 @@ function App() {
     return () => window.removeEventListener('popstate', onPopState);
   }, [routeToEntityParam]);
 
+  // All-funds requirements is cleared when this year has none; a year that has
+  // one keeps the previous figure until its own load lands, as it always has.
+  useAdjustOnChange([selectedYear, selectedEntity, effectiveSeries], () => {
+    if (!selectedEntity) return;
+    const yearNum = parsePeriod(selectedYear).fiscalYear;
+    const hasAllFundsRequirements = selectedEntity.available_datasets.some(
+      d => d.fiscal_year === yearNum && d.dataset_type === 'all_funds_requirements');
+    if (!hasAllFundsRequirements) setAllFundsRequirementsData(null);
+  });
+
   // Load operating budget and revenue totals for info cards (only if entity has that data)
   useEffect(() => {
     if (!selectedEntity) return;
@@ -804,33 +859,38 @@ function App() {
       loadBudgetData(yearNum, selectedEntity.name, selectedEntity.state, 'all_funds_requirements', periodLabel, null, selectedEntity)
         .then(data => setAllFundsRequirementsData(data))
         .catch(() => setAllFundsRequirementsData(null));
-    } else {
-      setAllFundsRequirementsData(null);
     }
-  }, [selectedYear, selectedEntity, effectiveSeries]);
+  }, [selectedYear, selectedEntity, effectiveSeries, tilesSequence]);
 
   // Load main budget data when dataset, year, entity, or federal lens changes.
   // The agency lens substitutes the federal_agency dataset for 'operating' —
   // tab state stays 'operating' (the lens is a view of Money Out, not a tab).
-  useEffect(() => {
+  //
+  // The resets happen during render (useAdjustOnChange); the effect only loads.
+  // ⚠ budgetData is NOT cleared when a load starts: the previous chart stays
+  // under the loading overlay until the new one lands, as it always has.
+  useAdjustOnChange([activeDataset, selectedYear, selectedEntity, federalLens, effectiveSeries], () => {
     if (!selectedEntity) return;
     // Budget-less entities (e.g. a grouper county like Orange County, whose cities
     // carry the data) have nothing to load — render the directory, not an error.
-    // Attempting a load here would throw "No budget found" and trip the error screen.
-    if ((selectedEntity.available_datasets?.length ?? 0) === 0) {
+    // Attempting a load would throw "No budget found" and trip the error screen.
+    if (isBudgetless(selectedEntity)) {
       setBudgetData(null);
       setBudgetLoadError(false);
       setLoading(false);
       setNavigationPath([]);
       return;
     }
+    setLoading(true);
+    setBudgetLoadError(false);
+    setNavigationPath([]);
+  });
+  useEffect(() => {
+    if (!selectedEntity || isBudgetless(selectedEntity)) return;
     const requestDataset =
       selectedEntity.entity_type === 'federal' && activeDataset === 'operating' && federalLens === 'agency'
         ? 'federal_agency'
         : activeDataset;
-    setLoading(true);
-    setBudgetLoadError(false);
-    setNavigationPath([]);
 
     const { fiscalYear, periodLabel } = parsePeriod(selectedYear);
     // SCOPE-03: only the series datasets carry a series; federal_agency, salaries
@@ -860,7 +920,7 @@ function App() {
         setLoading(false);
         setBudgetLoadError(true);
       });
-  }, [activeDataset, selectedYear, selectedEntity, federalLens, effectiveSeries]);
+  }, [activeDataset, selectedYear, selectedEntity, federalLens, effectiveSeries, chartSequence]);
 
   // Entity change handler — computes effective year BEFORE triggering data load (avoids Pitfall 1)
   const handleEntityChange = useCallback(async (listEntry: Municipality) => {
@@ -906,8 +966,11 @@ function App() {
 
   // EV (nonprofit) reconciled financial summary — Phase 76. Fetch per entity+year;
   // null for any non-nonprofit entity (never leaks across entities) and on failure.
+  useAdjustOnChange([selectedEntity, selectedYear], () => {
+    if (selectedEntity?.entity_type !== 'nonprofit') setOrgSummary(null);
+  });
   useEffect(() => {
-    if (selectedEntity?.entity_type !== 'nonprofit') { setOrgSummary(null); return; }
+    if (selectedEntity?.entity_type !== 'nonprofit') return;
     loadOrgFinancialSummary(selectedEntity.id, parsePeriod(selectedYear).fiscalYear)
       .then(setOrgSummary)
       .catch(() => setOrgSummary(null));
@@ -932,11 +995,13 @@ function App() {
 
   // If the active per-capita scale has no denominator for the selected year (the TQ,
   // pre-2005 per-taxpayer, etc.), fall back to dollars so we never show a wrong figure.
-  useEffect(() => {
+  // ⚠ Stored, not derived: the reader stays on dollars after moving back to a
+  // year that has the denominator, as they always have.
+  useAdjustOnChange([federalDenominators, federalScale], () => {
     if (!federalDenominators) return;
     if (federalScale === 'perPerson' && !federalDenominators.population) setFederalScale('dollars');
     if (federalScale === 'perTaxpayer' && !federalDenominators.taxReturns) setFederalScale('dollars');
-  }, [federalDenominators, federalScale]);
+  });
 
   // Sync URL when year, dataset, or federal lens changes (guard avoids Pitfall 2 — no sync on mount)
   useEffect(() => {
@@ -978,25 +1043,22 @@ function App() {
     return () => document.removeEventListener('visibilitychange', handleVisibility);
   }, [selectedEntity, selectedYear, effectiveSeries]);
 
-  // Lazy-load linked transactions when navigating into a category (operating only)
-  useEffect(() => {
+  // Lazy-load linked transactions when navigating into a category (operating only).
+  // The previous category's transactions are cleared during render; the effect
+  // only loads.
+  useAdjustOnChange([navigationPath, activeDataset, budgetData], () => {
     setLinkedTransactions(null);
-    setLinkedTxStatus('idle');
-
-    if (activeDataset !== 'operating' || navigationPath.length === 0 || !budgetData) return;
-
-    const currentCat = navigationPath[navigationPath.length - 1];
-    if (!currentCat.linkKey) return;
-
-    const budgetId = budgetData.budgetId;
-    if (!budgetId) return;
+    setLinkedTxStatus(linkedTxRequest(activeDataset, navigationPath, budgetData) ? 'loading' : 'idle');
+  });
+  useEffect(() => {
+    const request = linkedTxRequest(activeDataset, navigationPath, budgetData);
+    if (!request) return;
 
     // ⚠ A late response from a category the reader has already navigated away
     // from must not resurrect a spinner or show another category's rows.
     let cancelled = false;
-    setLinkedTxStatus('loading');
 
-    loadLinkedTransactions(budgetId, currentCat.linkKey)
+    loadLinkedTransactions(request.budgetId, request.linkKey)
       .then(summary => {
         if (cancelled) return;
         setLinkedTransactions(summary);
@@ -1265,7 +1327,7 @@ function App() {
       metadata: { ...budgetData.metadata, totalBudget: budgetData.metadata.totalBudget / divisor },
       categories: budgetData.categories.map(scaleCat),
     };
-  }, [budgetData, federalScale, selectedEntity, federalContextData, federalDenominators]);
+  }, [budgetData, federalScale, selectedEntity, federalDenominators]);
 
   const profileMenu = isAuthenticated
     ? { label: 'Account', items: [
