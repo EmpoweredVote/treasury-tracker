@@ -29,7 +29,19 @@ export const SOCRATA_ROW_COVERAGE = [
   { source: 'West Hollywood Demand Register FY2022-23', fiscalYear: 2023, rows: 17132 },
   { source: 'West Hollywood Demand Register FY2022-24', fiscalYear: 2024, rows: 23553 },
   { source: 'West Hollywood Demand Register FY2024-25', fiscalYear: 2025, rows: 11210 },
-  { source: 'West Hollywood Demand Register FY2025-26', fiscalYear: 2026, rows: 16156 },
+
+  // ⚠⚠ THE CURRENT FISCAL YEAR, AND IT GROWS. This read 16,156 on 2026-11-05
+  // and 24,831 on 2026-11-06 — the publisher appended 8,675 rows overnight and
+  // the gate went red the next morning, exactly as intended: TT really was
+  // 8,675 rows and $89.9M behind what the city had published.
+  //
+  // ⚠ Before syncing an append, CHECK IT IS AN APPEND. A wholesale replace
+  // re-mints every `:id`, so ON CONFLICT would match nothing and the year would
+  // DOUBLE. Measured here by asking the publisher whether rows TT already holds
+  // are still present under the same `:id`:
+  //   $select=count(*)&$where=:id in ('row-…','row-…', …)
+  // 100 of 100 sampled ids came back. Then sync: +8,675 new, 16,156 skipped.
+  { source: 'West Hollywood Demand Register FY2025-26', fiscalYear: 2026, rows: 24831 },
 
   // ── Los Angeles, CA ────────────────────────────────────────────────────
   //
