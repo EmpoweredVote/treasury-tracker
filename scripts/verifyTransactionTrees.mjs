@@ -53,10 +53,33 @@ if (error) {
       console.log(`      ${row[k]} ${why}`);
       bad++;
     }
+    /**
+     * ⚠⚠ A NOTICE, NOT A FAULT — and it is printed precisely so that it is
+     * not invisible. These are rows the PUBLISHER published empty: $0 and
+     * nothing in any column the loader fills. They are in no category because
+     * there is nothing to categorise, and TT stores them because the
+     * Milledgeville Rule says load what is published.
+     *
+     * Reporting them is the difference between a documented exclusion and a
+     * silent one. If this number ever moves, the publisher changed something
+     * — go and look at the rows rather than at this line.
+     */
+    const empty = Number(row.empty_published_rows ?? 0);
+    if (empty) {
+      console.log(`      note: ${empty} row(s) published EMPTY by the city ($0, no date, no`);
+      console.log('            description) are in no category and move no money.');
+    }
   }
   if (bad) {
     console.error('\n❌ a published tree disagrees with the transactions beneath it.');
-    console.error('   Run:  node --env-file=.env scripts/rebuildTransactionTree.mjs --municipality McKinney');
+    // ⚠ Name the municipality the gate actually complained about. This line
+    // said "McKinney" unconditionally, which was a wrong instruction the
+    // moment a second source was enrolled.
+    const who = [...new Set(data.filter((r) => COUNTERS.some(([k]) => Number(r[k]) > 0))
+      .map((r) => String(r.source).replace(/ (Check|Demand) Register.*$/, '')))];
+    for (const m of who) {
+      console.error(`   Run:  node --env-file=.env scripts/rebuildTransactionTree.mjs --municipality "${m}"`);
+    }
     console.error('   Do NOT add a baseline — the tree is derived, so this is always fixable.');
     process.exitCode = 1;
   } else {

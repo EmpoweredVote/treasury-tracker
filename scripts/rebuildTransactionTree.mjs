@@ -76,22 +76,99 @@ function db() {
   return _db;
 }
 
-/** ⚠ Paged. A budget's transactions run to tens of thousands; PostgREST caps at 1,000. */
-async function transactionsOf(budgetId) {
+/**
+ * ⚠ Paged. A budget's transactions run to tens of thousands; PostgREST caps at 1,000.
+ *
+ * ── ⚠⚠ THE VENDOR JOIN IS ASKED FOR, NOT ASSUMED ────────────────────────────
+ *
+ * Only a vendor-KEYED source needs the names (Frisco labels its roots with
+ * them). McKinney keys on department codes and West Hollywood on the
+ * publisher's category, and both were paying for a join they never read. When
+ * it IS asked for it still travels with the same read, so the naming rule
+ * stays a pure function of the rows it was given.
+ *
+ * ⚠ MEASURED, because the obvious culprit was the wrong one. Deep offsets are
+ * CHEAP here — page 41 of McKinney FY2022 came back in 332ms with the join and
+ * 106ms without. The join is what is slow and, worse, VARIABLE: the same page
+ * shape took 114ms, 3,015ms and 5,041ms across runs, and ONE page exceeding
+ * the statement timeout fails the whole read. This is not a paging bug, and
+ * keyset paging does not fix it.
+ *
+ * ── ⛔⛔ AND IT IS NOT FIXED, ONLY CHEAPER. READ THIS BEFORE TRUSTING IT ──────
+ *
+ * `rebuildTransactionTree.mjs --municipality McKinney` still FAILS. Before
+ * this change every one of McKinney's four registers (45,844 / 47,169 /
+ * 47,324 / 50,096 rows) died on the FIRST one with `canceling statement due
+ * to statement timeout`; now FY2022 and FY2023 complete and FY2024 still
+ * times out (FY2025 is never reached). That command is the exact remedy
+ * `verify:txn-trees` prints when a tree goes red, so the fleet's largest
+ * trees STILL cannot be repaired.
+ *
+ * ⭐ The real fix is to stop shipping ~48,000 rows to Node to add them up.
+ * The grouping already exists in SQL — `transaction_tree_status()` does the
+ * same `group by link_key` in-database — so a `treasury.transaction_roots
+ * (budget_id)` RPC returning `(link_key, amount, item_count)` would make a
+ * rebuild ONE query instead of forty-eight, at any size. That is a change to
+ * how every tree is built, including Frisco's vendor labels, and it is
+ * deliberately NOT bundled into the West Hollywood fix.
+ *
+ * ⚠ West Hollywood is unaffected either way: its largest year is 24,831 rows
+ * and all eight rebuild in well under the timeout.
+ */
+async function transactionsOf(budgetId, { withVendorNames = false } = {}) {
   const rows = [];
+  const select = withVendorNames
+    ? 'id, amount, link_key, vendors(name)'
+    : 'id, amount, link_key';
   for (let from = 0; ; from += 1000) {
-    // ⚠ The vendor NAME comes along because a vendor-keyed source labels its
-    // roots with it (Frisco). McKinney ignores it. Joining here keeps the
-    // naming rule a pure function of what was read, with no second query that
-    // could come back describing a different set of rows.
     const { data, error } = await db().schema('treasury').from('transactions')
-      .select('id, amount, link_key, vendors(name)').eq('budget_id', budgetId)
+      .select(select).eq('budget_id', budgetId)
       .order('id').range(from, from + 999);
     if (error) throw new Error(`transactions read failed: ${error.message}`);
     rows.push(...data);
     if (data.length < 1000) break;
   }
   return rows;
+}
+
+/**
+ * Fill in the publisher columns for the UNKEYED rows only, so
+ * `isEmptyPublishedRow` can tell a row the publisher published empty from a
+ * row whose key the loader lost.
+ *
+ * ⚠⚠ A SECOND, TINY QUERY RATHER THAN A WIDER FIRST ONE. Selecting these nine
+ * columns in `transactionsOf` instead put McKinney straight back into
+ * `canceling statement due to statement timeout` — 13 columns across ~48,000
+ * rows where 3 had been enough. Unkeyed rows are vanishingly rare by
+ * construction, which is the whole point of the refusal they feed: this reads
+ * ONE row on West Hollywood FY2018-19 and none at all anywhere else.
+ */
+async function fillUnkeyedDetail(txns) {
+  const unkeyed = txns.filter((t) => t.link_key === null || t.link_key === undefined || t.link_key === '');
+  if (!unkeyed.length) return;
+
+  const byId = new Map(unkeyed.map((t) => [t.id, t]));
+  // ⚠ Fetched BY ID, not by `is('link_key', null)`. An empty-STRING key is
+  // unkeyed too and that filter would miss it — leaving the row with no
+  // publisher columns at all, which `isEmptyPublishedRow` would then read as
+  // empty. A row must never be called empty because we failed to look at it.
+  const ids = [...byId.keys()];
+  for (let i = 0; i < ids.length; i += 500) {
+    const { data, error } = await db().schema('treasury').from('transactions')
+      .select('id, description, payment_date, payment_method, payment_number, '
+        + 'invoice_number, fund, expense_category, department, program')
+      .in('id', ids.slice(i, i + 500));
+    if (error) throw new Error(`unkeyed detail read failed: ${error.message}`);
+    for (const row of data) Object.assign(byId.get(row.id), row);
+  }
+
+  const missed = ids.filter((id) => !('description' in byId.get(id)));
+  if (missed.length) {
+    throw new Error(
+      `${missed.length} unkeyed row(s) could not be re-read (first ${missed[0]}). Refusing to ` +
+      `judge whether they are empty without having seen them.`,
+    );
+  }
 }
 
 async function rootsOf(budgetId) {
@@ -140,10 +217,12 @@ export async function rebuildBudget(budget, { dryRun = false, quiet = false } = 
     );
   }
 
-  const txns = await transactionsOf(budget.id);
+  const txns = await transactionsOf(budget.id, { withVendorNames: r.needsVendorNames });
+  await fillUnkeyedDetail(txns);
 
   // ⚠ Built from the SAME rows the roll-up sees, so a key can never resolve to
-  // a name that came from a different read.
+  // a name that came from a different read. Empty for a source that did not
+  // ask for the join — and a resolver that needs it declares that it does.
   const vendorNameByKey = new Map();
   for (const t of txns) {
     const name = t.vendors?.name;
@@ -152,7 +231,7 @@ export async function rebuildBudget(budget, { dryRun = false, quiet = false } = 
     }
   }
 
-  const { roots, total } = rollUpTransactions(
+  const { roots, total, emptyRows } = rollUpTransactions(
     txns,
     (keys) => r.resolveNames(keys, { vendorNameByKey }),
     { keepTop: r.keepTop, tailKey: r.tailKey, tailName: r.tailName },
@@ -175,6 +254,12 @@ export async function rebuildBudget(budget, { dryRun = false, quiet = false } = 
   if (!quiet) {
     console.log(`${budget.data_source}: ${txns.length} txns -> ${roots.length} roots ` +
       `| +${inserts.length} ~${updates.length} -${deletes.length}`);
+    // ⚠ Printed every run, never swallowed. An exclusion nobody can see is
+    // indistinguishable from a row that was quietly lost.
+    if (emptyRows) {
+      console.log(`    ${emptyRows} row(s) the publisher published EMPTY ($0, no date, no ` +
+        `description) are in no category — they are stored, and they move no money.`);
+    }
     for (const u of updates.slice(0, 4)) {
       const b = u.before; const a = u.after;
       if (b.name !== a.name) console.log(`    ${JSON.stringify(b.name)} -> ${JSON.stringify(a.name)}`);

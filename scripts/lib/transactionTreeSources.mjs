@@ -80,6 +80,51 @@ function friscoResolver() {
   };
 }
 
+/**
+ * ── WEST HOLLYWOOD: THE PUBLISHED CATEGORY, AS THE CITY WROTE IT ─────────
+ *
+ * Narrower than Frisco's rule, which still has to look a name up by key. Here
+ * the label IS the key. `column_mapping.expense_category_column` is `category`
+ * and no department or fund column is mapped, so the loader's
+ * `linkKey([department, fund, expense_category])` reduces to the `category`
+ * cell unchanged — "Contracted Services", "Payroll Liabilities", "Debt
+ * Service". There is no map, no lookup, no slug and no judgement.
+ *
+ * ⭐⭐ VERIFIED AGAINST THE PUBLISHER, NOT AGAINST TT'S OWN COPY. A tree built
+ * from TT's transactions will always tie to TT's transactions; that proves
+ * nothing about whether the categories are the city's. So the city was asked
+ * the same question directly, per dataset:
+ *
+ *     $select=category,count(*),sum(amount_paid)&$group=category
+ *
+ * All eight years agree with the stored keys, row count for row count and
+ * cent for cent. 20-23 categories a year — a readable breakdown, so unlike
+ * Frisco there is no tail bucket and no `keepTop`.
+ *
+ * ⚠⚠ THE COMPOSITE-KEY GUARD BELOW IS LOAD-BEARING. `linkKey()` joins its
+ * parts with "|", and today exactly one part survives. The day anyone maps a
+ * fund_column on one of these sources, every key silently becomes
+ * "General Fund|Contracted Services" — and an identity rule would print that
+ * to a reader as the name of a category. That is how an unsourced label
+ * starts looking sourced, so it refuses instead.
+ */
+function wehoCategoryResolver() {
+  return (keys) => {
+    const out = new Map();
+    for (const k of keys) {
+      if (typeof k === 'string' && k.includes('|')) {
+        throw new Error(
+          `West Hollywood key ${JSON.stringify(k)} is composite: more than one column went into ` +
+          `linkKey(), so it is no longer the publisher's own category cell and must not be shown ` +
+          `as a category name. Fix the column_mapping, or write a real naming rule for the new shape.`,
+        );
+      }
+      out.set(k, k);
+    }
+    return out;
+  };
+}
+
 const SOURCES = [
   {
     // "McKinney Check Register FY2024"
@@ -98,6 +143,19 @@ const SOURCES = [
     keepTop: 30,
     tailKey: 'other-vendors',
     tailName: 'Other Vendors',
+    // ⚠⚠ The ONLY source that needs the vendors join, and it must ask for it.
+    // The join used to be unconditional and made McKinney's registers
+    // unrebuildable — see the note on `transactionsOf`.
+    needsVendorNames: true,
+  },
+  {
+    // "West Hollywood Demand Register FY2018-19" … "FY2025-26"
+    //
+    // ⚠ The file TITLES are not the fiscal years — "FY2022-24" is TT's
+    // FY2024 budget. The resolver does not care: it reads no year.
+    match: /^West Hollywood Demand Register FY\d{4}-\d{2}$/,
+    resolver: wehoCategoryResolver,
+    source: "The category column of West Hollywood's published demand register, unchanged.",
   },
 ];
 
@@ -116,6 +174,9 @@ export function resolverFor(dataSourceName, fiscalYear) {
         keepTop: s.keepTop ?? null,
         tailKey: s.tailKey ?? null,
         tailName: s.tailName ?? null,
+        // ⚠ Defaults to FALSE: a source pays for the vendors join only by
+        // declaring it needs one. See `transactionsOf`.
+        needsVendorNames: s.needsVendorNames === true,
       };
     }
   }

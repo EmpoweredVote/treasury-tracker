@@ -25,6 +25,43 @@
  */
 
 /**
+ * Every column the loader writes from the publisher's own row.
+ *
+ * ⚠ `vendors.name` is NOT in this list and must not be. The loader writes
+ * `cell(r, cm.vendor_column) || "Unknown"`, so a row with no vendor at all
+ * comes out of the database carrying the string "Unknown" — an invented value
+ * from the same falsy-coalescing family as the McKinney defect. A column that
+ * is never empty cannot be evidence that a row is.
+ */
+const PUBLISHER_COLUMNS = [
+  'description', 'payment_date', 'payment_method', 'payment_number',
+  'invoice_number', 'fund', 'expense_category', 'department', 'program',
+];
+
+/**
+ * A row the PUBLISHER published empty: zero amount, and nothing in any column
+ * the loader fills from the source.
+ *
+ * ⚠⚠ THIS IS NOT A LOOPHOLE IN THE NULL-KEY REFUSAL BELOW, AND THE DIFFERENCE
+ * IS THE WHOLE POINT. That refusal exists because an unkeyed row is MONEY IN
+ * NO CATEGORY — McKinney's $79.1M. This is the opposite case: there is no
+ * money and there is nothing to categorise. Requiring every publisher column
+ * to be empty is what keeps the two apart; a row with $0 but a real date or
+ * description HAS content the publisher declined to classify, and still
+ * refuses.
+ *
+ * West Hollywood's FY2018-19 register contains exactly one such row,
+ * `row-kt5z-k7g9.mzuf`, and fetching it from Socrata returns nothing but the
+ * system fields and `retainage: "0"`. TT stores it because the Milledgeville
+ * Rule says load what is published — and because dropping it would put
+ * `verify:source-row-coverage` permanently red at 24,122 of 24,123.
+ */
+export function isEmptyPublishedRow(t) {
+  if ((Number(t.amount) || 0) !== 0) return false;
+  return PUBLISHER_COLUMNS.every((c) => t[c] === null || t[c] === undefined || t[c] === '');
+}
+
+/**
  * Group transactions into roots.
  *
  * `txns` is `[{ link_key, amount }]`. `resolveNames` takes the full array of
@@ -36,15 +73,21 @@
  * rows under "Unknown" is precisely how $79.1M of McKinney spending acquired a
  * label nobody could trace and a drill-down that returned nothing. If a key is
  * missing, the loader lost it — fix the loader.
+ *
+ * Returns `{ roots, total, emptyRows }`. ⚠ `emptyRows` is REPORTED, never
+ * swallowed: a count the caller prints is the difference between a documented
+ * exclusion and a silent one.
  */
 export function rollUpTransactions(txns, resolveNames, opts = {}) {
   const groups = new Map();
   let unkeyed = 0;
   let unkeyedAmount = 0;
+  let emptyRows = 0;
 
   for (const t of txns) {
     const key = t.link_key;
     if (key === null || key === undefined || key === '') {
+      if (isEmptyPublishedRow(t)) { emptyRows++; continue; }
       unkeyed++;
       unkeyedAmount += Number(t.amount) || 0;
       continue;
@@ -165,6 +208,35 @@ export function rollUpTransactions(txns, resolveNames, opts = {}) {
   // drift detectable at all.
   roots.forEach((r, i) => { r.sort_order = i + 1; });
 
+  /**
+   * ── ⚠⚠⚠ NO ROOT KEY MAY BE A PREFIX OF ANOTHER ──────────────────────────
+   *
+   * The drill-down matches a link_key by PREFIX on the server
+   * (`src/data/dataLoader.ts`: "so 'fire' returns all transactions"). So if one
+   * root keys as "Debt Service" and another as "Debt Service Fees", clicking
+   * the first silently returns BOTH — a category that overstates itself, with
+   * every total still tying, which is the shape of defect this whole file
+   * exists for.
+   *
+   * ⚠ Measured before adding: zero collisions across every stored McKinney,
+   * Frisco and West Hollywood key, so this refuses nothing that works today.
+   * It is cheap insurance on a rule whose keys are free-text publisher labels.
+   *
+   * Sorting puts a prefix immediately before the strings it prefixes, so
+   * adjacent pairs are enough to find one.
+   */
+  const sortedKeys = roots.map((r) => String(r.link_key)).sort();
+  for (let i = 1; i < sortedKeys.length; i++) {
+    if (sortedKeys[i].startsWith(sortedKeys[i - 1])) {
+      throw new Error(
+        `root key ${JSON.stringify(sortedKeys[i - 1])} is a prefix of ${JSON.stringify(sortedKeys[i])}. ` +
+        `The drill-down matches link_key by prefix, so the shorter category would return the longer ` +
+        `one's transactions as well and quietly overstate itself. Re-key the source, or teach the API ` +
+        `an exact match, before publishing this tree.`,
+      );
+    }
+  }
+
   const dupes = roots.length - new Set(roots.map((r) => r.name)).size;
   if (dupes) {
     const counts = new Map();
@@ -177,7 +249,7 @@ export function rollUpTransactions(txns, resolveNames, opts = {}) {
     );
   }
 
-  return { roots, total: round2(total) };
+  return { roots, total: round2(total), emptyRows };
 }
 
 function round2(n) {

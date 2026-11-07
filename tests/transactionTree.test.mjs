@@ -7,7 +7,7 @@
  * lost their key and the rollup that built it was a one-off nobody could re-run.
  */
 import { describe, it, expect } from 'vitest';
-import { rollUpTransactions, diffTree } from '../scripts/lib/transactionTree.mjs';
+import { rollUpTransactions, diffTree, isEmptyPublishedRow } from '../scripts/lib/transactionTree.mjs';
 import { resolverFor, isEnrolled } from '../scripts/lib/transactionTreeSources.mjs';
 
 const byKey = (names) => (keys) => new Map(keys.map((k) => [k, names[k] ?? `Key ${k}`]));
@@ -65,6 +65,90 @@ describe('rollUpTransactions', () => {
     expect(() => rollUpTransactions([{ link_key: '', amount: 1 }], byKey({}))).toThrow(/NO link_key/);
   });
 
+  /**
+   * ── ⚠⚠ THE EMPTY PUBLISHED ROW, AND WHY IT IS NOT A LOOPHOLE ────────────
+   *
+   * West Hollywood's FY2018-19 register contains one row the city published
+   * with nothing in it (`row-kt5z-k7g9.mzuf`: only system fields and
+   * `retainage: "0"`). It has no key because there is nothing to key it on,
+   * and it carries $0. TT stores it — the Milledgeville Rule — so the roll-up
+   * has to say something about it.
+   *
+   * These tests pin the line. Zero amount is NOT on its own enough: a row with
+   * $0 and a real date or description has content the publisher declined to
+   * classify, which is the thing the refusal exists for.
+   */
+  it('excludes a row the publisher published EMPTY, and counts it', () => {
+    const { roots, total, emptyRows } = rollUpTransactions(
+      [{ link_key: 'a', amount: 10 },
+       { link_key: null, amount: 0, description: null, payment_date: null }],
+      byKey({ a: 'Alpha' }),
+    );
+    expect(emptyRows).toBe(1);
+    expect(total).toBe(10);
+    expect(roots).toHaveLength(1);
+  });
+
+  it('reports zero empty rows when there are none', () => {
+    const { emptyRows } = rollUpTransactions([{ link_key: 'a', amount: 1 }], byKey({ a: 'A' }));
+    expect(emptyRows).toBe(0);
+  });
+
+  it('still REFUSES a $0 row that carries a date', () => {
+    expect(() => rollUpTransactions(
+      [{ link_key: 'a', amount: 1 }, { link_key: null, amount: 0, payment_date: '2019-03-14' }],
+      byKey({ a: 'Alpha' }),
+    )).toThrow(/NO link_key/);
+  });
+
+  it('still REFUSES a $0 row that carries a description', () => {
+    expect(() => rollUpTransactions(
+      [{ link_key: 'a', amount: 1 }, { link_key: null, amount: 0, description: 'VOID — reissued' }],
+      byKey({ a: 'Alpha' }),
+    )).toThrow(/NO link_key/);
+  });
+
+  it('still REFUSES a $0 row that carries an invoice number or a fund', () => {
+    for (const extra of [{ invoice_number: '0013247' }, { fund: 'General Fund' },
+                         { expense_category: 'Contracted Services' }, { department: '4306' }]) {
+      expect(() => rollUpTransactions(
+        [{ link_key: 'a', amount: 1 }, { link_key: null, amount: 0, ...extra }],
+        byKey({ a: 'Alpha' }),
+      ), JSON.stringify(extra)).toThrow(/NO link_key/);
+    }
+  });
+
+  // ⚠⚠⚠ The McKinney case must survive untouched: money with no key refuses.
+  it('still REFUSES an unkeyed row that carries money', () => {
+    expect(() => rollUpTransactions(
+      [{ link_key: 'a', amount: 10 }, { link_key: null, amount: 79113309.51 }],
+      byKey({ a: 'Alpha' }),
+    )).toThrow(/have NO link_key/);
+  });
+
+  /**
+   * ⚠ The vendor is deliberately NOT evidence of emptiness. The loader writes
+   * `vendor || "Unknown"`, so the real WeHo row comes back carrying the string
+   * "Unknown" — a column that is never empty cannot prove a row is.
+   */
+  it('counts the row empty even though the loader gave it a vendor of "Unknown"', () => {
+    const { emptyRows } = rollUpTransactions(
+      [{ link_key: 'a', amount: 1 },
+       { link_key: null, amount: 0, vendors: { name: 'Unknown' } }],
+      byKey({ a: 'A' }),
+    );
+    expect(emptyRows).toBe(1);
+  });
+
+  it('exposes the predicate on its own so the SQL gate can be checked against it', () => {
+    expect(isEmptyPublishedRow({ amount: 0 })).toBe(true);
+    expect(isEmptyPublishedRow({ amount: '0' })).toBe(true);
+    expect(isEmptyPublishedRow({ amount: 0.01 })).toBe(false);
+    expect(isEmptyPublishedRow({ amount: -1 })).toBe(false);
+    expect(isEmptyPublishedRow({ amount: 0, description: '' })).toBe(true);
+    expect(isEmptyPublishedRow({ amount: 0, program: 'Rent Stabilization' })).toBe(false);
+  });
+
   it('refuses to write an empty tree', () => {
     expect(() => rollUpTransactions([], byKey({}))).toThrow(/no transactions/);
   });
@@ -74,6 +158,26 @@ describe('rollUpTransactions', () => {
       [{ link_key: 'a', amount: 1 }],
       () => new Map(),
     )).toThrow(/resolver returned nothing/);
+  });
+
+  /**
+   * ⚠⚠⚠ The drill-down matches link_key by PREFIX, so a key that prefixes a
+   * sibling makes the shorter category return the longer one's money too.
+   * Every total still ties while a reader is shown too much.
+   */
+  it('REFUSES a root key that is a prefix of another', () => {
+    expect(() => rollUpTransactions(
+      [{ link_key: 'Debt Service', amount: 10 }, { link_key: 'Debt Service Fees', amount: 5 }],
+      byKey({ 'Debt Service': 'Debt Service', 'Debt Service Fees': 'Debt Service Fees' }),
+    )).toThrow(/is a prefix of/);
+  });
+
+  it('allows keys that merely share a word', () => {
+    const { roots } = rollUpTransactions(
+      [{ link_key: 'Other Revenues', amount: 10 }, { link_key: 'Other Operating Costs', amount: 5 }],
+      byKey({ 'Other Revenues': 'Other Revenues', 'Other Operating Costs': 'Other Operating Costs' }),
+    );
+    expect(roots).toHaveLength(2);
   });
 
   // ⛔ A duplicate label is the original McKinney symptom.
@@ -162,12 +266,55 @@ describe('transactionTreeSources — enrolment is opt-in', () => {
     expect(isEnrolled('Frisco Check Register FY2026')).toBe(true);
   });
 
+  /**
+   * ⚠ West Hollywood has moved OFF this list for the same reason Frisco did:
+   * its labels are the publisher's own `category` cells, carried through
+   * unchanged, and every one of its eight years was checked against the city's
+   * own group-by before enrolling. Plano stays off — the publisher truncates
+   * its vendor names to five characters (#340).
+   */
   it('does NOT enrol sources whose naming rule nobody has checked', () => {
-    for (const s of ['Plano Check Register FY2025',
-                     'West Hollywood Demand Register FY2024-25', 'McKinney Payroll Register FY2024']) {
+    for (const s of ['Plano Check Register FY2025', 'McKinney Payroll Register FY2024']) {
       expect(isEnrolled(s), s).toBe(false);
       expect(resolverFor(s, 2024)).toBeNull();
     }
+  });
+
+  it('enrols all eight West Hollywood demand registers', () => {
+    for (const s of ['FY2018-19', 'FY2019-20', 'FY2020-21', 'FY2021-22',
+                     'FY2022-23', 'FY2022-24', 'FY2024-25', 'FY2025-26']) {
+      expect(isEnrolled(`West Hollywood Demand Register ${s}`), s).toBe(true);
+    }
+  });
+
+  // ⚠ The file titles are not the fiscal years — "FY2022-24" is TT's FY2024
+  // budget — so the pattern must not assume a single four-digit year.
+  it('does not enrol a West Hollywood source with a different shape', () => {
+    expect(isEnrolled('West Hollywood Demand Register FY2024')).toBe(false);
+    expect(isEnrolled('West Hollywood Budget Expenditure Detail')).toBe(false);
+  });
+
+  it('labels a West Hollywood root with the published category, unchanged', () => {
+    const { resolveNames, source } = resolverFor('West Hollywood Demand Register FY2025-26', 2026);
+    const out = resolveNames(['Contracted Services', 'Payroll Liabilities', 'Prepaids & Deposits']);
+    expect(out.get('Contracted Services')).toBe('Contracted Services');
+    expect(out.get('Payroll Liabilities')).toBe('Payroll Liabilities');
+    // Ampersands and spacing survive exactly as the city wrote them.
+    expect(out.get('Prepaids & Deposits')).toBe('Prepaids & Deposits');
+    expect(source).toMatch(/category column of West Hollywood's published demand register/);
+  });
+
+  /**
+   * ⚠⚠⚠ THE GUARD THAT STOPS AN INVENTED LABEL LOOKING SOURCED. `linkKey()`
+   * joins its parts with "|" and today only one part survives. Map a
+   * fund_column on one of these sources and every key becomes
+   * "General Fund|Contracted Services" — which an identity rule would print to
+   * a reader as the name of a category.
+   */
+  it('REFUSES a composite West Hollywood key rather than printing it as a name', () => {
+    const { resolveNames } = resolverFor('West Hollywood Demand Register FY2025-26', 2026);
+    expect(() => resolveNames(['General Fund|Contracted Services']))
+      .toThrow(/composite/);
   });
 
   it('resolves McKinney codes to the publisher’s names', () => {
@@ -189,6 +336,18 @@ describe('transactionTreeSources — enrolment is opt-in', () => {
   it('maps the legacy `unknown` key to department 0', () => {
     const { resolveNames } = resolverFor('McKinney Check Register FY2024', 2024);
     expect(resolveNames(['unknown']).get('unknown')).toBe('Department 0');
+  });
+
+  /**
+   * ⚠⚠ Only Frisco labels its roots with vendor names, and the vendors join is
+   * expensive and variable enough that one slow page exceeded the statement
+   * timeout — which made McKinney's four registers impossible to rebuild at
+   * all. A source pays for the join only by asking for it.
+   */
+  it('asks for the vendors join only where the labels are vendor names', () => {
+    expect(resolverFor('Frisco Check Register FY2024', 2024).needsVendorNames).toBe(true);
+    expect(resolverFor('McKinney Check Register FY2024', 2024).needsVendorNames).toBe(false);
+    expect(resolverFor('West Hollywood Demand Register FY2025-26', 2026).needsVendorNames).toBe(false);
   });
 
   it('cites the published source', () => {
