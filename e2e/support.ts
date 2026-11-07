@@ -10,6 +10,19 @@ import { test as base, expect, type APIRequestContext } from '@playwright/test';
 export const PINNED_SEARCH = 'Atlanta';
 export const PINNED_CITY = { name: 'Atlanta', state: 'GA' } as const;
 
+/**
+ * A city whose published CHECK REGISTER is loaded, for the Payments journey.
+ *
+ * ⚠ West Hollywood rather than Atlanta: Atlanta has no register. FY2026 is
+ * deliberately NOT used — it is the city's open year and grows every month —
+ * so the journey pins a CLOSED year whose figures no longer move.
+ *
+ * ⚠⚠ The journey asserts SHAPE, never amounts. West Hollywood republishes and
+ * TT re-syncs, and a test that pins a figure turns a publisher's ordinary
+ * update into a red PR.
+ */
+export const PINNED_REGISTER = { slug: 'west-hollywood-ca', year: 2025 } as const;
+
 // Written by global-setup.ts when the preflight fails. Its presence turns every
 // journey into a skip ("couldn't run"), so a live-API outage does not block a PR.
 export const API_DOWN_MARKER = path.join(path.dirname(fileURLToPath(import.meta.url)), '.api-down');

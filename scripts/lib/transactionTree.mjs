@@ -77,6 +77,23 @@ export function isEmptyPublishedRow(t) {
  * Returns `{ roots, total, emptyRows }`. ⚠ `emptyRows` is REPORTED, never
  * swallowed: a count the caller prints is the difference between a documented
  * exclusion and a silent one.
+ *
+ * ── ⚠⚠ AN INPUT ROW MAY ALREADY BE A GROUP ──────────────────────────────────
+ *
+ * `item_count` is optional and defaults to 1, so `{ link_key, amount }` (one
+ * transaction) and `{ link_key, amount, item_count }` (many, pre-summed by
+ * `treasury.transaction_roots`) are both accepted and can be mixed. That is
+ * what lets the caller sum 749,295 LA transactions in the database while still
+ * handing over the two unkeyed rows individually, which is the only way to
+ * tell whether those two are rows the publisher published empty.
+ *
+ * ── `keyOf`: ROLLING UP COARSER THAN THE KEY ────────────────────────────────
+ *
+ * By default a root is one distinct `link_key`. `opts.keyOf` lets a source
+ * roll up to a coarser axis — LA City's keys are `DEPARTMENT|FUND|ACCOUNT`
+ * and its roots are the 56 DEPARTMENTS. ⚠ The derived key must still be a
+ * prefix the drill-down can match (the API matches whole `|` segments), which
+ * is why it takes a segment and not, say, the first ten characters.
  */
 export function rollUpTransactions(txns, resolveNames, opts = {}) {
   const groups = new Map();
@@ -84,18 +101,32 @@ export function rollUpTransactions(txns, resolveNames, opts = {}) {
   let unkeyedAmount = 0;
   let emptyRows = 0;
 
+  const keyOf = typeof opts.keyOf === 'function' ? opts.keyOf : (t) => t.link_key;
+
   for (const t of txns) {
-    const key = t.link_key;
-    if (key === null || key === undefined || key === '') {
-      if (isEmptyPublishedRow(t)) { emptyRows++; continue; }
-      unkeyed++;
+    // ⚠ `t.link_key`, not `keyOf(t)`: whether a row is UNKEYED is a fact about
+    // the stored row, and a derivation must never be able to invent a key for
+    // a row that has none.
+    if (t.link_key === null || t.link_key === undefined || t.link_key === '') {
+      if (isEmptyPublishedRow(t)) { emptyRows += 1; continue; }
+      unkeyed += 1;
       unkeyedAmount += Number(t.amount) || 0;
       continue;
     }
+    const key = keyOf(t);
+    if (key === null || key === undefined || key === '') {
+      throw new Error(
+        `keyOf() returned nothing for link_key ${JSON.stringify(t.link_key)}. A derivation that ` +
+        `drops a key would silently drop the money under it.`,
+      );
+    }
+    // ⚠ Default 1, so a plain transaction and a pre-summed group behave the
+    // same. `?? 1` and not `|| 1` — see [[falsy_zero_eats_identifiers]].
+    const count = t.item_count === null || t.item_count === undefined ? 1 : Number(t.item_count);
     if (!groups.has(key)) groups.set(key, { link_key: key, amount: 0, item_count: 0 });
     const g = groups.get(key);
     g.amount += Number(t.amount) || 0;
-    g.item_count += 1;
+    g.item_count += count;
   }
 
   if (unkeyed) {
@@ -209,30 +240,45 @@ export function rollUpTransactions(txns, resolveNames, opts = {}) {
   roots.forEach((r, i) => { r.sort_order = i + 1; });
 
   /**
-   * ── ⚠⚠⚠ NO ROOT KEY MAY BE A PREFIX OF ANOTHER ──────────────────────────
+   * ── ⚠⚠⚠ NO ROOT KEY MAY BE A SEGMENT-PREFIX OF ANOTHER ──────────────────
    *
-   * The drill-down matches a link_key by PREFIX on the server
-   * (`src/data/dataLoader.ts`: "so 'fire' returns all transactions"). So if one
-   * root keys as "Debt Service" and another as "Debt Service Fees", clicking
-   * the first silently returns BOTH — a category that overstates itself, with
-   * every total still tying, which is the shape of defect this whole file
-   * exists for.
+   * ⚠⚠ CORRECTED. #351 shipped this as a PLAIN string-prefix test on the
+   * strength of a comment in `src/data/dataLoader.ts` ("prefix matching on the
+   * server so 'fire' returns all transactions"). That comment is loose and the
+   * test was wrong. Measured against the live API on LA City FY2025:
    *
-   * ⚠ Measured before adding: zero collisions across every stored McKinney,
-   * Frisco and West Hollywood key, so this refuses nothing that works today.
-   * It is cheap insurance on a rule whose keys are free-text publisher labels.
+   *     link_key=RECREATION                              -> null
+   *     link_key=RECREATION AND PARK                     -> null
+   *     link_key=RECREATION AND PARKS                    -> 53,392 txns
+   *     link_key=GENERAL SERVICES|GENERAL FUND (GENE..)  -> 125,948 txns
+   *     link_key=GENERAL SERVICES                        -> 150,061 txns
    *
-   * Sorting puts a prefix immediately before the strings it prefixes, so
-   * adjacent pairs are enough to find one.
+   * So the server matches WHOLE `|` SEGMENTS — `key` exactly, or `key|…` —
+   * not any old prefix. `RECREATION AND PARKS` does NOT pick up
+   * `RECREATION AND PARKS - SPECIAL ACCOUNTS`, and the DB agrees to the cent:
+   * `link_key LIKE 'RECREATION AND PARKS|%'` is 53,392 rows / $54,650,763.47,
+   * exactly what the API returned.
+   *
+   * The plain test was not merely over-strict in theory — it would have
+   * refused THIS repo's next tree, because LA publishes both
+   * `NON-DEPARTMENTAL - GENERAL` and `NON-DEPARTMENTAL - GENERAL CITY
+   * PURPOSES` as departments, and both are perfectly safe.
+   *
+   * ⚠ The real collision is MIXED DEPTH, and LA has it: two FY2024 rows key
+   * as bare `HARBOR` while every other HARBOR row keys as `HARBOR|fund|acct`.
+   * A root keyed `HARBOR` returns the bare rows AND everything beneath — which
+   * is right for a department root and wrong for a leaf, so the rule is that
+   * no two ROOTS may sit at different depths on the same path.
    */
   const sortedKeys = roots.map((r) => String(r.link_key)).sort();
   for (let i = 1; i < sortedKeys.length; i++) {
-    if (sortedKeys[i].startsWith(sortedKeys[i - 1])) {
+    const [a, b] = [sortedKeys[i - 1], sortedKeys[i]];
+    if (b.startsWith(`${a}|`)) {
       throw new Error(
-        `root key ${JSON.stringify(sortedKeys[i - 1])} is a prefix of ${JSON.stringify(sortedKeys[i])}. ` +
-        `The drill-down matches link_key by prefix, so the shorter category would return the longer ` +
-        `one's transactions as well and quietly overstate itself. Re-key the source, or teach the API ` +
-        `an exact match, before publishing this tree.`,
+        `root key ${JSON.stringify(a)} is a segment-prefix of ${JSON.stringify(b)}. The drill-down ` +
+        `matches whole "|" segments, so the shorter category would return the longer one's ` +
+        `transactions as well and quietly overstate itself. Roll both up to the same depth, or ` +
+        `re-key the source, before publishing this tree.`,
       );
     }
   }

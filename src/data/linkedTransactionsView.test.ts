@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { linkedTxView, summaryIsEmpty } from './linkedTransactionsView';
+import { linkedTxView, summaryIsEmpty , LINKABLE_DATASETS } from './linkedTransactionsView';
 import type { LinkedTransactionSummary } from '../types/budget';
 
 const FOUND: LinkedTransactionSummary = {
@@ -51,9 +51,31 @@ describe('linkedTxView', () => {
     expect(linkedTxView({ ...base, status: 'loaded', summary: FOUND })).toBe('panel');
   });
 
-  it('shows nothing outside the operating dataset, whatever the status', () => {
+  it('shows nothing on a dataset payments cannot hang off, whatever the status', () => {
     expect(linkedTxView({ ...base, activeDataset: 'revenue', status: 'loading', summary: null })).toBe('none');
     expect(linkedTxView({ ...base, activeDataset: 'salaries', status: 'loaded', summary: FOUND })).toBe('none');
+  });
+
+  /**
+   * ⚠⚠⚠ THE SECOND GATE. `linkedTxRequest` (App.tsx) decides whether to ASK
+   * for the payments; this decides whether to SHOW them, and they must agree.
+   * When `transactions` was added to the first and not here, a West Hollywood
+   * FY2026 category navigated, fetched 10,120 payments, and then rendered
+   * "No further breakdown available" — the dead end the Payments dataset
+   * exists to remove. Caught in a browser, not by a test; now both.
+   */
+  it('shows the panel on the Payments dataset — a payments root IS payments', () => {
+    expect(linkedTxView({ ...base, activeDataset: 'transactions', status: 'loaded', summary: FOUND }))
+      .toBe('panel');
+    expect(linkedTxView({ ...base, activeDataset: 'transactions', status: 'loading', summary: null }))
+      .toBe('spinner');
+    // An honest nothing is still nothing, on this dataset like any other.
+    expect(linkedTxView({ ...base, activeDataset: 'transactions', status: 'empty', summary: null }))
+      .toBe('none');
+  });
+
+  it('names exactly the datasets payments can hang off', () => {
+    expect([...LINKABLE_DATASETS].sort()).toEqual(['operating', 'transactions']);
   });
 
   it('shows nothing when the category declares no link key', () => {

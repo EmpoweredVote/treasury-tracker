@@ -26,7 +26,7 @@ import { createClient } from '@supabase/supabase-js';
 import { parseArgs } from 'node:util';
 
 import { listAllSourcesResult } from './lib/listAllSources.mjs';
-import { idOrNull, linkKey } from './lib/publisherIds.mjs';
+import { idOrNull, linkKeyFromMapping } from './lib/publisherIds.mjs';
 import { vendorLinkKey } from './lib/vendorKey.mjs';
 import { isEnrolled } from './lib/transactionTreeSources.mjs';
 // ⚠ Parsing and the dedup hash live in lib so a measurement can import THE SAME
@@ -130,8 +130,13 @@ export function buildBatch(rows, cm, keys) {
       //
       // ⚠ A structural key still WINS where one exists: McKinney keeps its
       // department|fund|category key and its tree is unaffected.
-      lk: linkKey([r[cm.department_column], r[cm.fund_column], r[cm.expense_category_column]])
-        ?? vendorLinkKey(vn),
+      //
+      // ⚠⚠ THE ORDER IS THE SOURCE'S TO CHOOSE (`link_key_columns`), because
+      // the drill-down can only match a LEADING `|` segment — so whichever
+      // column comes first is the only axis a reader can ever be given. Plano
+      // keys on `fund_column` first for exactly that reason; every source
+      // without the setting keys as before. See linkKeyFromMapping.
+      lk: linkKeyFromMapping(cm, (name) => r[name]) ?? vendorLinkKey(vn),
       // ⚠ Key supplied by the caller, computed over the WHOLE file. Counting
       // occurrences inside this 500-row chunk would give two identical rows in
       // different chunks the same key and collapse them anyway.

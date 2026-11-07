@@ -112,20 +112,63 @@ function downloadViaCurl(url) {
 
 
 // ── CSV parsing helpers ─────────────────────────────────────────────
+/**
+ * Split one CSV line into fields.
+ *
+ * ── ⚠⚠⚠ A QUOTE ONLY OPENS A FIELD AT THE FIELD'S START ─────────────────────
+ *
+ * This used to flip `inQuotes` on ANY `"`, anywhere. That is not CSV, and it
+ * cost Plano real money. Its register writes inch marks in unquoted
+ * descriptions —
+ *
+ *     ...,GLAND FIELD LOK D.I. 6"       ,1826350,PV,Municipal Warehouse,NORTH,910.8000
+ *
+ * — so the `"` opened a quoted field that never closed, and the whole rest of
+ * the line collapsed into `description`. The row then had NO fund, NO payee
+ * and NO amount, and was stored at $0.00.
+ *
+ * ⚠ MEASURED on FY2024: 455 lines carry an unbalanced inch mark; the
+ * publisher's own file totals $462,672,864.36 over 29,557 rows while TT held
+ * $461,886,142.73 over 28,863 — 694 rows and $786,721.63 gone.
+ *
+ * ⚠⚠ The file is otherwise CORRECT CSV: every field that contains a comma IS
+ * quoted ("CAREY, JAMES"), all 7,036 of them. So the fix is not to abandon
+ * quote handling, it is to apply the actual rule — a `"` is a delimiter only
+ * as the first character of a field, and a literal everywhere else. Escaped
+ * doubling (`""`) inside a quoted field still works.
+ */
 export function splitCSVLine(line) {
   const result = [];
   let current = '';
   let inQuotes = false;
+  let atFieldStart = true;
   for (let i = 0; i < line.length; i++) {
     const ch = line[i];
     if (ch === '"') {
-      if (inQuotes && line[i + 1] === '"') { current += '"'; i++; }
-      else inQuotes = !inQuotes;
+      if (inQuotes) {
+        // `""` inside a quoted field is one literal quote.
+        if (line[i + 1] === '"') { current += '"'; i++; }
+        // ⚠⚠ A closing quote must be followed by the delimiter or the end of
+        // the line. Plano writes `"6"X15CM Paper Ruler, White PK "` — an inch
+        // mark immediately after the OPENING quote, inside a field that also
+        // contains a comma. Treating that `"` as the close split the field and
+        // shifted every later column by one, which put "ARROW" in the amount.
+        else if (line[i + 1] === undefined || line[i + 1] === ',') { inQuotes = false; }
+        else { current += ch; }
+      } else if (atFieldStart) {
+        inQuotes = true;
+      } else {
+        // ⚠ An inch mark, not a delimiter. This is the whole fix.
+        current += ch;
+      }
+      atFieldStart = false;
     } else if (ch === ',' && !inQuotes) {
       result.push(current);
       current = '';
+      atFieldStart = true;
     } else {
       current += ch;
+      atFieldStart = false;
     }
   }
   result.push(current);
@@ -163,16 +206,64 @@ export function looksLikeHtml(buffer) {
   return head.startsWith('<!doctype html') || head.startsWith('<html') || head.startsWith('<?xml');
 }
 
+/**
+ * Rebuild a line that quote-aware parsing could not read, using the column
+ * count the header already told us.
+ *
+ * ── ⚠⚠ WHY A FIXED-SCHEMA FALLBACK IS LEGITIMATE ────────────────────────────
+ *
+ * Some of Plano's fields are malformed CSV that no parser can read correctly
+ * on its own, because the quoting is genuinely ambiguous:
+ *
+ *     "L" Reference Scale Reversible      decorative quotes, no inner comma
+ *     "Slide Entry, 30", Tube Slide  "    an inch mark AND a comma
+ *     "Platform-14x24", Approach Step"    the same shape again
+ *
+ * What rescues them is that the file has a KNOWN WIDTH. Split naively on every
+ * comma and the arithmetic is forced: any surplus commas must live inside one
+ * field, and the field they belong to is the one that opens with a quote.
+ *
+ * ⚠ Returns null when the arithmetic does NOT force an answer, so an
+ * unreadable line is reported rather than guessed at. Guessing is how a
+ * publisher's row quietly becomes a different row.
+ */
+export function repairFixedWidthRow(line, width) {
+  const naive = line.split(',');
+  if (naive.length === width) return naive;
+  if (naive.length < width) return null;
+
+  const surplus = naive.length - width;
+  const j = naive.findIndex((f) => f.startsWith('"'));
+  if (j === -1) return null;
+  const merged = naive.slice(j, j + surplus + 1).join(',');
+  return [...naive.slice(0, j), merged, ...naive.slice(j + surplus + 1)];
+}
+
+/** Strip the wrapping quotes of a field that both opens and closes with one. */
+function unwrap(value) {
+  const v = value ?? '';
+  return v.length > 1 && v.startsWith('"') && v.endsWith('"') ? v.slice(1, -1) : v;
+}
+
 export function parseCSV(buffer) {
   const lines = buffer.toString('utf8').split(/\r?\n/);
   const headers = splitCSVLine(lines[0]).map(h => h.trim().toLowerCase().replace(/\s+/g, '_'));
   const rows = [];
   let blankSkipped = 0;
+  // ⚠ Counted and RETURNED, never swallowed. A line this function had to
+  // reconstruct, or could not read at all, is exactly the kind of thing that
+  // silently cost Plano 694 rows and $786,721.63.
+  let repaired = 0;
+  let unreadable = 0;
 
   for (let i = 1; i < lines.length; i++) {
     const line = lines[i];
     if (!line.trim()) { blankSkipped++; continue; }
-    const values = splitCSVLine(line);
+    let values = splitCSVLine(line);
+    if (values.length !== headers.length) {
+      const fixed = repairFixedWidthRow(line, headers.length);
+      if (fixed) { values = fixed.map(unwrap); repaired++; } else { unreadable++; }
+    }
     const obj = {};
     headers.forEach((h, idx) => {
       const val = values[idx]?.trim() ?? null;
@@ -181,7 +272,7 @@ export function parseCSV(buffer) {
     rows.push(obj);
   }
 
-  return { headers, rows, blankSkipped, headerDupeSkipped: 0 };
+  return { headers, rows, blankSkipped, headerDupeSkipped: 0, repaired, unreadable };
 }
 
 // ── Parse helper ──────────────────────────────────────────────────

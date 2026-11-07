@@ -69,14 +69,14 @@ import { fetchEntities, fetchEntityById, fetchEntityIndex } from './data/entityQ
 import { panelQueryFor, parentsQueryFor } from './data/panelQueries';
 import { resolveEntityParam, resolveEntityParamViaLookup, toSlug, displayLabel } from './utils/entityRouting';
 import { heroSubtitle } from './data/narrativeCopy';
-import { linkedTxView, type LinkedTxStatus } from './data/linkedTransactionsView';
+import { linkedTxView, LINKABLE_DATASETS, type LinkedTxStatus } from './data/linkedTransactionsView';
 
 interface BreadcrumbItem {
   label: string;
   onClick?: () => void;
 }
 
-type DatasetType = 'revenue' | 'operating' | 'salaries';
+type DatasetType = 'revenue' | 'operating' | 'salaries' | 'transactions';
 
 // Some entities (notably state General Fund budgets) wrap every category under a
 // single synthetic root node ("<Entity> General Fund Budget"). At the top level
@@ -144,6 +144,19 @@ function getDatasetDisplayText(type: DatasetType) {
       title: 'compensates its workforce',
       description: 'Each segment shows department payroll. Tap any department to see position breakdowns. Department names are shown as each entity reports them to the State Controller.',
       lineItemsDescription: 'Detailed compensation showing base pay, benefits, overtime, and other pay.'
+    },
+    /**
+     * ⚠ The copy says the breakdown is the publisher's own, because it is: a
+     * root here is one cell from the register — West Hollywood's `category`,
+     * LA City's `department_name`, Plano's `fundname` — carried through
+     * unchanged. See scripts/lib/transactionTreeSources.mjs, where enrolment
+     * is opt-in and an unchecked naming rule is refused rather than defaulted.
+     */
+    transactions: {
+      title: 'pays its vendors',
+      description: 'Each segment shows a share of the payments the government published, grouped as it groups them. Tap any group to see the payments inside it.',
+      lineItemsDescription: 'Individual payments showing vendors, amounts, dates, and payment details.',
+      transactionsDescription: 'Individual payments showing vendors, amounts, dates, and payment details.'
     }
   };
 
@@ -155,7 +168,8 @@ function getDatasetLabel(type: DatasetType): string {
   const labels: Record<DatasetType, string> = {
     revenue: 'Revenue',
     operating: 'Budget',
-    salaries: 'Salaries'
+    salaries: 'Salaries',
+    transactions: 'Payments'
   };
   return labels[type];
 }
@@ -173,7 +187,12 @@ function isBudgetless(entity: HydratedMunicipality): boolean {
 function linkedTxRequest(
   activeDataset: DatasetType, navigationPath: BudgetCategory[], budgetData: BudgetData | null,
 ): { budgetId: string; linkKey: string } | null {
-  if (activeDataset !== 'operating' || navigationPath.length === 0 || !budgetData) return null;
+  // ⚠⚠ `transactions` belongs here as much as `operating` does — arguably
+  // more. A Payments root IS a group of payments, so drilling into it is the
+  // entire point of the dataset; gating this on `operating` alone would have
+  // shipped a breakdown whose categories could not be opened, which is the
+  // defect this whole line of work exists to remove.
+  if (!LINKABLE_DATASETS.has(activeDataset) || navigationPath.length === 0 || !budgetData) return null;
   const linkKey = navigationPath[navigationPath.length - 1].linkKey;
   if (!linkKey) return null;
   const budgetId = budgetData.budgetId;
@@ -357,6 +376,8 @@ function App() {
   const [operatingBudgetData, setOperatingBudgetData] = useState<BudgetData | null>(null);
   const [revenueData, setRevenueData] = useState<BudgetData | null>(null);
   const [salariesData, setSalariesData] = useState<BudgetData | null>(null);
+  /** The check-register total for the Payments tile. */
+  const [transactionsData, setTransactionsData] = useState<BudgetData | null>(null);
   const [allFundsRequirementsData, setAllFundsRequirementsData] = useState<BudgetData | null>(null);
   const [loading, setLoading] = useState(false);
   const [budgetLoadError, setBudgetLoadError] = useState(false);
@@ -802,6 +823,7 @@ function App() {
     const hasOperating = entityDatasets.some(d => d.dataset_type === 'operating');
     const hasRevenue = entityDatasets.some(d => d.dataset_type === 'revenue');
     const hasSalaries = entityDatasets.some(d => d.dataset_type === 'salaries');
+    const hasTransactions = entityDatasets.some(d => d.dataset_type === 'transactions');
     const hasAllFundsRequirements = entityDatasets.some(d => d.dataset_type === 'all_funds_requirements');
 
     // SCOPE-03: an absent series is a FACT about this series, not a failure, so it
@@ -826,17 +848,25 @@ function App() {
         // Passing a series would make pickBudgetForSeries hunt for an impossible match.
         ? loadBudgetData(yearNum, selectedEntity.name, selectedEntity.state, 'salaries', periodLabel, null, selectedEntity)
         : Promise.resolve(null),
+      hasTransactions
+        // ⚠ Not a series dataset either: a check register has no fund scope or
+        // basis to choose between — every transactions row carries
+        // fund_scope 'unknown' and basis 'unknown'. Passing a series would
+        // make pickBudgetForSeries hunt for a match that cannot exist.
+        ? loadBudgetData(yearNum, selectedEntity.name, selectedEntity.state, 'transactions', periodLabel, null, selectedEntity)
+        : Promise.resolve(null),
     ];
 
     const isLatestTiles = tilesSequence.claim();
 
     Promise.all(promises)
-      .then(([operating, revenue, salaries]) => {
+      .then(([operating, revenue, salaries, transactions]) => {
         // A superseded year's response must never stamp state — see G6.
         if (!isLatestTiles()) return;
         setOperatingBudgetData(hoistSingleRoot(operating));
         setRevenueData(hoistSingleRoot(revenue));
         setSalariesData(salaries);
+        setTransactionsData(transactions);
         // Recorded per dataset so Money In and Money Out report independently —
         // Longview selects one series and loses the other tile (spec §3.1).
         setAbsentDatasets({
@@ -850,6 +880,7 @@ function App() {
         setOperatingBudgetData(null);
         setRevenueData(null);
         setSalariesData(null);
+        setTransactionsData(null);
         setAbsentDatasets({});
       });
 
@@ -1818,6 +1849,7 @@ function App() {
                   revenueTotal={revenueData?.metadata.totalBudget}
                   operatingTotal={allFundsRequirementsData?.metadata.totalBudget ?? operatingBudgetData?.metadata.totalBudget ?? undefined}
                   salariesTotal={salariesData?.metadata.totalBudget}
+                  transactionsTotal={transactionsData?.metadata.totalBudget}
                   availableDatasets={availableDatasetTypes}
                   isNonprofit={selectedEntity?.entity_type === 'nonprofit'}
                   // Derived from the revenue categories already loaded — no API

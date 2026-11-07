@@ -42,12 +42,27 @@ export function summaryIsEmpty(summary: LinkedTransactionSummary | null): boolea
   return rows === 0 && (summary.transactionCount ?? 0) === 0;
 }
 
+/**
+ * Datasets whose categories can have individual transactions hanging off them.
+ *
+ * ⚠⚠ THIS IS THE SECOND OF TWO GATES, AND MISSING IT COSTS THE WHOLE FEATURE.
+ * `linkedTxRequest` in App.tsx decides whether to ASK for the transactions;
+ * this decides whether to SHOW them. When `transactions` was added to the
+ * first and not the second, a Payments category navigated correctly, fetched
+ * correctly, and then rendered "No further breakdown available" — the exact
+ * dead end this dataset exists to remove. Both read this set.
+ *
+ * ⚠ Revenue and salaries stay out: nothing keys a payment to a revenue source,
+ * and a salary row is already the line item.
+ */
+export const LINKABLE_DATASETS: ReadonlySet<string> = new Set(['operating', 'transactions']);
+
 export function linkedTxView(input: LinkedTxViewInput): LinkedTxView {
   const { activeDataset, linkKey, status, summary } = input;
 
-  // Transactions hang off operating spending only, and off a category that
+  // Transactions hang off spending datasets only, and off a category that
   // declares a key to hang them from.
-  if (activeDataset !== 'operating' || !linkKey) return 'none';
+  if (!LINKABLE_DATASETS.has(activeDataset) || !linkKey) return 'none';
 
   // ⚠ ONLY a request genuinely in flight shows a spinner. `idle` is not
   // loading -- it is the state before any request was made, and a view that
