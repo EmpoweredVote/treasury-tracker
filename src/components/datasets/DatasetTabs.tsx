@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { DollarSign, TrendingDown, Users, Info } from 'lucide-react';
+import { DollarSign, TrendingDown, Users, Receipt, Info } from 'lucide-react';
 import { useAnimatedCounter } from '../../hooks/useAnimatedCounter';
 import { financingInflowNote, SERIES_TOGGLE_COPY, type FinancingInflow } from '../../data/fundScopeVocabulary';
 import { formatMoneyCompact } from '../../utils/formatMoney';
@@ -10,6 +10,8 @@ interface DatasetCardsProps {
   revenueTotal?: number;
   operatingTotal?: number;
   salariesTotal?: number;
+  /** The register's own total — the money that actually left, payment by payment. */
+  transactionsTotal?: number;
   availableDatasets?: string[];
   isNonprofit?: boolean;
   /**
@@ -58,6 +60,22 @@ const SALARIES_CARD = {
   description: 'Employee compensation',
 };
 
+/**
+ * ⚠⚠ Payments is the CHECK REGISTER, not a budget. Every other tile shows a
+ * planned or reported figure; this one is the money as it left the building,
+ * payment by payment, with the vendor named.
+ *
+ * It only appears where the publisher's own breakdown exists — see
+ * src/utils/resolveDataset.ts. A register TT cannot break down is not carried
+ * as `transactions` in the database at all, so there is no empty-tab case.
+ */
+const PAYMENTS_CARD = {
+  id: 'transactions' as const,
+  label: 'Payments',
+  icon: Receipt,
+  description: 'Individual payments to vendors',
+};
+
 // Per-tile accent, shown on desktop hover and when the tile is selected.
 // Border stays a touch brighter than the text; text values pass WCAG AA on
 // both the white (light) and ev-gray-800 (dark) tile backgrounds.
@@ -65,6 +83,11 @@ const ACCENTS: Record<string, { border: string; text: string }> = {
   revenue: { border: 'border-[#16A34A] dark:border-[#4ADE80]', text: 'text-[#15803D] dark:text-[#4ADE80]' }, // green
   operating: { border: 'border-ev-muted-blue', text: 'text-ev-muted-blue' }, // teal
   salaries: { border: 'border-[#EA580C] dark:border-[#FB923C]', text: 'text-[#C2410C] dark:text-[#FB923C]' }, // orange
+  // ⚠ Violet, distinct from the teal Money Out tile beside it: Payments is a
+  // different KIND of figure (money already out the door, vendor by vendor),
+  // not a second view of the same budget. Both values pass WCAG AA on the
+  // white and ev-gray-800 tile backgrounds — see the note above.
+  transactions: { border: 'border-[#7C3AED] dark:border-[#A78BFA]', text: 'text-[#6D28D9] dark:text-[#A78BFA]' }, // violet
 };
 
 export default function DatasetTabs({
@@ -73,6 +96,7 @@ export default function DatasetTabs({
   revenueTotal,
   operatingTotal,
   salariesTotal,
+  transactionsTotal,
   availableDatasets,
   isNonprofit = false,
   financingInflow = null,
@@ -80,8 +104,14 @@ export default function DatasetTabs({
   activeSeriesLabel = '',
 }: DatasetCardsProps) {
   const available = availableDatasets ?? ['operating', 'revenue'];
-  const hasSalaries = available.includes('salaries');
-  const CARDS = hasSalaries ? [...BASE_CARDS, SALARIES_CARD] : BASE_CARDS;
+  // ⚠ Each optional tile appears only where that dataset exists for this
+  // entity-year, and in a fixed order — Payments last, so adding it cannot
+  // move the tiles a reader already knows.
+  const CARDS = [
+    ...BASE_CARDS,
+    ...(available.includes('salaries') ? [SALARIES_CARD] : []),
+    ...(available.includes('transactions') ? [PAYMENTS_CARD] : []),
+  ];
 
   // Desktop-only hover preview: pointers with a true hover capability get the
   // accent/glow on mouseover; touch devices fall back to selection only.
@@ -123,6 +153,7 @@ export default function DatasetTabs({
     if (id === 'operating' && operatingTotal != null) return operatingTotal;
     if (id === 'revenue' && revenueTotal != null) return revenueTotal;
     if (id === 'salaries' && salariesTotal != null) return salariesTotal;
+    if (id === 'transactions' && transactionsTotal != null) return transactionsTotal;
     return null;
   };
 
@@ -138,7 +169,13 @@ export default function DatasetTabs({
 
   return (
     <>
-    <div className={`grid grid-cols-1 gap-3 ${hasSalaries ? 'sm:grid-cols-3' : 'sm:grid-cols-2'}`}>
+    {/* ⚠ Derived from the tile COUNT, not from `hasSalaries` — there can now be
+        two, three or four. Four go 2x2 on a small tablet and only spread to a
+        single row at `lg`, because four columns at `sm` squeezes a nine-figure
+        number onto two lines. */}
+    <div className={`grid grid-cols-1 gap-3 ${
+      CARDS.length >= 4 ? 'sm:grid-cols-2 lg:grid-cols-4'
+        : CARDS.length === 3 ? 'sm:grid-cols-3' : 'sm:grid-cols-2'}`}>
       {CARDS.map(({ id, label, icon: Icon, description }) => {
         const isActive = id === activeDataset;
         const isDisabled = !available.includes(id);

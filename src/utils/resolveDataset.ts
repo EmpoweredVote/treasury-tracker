@@ -37,10 +37,33 @@
  * arbitrary string.
  */
 
-type DatasetType = 'operating' | 'revenue' | 'salaries';
+type DatasetType = 'operating' | 'revenue' | 'salaries' | 'transactions';
 
-/** The switchable dataset types — used as the first-guard allow-list. */
-const SWITCHABLE_DATASETS: readonly string[] = ['operating', 'revenue', 'salaries'];
+/**
+ * The switchable dataset types — used as the first-guard allow-list.
+ *
+ * ── ⚠⚠⚠ `transactions` WAS MISSING, AND THAT HID EVERY CHECK REGISTER ───────
+ *
+ * Until 2026-11-07 this list held three types and the string 'transactions'
+ * appeared NOWHERE in the app's dataset handling. Every check and demand
+ * register in the fleet was served by the API and unreachable on the page:
+ * McKinney's 94-root FY2024 tree, Frisco's 31 a year, West Hollywood's eight
+ * years, and LA City's $24.5B. `?entity=west-hollywood-ca&year=2026` — a year
+ * whose ONLY dataset is the demand register — fell through to FY2025's State
+ * Controller budget, so the URL said 2026 and the page said 2025.
+ *
+ * ⚠⚠ ORDER MATTERS: this is also the fallback preference order in
+ * `fallbackDataset`. `transactions` goes LAST so that no entity-year which
+ * already lands on operating, revenue or salaries changes what it shows.
+ *
+ * ⚠ A transactions budget is only offered where it has a BREAKDOWN. That is
+ * enforced in the database rather than here: a register TT cannot break down
+ * does not carry `dataset_type = 'transactions'`. Bloomington's 11 years are
+ * `transactions_misattributed_source` for exactly that reason (migration
+ * 20261107250000), and an unrecognised type is never offered — the same
+ * mechanism the VA APA revenue rows use.
+ */
+const SWITCHABLE_DATASETS: readonly string[] = ['operating', 'revenue', 'salaries', 'transactions'];
 
 /**
  * Resolve a requested dataset against the available dataset types for a year,

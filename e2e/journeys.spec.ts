@@ -1,5 +1,5 @@
 import type { Locator, Page } from '@playwright/test';
-import { test, expect, PINNED_CITY, PINNED_SEARCH } from './support';
+import { test, expect, PINNED_CITY, PINNED_SEARCH, PINNED_REGISTER } from './support';
 
 // Each title is the plain-English line a PR author sees when the journey
 // breaks. If your change alters one of these journeys on purpose, update the
@@ -182,4 +182,42 @@ test('Back from a city returns to search with the query kept', async ({ page }) 
   await page.goForward();
   await expect(page.getByRole('heading', { level: 1, name: new RegExp(PINNED_CITY.name) })).toBeVisible();
   await expect(moneyOut(page)).toBeVisible();
+});
+
+/**
+ * A reader opens a city's published check register, picks a category, and sees
+ * the individual payments inside it — vendor, amount, date.
+ *
+ * ⚠⚠⚠ THIS JOURNEY EXISTS BECAUSE THE FEATURE BROKE IN TWO PLACES AT ONCE AND
+ * BOTH LOOKED FINE. Until 2026-11-07 `transactions` was not a selectable
+ * dataset at all, so every check and demand register in the fleet — including
+ * LA City's $24.5B — was served by the API and unreachable on the page. Adding
+ * it to the allow-list made the tab appear; the drill-down still rendered "No
+ * further breakdown available", because a SECOND gate in
+ * linkedTransactionsView.ts also tested for `operating`. Each half looked
+ * complete on its own.
+ *
+ * ⚠ Asserts shape, never amounts: the publisher updates and TT re-syncs.
+ */
+test('A published check register opens to the payments inside a category', async ({ page }) => {
+  await page.goto(`/?entity=${PINNED_REGISTER.slug}&year=${PINNED_REGISTER.year}`);
+
+  // The Payments tile is the register's own total.
+  const payments = page.getByRole('button', { name: /^Payments \$[\d.,]+/ });
+  await expect(payments).toBeVisible();
+  await payments.click();
+
+  // Its breakdown is the publisher's own grouping — at least one real segment.
+  const chart = page.getByRole('list', { name: /breakdown/i, includeHidden: true });
+  const segments = chart.getByRole('listitem', { includeHidden: true });
+  await expect(segments.first()).toBeVisible();
+  expect(await segments.count()).toBeGreaterThan(1);
+
+  // ⭐ The point of the whole dataset: a category opens to the payments in it,
+  // rather than to "No further breakdown available".
+  await segments.first().click();
+  await expect(page.getByText(/no further breakdown available/i)).toHaveCount(0);
+  await expect(page.getByText(/recent transactions/i)).toBeVisible();
+  // A payment names who was paid.
+  await expect(page.getByText(/view all [\d,]+ transactions/i)).toBeVisible();
 });

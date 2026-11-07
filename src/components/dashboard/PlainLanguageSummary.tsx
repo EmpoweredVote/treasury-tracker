@@ -33,7 +33,10 @@ interface PlainLanguageSummaryProps {
    * ⚠ Mirrors `DatasetType` in App.tsx, which is declared there and not
    * exported. Widen both together.
    */
-  activeDataset?: 'revenue' | 'operating' | 'salaries';
+  // ⚠ Widened for the Payments tab. Only compared against 'revenue' below, and
+  // only for a nonprofit — which never carries a transactions dataset — so the
+  // extra member changes nothing that renders.
+  activeDataset?: 'revenue' | 'operating' | 'salaries' | 'transactions';
 }
 
 /**

@@ -182,7 +182,17 @@ export interface Municipality {
    */
   available_datasets?: Array<{
     fiscal_year: number;
-    dataset_type: 'operating' | 'revenue' | 'salaries' | 'all_funds_requirements' | 'federal_agency';
+    /**
+     * ⚠ `transactions` was missing from this union until 2026-11-07, while the
+     * API had been returning it all along — every check and demand register in
+     * the fleet. The type said the value could not occur, so nothing was
+     * written to handle it and no compiler error ever pointed at the gap.
+     *
+     * ⚠⚠ A register TT cannot break down does NOT carry this type in the
+     * database; see migration 20261107250000. So `transactions` here means
+     * "has a publisher-sourced breakdown", and the tab can rely on that.
+     */
+    dataset_type: 'operating' | 'revenue' | 'salaries' | 'transactions' | 'all_funds_requirements' | 'federal_agency';
     period_label?: string | null; // non-null only for sub-annual periods (FY1976 Transition Quarter)
     // SCOPE-01: which funds the row's total covers. OPTIONAL because the API only
     // began returning it in 2026-08 -- absent must be read as 'unknown', never guessed.
