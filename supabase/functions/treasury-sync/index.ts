@@ -168,9 +168,52 @@ async function checkAuth(req: Request): Promise<boolean> {
   return !!dbKey && (k === dbKey || b === dbKey);
 }
 
-async function fetchPage(baseUrl: string, did: string, off: number, lim: number, f: SocrataFilters, ord?: string): Promise<SocrataRow[]> {
+/**
+ * ⚠⚠⚠ MIRRORS scripts/lib/socrataRowId.mjs — KEEP THE TWO IN STEP.
+ *
+ * Deno cannot import from scripts/, so this is a deliberate copy. Read that
+ * file for why any of it exists: a demand-register BATCH number was used as
+ * `source_row_id`, ON CONFLICT DO NOTHING kept one row per batch, and West
+ * Hollywood ended up holding 143 of its 134,643 rows while every cron run
+ * logged `success`. tests/socrataRowId.test.mjs pins both copies to the same
+ * vectors, so changing one and not the other fails the suite.
+ */
+const SYSTEM_ROW_ID = ":id";
+function isSystemRowId(ridCol: string | null | undefined): boolean {
+  return typeof ridCol === "string" && ridCol.startsWith(":");
+}
+/** `:id` is only returned when explicitly selected — a plain fetch omits it. */
+function selectFor(ridCol: string | null | undefined): string | null {
+  return isSystemRowId(ridCol) ? ":*,*" : null;
+}
+/** A TOTAL order or none. Never a date column: see socrataRowId.mjs. */
+function orderFor(ridCol: string | null | undefined): string | null {
+  return isSystemRowId(ridCol) ? SYSTEM_ROW_ID : null;
+}
+function assertRowIdIsUnique(sourceName: string, ridCol: string | null | undefined, rows: number, distinct: number) {
+  if (!ridCol || isSystemRowId(ridCol)) return;
+  if (!Number.isFinite(rows) || !Number.isFinite(distinct)) {
+    throw new Error(`Refusing to sync ${sourceName}: could not measure whether ${JSON.stringify(ridCol)} is unique, and an unverified row id is how 99.9% of West Hollywood's register was discarded in silence.`);
+  }
+  if (distinct < rows) {
+    const kept = rows === 0 ? 0 : ((distinct / rows) * 100).toFixed(1);
+    throw new Error(`Refusing to sync ${sourceName}: source_row_id_column ${JSON.stringify(ridCol)} is NOT unique — ${rows} published rows carry only ${distinct} distinct values, so ON CONFLICT (budget_id, source_row_id) DO NOTHING would keep ${kept}% of them and report success. Use ':id' unless the publisher offers a column proven 1:1.`);
+  }
+}
+
+async function socrataAggregate(baseUrl: string, did: string, select: string, f: SocrataFilters): Promise<number> {
+  const p = new URLSearchParams(); p.set("$select", select);
+  if (f.$where) p.set("$where", f.$where);
+  const r = await fetch(`${baseUrl}/resource/${did}.json?${p}`, { headers: { Accept: "application/json" } });
+  if (!r.ok) throw new Error(`Socrata ${r.status}`);
+  const d = await r.json() as SocrataRow[];
+  return parseInt(String(Object.values(d[0] || {})[0] ?? "0"), 10);
+}
+
+async function fetchPage(baseUrl: string, did: string, off: number, lim: number, f: SocrataFilters, ord?: string | null, sel?: string | null): Promise<SocrataRow[]> {
   const p = new URLSearchParams();
   p.set("$limit", String(lim)); p.set("$offset", String(off));
+  if (sel) p.set("$select", sel);
   if (ord) p.set("$order", ord); if (f.$where) p.set("$where", f.$where);
   const r = await fetch(`${baseUrl}/resource/${did}.json?${p}`, { headers: { Accept: "application/json" } });
   if (!r.ok) throw new Error(`Socrata ${r.status}`);
@@ -498,10 +541,27 @@ function buildTxnBatch(rows: SocrataRow[], cm: ColumnMapping) {
 async function syncTxnPaginated(ds: DataSourceConfig, fy: number, triggered_by: string, startOffset: number = 0) {
   const cm = ds.column_mapping;
   const filters = buildFyFilter(cm, fy, ds.default_filters);
+  const ridCol = cm.source_row_id_column;
+  /**
+   * ⚠⚠⚠ Prove the declared row id IS one before inserting anything. One extra
+   * count query per sync, and it is the check whose absence cost $6.06B of
+   * spending across West Hollywood and LA City. Only on the first page: the
+   * answer cannot change mid-run.
+   */
+  if (startOffset === 0 && ridCol && !isSystemRowId(ridCol)) {
+    assertRowIdIsUnique(ds.name, ridCol,
+      await socrataAggregate(ds.base_url, ds.dataset_id, "count(*)", filters),
+      await socrataAggregate(ds.base_url, ds.dataset_id, `count(distinct ${ridCol})`, filters));
+  }
   const PAGE = 5000, MAX_PAGES = 4;
   let totalFetched = 0, totalInserted = 0, totalSkipped = 0, offset = startOffset, pages = 0, hasMore = true;
   while (pages < MAX_PAGES && hasMore) {
-    const rows = await fetchPage(ds.base_url, ds.dataset_id, offset, PAGE, filters, cm.date_column ?? undefined);
+    // ⚠⚠ Page by a TOTAL order (`:id`), never the date column — see socrataRowId.mjs.
+    // This read `cm.date_column` before #350: WeHo's check_date is TEXT holding
+    // `01-13-2022` beside `9/9/2021`, so it does not sort chronologically and the
+    // offsets walked a shuffled list.
+    const rows = await fetchPage(ds.base_url, ds.dataset_id, offset, PAGE, filters,
+      orderFor(ridCol), selectFor(ridCol));
     totalFetched += rows.length;
     if (rows.length === 0) { hasMore = false; break; } if (rows.length < PAGE) hasMore = false;
     const { vendors, transactions } = buildTxnBatch(rows, cm);

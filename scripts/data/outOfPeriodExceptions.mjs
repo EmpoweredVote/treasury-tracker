@@ -84,53 +84,107 @@ export const OUT_OF_PERIOD_EXCEPTIONS = [
 
   // ── West Hollywood, CA ──────────────────────────────────────────────────
   //
-  // ⚠⚠ A DIFFERENT DEFECT ENTIRELY, AND NOT YET INVESTIGATED. These 102 rows
-  // are NOT typos. Two things are visible from a first reading and neither has
-  // been run down:
+  // ⭐⭐ THE CAUSE IS NOW KNOWN, AND IT IS NOT WHAT THE FIRST READING SAID.
   //
-  //   * Many carry an amount of exactly $0 — FY2018's 16 rows sum to $0.00 —
-  //     which looks like voided or zero-value register entries.
-  //   * Others are small refunds ("PARKING CITE OVERPAYMENT" $15 dated
-  //     2015-07-02) that appear to carry the ORIGINAL transaction's date
-  //     rather than the refund's.
+  // These entries used to read "⛔ NOT INVESTIGATED", guessing at zero-value
+  // voids, refunds carrying an original transaction's date, or TT mis-binning
+  // a multi-year file. ALL OF THOSE WERE WRONG. Two separate things were
+  // happening and the first hid the second:
   //
-  // ⚠ And the files are MULTI-YEAR — "FY2018-19" and "FY2022-24" each feed
-  // more than one budget — so some of these rows may be binned into the wrong
-  // year by TT rather than mis-dated by the publisher. That is TT's bug if so,
-  // which makes it materially different from Frisco's.
+  //   1. 99.9% of the register was MISSING. `source_row_id_column` named
+  //      `demand` -- a BATCH number, 22 of them across 24,123 rows -- so
+  //      ON CONFLICT (budget_id, source_row_id) DO NOTHING kept one row per
+  //      batch. The 102 "out-of-period" rows were simply the earliest-dated
+  //      survivor of each batch, because the loader paged by check_date
+  //      ascending. Fixed by #TBD; the register now holds every published row.
   //
-  // ⛔ THESE ENTRIES ASSERT NOTHING ABOUT THE CAUSE. They record the measured
-  // state so the gate is honest and so a NEW West Hollywood defect still
-  // fails. FY2024 alone carries $5,341,854.86 and deserves its own look.
+  //   2. WEST HOLLYWOOD'S FILES GENUINELY STRADDLE FISCAL YEARS. With the
+  //      full data loaded, the overhang is large and it is the publisher's.
+  //      Every row's check_date was parsed and binned on a July-June year:
+  //
+  //        file          its own year    overhang into the next    matches
+  //        FY2018-19     FY2019 19,900   FY2020 4,174              4,174 after
+  //        FY2022-24     FY2024 17,762   FY2025 5,707              5,707 after
+  //        FY2025-26     FY2026 18,438   FY2027 5,223 + earlier 1,170
+  //
+  //      The publisher's binning and TT's stored out-of-period counts agree
+  //      EXACTLY, row for row. Nothing is mis-binned: each file is loaded
+  //      whole into the one year it predominantly covers, as published.
+  //
+  //   3. ⚠⚠⚠ FY2025-26 IS STILL OPEN, AND IT IS NOW SPILLING FORWARD INTO
+  //      FY2027. This entry read 1,164 rows on 2026-11-05 and 6,393 on
+  //      2026-11-06: the city appended 8,675 rows overnight, 5,223 of them
+  //      dated 2026-07-01 … 2026-10-09 — payments made AFTER FY2026 ended,
+  //      written into a file whose title says FY 2025-26. The city is using
+  //      that file as its current register and has not opened an FY2026-27 one.
+  //
+  //      ⚠ So this number is not stable and is not meant to be. Expect it to
+  //      climb by roughly 1,500 rows a month for as long as the city keeps
+  //      posting there, and expect `verify:out-of-period` to say so. Each move
+  //      needs the same check the others got — WHICH months moved — because a
+  //      file reaching further forward is the known behaviour, and anything
+  //      else is not.
+  //
+  // ⚠⚠ WHAT THIS COSTS A READER, STATED PLAINLY. FY2024 publishes
+  // $249,360,265.89 and $68,811,162.33 of that was paid in FY2025; FY2025
+  // publishes $132,277,410.01 and excludes those same payments. FY2026
+  // publishes $275,281,324.20, of which only $206,328,645.40 was paid inside
+  // FY2026 — $59,999,399.51 is FY2027 and $8,953,279.29 is older. Not one of
+  // these years is a clean fiscal year and no file TT can fetch would make
+  // them one.
+  //
+  // ⛔ TT DOES NOT RE-BIN THEM. Splitting each file across budgets by payment
+  // date would make FY2025 the sum of two overlapping files (FY2022-24's
+  // 5,707 rows and FY2024-25's 11,199) with no published way to tell a
+  // genuine duplicate from a genuine repeat. Keeping the publisher's own file
+  // boundary and declaring the overhang is the Milledgeville answer: load it,
+  // then flag it.
+  //
+  // ⚠ Counts measured 2026-11-05 AFTER the reload. `before`/`after` say which
+  // side of the fiscal period the rows fall on, because a file reaching
+  // forward and a file reaching back are different publisher behaviours.
   ...[
-    { fiscalYear: 2018, outRows: 16, outAmount: '0.00', span: '2015-07-02 … 2019-05-01', source: 'FY2018-19' },
-    { fiscalYear: 2019, outRows: 15, outAmount: '1,850,312.59', span: '2015-07-02 … 2020-04-23', source: 'FY2018-19' },
-    { fiscalYear: 2020, outRows: 14, outAmount: '353,370.36', span: '2020-07-31 … 2021-04-02', source: 'FY2019-20' },
-    { fiscalYear: 2021, outRows: 16, outAmount: '249,986.47', span: '2021-07-30 … 2022-05-10', source: 'FY2020-21' },
-    { fiscalYear: 2022, outRows: 16, outAmount: '1,818,350.80', span: '2022-07-08 … 2023-06-21', source: 'FY2021-22' },
-    { fiscalYear: 2024, outRows: 12, outAmount: '5,341,854.86', span: '2021-08-13 … 2025-03-21', source: 'FY2022-24' },
-    { fiscalYear: 2025, outRows: 2, outAmount: '1,284.83', span: '2024-03-14 … 2025-07-18', source: 'FY2024-25' },
-    { fiscalYear: 2026, outRows: 11, outAmount: '26,902.99', span: '2024-03-14 … 2025-05-09', source: 'FY2025-26' },
+    { fiscalYear: 2019, outRows: 4222, outAmount: '31,081,374.14', before: 48, after: 4174, span: '2015-07-02 … 2019-09-13', source: 'FY2018-19' },
+    { fiscalYear: 2020, outRows: 91, outAmount: '110,773.46', before: 91, after: 0, span: '2015-07-02 … 2019-06-28', source: 'FY2019-20' },
+    { fiscalYear: 2021, outRows: 512, outAmount: '7,385,478.24', before: 88, after: 424, span: '2016-07-21 … 2021-07-09', source: 'FY2020-21' },
+    { fiscalYear: 2022, outRows: 499, outAmount: '6,210,359.08', before: 57, after: 442, span: '2015-07-23 … 2022-07-08', source: 'FY2021-22' },
+    { fiscalYear: 2023, outRows: 367, outAmount: '3,788,357.34', before: 23, after: 344, span: '2021-04-16 … 2023-07-07', source: 'FY2022-23' },
+    { fiscalYear: 2024, outRows: 5791, outAmount: '68,811,162.33', before: 84, after: 5707, span: '2016-12-09 … 2024-10-25', source: 'FY2022-24' },
+    { fiscalYear: 2025, outRows: 11, outAmount: '12,195.00', before: 11, after: 0, span: '2021-08-13 … 2023-12-29', source: 'FY2024-25' },
+    // ⚠⚠⚠ THE ONLY LIVE ONE, AND IT GROWS EVERY WEEK. See the FY2026 note above.
+    { fiscalYear: 2026, outRows: 6393, outAmount: '68,952,678.80', before: 1170, after: 5223, span: '2024-03-14 … 2026-10-09', source: 'FY2025-26' },
   ].map((w) => ({
     key: `west-hollywood-ca-fy${w.fiscalYear}-out-of-period-rows`,
     municipality: 'West Hollywood',
     state: 'CA',
     fiscalYear: w.fiscalYear,
     outRows: w.outRows,
-    disposition: 'accepted-pending-investigation',
+    disposition: 'loaded-as-published',
     what:
-      `${w.outRows} transaction(s) in West Hollywood FY${w.fiscalYear} fall outside the `
-      + `fiscal period, spanning ${w.span}, totalling $${w.outAmount}. From the `
+      `${w.outRows.toLocaleString()} transaction(s) in West Hollywood FY${w.fiscalYear} fall outside the `
+      + `fiscal period (${w.before.toLocaleString()} before it, ${w.after.toLocaleString()} after), `
+      + `spanning ${w.span}, totalling $${w.outAmount}. From the `
       + `"West Hollywood Demand Register ${w.source}" source.`,
     evidence: [
-      'Measured 2026-11-05 by treasury.out_of_period_transaction_status().',
-      'Zero-value voids and refunds carrying an earlier transaction date are both present; '
-        + 'which rows are which has NOT been separated.',
+      'Measured 2026-11-06 by treasury.out_of_period_transaction_status(), after the reload '
+        + 'that restored every published row.',
+      'Every row of every West Hollywood dataset was parsed and binned on a July-June fiscal '
+        + 'year directly from the publisher: the overhang counts agree with the stored '
+        + 'out-of-period counts exactly, so these rows are dated by the publisher and not '
+        + 'placed by TT.',
+      'The file is loaded whole into the single year it predominantly covers, which is the '
+        + 'year the publisher itself declares in fiscal_years.',
     ],
     whyNotCorrected:
-      '⛔ NOT INVESTIGATED. Cause unknown — publisher dating, or TT mis-binning rows from a '
-      + 'multi-year file across budgets. Recorded so the gate is honest and so any NEW '
-      + 'out-of-period row here still fails.',
-    corroboration: '⛔ NONE. Measurement only. TT asserts nothing about the cause.',
+      'The dates are the publisher\'s. Re-binning rows across budgets by payment date would '
+      + 'make FY2025 the sum of two overlapping files with no published way to separate a '
+      + 'genuine duplicate from a genuine repeat — TT would be inventing a boundary the city '
+      + 'never drew.',
+    readerImpact:
+      `⚠ REAL. FY${w.fiscalYear}'s headline includes $${w.outAmount} paid outside the year it names.`,
+    corroboration:
+      '⚠ PARTIAL. One analyst, 2026-11-05, against the publisher\'s own Socrata datasets. '
+      + '⛔ Short of the src/data/figureFlags.ts bar, which requires independent AGENTS. '
+      + 'Not reader-facing yet.',
   })),
 ];
