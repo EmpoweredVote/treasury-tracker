@@ -125,6 +125,52 @@ function wehoCategoryResolver() {
   };
 }
 
+/**
+ * ── LOS ANGELES: THE DEPARTMENT THAT SPENT IT ────────────────────────────
+ *
+ * ⚠⚠ LA is the first source whose ROOTS ARE COARSER THAN ITS KEYS. Its
+ * `column_mapping` names department, fund AND account, so the loader writes
+ * `link_key = "DEPARTMENT|FUND|ACCOUNT"` — 3,619 distinct keys across two
+ * years, which is not a breakdown a reader can use. The department is: 56 of
+ * them in FY2025, and it is the axis the city itself leads with.
+ *
+ * ⭐⭐ VERIFIED AGAINST THE PUBLISHER, per year, not against TT's own copy:
+ *
+ *     $select=department_name,count(*),sum(dollar_amount)
+ *     &$where=fiscal_year=2025&$group=department_name
+ *
+ * 56 departments, 749,295 rows, $13,223,890,843.35 — which is TT's stored
+ * total for FY2025 to the cent.
+ *
+ * ⚠ The LABEL is the `department_name` cell, unchanged. SCREAMING CAPS is how
+ * the city publishes it ("WATER AND POWER", "NON_DEPARTMENTAL" with an
+ * underscore beside "NON-DEPARTMENTAL - LEASING" with hyphens). Title-casing
+ * it would be TT editing a publisher's label, and the inconsistency is the
+ * city's own and worth a reader seeing.
+ *
+ * ⚠⚠ `keyOf` TAKES THE FIRST `|` SEGMENT AND NOTHING ELSE. The drill-down
+ * matches whole `|` segments, so a department root resolves to exactly that
+ * department's rows — measured: `link_key=GENERAL SERVICES` returns 150,061
+ * transactions, and `GENERAL SERVICES|GENERAL FUND (GENERAL BUDGET)` returns
+ * 125,948 of them. Slicing anywhere else (characters, words) would produce a
+ * key the server cannot match at all.
+ *
+ * ⚠ No `keepTop`: 56 roots is a readable breakdown, so there is no tail
+ * bucket and no aggregate for TT to name.
+ */
+function laDepartmentResolver() {
+  return (keys) => {
+    const out = new Map();
+    for (const k of keys) out.set(k, k);
+    return out;
+  };
+}
+
+/** The department segment of an LA link_key — see `laDepartmentResolver`. */
+function laDepartmentKey(t) {
+  return String(t.link_key).split('|')[0];
+}
+
 const SOURCES = [
   {
     // "McKinney Check Register FY2024"
@@ -143,10 +189,6 @@ const SOURCES = [
     keepTop: 30,
     tailKey: 'other-vendors',
     tailName: 'Other Vendors',
-    // ⚠⚠ The ONLY source that needs the vendors join, and it must ask for it.
-    // The join used to be unconditional and made McKinney's registers
-    // unrebuildable — see the note on `transactionsOf`.
-    needsVendorNames: true,
   },
   {
     // "West Hollywood Demand Register FY2018-19" … "FY2025-26"
@@ -156,6 +198,13 @@ const SOURCES = [
     match: /^West Hollywood Demand Register FY\d{4}-\d{2}$/,
     resolver: wehoCategoryResolver,
     source: "The category column of West Hollywood's published demand register, unchanged.",
+  },
+  {
+    // "LA City Checkbook" — one source, many fiscal years.
+    match: /^LA City Checkbook$/,
+    resolver: laDepartmentResolver,
+    source: "The department_name column of the LA City Checkbook, unchanged.",
+    keyOf: laDepartmentKey,
   },
 ];
 
@@ -174,9 +223,9 @@ export function resolverFor(dataSourceName, fiscalYear) {
         keepTop: s.keepTop ?? null,
         tailKey: s.tailKey ?? null,
         tailName: s.tailName ?? null,
-        // ⚠ Defaults to FALSE: a source pays for the vendors join only by
-        // declaring it needs one. See `transactionsOf`.
-        needsVendorNames: s.needsVendorNames === true,
+        // ⚠ Null for every source but LA: roots are one per distinct link_key
+        // unless a source says otherwise. See `rollUpTransactions`.
+        keyOf: s.keyOf ?? null,
       };
     }
   }

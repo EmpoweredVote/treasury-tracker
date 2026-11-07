@@ -77,54 +77,46 @@ function db() {
 }
 
 /**
- * ⚠ Paged. A budget's transactions run to tens of thousands; PostgREST caps at 1,000.
+ * The budget's transactions, ALREADY GROUPED BY `link_key`, from
+ * `treasury.transaction_roots`.
  *
- * ── ⚠⚠ THE VENDOR JOIN IS ASKED FOR, NOT ASSUMED ────────────────────────────
+ * ── ⚠⚠⚠ WHY THIS IS AN AGGREGATE AND NOT A PAGED READ ───────────────────────
  *
- * Only a vendor-KEYED source needs the names (Frisco labels its roots with
- * them). McKinney keys on department codes and West Hollywood on the
- * publisher's category, and both were paying for a join they never read. When
- * it IS asked for it still travels with the same read, so the naming rule
- * stays a pure function of the rows it was given.
+ * This used to read every transaction a page at a time and add them up in
+ * Node. It did not work. All four McKinney registers (45,844 / 47,169 /
+ * 47,324 / 50,096 rows) died with `canceling statement due to statement
+ * timeout` — and that is the exact command `verify:txn-trees` prints when a
+ * tree goes red, so the fleet's largest trees could not be repaired at all.
  *
- * ⚠ MEASURED, because the obvious culprit was the wrong one. Deep offsets are
- * CHEAP here — page 41 of McKinney FY2022 came back in 332ms with the join and
- * 106ms without. The join is what is slow and, worse, VARIABLE: the same page
- * shape took 114ms, 3,015ms and 5,041ms across runs, and ONE page exceeding
- * the statement timeout fails the whole read. This is not a paging bug, and
- * keyset paging does not fix it.
+ * ⚠⚠ LA CITY SETTLED IT: FY2025 is 749,295 transactions, or 750 pages. There
+ * is no version of page-by-page that builds that tree, and LA is $24.5B over
+ * two years with no breakdown today.
  *
- * ── ⛔⛔ AND IT IS NOT FIXED, ONLY CHEAPER. READ THIS BEFORE TRUSTING IT ──────
+ * ⚠ MEASURED along the way, because the obvious culprit was the wrong one.
+ * Deep offsets were CHEAP (page 41 of McKinney FY2022: 332ms with the vendors
+ * join, 106ms without). The join was slow and, worse, VARIABLE — 114ms,
+ * 3,015ms and 5,041ms for the same page shape — and ONE page over the
+ * statement timeout fails the whole read. Keyset paging was written for this,
+ * measured, and reverted: it was never a paging bug. The fix is to not ship
+ * the rows at all. LA FY2025 now groups in ~1.1s.
  *
- * `rebuildTransactionTree.mjs --municipality McKinney` still FAILS. Before
- * this change every one of McKinney's four registers (45,844 / 47,169 /
- * 47,324 / 50,096 rows) died on the FIRST one with `canceling statement due
- * to statement timeout`; now FY2022 and FY2023 complete and FY2024 still
- * times out (FY2025 is never reached). That command is the exact remedy
- * `verify:txn-trees` prints when a tree goes red, so the fleet's largest
- * trees STILL cannot be repaired.
- *
- * ⭐ The real fix is to stop shipping ~48,000 rows to Node to add them up.
- * The grouping already exists in SQL — `transaction_tree_status()` does the
- * same `group by link_key` in-database — so a `treasury.transaction_roots
- * (budget_id)` RPC returning `(link_key, amount, item_count)` would make a
- * rebuild ONE query instead of forty-eight, at any size. That is a change to
- * how every tree is built, including Frisco's vendor labels, and it is
- * deliberately NOT bundled into the West Hollywood fix.
- *
- * ⚠ West Hollywood is unaffected either way: its largest year is 24,831 rows
- * and all eight rebuild in well under the timeout.
+ * ⚠ STILL PAGED, but over KEYS, not transactions: PostgREST caps any response
+ * at 1,000 rows, and LA FY2025 has 2,846 distinct keys. That is 3 pages, not
+ * 750. Ordered by `link_key` so the pages cannot overlap or skip — see
+ * [[paged_reads_need_total_order]]; `link_key` is unique per group here, so it
+ * is a total order.
  */
-async function transactionsOf(budgetId, { withVendorNames = false } = {}) {
+async function groupedTransactionsOf(budgetId) {
   const rows = [];
-  const select = withVendorNames
-    ? 'id, amount, link_key, vendors(name)'
-    : 'id, amount, link_key';
   for (let from = 0; ; from += 1000) {
-    const { data, error } = await db().schema('treasury').from('transactions')
-      .select(select).eq('budget_id', budgetId)
-      .order('id').range(from, from + 999);
-    if (error) throw new Error(`transactions read failed: ${error.message}`);
+    const { data, error } = await db().schema('treasury')
+      .rpc('transaction_roots', { p_budget_id: budgetId })
+      .select('link_key, amount, item_count, vendor_name')
+      // ⚠ nullsFirst:false pins the unkeyed group to the END on every page,
+      // rather than letting its position vary between requests.
+      .order('link_key', { nullsFirst: false })
+      .range(from, from + 999);
+    if (error) throw new Error(`transaction_roots failed: ${error.message}`);
     rows.push(...data);
     if (data.length < 1000) break;
   }
@@ -132,43 +124,43 @@ async function transactionsOf(budgetId, { withVendorNames = false } = {}) {
 }
 
 /**
- * Fill in the publisher columns for the UNKEYED rows only, so
- * `isEmptyPublishedRow` can tell a row the publisher published empty from a
- * row whose key the loader lost.
+ * How many unkeyed rows this script is willing to look at one by one.
  *
- * ⚠⚠ A SECOND, TINY QUERY RATHER THAN A WIDER FIRST ONE. Selecting these nine
- * columns in `transactionsOf` instead put McKinney straight back into
- * `canceling statement due to statement timeout` — 13 columns across ~48,000
- * rows where 3 had been enough. Unkeyed rows are vanishingly rare by
- * construction, which is the whole point of the refusal they feed: this reads
- * ONE row on West Hollywood FY2018-19 and none at all anywhere else.
+ * ⚠ An unkeyed row is supposed to be vanishingly rare — the whole point of the
+ * refusal it feeds. One (West Hollywood FY2018-19) is a publisher's empty row;
+ * thousands is a broken load, and re-reading them to ask politely whether each
+ * is "empty" would be both slow and beside the point.
  */
-async function fillUnkeyedDetail(txns) {
-  const unkeyed = txns.filter((t) => t.link_key === null || t.link_key === undefined || t.link_key === '');
-  if (!unkeyed.length) return;
+const UNKEYED_INSPECT_LIMIT = 1000;
 
-  const byId = new Map(unkeyed.map((t) => [t.id, t]));
-  // ⚠ Fetched BY ID, not by `is('link_key', null)`. An empty-STRING key is
-  // unkeyed too and that filter would miss it — leaving the row with no
-  // publisher columns at all, which `isEmptyPublishedRow` would then read as
-  // empty. A row must never be called empty because we failed to look at it.
-  const ids = [...byId.keys()];
-  for (let i = 0; i < ids.length; i += 500) {
+/**
+ * The actual unkeyed rows, with the publisher columns `isEmptyPublishedRow`
+ * needs to tell a row the publisher published EMPTY from a row whose key the
+ * loader lost.
+ *
+ * ⚠⚠ The aggregate cannot answer this: a GROUP has no `description` or
+ * `payment_date` to inspect. So the keyed groups come back summed, and the
+ * handful of unkeyed rows come back individually — which is also why a group
+ * and a transaction can be fed to `rollUpTransactions` side by side.
+ *
+ * ⚠ Matches `link_key is null` OR `= ''`. An empty STRING is unkeyed too, and
+ * a filter that missed it would hand back a row with no publisher columns,
+ * which `isEmptyPublishedRow` would then read as empty. A row must never be
+ * called empty because we failed to look at it.
+ */
+async function unkeyedRowsOf(budgetId) {
+  const rows = [];
+  for (let from = 0; ; from += 1000) {
     const { data, error } = await db().schema('treasury').from('transactions')
-      .select('id, description, payment_date, payment_method, payment_number, '
-        + 'invoice_number, fund, expense_category, department, program')
-      .in('id', ids.slice(i, i + 500));
-    if (error) throw new Error(`unkeyed detail read failed: ${error.message}`);
-    for (const row of data) Object.assign(byId.get(row.id), row);
+      .select('id, amount, link_key, description, payment_date, payment_method, '
+        + 'payment_number, invoice_number, fund, expense_category, department, program')
+      .eq('budget_id', budgetId).or('link_key.is.null,link_key.eq.')
+      .order('id').range(from, from + 999);
+    if (error) throw new Error(`unkeyed rows read failed: ${error.message}`);
+    rows.push(...data);
+    if (data.length < 1000) break;
   }
-
-  const missed = ids.filter((id) => !('description' in byId.get(id)));
-  if (missed.length) {
-    throw new Error(
-      `${missed.length} unkeyed row(s) could not be re-read (first ${missed[0]}). Refusing to ` +
-      `judge whether they are empty without having seen them.`,
-    );
-  }
+  return rows;
 }
 
 async function rootsOf(budgetId) {
@@ -217,24 +209,52 @@ export async function rebuildBudget(budget, { dryRun = false, quiet = false } = 
     );
   }
 
-  const txns = await transactionsOf(budget.id, { withVendorNames: r.needsVendorNames });
-  await fillUnkeyedDetail(txns);
+  const grouped = await groupedTransactionsOf(budget.id);
 
-  // ⚠ Built from the SAME rows the roll-up sees, so a key can never resolve to
-  // a name that came from a different read. Empty for a source that did not
-  // ask for the join — and a resolver that needs it declares that it does.
-  const vendorNameByKey = new Map();
-  for (const t of txns) {
-    const name = t.vendors?.name;
-    if (t.link_key != null && name != null && !vendorNameByKey.has(t.link_key)) {
-      vendorNameByKey.set(t.link_key, name);
+  /**
+   * ⚠⚠ The keyed groups arrive SUMMED; the unkeyed rows arrive ONE BY ONE and
+   * replace their group. `rollUpTransactions` accepts both because a group is
+   * just a row carrying an `item_count` — see its note. The unkeyed group is
+   * dropped here precisely so it cannot be counted twice.
+   */
+  const unkeyedGroup = grouped.find((g) => g.link_key === null || g.link_key === '');
+  const keyed = grouped.filter((g) => g !== unkeyedGroup);
+
+  let unkeyedRows = [];
+  if (unkeyedGroup) {
+    const n = Number(unkeyedGroup.item_count);
+    // ⚠ Refuse with the AGGREGATE's own numbers rather than re-reading
+    // thousands of rows to ask whether each is an empty publisher row. At this
+    // volume it is a broken load, not a publisher's blank line.
+    if (n > UNKEYED_INSPECT_LIMIT) {
+      throw new Error(
+        `${budget.data_source}: ${n.toLocaleString()} transaction(s) totalling ` +
+        `${Number(unkeyedGroup.amount).toLocaleString(undefined, { style: 'currency', currency: 'USD' })} ` +
+        `have NO link_key. That is far too many to be rows the publisher published empty — ` +
+        `the loader lost the key. Fix the loader; do NOT bucket them.`,
+      );
+    }
+    unkeyedRows = await unkeyedRowsOf(budget.id);
+    if (unkeyedRows.length !== n) {
+      throw new Error(
+        `${budget.data_source}: the aggregate counted ${n} unkeyed row(s) but ${unkeyedRows.length} ` +
+        `came back. Refusing to judge rows we did not see.`,
+      );
     }
   }
 
+  // ⚠ Built from the SAME read the roll-up sees, so a key can never resolve to
+  // a name that came from a different query. Only Frisco reads this: its
+  // link_key is DERIVED from the vendor name, so the relation is 1:1.
+  const vendorNameByKey = new Map();
+  for (const g of keyed) {
+    if (g.link_key != null && g.vendor_name != null) vendorNameByKey.set(g.link_key, g.vendor_name);
+  }
+
   const { roots, total, emptyRows } = rollUpTransactions(
-    txns,
+    [...keyed, ...unkeyedRows],
     (keys) => r.resolveNames(keys, { vendorNameByKey }),
-    { keepTop: r.keepTop, tailKey: r.tailKey, tailName: r.tailName },
+    { keepTop: r.keepTop, tailKey: r.tailKey, tailName: r.tailName, keyOf: r.keyOf },
   );
   const existing = await rootsOf(budget.id);
   const { inserts, updates, deletes } = diffTree(existing, roots);
@@ -252,7 +272,10 @@ export async function rebuildBudget(budget, { dryRun = false, quiet = false } = 
   }
 
   if (!quiet) {
-    console.log(`${budget.data_source}: ${txns.length} txns -> ${roots.length} roots ` +
+    // ⚠ The transaction count now comes from the aggregate's item_counts, not
+    // from the length of a list of rows — nothing reads the rows one by one.
+    const txnCount = roots.reduce((a, x) => a + x.item_count, 0) + emptyRows;
+    console.log(`${budget.data_source}: ${txnCount.toLocaleString()} txns -> ${roots.length} roots ` +
       `| +${inserts.length} ~${updates.length} -${deletes.length}`);
     // ⚠ Printed every run, never swallowed. An exclusion nobody can see is
     // indistinguishable from a row that was quietly lost.

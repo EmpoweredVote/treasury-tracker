@@ -161,15 +161,38 @@ describe('rollUpTransactions', () => {
   });
 
   /**
-   * ⚠⚠⚠ The drill-down matches link_key by PREFIX, so a key that prefixes a
-   * sibling makes the shorter category return the longer one's money too.
-   * Every total still ties while a reader is shown too much.
+   * ⚠⚠⚠ MIXED DEPTH. The drill-down matches whole "|" segments, so a root
+   * keyed `HARBOR` returns the bare row AND every `HARBOR|fund|acct` row.
+   * LA City really has this: two FY2024 rows key as bare `HARBOR`.
    */
-  it('REFUSES a root key that is a prefix of another', () => {
+  it('REFUSES a root key that is a segment-prefix of another', () => {
     expect(() => rollUpTransactions(
-      [{ link_key: 'Debt Service', amount: 10 }, { link_key: 'Debt Service Fees', amount: 5 }],
-      byKey({ 'Debt Service': 'Debt Service', 'Debt Service Fees': 'Debt Service Fees' }),
-    )).toThrow(/is a prefix of/);
+      [{ link_key: 'HARBOR', amount: 10 }, { link_key: 'HARBOR|GENERAL FUND|SALARIES', amount: 5 }],
+      byKey({ HARBOR: 'Harbor', 'HARBOR|GENERAL FUND|SALARIES': 'Harbor salaries' }),
+    )).toThrow(/segment-prefix/);
+  });
+
+  /**
+   * ⚠⚠ The counter-case, and the one that matters: #351 shipped a PLAIN
+   * string-prefix test, which would have refused this. Both are real LA City
+   * departments and the server cannot confuse them — measured against the live
+   * API, `RECREATION AND PARKS` returns 53,392 rows and does NOT include
+   * `RECREATION AND PARKS - SPECIAL ACCOUNTS`.
+   */
+  it('ALLOWS sibling keys where one is a plain string prefix of the other', () => {
+    const { roots } = rollUpTransactions(
+      [{ link_key: 'RECREATION AND PARKS', amount: 10 },
+       { link_key: 'RECREATION AND PARKS - SPECIAL ACCOUNTS', amount: 5 },
+       { link_key: 'NON-DEPARTMENTAL - GENERAL', amount: 3 },
+       { link_key: 'NON-DEPARTMENTAL - GENERAL CITY PURPOSES', amount: 2 }],
+      byKey({
+        'RECREATION AND PARKS': 'Recreation and Parks',
+        'RECREATION AND PARKS - SPECIAL ACCOUNTS': 'Recreation and Parks - Special Accounts',
+        'NON-DEPARTMENTAL - GENERAL': 'Non-Departmental - General',
+        'NON-DEPARTMENTAL - GENERAL CITY PURPOSES': 'Non-Departmental - General City Purposes',
+      }),
+    );
+    expect(roots).toHaveLength(4);
   });
 
   it('allows keys that merely share a word', () => {
@@ -178,6 +201,70 @@ describe('rollUpTransactions', () => {
       byKey({ 'Other Revenues': 'Other Revenues', 'Other Operating Costs': 'Other Operating Costs' }),
     );
     expect(roots).toHaveLength(2);
+  });
+
+  // ── a row may already be a GROUP ───────────────────────────────────────────
+
+  it('accepts a pre-summed group via item_count', () => {
+    const { roots, total } = rollUpTransactions(
+      [{ link_key: 'a', amount: 1000, item_count: 250 }],
+      byKey({ a: 'Alpha' }),
+    );
+    expect(total).toBe(1000);
+    expect(roots[0]).toMatchObject({ amount: 1000, item_count: 250 });
+  });
+
+  it('mixes pre-summed groups with individual rows', () => {
+    const { roots } = rollUpTransactions(
+      [{ link_key: 'a', amount: 1000, item_count: 250 }, { link_key: 'a', amount: 5 }],
+      byKey({ a: 'Alpha' }),
+    );
+    expect(roots[0]).toMatchObject({ amount: 1005, item_count: 251 });
+  });
+
+  // ── keyOf: rolling up coarser than the key ────────────────────────────────
+
+  it('rolls up on a derived key when keyOf is given', () => {
+    const dept = (t) => String(t.link_key).split('|')[0];
+    const { roots, total } = rollUpTransactions(
+      [{ link_key: 'HARBOR|A|X', amount: 10, item_count: 3 },
+       { link_key: 'HARBOR|B|Y', amount: 5, item_count: 2 },
+       { link_key: 'PENSION|C|Z', amount: 1, item_count: 1 }],
+      byKey({ HARBOR: 'Harbor', PENSION: 'Pension' }),
+      { keyOf: dept },
+    );
+    expect(total).toBe(16);
+    expect(roots).toHaveLength(2);
+    expect(roots[0]).toMatchObject({ link_key: 'HARBOR', name: 'Harbor', amount: 15, item_count: 5 });
+  });
+
+  /**
+   * ⚠ The bare-`HARBOR` rows fold into their own department rather than
+   * colliding with it — which is exactly why LA rolls up to the department.
+   */
+  it('folds a bare-department row into its department root', () => {
+    const dept = (t) => String(t.link_key).split('|')[0];
+    const { roots } = rollUpTransactions(
+      [{ link_key: 'HARBOR|A|X', amount: 10, item_count: 3 }, { link_key: 'HARBOR', amount: 0 }],
+      byKey({ HARBOR: 'Harbor' }),
+      { keyOf: dept },
+    );
+    expect(roots).toHaveLength(1);
+    expect(roots[0]).toMatchObject({ amount: 10, item_count: 4 });
+  });
+
+  it('REFUSES a keyOf that drops a key', () => {
+    expect(() => rollUpTransactions(
+      [{ link_key: 'a|b', amount: 1 }], byKey({}), { keyOf: () => null },
+    )).toThrow(/keyOf\(\) returned nothing/);
+  });
+
+  // ⚠ An unkeyed row stays unkeyed: a derivation must not invent a key.
+  it('does not let keyOf rescue an unkeyed row', () => {
+    expect(() => rollUpTransactions(
+      [{ link_key: 'a', amount: 1 }, { link_key: null, amount: 500 }],
+      byKey({ a: 'A' }), { keyOf: () => 'INVENTED' },
+    )).toThrow(/have NO link_key/);
   });
 
   // ⛔ A duplicate label is the original McKinney symptom.
@@ -338,16 +425,36 @@ describe('transactionTreeSources — enrolment is opt-in', () => {
     expect(resolveNames(['unknown']).get('unknown')).toBe('Department 0');
   });
 
+  it('enrols the LA City Checkbook', () => {
+    expect(isEnrolled('LA City Checkbook')).toBe(true);
+    expect(isEnrolled('LA City Payroll')).toBe(false);
+    expect(isEnrolled('LA City Revenue')).toBe(false);
+  });
+
   /**
-   * ⚠⚠ Only Frisco labels its roots with vendor names, and the vendors join is
-   * expensive and variable enough that one slow page exceeded the statement
-   * timeout — which made McKinney's four registers impossible to rebuild at
-   * all. A source pays for the join only by asking for it.
+   * ⚠⚠ LA is the only source whose ROOTS are coarser than its keys: the loader
+   * writes `DEPARTMENT|FUND|ACCOUNT` (3,619 distinct) and the breakdown is the
+   * 56 departments. The derived key must be a whole `|` segment, because that
+   * is what the drill-down can match.
    */
-  it('asks for the vendors join only where the labels are vendor names', () => {
-    expect(resolverFor('Frisco Check Register FY2024', 2024).needsVendorNames).toBe(true);
-    expect(resolverFor('McKinney Check Register FY2024', 2024).needsVendorNames).toBe(false);
-    expect(resolverFor('West Hollywood Demand Register FY2025-26', 2026).needsVendorNames).toBe(false);
+  it('rolls LA up to the department, and labels it as the city publishes it', () => {
+    const r = resolverFor('LA City Checkbook', 2025);
+    expect(r.keyOf({ link_key: 'WATER AND POWER|POWER REVENUE FUND|POWER REVENUE FUND' }))
+      .toBe('WATER AND POWER');
+    // ⚠ Two FY2024 rows key as a bare department, with no fund or account.
+    expect(r.keyOf({ link_key: 'HARBOR' })).toBe('HARBOR');
+    // SCREAMING CAPS is the publisher's own, and so is the inconsistency
+    // between NON_DEPARTMENTAL and NON-DEPARTMENTAL - LEASING.
+    expect(r.resolveNames(['WATER AND POWER', 'NON_DEPARTMENTAL']).get('WATER AND POWER'))
+      .toBe('WATER AND POWER');
+    expect(r.source).toMatch(/department_name column of the LA City Checkbook/);
+  });
+
+  it('gives every other source no keyOf, so a root stays one link_key', () => {
+    for (const s of ['McKinney Check Register FY2024', 'Frisco Check Register FY2024',
+                     'West Hollywood Demand Register FY2025-26']) {
+      expect(resolverFor(s, 2024).keyOf, s).toBeNull();
+    }
   });
 
   it('cites the published source', () => {

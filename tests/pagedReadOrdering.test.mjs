@@ -82,6 +82,24 @@ describe('every paged read orders by a total key', () => {
    * gets fixed and the siblings that do the same thing are left unprotected. So
    * the assertion now runs over the DERIVED LIST, not one name.
    */
+  /**
+   * ── ⚠⚠ THE ONE READ THAT IS TOTAL WITHOUT A PRIMARY KEY ───────────────────
+   *
+   * The invariant this file defends is TOTALITY, and `.order('id')` is how a
+   * read of a TABLE gets it. `treasury.transaction_roots` is not a table read:
+   * it is `group by link_key`, so the result has no `id` and `link_key` is
+   * UNIQUE IN IT BY CONSTRUCTION — one row per group, which is exactly a total
+   * order. Requiring a column the result does not have would force a fake one.
+   *
+   * ⚠ Deliberately narrow: the exemption is tied to the RPC NAME, so it cannot
+   * be borrowed by a table read that merely orders on `link_key` (where the
+   * column is wildly non-unique — that is the `fetchScopeRows` bug above,
+   * 79,840 of 79,939 rows tied). A test below pins that.
+   */
+  const TOTAL_WITHOUT_PK = [
+    { rpc: 'transaction_roots', column: 'link_key' },
+  ];
+
   it('EVERY paged read ends its ordering on the primary key', () => {
     const offenders = [];
     for (const { rel, src } of pagedFiles()) {
@@ -93,12 +111,35 @@ describe('every paged read orders by a total key', () => {
         const prefix = bare.slice(0, m.index).trimEnd();
         // The ordering chain must END on the primary key, with or without an
         // options object: `.order('id')` and `.order('id', { ascending: true })`.
-        if (!/\.order\(\s*'id'\s*(?:,\s*\{[^}]*\}\s*)?\)$/.test(prefix)) {
-          offenders.push(`${rel}: ...${prefix.slice(-70).replace(/\s+/g, ' ')}  <-- .range() here`);
-        }
+        if (/\.order\(\s*'id'\s*(?:,\s*\{[^}]*\}\s*)?\)$/.test(prefix)) continue;
+
+        // ...or on the GROUP BY key of one of the named aggregate RPCs, which
+        // is unique in that result set. The `.rpc('name'` must appear in the
+        // SAME statement, which is what keeps this from leaking.
+        const statement = prefix.slice(prefix.lastIndexOf(';') + 1);
+        const exempt = TOTAL_WITHOUT_PK.some(({ rpc, column }) => (
+          statement.includes(`.rpc('${rpc}'`)
+          && new RegExp(`\\.order\\(\\s*'${column}'\\s*(?:,\\s*\\{[^}]*\\}\\s*)?\\)$`).test(prefix)
+        ));
+        if (exempt) continue;
+
+        offenders.push(`${rel}: ...${prefix.slice(-70).replace(/\s+/g, ' ')}  <-- .range() here`);
       }
     }
     expect(offenders, `paged reads without a total order: ${offenders.join(' | ')}`).toEqual([]);
+  }, 30_000);
+
+  /**
+   * ⚠⚠ The exemption must not become a way to page a TABLE by `link_key`.
+   * `treasury.transactions.link_key` is the opposite of unique — West
+   * Hollywood FY2026 has 24,831 rows over 21 keys — so paging a table on it
+   * is precisely the undefined-order bug this file exists for.
+   */
+  it('the aggregate exemption cannot be borrowed by a table read', () => {
+    const tableRead = "db.from('transactions').select('*').order('link_key').range(from, from + 999)";
+    const exemptNames = TOTAL_WITHOUT_PK.map((x) => x.rpc);
+    expect(exemptNames).toContain('transaction_roots');
+    for (const name of exemptNames) expect(tableRead).not.toContain(`.rpc('${name}'`);
   }, 30_000);
 
   it("scopeDb's budgets read is ordered by id last", () => {
