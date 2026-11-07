@@ -108,21 +108,40 @@ function friscoResolver() {
  * to a reader as the name of a category. That is how an unsourced label
  * starts looking sourced, so it refuses instead.
  */
-function wehoCategoryResolver() {
+/**
+ * The label IS the key: one published cell, carried through unchanged.
+ *
+ * Shared by West Hollywood (the `category` cell), LA City and Plano (the first
+ * `|` segment of their keys, via `keyOf`). It invents nothing and looks
+ * nothing up.
+ *
+ * ⚠⚠ THE COMPOSITE-KEY REFUSAL IS LOAD-BEARING FOR ALL THREE. A root key here
+ * must be ONE publisher cell. If a `|` survives into it, more than one column
+ * went into the label — either a new column was mapped (West Hollywood) or
+ * `keyOf` stopped slicing a single segment (LA, Plano) — and an identity rule
+ * would print `General Fund|Contracted Services` to a reader as the name of a
+ * category. That is exactly how an unsourced label starts looking sourced.
+ */
+function publishedLabelResolver(what) {
   return (keys) => {
     const out = new Map();
     for (const k of keys) {
       if (typeof k === 'string' && k.includes('|')) {
         throw new Error(
-          `West Hollywood key ${JSON.stringify(k)} is composite: more than one column went into ` +
-          `linkKey(), so it is no longer the publisher's own category cell and must not be shown ` +
-          `as a category name. Fix the column_mapping, or write a real naming rule for the new shape.`,
+          `${what} key ${JSON.stringify(k)} is composite: more than one column went into it, so it ` +
+          `is no longer the publisher's own cell and must not be shown as a category name. Fix the ` +
+          `column_mapping or keyOf, or write a real naming rule for the new shape.`,
         );
       }
       out.set(k, k);
     }
     return out;
   };
+}
+
+/** The first `|` segment of a link key — the axis LA and Plano roll up to. */
+function firstSegmentKey(t) {
+  return String(t.link_key).split('|')[0];
 }
 
 /**
@@ -158,18 +177,29 @@ function wehoCategoryResolver() {
  * ⚠ No `keepTop`: 56 roots is a readable breakdown, so there is no tail
  * bucket and no aggregate for TT to name.
  */
-function laDepartmentResolver() {
-  return (keys) => {
-    const out = new Map();
-    for (const k of keys) out.set(k, k);
-    return out;
-  };
-}
-
-/** The department segment of an LA link_key — see `laDepartmentResolver`. */
-function laDepartmentKey(t) {
-  return String(t.link_key).split('|')[0];
-}
+/**
+ * ── PLANO: THE FUND, BECAUSE THE COST CENTRE IS UNPUBLISHABLE ────────────
+ *
+ * ⚠⚠ Plano is the source that forced `link_key_columns` to exist. Its register
+ * publishes a cost centre and a fund, and the loaders hardcoded the cost
+ * centre first — but Plano's cost-centre names arrive machine-truncated at 25
+ * characters (`UTILITYMAINTADMINISTRATIO`, `SOLIDWASTECOLLECTIONS`), the same
+ * defect that removed its vendor axis in #340, where payees truncate to five
+ * characters. Since the drill-down matches only a LEADING `|` segment, the
+ * hardcode meant Plano could not have a publishable breakdown at all.
+ *
+ * Migration 20261107230000 re-keys it `fund|costcentre`, so the FUND is the
+ * axis: `Water & Sewer`, `G.O. Debt Service`, `Equipment Maintenance` — the
+ * city's own words, 61-69 a year. ⚠ That re-key required a `--force-reload`
+ * of all six years, which also picked up the CSV parse fix below.
+ *
+ * ⚠⚠⚠ MEASURED WHILE DOING IT: Plano's register was losing money to a parser.
+ * Its descriptions carry unquoted inch marks (`GLAND FIELD LOK D.I. 6"`), and
+ * `splitCSVLine` treated every `"` as a delimiter, so the rest of the line
+ * collapsed into `description` and the row was stored with no fund, no payee
+ * and $0.00. FY2024 alone had 455 such lines. Across the six years the fix
+ * recovered $7,028,081.41 that TT had been holding at zero.
+ */
 
 const SOURCES = [
   {
@@ -196,15 +226,22 @@ const SOURCES = [
     // ⚠ The file TITLES are not the fiscal years — "FY2022-24" is TT's
     // FY2024 budget. The resolver does not care: it reads no year.
     match: /^West Hollywood Demand Register FY\d{4}-\d{2}$/,
-    resolver: wehoCategoryResolver,
+    resolver: () => publishedLabelResolver('West Hollywood'),
     source: "The category column of West Hollywood's published demand register, unchanged.",
   },
   {
     // "LA City Checkbook" — one source, many fiscal years.
     match: /^LA City Checkbook$/,
-    resolver: laDepartmentResolver,
+    resolver: () => publishedLabelResolver('LA City'),
     source: "The department_name column of the LA City Checkbook, unchanged.",
-    keyOf: laDepartmentKey,
+    keyOf: firstSegmentKey,
+  },
+  {
+    // "Plano Check Register FY2024" — see the note above.
+    match: /^Plano Check Register FY\d{4}$/,
+    resolver: () => publishedLabelResolver('Plano'),
+    source: "The fundname column of Plano's published check register, unchanged.",
+    keyOf: firstSegmentKey,
   },
 ];
 

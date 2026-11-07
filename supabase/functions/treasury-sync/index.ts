@@ -110,6 +110,12 @@ interface ColumnMapping {
   expense_category_column?: string | null;
   department_column?: string | null;
   program_column?: string | null;
+  /**
+   * Which mapping entries make the link key, in order (e.g.
+   * `["fund_column", "department_column"]`). Absent = the historical
+   * department/fund/expense_category order. See `linkKeyFromMapping`.
+   */
+  link_key_columns?: string[] | null;
 }
 
 /** The jsonb returned by treasury_get_data_source_config(), trimmed to what is read. */
@@ -526,6 +532,25 @@ function linkKey(parts: unknown[]): string | null {
   return kept.length ? kept.join("|") : null;
 }
 
+/**
+ * ⚠⚠ HAND-MIRROR of `linkKeyFromMapping` in scripts/lib/publisherIds.mjs,
+ * pinned to it by tests/linkKeyColumns.test.mjs. Same arrangement as
+ * socrataRowId.mjs: this file is Deno and cannot import from the repo, and the
+ * EDGE FUNCTION IS THE LIVE PATH — the cron runs it, not the script.
+ *
+ * The order of these columns decides which breakdowns are possible at all,
+ * because the drill-down matches only a LEADING `|` segment. Absent means the
+ * historical order, exactly, so no existing source is re-keyed.
+ */
+const DEFAULT_LINK_KEY_COLUMNS = ["department_column", "fund_column", "expense_category_column"];
+
+function linkKeyFromMapping(cm: ColumnMapping, readCell: (name?: string | null) => unknown): string | null {
+  const entries = Array.isArray(cm.link_key_columns) && cm.link_key_columns.length
+    ? cm.link_key_columns
+    : DEFAULT_LINK_KEY_COLUMNS;
+  return linkKey(entries.map((entry) => readCell((cm as Record<string, unknown>)[entry] as string | null | undefined)));
+}
+
 function buildTxnBatch(rows: SocrataRow[], cm: ColumnMapping) {
   const vs = new Set<unknown>();
   const ridCol = cm.source_row_id_column; // e.g. transaction_id for LA, demand for WeHo
@@ -533,7 +558,7 @@ function buildTxnBatch(rows: SocrataRow[], cm: ColumnMapping) {
     return { a: amt(cell(r, cm.amount_column)), d: idOrNull(cell(r, cm.description_column)), dt: cell(r, cm.date_column) || null,
       pm: idOrNull(cell(r, cm.payment_method_column)), inv: idOrNull(cell(r, cm.invoice_number_column)), f: idOrNull(cell(r, cm.fund_column)),
       ec: idOrNull(cell(r, cm.expense_category_column)), dept: idOrNull(cell(r, cm.department_column)), prog: idOrNull(cell(r, cm.program_column)), vn,
-      lk: linkKey([cell(r, cm.department_column), cell(r, cm.fund_column), cell(r, cm.expense_category_column)]),
+      lk: linkKeyFromMapping(cm, (name) => cell(r, name)),
       rid: ridCol ? idOrNull(r[ridCol]) : null }; });
   return { vendors: [...vs].map(n => ({ n })), transactions: txns };
 }

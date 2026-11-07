@@ -35,3 +35,46 @@ export function linkKey(parts) {
   const kept = parts.map(idOrNull).filter((v) => v !== null);
   return kept.length ? kept.join('|') : null;
 }
+
+/**
+ * The mapping entries that make a link key, in order.
+ *
+ * ── ⚠⚠⚠ WHY THIS IS CONFIGURABLE AND WAS NOT ────────────────────────────────
+ *
+ * The order used to be hardcoded as `[department, fund, expense_category]` in
+ * two loaders, and that hardcode decided which breakdowns were POSSIBLE —
+ * because the drill-down can only match a LEADING `|` segment. Whatever column
+ * happened to be first was the only axis a reader could ever be given.
+ *
+ * Plano is the case that proved it. Its register publishes a cost centre and a
+ * fund; the hardcode put the cost centre first, and Plano's cost-centre names
+ * arrive machine-truncated at 25 characters — `UTILITYMAINTADMINISTRATIO`,
+ * `SOLIDWASTECOLLECTIONS` — which is the same defect that removed its vendor
+ * axis in #340. Its FUND names are clean and publishable (`Water & Sewer`,
+ * `G.O. Debt Service`), but fund was segment two, so a fund root was not a
+ * prefix the API could match and the city had no usable breakdown at all.
+ *
+ * ⚠ ABSENT MEANS THE OLD ORDER, EXACTLY. Every source without
+ * `link_key_columns` keys precisely as before — this cannot re-key McKinney,
+ * Frisco, West Hollywood or LA by accident, and a test pins that.
+ *
+ * ⚠⚠ Changing it for a source that already has rows RE-KEYS THEM, so the
+ * stored rows must be backfilled in the same change and the tree above them
+ * rebuilt. A key is the definition of "the same row" for dedup
+ * (`ON CONFLICT`), so this is never a cosmetic edit.
+ */
+export const DEFAULT_LINK_KEY_COLUMNS = ['department_column', 'fund_column', 'expense_category_column'];
+
+/**
+ * Build a row's link key from the source's column_mapping.
+ *
+ * `readCell(columnName)` returns that column's raw cell — the loaders differ
+ * (`r[name]` for a parsed sheet, `cell(r, name)` for a Socrata row), so the
+ * accessor is supplied rather than assumed.
+ */
+export function linkKeyFromMapping(cm, readCell) {
+  const entries = Array.isArray(cm?.link_key_columns) && cm.link_key_columns.length
+    ? cm.link_key_columns
+    : DEFAULT_LINK_KEY_COLUMNS;
+  return linkKey(entries.map((entry) => readCell(cm?.[entry])));
+}

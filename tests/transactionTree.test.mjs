@@ -354,14 +354,15 @@ describe('transactionTreeSources — enrolment is opt-in', () => {
   });
 
   /**
-   * ⚠ West Hollywood has moved OFF this list for the same reason Frisco did:
-   * its labels are the publisher's own `category` cells, carried through
-   * unchanged, and every one of its eight years was checked against the city's
-   * own group-by before enrolling. Plano stays off — the publisher truncates
-   * its vendor names to five characters (#340).
+   * ⚠ Enrolment is still OPT-IN and still narrow — a source with no checked
+   * naming rule is refused, never defaulted. What has changed is that the
+   * check is about the AXIS, not the source: Plano joined on its fund once
+   * its rows were re-keyed, while its vendor and cost-centre axes stay dead
+   * because the publisher truncates both.
    */
   it('does NOT enrol sources whose naming rule nobody has checked', () => {
-    for (const s of ['Plano Check Register FY2025', 'McKinney Payroll Register FY2024']) {
+    for (const s of ['McKinney Payroll Register FY2024', 'Bloomington Public Contracts',
+                     'LA City Payroll', 'West Hollywood Budget Expenditure Detail']) {
       expect(isEnrolled(s), s).toBe(false);
       expect(resolverFor(s, 2024)).toBeNull();
     }
@@ -619,10 +620,21 @@ describe('Frisco is enrolled, and names nothing it was not given', () => {
     )).toThrow(/resolver returned nothing/);
   });
 
-  /** ⚠ Plano's payee is truncated to 5 characters — #340 removed that axis. */
-  it('does NOT enrol Plano', () => {
-    expect(isEnrolled('Plano Check Register FY2023')).toBe(false);
-    expect(resolverFor('Plano Check Register FY2023', 2023)).toBeNull();
+  /**
+   * ⚠⚠ Plano IS enrolled now, but NOT on a vendor axis — that one stays dead.
+   * Its payees truncate to five characters (#340) and its cost centres to
+   * twenty-five (`UTILITYMAINTADMINISTRATIO`). It keys on the FUND, which the
+   * city publishes in full, and only after migration 20261107230000 re-keyed
+   * its rows so the fund is the first `|` segment.
+   */
+  it('enrols Plano on the fund, never on a vendor', () => {
+    const r = resolverFor('Plano Check Register FY2023', 2023);
+    expect(r).not.toBeNull();
+    expect(r.source).toMatch(/fundname column of Plano's published check register/);
+    expect(r.source).not.toMatch(/vendor/i);
+    // No tail bucket: 61-69 funds a year is already readable.
+    expect(r.keepTop).toBeNull();
+    expect(r.keyOf({ link_key: 'Water & Sewer|UTILITYMAINTADMINISTRATIO' })).toBe('Water & Sewer');
   });
 
   it('leaves McKinney with no bucket, one root per department', () => {
