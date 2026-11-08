@@ -283,7 +283,16 @@ async function main() {
   // `published: null` for both, so they are split back apart here: "we read
   // the file and it is unloadable" and "we could not look" are different
   // findings, and an operator needs to know which one they have.
-  const r = classifyCoverage(observations, XLSX_ROW_COVERAGE);
+  // ⚠⚠ THE REGISTRY MUST BE SCOPED THE SAME WAY THE RUN IS. `stale` means "the
+  // registry names a budget that no longer exists", and a filtered run observes
+  // only one budget — so without this every OTHER entry reads as stale and a
+  // perfectly good `--source` run exits 1 with 21 invented findings. Scoping
+  // the registry by the same substring keeps a filtered run honest about the
+  // part of the world it actually looked at.
+  const registry = values.source
+    ? XLSX_ROW_COVERAGE.filter((e) => e.source.toLowerCase().includes(values.source.toLowerCase()))
+    : XLSX_ROW_COVERAGE;
+  const r = classifyCoverage(observations, registry);
   const { blocked, unreachable } = splitUnreachable(r.unreachable);
   const moneyOff = amountDisagreements(observations);
 
