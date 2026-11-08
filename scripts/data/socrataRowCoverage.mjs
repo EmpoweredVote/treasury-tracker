@@ -22,6 +22,17 @@ export const SOCRATA_ROW_COVERAGE = [
   // every row's check_date onto a July-June year; see the migration
   // 20261105130000_weho_year_binding.sql for the full table. "FY2022-24" is a
   // FY2024 file (17,762 of its rows) and carries 38 FY2023 rows, not a year.
+  // ⚠⚠ THESE TWO WERE NOT IN THE CATALOG TT KNEW ABOUT. Found 2026-11-08 by
+  // asking data.weho.org what it has ever served (`/api/catalog/v1?q=demand
+  // register`), which returned ten files where TT had eight. Each carries ONE
+  // row with no category and no amount_paid — the publisher published it
+  // empty, so it has no key, becomes no root, and moves no money.
+  //
+  // ⚠ `cz69-a684` COVERS FY2018 — the year 20261105130000_weho_year_binding.sql
+  // retired because "NO published file covers it". That was true of the eight
+  // files then registered; this one was not among them.
+  { source: 'West Hollywood Demand Register FY2016-17', fiscalYear: 2017, rows: 20470 },
+  { source: 'West Hollywood Demand Register FY2017-18', fiscalYear: 2018, rows: 20570 },
   { source: 'West Hollywood Demand Register FY2018-19', fiscalYear: 2019, rows: 24123 },
   { source: 'West Hollywood Demand Register FY2019-20', fiscalYear: 2020, rows: 18411 },
   { source: 'West Hollywood Demand Register FY2020-21', fiscalYear: 2021, rows: 16342 },
