@@ -1,6 +1,31 @@
 import { describe, it, expect } from 'vitest';
 import { figureFlags, figureFlagFor } from '../src/data/figureFlags';
 import { GA_FIGURE_FLAGS } from '../scripts/data/gaRlgfAnomalies.mjs';
+import { MCKINNEY_REGISTER_ANOMALIES } from '../scripts/data/mckinneyRegisterAnomalies.mjs';
+
+/**
+ * ⚠⚠ EVERY AUTHOR-FACING REGISTER, NOT JUST GEORGIA'S.
+ *
+ * These guards were written when GA was the only register, and they asserted
+ * that every reader-facing flag traces to `GA_FIGURE_FLAGS`. That stopped
+ * being the right assertion the moment a second register existed: the first
+ * non-Georgia flag would have failed as "an id the register does not carry"
+ * even though its register entry was sitting right there.
+ *
+ * ⚠ ADD EVERY NEW REGISTER HERE. A register that is not in this list cannot
+ * surface a flag — and worse, the test that proves corroborated findings reach
+ * readers would silently stop covering it.
+ *
+ * ⚠⚠ scripts/data/friscoRegisterAnomalies.mjs is DELIBERATELY ABSENT. It is
+ * marked not-reader-facing: its claim is an inference about the publisher
+ * ("therefore the day was exported twice"), not a fact about the file, and it
+ * has not been independently corroborated. Adding it here would be promoting
+ * it by the back door.
+ */
+const AUTHOR_FACING_REGISTERS = [
+  ...GA_FIGURE_FLAGS,
+  ...MCKINNEY_REGISTER_ANOMALIES,
+];
 
 /**
  * ⚠⚠ THE GUARD THAT MATTERS: the author-facing register and the reader-facing
@@ -10,9 +35,12 @@ import { GA_FIGURE_FLAGS } from '../scripts/data/gaRlgfAnomalies.mjs';
  * silently — a new corroborated flag that is never surfaced now fails CI.
  */
 describe('figure flags — reader-facing surfacing', () => {
-  it('⚠⚠ every corroborated, loaded GA flag reaches the page', () => {
+  it('⚠⚠ every corroborated, loaded flag reaches the page — in EVERY register', () => {
+    // ⚠ Was GA-only. A second register would otherwise have been able to
+    // record a corroborated finding and never show it, which is the exact
+    // failure this whole file was written to make impossible.
     const surfaced = new Set(Object.values(figureFlags).map((f) => f.id));
-    const missing = GA_FIGURE_FLAGS
+    const missing = AUTHOR_FACING_REGISTERS
       .filter((f) => f.loaded)
       .map((f) => f.id)
       .filter((id) => !surfaced.has(id));
@@ -20,8 +48,26 @@ describe('figure flags — reader-facing surfacing', () => {
       .toEqual([]);
   });
 
+  /**
+   * ⚠⚠⚠ A FLAG ABOUT A PERIOD MUST CARRY ITS OWN RETIREMENT CONDITION.
+   *
+   * McKinney's FY2026 banner says the year covers eleven months. If the city
+   * republishes the file with September in it and TT reloads, that sentence
+   * becomes FALSE — and a banner telling a reader a complete year is
+   * incomplete is its own misinformation. The register entry has to say, in
+   * mechanical terms, when to take it down.
+   */
+  it('⚠⚠ a period flag says when it must be retired', () => {
+    const periodFlags = AUTHOR_FACING_REGISTERS.filter((f) => f.severity === 'incomplete-period');
+    expect(periodFlags.length).toBeGreaterThan(0);
+    for (const f of periodFlags) {
+      expect(f.retireWhen, `${f.id} has no retirement condition`).toBeTruthy();
+      expect(String(f.retireWhen).length, f.id).toBeGreaterThan(40);
+    }
+  });
+
   it('⚠ no reader-facing flag invents an id the register does not carry', () => {
-    const known = new Set(GA_FIGURE_FLAGS.map((f) => f.id));
+    const known = new Set(AUTHOR_FACING_REGISTERS.map((f) => f.id));
     for (const f of Object.values(figureFlags)) {
       // Every surfaced flag must trace to a corroborated register entry — a
       // claim about a government's figures is never authored only in the UI.
@@ -32,7 +78,7 @@ describe('figure flags — reader-facing surfacing', () => {
   it('⚠ the register entry behind every surfaced flag is LOADED, never suppressed', () => {
     // The Milledgeville Rule: a flagged figure is published, not withheld. A
     // flag on a figure TT declined to load would be describing an absence.
-    const byId = new Map(GA_FIGURE_FLAGS.map((f) => [f.id, f]));
+    const byId = new Map(AUTHOR_FACING_REGISTERS.map((f) => [f.id, f]));
     for (const f of Object.values(figureFlags)) {
       expect(byId.get(f.id)?.loaded).toBe(true);
     }
@@ -43,9 +89,15 @@ describe('figure flags — reader-facing surfacing', () => {
       const parts = key.split('|');
       expect(parts).toHaveLength(4);
       expect(Number.isInteger(Number(parts[2]))).toBe(true);
-      expect(['operating', 'revenue', 'salaries']).toContain(parts[3]);
+      expect(['operating', 'revenue', 'salaries', 'transactions']).toContain(parts[3]);
     }
     expect(figureFlagFor('DeKalb County', 'GA', 2018, 'operating')).toBeTruthy();
+    // ⚠ The exact four values App.tsx passes for McKinney's payments view.
+    // `treasury.municipalities` holds name 'McKinney', state 'TX'; a flag
+    // keyed on anything else renders NOTHING and fails silently.
+    expect(figureFlagFor('McKinney', 'TX', 2026, 'transactions')).toBeTruthy();
+    expect(figureFlagFor('McKinney', 'TX', 2025, 'transactions')).toBeUndefined();
+    expect(figureFlagFor('McKinney', 'TX', 2026, 'operating')).toBeUndefined();
     // ⚠ A near-miss must NOT match: wrong year, wrong dataset, wrong state.
     expect(figureFlagFor('DeKalb County', 'GA', 2019, 'operating')).toBeUndefined();
     expect(figureFlagFor('DeKalb County', 'GA', 2018, 'revenue')).toBeUndefined();

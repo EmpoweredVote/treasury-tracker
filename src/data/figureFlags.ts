@@ -2280,6 +2280,60 @@ export const figureFlags: Record<string, FigureFlag> = {
       },
     ],
   },
+
+  /**
+   * ⚠⚠ THE FIRST FLAG THAT IS NOT GEORGIA, AND NOT A FILED FORM.
+   *
+   * Every flag above describes a figure a government reported on a DCA return.
+   * This one describes a PERIOD: McKinney's FY2026 check register covers
+   * eleven months of a twelve-month year, so the total on the page is real but
+   * is not the year.
+   *
+   * `not-comparable` is the right severity and the precedent is
+   * Georgetown-Quitman FY2023 above — a six-month transition year, correct for
+   * what it covers, not comparable to its neighbours. Nothing here is
+   * understated in the sense that word carries in this file: TT holds 46,797
+   * of 46,797 published rows, verified against McKinney's own file.
+   */
+  'McKinney|TX|2026|transactions': {
+    id: 'mckinney-tx-fy2026-eleven-month-year',
+    severity: 'not-comparable',
+    headline: 'This covers eleven months, not twelve — September 2026 is not in the city’s file',
+    summary:
+      'McKinney’s fiscal year runs October to September. The check register the city publishes '
+      + 'for 2026 contains payments from 3 October 2025 to 28 August 2026 and none dated in '
+      + 'September 2026, so this total covers eleven months. It is shown exactly as published '
+      + 'and every payment in it is held — 46,797 of the 46,797 lines the city published — but '
+      + 'it is not a full year, which makes it not comparable with the years beside it.',
+    whatThisMeans:
+      'Expect about a month less than a normal year here. FY2026 looks lower than FY2025, and '
+      + 'per month it is actually higher: $54.3 million against $51.7 million.',
+    entries: [
+      {
+        title: 'What the file covers, and what the years beside it cover',
+        text:
+          'The 2026 register runs from 3 October 2025 to 28 August 2026 across eleven distinct '
+          + 'payment months. McKinney’s four earlier registers each span twelve: FY2022 ends 30 '
+          + 'September 2022, FY2023 ends 29 September 2023, FY2024 ends 30 September 2024 and '
+          + 'FY2025 ends 26 September 2025. The city’s own budget documents name each year “FY '
+          + '2025-2026”, “FY 2024-2025” and so on, an October-to-September year.',
+        source_name: 'City of McKinney FY26 Check Register',
+        source_url: 'https://www.mckinneytexas.org/Archive.aspx?ADID=2849',
+        source_date: '2026-11-08',
+      },
+      {
+        title: 'Why the total reads lower than the year actually ran',
+        text:
+          'FY2026 totals $597,313,687.70 against FY2025’s $619,940,294.15 — $22.6 million less, '
+          + 'about 3.6%. Spread over the months each file covers, FY2026 runs at $54.3 million a '
+          + 'month and FY2025 at $51.7 million. A twelfth month at FY2026’s own rate would put it '
+          + 'near $651 million. The comparison, not the figure, is what the missing month breaks.',
+        source_name: 'City of McKinney FY25 and FY26 Check Registers',
+        source_url: 'https://www.mckinneytexas.org/Archive.aspx?AMID=39',
+        source_date: '2026-11-08',
+      },
+    ],
+  },
 };
 
 /** Look up the flag for a rendered figure. Returns undefined when there is none. */

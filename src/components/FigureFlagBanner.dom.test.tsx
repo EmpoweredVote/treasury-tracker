@@ -32,11 +32,29 @@ describe('FigureFlagBanner', () => {
     host.remove();
   });
 
-  const mount = (entity: string, year: number, dataset = 'operating') => {
-    const flag = figureFlagFor(entity, 'GA', year, dataset);
+  const mount = (entity: string, year: number, dataset = 'operating', state = 'GA') => {
+    const flag = figureFlagFor(entity, state, year, dataset);
     expect(flag, `no flag fixture for ${entity} ${year}`).toBeTruthy();
     act(() => { root.render(createElement(FigureFlagBanner, { flag: flag!, label: `${entity} ${year}` })); });
   };
+
+  /**
+   * ⚠⚠ A PERIOD FLAG ON THE PAYMENTS VIEW, which is a path nothing else here
+   * covers: every other flag is a Georgia filed-form figure on `operating` or
+   * `revenue`. McKinney's is the first keyed to `transactions`, so this proves
+   * the dataset reaches the component at all — and that the eleven months and
+   * the "as published" assurance are both on screen without a click.
+   */
+  it('⚠⚠ renders the eleven-month period flag on the payments view', () => {
+    mount('McKinney', 2026, 'transactions', 'TX');
+    const note = host.querySelector('[role="note"]');
+    expect(note).toBeTruthy();
+    const text = host.textContent ?? '';
+    expect(text).toMatch(/eleven months/i);
+    expect(text).toMatch(/September 2026/);
+    // The reader must be able to tell TT did not alter the number.
+    expect(text).toMatch(/as published/i);
+  });
 
   it('⚠⚠ shows the warning and the “as filed” assurance before any interaction', () => {
     mount('Fulton County', 2021);
