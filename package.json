@@ -59,7 +59,8 @@
     "verify:grants": "node scripts/verifyAnonExecute.mjs",
     "check:single-copy": "node scripts/checkSingleCopy.mjs",
     "verify:out-of-period": "node scripts/verifyOutOfPeriodTransactions.mjs",
-    "verify:source-row-coverage": "node scripts/verifySourceRowCoverage.mjs"
+    "verify:source-row-coverage": "node scripts/verifySourceRowCoverage.mjs",
+    "verify:xlsx-row-coverage": "node scripts/verifyXlsxRowCoverage.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.122.0",
