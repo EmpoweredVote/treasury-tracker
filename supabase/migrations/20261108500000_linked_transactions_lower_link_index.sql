@@ -1,0 +1,58 @@
+-- The Payments drill-down read every row of a budget because of one LOWER().
+--
+-- ⚠⚠⚠ THIS IS THE THIRD TIME TODAY THE SAME DEFECT CLASS HAS COST A QUERY ITS
+-- INDEX, and the third different shape it took:
+--
+--   #354  the tree gate   summed a column (`amount`) its index did not carry
+--   #1345 /cities         counted a column (`b.id`) its index did not carry
+--   here  the drill-down  WRAPPED the indexed column in a function
+--
+-- All three looked like "the database is slow". None of them were.
+--
+-- ── WHAT IT COST ───────────────────────────────────────────────────────
+--
+-- ev-accounts' getLinkedTransactions matches a category's transactions with:
+--
+--     LOWER(t.link_key) = $2 OR LOWER(t.link_key) LIKE $2 || '|%'
+--
+-- `idx_transaction_link_prefix` is (budget_id, link_key text_pattern_ops) — on
+-- the RAW column. `LOWER(...)` is not that expression, so neither it nor
+-- `idx_transaction_budget_link` could be used. Postgres fell back to
+-- `idx_transaction_date` (budget_id alone) and read the WHOLE budget. Measured
+-- on LA FY2026 (747,363 rows), asking for one department:
+--
+--     Parallel Bitmap Heap Scan ... Rows Removed by Filter: 355,266
+--     Buffers: shared hit=32,853                       1,044 ms
+--
+-- ⚠ And getLinkedTransactions runs that predicate THREE TIMES per request —
+-- summary, top-5 vendors, and the preview rows — inside one transaction. That
+-- is why a drill-down took 2.4-3.0s against a page load of 0.2s.
+--
+-- ── THE FIX, AND WHY NOT JUST DROP THE LOWER() ─────────────────────────
+--
+-- The LOWER() is doing real work: link keys are cased however each publisher
+-- cased them (LA is upper, others are not) and the caller lowercases its
+-- argument. Removing it would silently stop matching for some sources. So the
+-- index moves to the expression instead:
+--
+--     before  1,044 ms   32,853 buffers   no link_key index usable
+--     after     118 ms    1,675 buffers   index serves BOTH = and LIKE
+--
+-- Live endpoint, unchanged code: 2.4-3.0s -> 0.50-0.57s for LA FY2026 POLICE.
+-- Answers identical — top vendor WATSONVILLE FLEET GROUP $41,652,883.17 over
+-- 1,369 payments, before and after.
+--
+-- ⭐ `text_pattern_ops` serves the equality arm as well as the prefix arm, so
+-- ONE index replaces what would otherwise need two. It is also the cheapest
+-- index on the table at 63 MB over 7.73M rows — btree deduplication compresses
+-- the ~30,000 distinct keys — against 871 MB for the gate's covering index.
+--
+-- ⚠⚠ ONE PATH IS STILL NOT COVERED, DELIBERATELY. When a department ALIAS
+-- exists, the predicate is `SPLIT_PART(LOWER(t.link_key), '|', 1) = $2`, which
+-- this index cannot serve either — it is a different expression again. That
+-- path only runs for sources with rows in `treasury.department_aliases`, and
+-- it was not measured here. If a drill-down is still slow for some city, that
+-- is the first thing to check, and the fix is the same shape: index the
+-- expression the query actually writes.
+create index if not exists idx_transaction_lower_link_prefix
+  on treasury.transactions (budget_id, lower(link_key) text_pattern_ops);
