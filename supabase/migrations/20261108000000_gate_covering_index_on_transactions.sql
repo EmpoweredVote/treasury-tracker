@@ -1,0 +1,61 @@
+-- The transaction-tree gate spent 35 of its 40 seconds fetching `amount` from the heap.
+--
+-- ⭐⭐ HOW THIS WAS FOUND, AND WHY THE EARLIER MEASUREMENT WAS WRONG.
+-- #353 measured each CTE of `transaction_tree_status()` separately and concluded
+-- the folding CTE `t` was 3.2s and "roughly 28s is elsewhere". That was wrong, and
+-- wrong in an instructive way: **a CTE measured in isolation gets a different plan
+-- than the same CTE inside the real query.** Run alone, the planner had freedom it
+-- did not have in context. Only EXPLAIN (ANALYZE, BUFFERS) over the WHOLE function
+-- body showed the truth:
+--
+--     Merge Semi Join (actual time=1.362..35312.348 rows=2141012)
+--       ->  Index Scan using idx_transaction_budget_link on transactions x
+--             Index Cond: (link_key IS NOT NULL)
+--             rows=2511881
+--             Buffers: shared hit=619398 read=101410
+--
+-- ── THE DEFECT ──
+--
+-- `idx_transaction_budget_link` is (budget_id, link_key). The gate's grouping CTE
+-- needs sum(amount), and `amount` IS NOT IN THAT INDEX. So Postgres walked the
+-- index and visited the heap for every one of 2.5M rows, in index order rather
+-- than heap order. The table is 784 MB — about 100,000 pages — yet the scan
+-- touched **720,808 buffers, 7x the whole table**, because random access kept
+-- re-reading pages that had already been evicted. 101,410 of those came off disk.
+--
+-- ── THE FIX ──
+--
+-- INCLUDE (amount) puts the summed column in the index leaf, so the scan becomes
+-- index-only and the heap is barely touched. Measured on production data:
+--
+--     grouping CTE alone   35.3s -> 2.5s     buffers 720,808 -> 205,948
+--     whole function       40.0s -> 5.8s     buffers 848,334 -> 333,336
+--
+-- Answers are unchanged, as an index change must leave them: all 29 enrolled
+-- budgets clean, 1,329 txn_keys = 1,329 root_keys, 0 amount_drift, before and after.
+--
+-- ⚠ WHY idx_transaction_budget_link IS KEPT, NOT REPLACED. It looks redundant --
+-- same leading columns, same opclass -- but it is only 31 MB against this one's
+-- 258 MB, because btree deduplication compresses ~30,000 distinct link_key values
+-- across 2.5M rows. INCLUDE payload varies per row, so the covering index cannot
+-- dedup. The old index is small, serves 14,521 scans, and costs little to keep.
+-- Two indexes with different jobs: the small one for lookups, this one for the
+-- aggregate.
+--
+-- ⚠⚠ THIS GATE NEVER RAN ON THE READER PATH. It is pg_cron job 34
+-- ('12 5 * * 0' -- Sundays, 05:12 UTC) plus `npm run verify:txn-trees`. Nothing in
+-- src/ references it; the site reads a REST API, not this function. The 40s was
+-- never a page load. What it WAS costing is headroom: pg_cron and service_role
+-- both carry statement_timeout=120s, so the gate sat at 3x margin on a table that
+-- grows every week -- and a gate that times out does not report a failure, it
+-- reports nothing. That silent blindness is the reason to fix it. Margin is now 20x.
+--
+-- ⚠ STILL OPEN, MEASURED, NOT FIXED HERE: 2.48s of the remaining 5.8s is the
+-- `enrolled` CTE, which runs five regexes against 292,829 budget rows to find 29
+-- (47,383 heap fetches on an index-only scan). The clean remedy is a
+-- text_pattern_ops index on budgets.data_source plus LIKE-prefix predicates
+-- alongside the regexes; a partial index matching the enrolment list would be
+-- faster still but silently decays the next time a city is enrolled and the index
+-- is not updated. Left alone deliberately: 5.8s of 120s does not justify it yet.
+create index if not exists idx_transaction_budget_link_amount
+  on treasury.transactions (budget_id, link_key) include (amount);
