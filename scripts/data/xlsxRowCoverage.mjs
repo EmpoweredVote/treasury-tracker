@@ -55,11 +55,17 @@ export const XLSX_ROW_COVERAGE = [
   { source: 'Frisco Check Register FY2024', fiscalYear: 2024, rows: 16280 },
   { source: 'Frisco Check Register FY2025', fiscalYear: 2025, rows: 16358 },
 
-  // ⚠⚠ THE CURRENT FISCAL YEAR, AND IT GROWS. Expect this baseline to go
-  // stale; the gate will say so as a notice, not a failure. A shortfall here
-  // means TT is behind an append and should sync — but CHECK IT IS AN APPEND
-  // first. These files are keyed on content, so a wholesale restate that
-  // changed any column would re-key every row and DOUBLE the year.
+  // ⚠ CORRECTED 2026-11-08: this is NOT the current fiscal year. All three
+  // Texas cities run OCTOBER-SEPTEMBER, so FY2026 ended 2026-09-30, and
+  // Frisco's last payment is exactly that date — a closed, complete year. The
+  // live year is FY2027. The file is still named "FY26_To_Date" and still
+  // lives in DocumentCenter rather than the Archive Center, which is what
+  // made it look current; neither is a statement about the period it covers.
+  //
+  // ⚠⚠ It may still move, because a city can post a late payment against a
+  // closed year. If it does, CHECK IT IS AN APPEND before syncing. These files
+  // are keyed on content, so a wholesale restate that changed any column would
+  // re-key every row and DOUBLE the year.
   { source: 'Frisco Check Register FY2026', fiscalYear: 2026, rows: 17595 },
 
   // ── McKinney, TX ────────────────────────────────────────────────────────
@@ -98,4 +104,10 @@ export const XLSX_ROW_COVERAGE = [
   { source: 'Plano Check Register FY2023', fiscalYear: 2023, rows: 28953 },
   { source: 'Plano Check Register FY2024', fiscalYear: 2024, rows: 28863 },
   { source: 'Plano Check Register FY2025', fiscalYear: 2025, rows: 23816 },
+
+  // ⚠ Added 2026-11-08. A CLOSED, COMPLETE year — all twelve months, Oct 2025
+  // through Sep 2026, $515,381,643.03 across 24,223 published lines. TT had
+  // never asked for it: the gate above went green on 22 budgets precisely
+  // because it iterates what TT DECLARES. See the FY2026 migration.
+  { source: 'Plano Check Register FY2026', fiscalYear: 2026, rows: 23238 },
 ];

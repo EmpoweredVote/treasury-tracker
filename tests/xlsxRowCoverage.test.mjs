@@ -44,7 +44,7 @@ describe('XLSX_ROW_COVERAGE registry', () => {
     expect(names).toMatch(/Frisco/);
     expect(names).toMatch(/McKinney/);
     expect(names).toMatch(/Plano/);
-    expect(XLSX_ROW_COVERAGE.length).toBe(22);
+    expect(XLSX_ROW_COVERAGE.length).toBe(23);
   });
 });
 
