@@ -49,11 +49,23 @@ export const SOCRATA_ROW_COVERAGE = [
   // 2024-07-15. Expect this baseline to go stale often and the gate to say so
   // without failing. It fails only if TT stops matching what is published.
   //
-  // ⚠ The source declares fiscal_years 2021-2026 but TT publishes only FY2024
-  // and FY2025, so only those are loaded and only those are registered. The
-  // other four years are available from the publisher and NOT loaded — that is
-  // a coverage decision, not a defect, and it is recorded here so the next
-  // person does not rediscover it as one.
+  // Counts taken from the publisher's own
+  // `$select=fiscal_year,count(1)&$group=fiscal_year` on 2026-11-08.
+  { source: 'LA City Checkbook', fiscalYear: 2021, rows: 584697 },
+  { source: 'LA City Checkbook', fiscalYear: 2022, rows: 599460 },
+  { source: 'LA City Checkbook', fiscalYear: 2023, rows: 682006 },
   { source: 'LA City Checkbook', fiscalYear: 2024, rows: 713133 },
   { source: 'LA City Checkbook', fiscalYear: 2025, rows: 749295 },
+  { source: 'LA City Checkbook', fiscalYear: 2026, rows: 747363 },
+
+  // ⚠⚠ FOUR YEARS THE PUBLISHER HAS AND TT DOES NOT. Deliberately absent, and
+  // listed here so the next person does not rediscover the gap as a defect:
+  //
+  //     FY2018   751,841    FY2019   802,411    FY2020   775,335
+  //     FY2027   209,812  — the CURRENT year, partial and growing
+  //
+  // ⚠ Do NOT register a year here that is not loaded. `rows` is the baseline
+  // the gate compares STORED against; a line for an unloaded year is a
+  // guaranteed red that says nothing. The gap belongs in a comment, which is
+  // why it is one.
 ];
