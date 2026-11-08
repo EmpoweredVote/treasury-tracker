@@ -32,18 +32,21 @@ import { isEnrolled } from './lib/transactionTreeSources.mjs';
 // ⚠ Parsing and the dedup hash live in lib so a measurement can import THE SAME
 // CODE. See scripts/lib/xlsxRows.mjs and scripts/measureXlsxDedupLoss.mjs.
 import {
-  parseCSV, parseXLSX, parseAmount, downloadXLSX, rowKeys, looksLikeXlsx, looksLikeHtml,
+  parseCSV, parseXLSX, parseAmount, downloadXLSX, looksLikeXlsx, looksLikeHtml,
 } from './lib/xlsxRows.mjs';
+// ⚠⚠⚠ THE WHOLE CHAIN between a published file and a stored row — the grand
+// total that is not a payment (#336), Frisco's repeated allocation rows, the
+// doubled-export guard, and the dedup key. It lives in lib so that
+// scripts/verifyXlsxRowCoverage.mjs measures THIS loader and not a copy of it:
+// an XLSX publisher serves no count endpoint, so the gate has to download the
+// file and run the loader's own chain over it.
+import { applyRowPolicies, MAX_PARSE_ERROR_SHARE } from './lib/xlsxPolicies.mjs';
 // ⚠⚠ The guard that stands between dedup:'occurrence' and money never spent.
-import { judgeDoubledExportDays, describeDoubledDays } from './lib/doubledExportDays.mjs';
+import { describeDoubledDays } from './lib/doubledExportDays.mjs';
 // ⚠⚠⚠ A publisher's own grand total is not a payment. See #335 follow-up.
-import {
-  findPublisherTotalRow, withoutTotalRow, assertTieToTotal, describeTotalRow,
-} from './lib/publisherTotalRow.mjs';
+import { describeTotalRow } from './lib/publisherTotalRow.mjs';
 // ⚠⚠⚠ Frisco FY2018/19 wrote the CHECK TOTAL on every GL line. Opt-in only.
-import {
-  collapseAllocationRows, describeAllocation, MIN_SHARE_TO_APPLY,
-} from './lib/allocationRows.mjs';
+import { describeAllocation, MIN_SHARE_TO_APPLY } from './lib/allocationRows.mjs';
 import { rebuildBudget } from './rebuildTransactionTree.mjs';
 // ── Config ──────────────────────────────────────────────────────────────────
 /**
@@ -238,12 +241,14 @@ async function syncSource(ds, opts = {}) {
   // ⭐ Once the row is out it becomes an ORACLE: the remaining rows must sum to
   // it. That turns the thing that broke the figure into the thing that proves
   // it, which is the same bargain McKinney's Total row gave us in #334.
-  const totalRow = findPublisherTotalRow(rows, {
-    amountColumn: cm.amount_column,
-    dateColumn: cm.date_column,
-    vendorColumn: cm.vendor_column,
-    descriptionColumn: cm.description_column,
-  });
+  // ⚠ ONE CALL RUNS EVERY STAGE, and decides nothing: each stage returns its
+  // verdict and `blocked` names the first that would refuse the file. The
+  // aborts below are this loader's. The coverage gate reads the same verdicts
+  // and reports them instead of exiting — which is the only reason a gate can
+  // tell "we read the file and it is unloadable" from "we could not look".
+  const policy = applyRowPolicies(rows, cm);
+  const { totalRow, tie, parseErrors, allocation, doubledDays } = policy.stages;
+
   if (totalRow.ambiguous) {
     console.error('  Aborting: cannot tell which row is the publisher\'s grand total in ' + ds.name + '.');
     for (const line of describeTotalRow(totalRow)) console.error('     ' + line);
@@ -252,28 +257,22 @@ async function syncSource(ds, opts = {}) {
   }
   if (totalRow.found) {
     for (const line of describeTotalRow(totalRow)) console.log('  publisher grand total — ' + line);
-    rows = withoutTotalRow(rows, totalRow);
-    const tie = assertTieToTotal(rows, totalRow, cm.amount_column);
-    if (!tie.ok) {
+    if (policy.blocked?.stage === 'total-row-does-not-tie') {
       console.error('  Aborting: the remaining rows do not sum to the publisher\'s own total.');
       console.error('     expected $' + tie.expected.toLocaleString(undefined, { minimumFractionDigits: 2 }) +
         '  got $' + tie.actual.toLocaleString(undefined, { minimumFractionDigits: 2 }) +
         '  difference $' + tie.difference.toLocaleString(undefined, { minimumFractionDigits: 2 }));
       process.exit(1);
     }
-    console.log('  ✅ ' + rows.length.toLocaleString() + ' data rows tie to it exactly — excluded from the load');
+    console.log('  ✅ ' + policy.stages.afterTotalRow.toLocaleString() + ' data rows tie to it exactly — excluded from the load');
   }
 
   // ── Parse error rate check (fail if > 5% of rows have bad amounts) ──────────
-  let parseErrors = 0;
-  for (const r of rows) {
-    const a = parseAmount(r[cm.amount_column]);
-    if (isNaN(a)) parseErrors++;
-  }
-  if (rows.length > 0 && parseErrors / rows.length > 0.05) {
+  if (policy.blocked?.stage === 'parse-error-rate') {
     console.error('  Aborting: parse error rate ' +
-      (parseErrors / rows.length * 100).toFixed(1) + '% exceeds 5% threshold (' +
-      parseErrors + '/' + rows.length + ' rows)');
+      (parseErrors / policy.blocked.of * 100).toFixed(1) + '% exceeds ' +
+      (MAX_PARSE_ERROR_SHARE * 100).toFixed(0) + '% threshold (' +
+      parseErrors + '/' + policy.blocked.of + ' rows)');
     process.exit(1);
   }
 
@@ -289,18 +288,12 @@ async function syncSource(ds, opts = {}) {
   // funding it, and collapsing there would delete $63,167,944.48 that really
   // moved. Broken years run 22-23% of rows; healthy ones 0.3%.
   if (cm.allocation_rows === 'repeat-payment-total') {
-    const collapsed = collapseAllocationRows(rows, {
-      dateColumn: cm.date_column,
-      vendorColumn: cm.vendor_column,
-      amountColumn: cm.amount_column,
-      descriptionColumn: cm.description_column,
-    });
-    const v = collapsed.verdict;
-    if (!v.supported) {
+    const v = allocation;
+    if (policy.blocked?.stage === 'allocation-unsupported') {
       console.error('  Aborting: cannot judge repeated allocations in ' + ds.name + ' — ' + v.reason);
       process.exit(1);
     }
-    if (v.share < MIN_SHARE_TO_APPLY) {
+    if (policy.blocked?.stage === 'allocation-below-threshold') {
       console.error('\n  ⛔ Aborting: ' + ds.name + ' does NOT have the repeated-allocation shape.');
       for (const line of describeAllocation(v)) console.error('     ' + line);
       console.error('\n  Only ' + (v.share * 100).toFixed(1) + '% of rows are in identical-amount groups; the' +
@@ -312,8 +305,7 @@ async function syncSource(ds, opts = {}) {
       process.exit(1);
     }
     for (const line of describeAllocation(v)) console.log('  repeated allocations — ' + line);
-    rows = collapsed.rows;
-    console.log('  ✅ collapsed to ' + rows.length.toLocaleString() + ' payment row(s)');
+    console.log('  ✅ collapsed to ' + policy.stages.afterAllocation.toLocaleString() + ' payment row(s)');
   }
 
   // ── ⚠⚠⚠ Doubled-export guard, for occurrence-keyed sources only ────────────
@@ -332,16 +324,13 @@ async function syncSource(ds, opts = {}) {
   // ⚠ Runs BEFORE the dry-run exit on purpose: a dry run is exactly when
   // someone is deciding whether a file is safe to load.
   if (cm.dedup === 'occurrence') {
-    const verdict = judgeDoubledExportDays(rows, {
-      dateColumn: cm.date_column,
-      amountColumn: cm.amount_column,
-    });
-    if (!verdict.supported) {
+    const verdict = doubledDays;
+    if (policy.blocked?.stage === 'doubled-days-unsupported') {
       console.error('  Aborting: cannot check ' + ds.name + ' for doubled export days — ' + verdict.reason);
       console.error('  A source keyed by occurrence must be checkable. Fix column_mapping, or move it back to the default content dedup.');
       process.exit(1);
     }
-    if (verdict.certified.length) {
+    if (policy.blocked?.stage === 'doubled-days-certified') {
       console.error('\n  ⛔ Aborting: ' + ds.name + ' contains ' + verdict.certified.length +
         ' day(s) the publisher appears to have EXPORTED TWICE.');
       for (const line of describeDoubledDays(verdict)) console.error('     ' + line);
@@ -357,6 +346,11 @@ async function syncSource(ds, opts = {}) {
     }
     console.log('  doubled-export check: clean across ' + verdict.days.length.toLocaleString() + ' publication date(s)');
   }
+
+  // ⚠ Only now. Every abort above reads the verdicts over the rows as the
+  // chain saw them; reassigning earlier would have each stage judging the
+  // output of the last, which is what the chain already did internally.
+  rows = policy.rows;
 
   // ── Dry-run: preview and exit ───────────────────────────────────────────────
   if (opts.dryRun) {
@@ -377,8 +371,9 @@ async function syncSource(ds, opts = {}) {
   let totalSkipped = 0;
 
   // ⚠⚠ Keys for the WHOLE file, before chunking. See rowKeys() for why the
-  // policy is per-source and why the default must stay 'content'.
-  const allKeys = rowKeys(rows, cm.dedup);
+  // policy is per-source and why the default must stay 'content'. Taken from
+  // the chain so the gate's `expected` is counted over these exact keys.
+  const allKeys = policy.keys;
   if (cm.dedup === 'occurrence') {
     const extra = allKeys.length - new Set(allKeys.slice(0, allKeys.length)).size;
     const repeats = allKeys.filter(k => k.includes('#')).length;
