@@ -62,6 +62,9 @@ export const SOCRATA_ROW_COVERAGE = [
   //
   // Counts taken from the publisher's own
   // `$select=fiscal_year,count(1)&$group=fiscal_year` on 2026-11-08.
+  { source: 'LA City Checkbook', fiscalYear: 2018, rows: 751841 },
+  { source: 'LA City Checkbook', fiscalYear: 2019, rows: 802411 },
+  { source: 'LA City Checkbook', fiscalYear: 2020, rows: 775335 },
   { source: 'LA City Checkbook', fiscalYear: 2021, rows: 584697 },
   { source: 'LA City Checkbook', fiscalYear: 2022, rows: 599460 },
   { source: 'LA City Checkbook', fiscalYear: 2023, rows: 682006 },
@@ -69,11 +72,20 @@ export const SOCRATA_ROW_COVERAGE = [
   { source: 'LA City Checkbook', fiscalYear: 2025, rows: 749295 },
   { source: 'LA City Checkbook', fiscalYear: 2026, rows: 747363 },
 
-  // ⚠⚠ FOUR YEARS THE PUBLISHER HAS AND TT DOES NOT. Deliberately absent, and
-  // listed here so the next person does not rediscover the gap as a defect:
+  // ⚠⚠ ONE YEAR THE PUBLISHER HAS AND TT DOES NOT, and it is a DECISION:
   //
-  //     FY2018   751,841    FY2019   802,411    FY2020   775,335
-  //     FY2027   209,812  — the CURRENT year, partial and growing
+  //     FY2027   ~209,812 rows — the CURRENT fiscal year, partial and growing
+  //
+  // LA's fiscal year starts in July, so FY2026 closed 2026-06-30 and FY2027
+  // is in progress. TT now holds every CLOSED year the publisher serves
+  // (FY2018-FY2026). FY2027 stays out because a live year grows weekly and
+  // would re-trigger `verify:out-of-period` every month, the way West
+  // Hollywood FY2025-26 does — that is a choice somebody should make
+  // deliberately, not inherit.
+  //
+  // ⚠ The publisher also carries 6 rows outside any year it serves: FY2006
+  // (3), FY2007 (2), FY2011 (1), $121,312.98 all told. No declared year
+  // touches them.
   //
   // ⚠ Do NOT register a year here that is not loaded. `rows` is the baseline
   // the gate compares STORED against; a line for an unloaded year is a
