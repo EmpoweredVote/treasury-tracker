@@ -87,6 +87,19 @@ export const XLSX_ROW_COVERAGE = [
   { source: 'McKinney Check Register FY2024', fiscalYear: 2024, rows: 47324 },
   { source: 'McKinney Check Register FY2025', fiscalYear: 2025, rows: 50096 },
 
+  // ⚠⚠⚠ AN ELEVEN-MONTH YEAR, LOADED AS PUBLISHED AND FLAGGED ON THE PAGE.
+  // The file covers 2025-10-03 to 2026-08-28 and holds no September 2026
+  // payment, so this baseline is eleven months of a twelve-month year —
+  // $597,313,687.70 over 46,797 lines, every one of them held.
+  //
+  // ⭐ THIS BASELINE MOVING IS THE SIGNAL TO RETIRE THE READER-FACING FLAG.
+  // If McKinney republishes with September in it, the gate reports a moved
+  // baseline (a notice, not a failure); after the reload the banner in
+  // src/data/figureFlags.ts saying "this covers eleven months" becomes FALSE
+  // and must be REMOVED, not reworded. See the `retireWhen` condition in
+  // scripts/data/mckinneyRegisterAnomalies.mjs.
+  { source: 'McKinney Check Register FY2026', fiscalYear: 2026, rows: 46797 },
+
   // ── Plano, TX — a live report generator, not a file ─────────────────────
   //
   // ⚠⚠ Plano's register serves CSV from a query string with no suffix, and its
