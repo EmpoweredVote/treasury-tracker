@@ -30,6 +30,11 @@
  *   node scripts/registerCreatedRows.mjs --milestone la-city-sco-fy2025 \
  *     --ids c9a78d2f-...,eacbbae4-...
  *
+ *   # --pending selects EXACTLY the rows the database logged as inserted and
+ *   # nobody registered (treasury.unregistered_budget_rows). Preferred for any
+ *   # load after 2026-11-09: no substring to guess, no ids to copy.
+ *   node scripts/registerCreatedRows.mjs --milestone plano-fy2017-19 --pending
+ *
  *   # --fy NARROWS --match to one or more fiscal years. This is how a FLEET-scale
  *   # series extension is registered: --ids cannot carry 1,080 ids (~39 KB of
  *   # argv) and the loader cannot emit them — treasury_sync_city_budget returns
@@ -48,6 +53,27 @@ import { getSupabase, fetchScopeRows } from './lib/scopeDb.mjs';
 import { rowKey, selectCreatedRows } from './lib/createdRowSelection.mjs';
 
 const BASELINE = 'scripts/data/scopeBaseline.json';
+
+/**
+ * Rows the database logged as inserted that are in no exclusion list
+ * (treasury.unregistered_budget_rows, migration 20261109200000). Paged by id,
+ * like every other read here.
+ */
+async function fetchLoggedUnregistered(supabase) {
+  const out = [];
+  for (let from = 0; ; from += 1000) {
+    const { data, error } = await supabase
+      .schema('treasury').from('unregistered_budget_rows')
+      .select('id, name, state, fiscal_year, data_source')
+      .order('id')
+      .range(from, from + 999);
+    if (error) throw new Error(`fetch unregistered_budget_rows: ${error.message}`);
+    if (!data?.length) break;
+    out.push(...data);
+    if (data.length < 1000) break;
+  }
+  return out;
+}
 
 const camel = (s) => s.replace(/[^a-zA-Z0-9]+(.)/g, (_, c) => c.toUpperCase()).replace(/^./, (c) => c.toLowerCase());
 
@@ -99,6 +125,14 @@ async function main() {
   // ⚠ A year filter with nothing to filter would select every unregistered row
   // of that year, whoever loaded it — the "you filed their rows under your
   // name" failure this tool warns about, with a narrower-looking flag.
+  // ⭐ The insert log (migration 20261109200000) names new rows exactly, so the
+  // usual path needs no --match or --ids at all.
+  const pending = process.argv.includes('--pending');
+  if (pending && (matchArgs.length || idArgs.length || fyArgs.length)) {
+    console.error('\n✗ --pending selects every logged unregistered row on its own. Do not combine');
+    console.error('  it with --match, --ids or --fy: a mixed selection is harder to check.');
+    process.exit(1);
+  }
   if (fyArgs.length && !matchArgs.length) {
     console.error('\n✗ --fy narrows --match and cannot select on its own. Add the --match that');
     console.error('  identifies YOUR rows, e.g. --match "CA State Controller" --fy 2025');
@@ -126,6 +160,41 @@ async function main() {
     process.exit(1);
   }
 
+  // ⭐ The database's own record of what was inserted. Read it first: when it
+  // explains the whole deficit there is nothing to guess.
+  const logged = await fetchLoggedUnregistered(supabase);
+  const nonExcludedIds = new Set(nonExcluded.map((r) => r.id));
+  const loggedHere = logged.filter((r) => nonExcludedIds.has(r.id));
+  if (logged.length) {
+    console.log(`${logged.length} row(s) logged as inserted and unregistered (treasury.unregistered_budget_rows):\n`);
+    const byGroup = new Map();
+    for (const r of logged) {
+      const k = `${r.name ?? '(unknown)'}, ${r.state ?? ''} FY${r.fiscal_year ?? '?'} :: ${(r.data_source ?? '(null)').split('—')[0].trim()}`;
+      byGroup.set(k, (byGroup.get(k) ?? 0) + 1);
+    }
+    for (const [k, n] of [...byGroup.entries()].sort()) console.log(`  ${String(n).padStart(5)}  ${k}`);
+    console.log('');
+  }
+  if (logged.length !== loggedHere.length) {
+    // The view reads the in-database mirror; this checkout reads scopeBaseline.json.
+    console.log(`⚠ ${logged.length - loggedHere.length} logged row(s) are already registered in this checkout but not in`);
+    console.log('  the database mirror. Run node scripts/syncFrozenInvariantState.mjs after merging.\n');
+  }
+
+  if (pending) {
+    if (!milestone) {
+      console.error('✗ --pending needs --milestone <name> to know what file to write.');
+      process.exit(1);
+    }
+    idArgs.push(...loggedHere.map((r) => r.id));
+    if (!idArgs.length) {
+      console.error(`✗ The insert log names no unregistered row, but the deficit is ${deficit}.`);
+      console.error('  These rows were inserted before the log existed (2026-11-09) or bypassed it.');
+      console.error('  Register them with --match / --ids instead.');
+      process.exit(1);
+    }
+  }
+
   // ⚠ Show WHAT is about to be registered before registering it. Registering a
   // count without looking is how the wrong rows get filed under the wrong
   // milestone and the accounting stops meaning anything.
@@ -139,21 +208,29 @@ async function main() {
   // smallest groups — a fresh load is usually a small, distinct set.
   const ranked = [...groups.entries()].sort((a, b) => a[1] - b[1]).slice(0, 15);
   for (const [k, n] of ranked) console.log(`  ${String(n).padStart(5)}  ${k}`);
-  console.log('\n⚠ This tool cannot identify WHICH rows are new — the frozen id list was never');
-  console.log('  committed (it would be a ~3MB artifact). Registering requires knowing what you');
-  console.log('  just loaded. If the deficit does not match your load, STOP and investigate.\n');
+  if (loggedHere.length === deficit) {
+    console.log('\n✅ The insert log explains the whole deficit. If those rows are your load:');
+    console.log('   npm run register:rows -- --milestone <name> --pending\n');
+  } else {
+    console.log(`\n⚠ The insert log names ${loggedHere.length} of the ${deficit} row(s). The rest were inserted`);
+    console.log('  before the log existed (2026-11-09) or bypassed it. Registering them requires');
+    console.log('  knowing what you just loaded. If the deficit does not match your load, STOP.\n');
+  }
 
   if (!milestone) {
     console.log('Pass --milestone <name> to register. Nothing written.');
     return;
   }
 
-  console.error('✗ Refusing to guess. Registering by deficit alone would file arbitrary rows.');
-  console.error('  Add a --match filter (entity or data_source substring) identifying YOUR rows,');
-  console.error('  or --ids with their exact ids when the load extended an existing series,');
-  console.error('  e.g. --milestone nc-charlotte --match "Charlotte, NC"');
-  console.error('  For a series extended across a whole fleet, narrow a --match by year:');
-  console.error('    --milestone ca-sco-fy2025 --match "CA State Controller" --fy 2025');
+  if (!matchArgs.length && !idArgs.length) {
+    console.error('✗ Refusing to guess. Registering by deficit alone would file arbitrary rows.');
+    console.error('  Use --pending when the insert log names your rows (see above), or');
+    console.error('  add a --match filter (entity or data_source substring) identifying YOUR rows,');
+    console.error('  or --ids with their exact ids when the load extended an existing series,');
+    console.error('  e.g. --milestone nc-charlotte --match "Charlotte, NC"');
+    console.error('  For a series extended across a whole fleet, narrow a --match by year:');
+    console.error('    --milestone ca-sco-fy2025 --match "CA State Controller" --fy 2025');
+  }
   // ⚠ REPEATABLE. A milestone is not always one entity: the Knight campaign
   // loads Charlotte AND Mecklenburg County together, and its Florida session
   // loads four cities at once. With a single --match such a milestone cannot be
