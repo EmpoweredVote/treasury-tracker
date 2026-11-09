@@ -33,6 +33,28 @@
  * `mismatched` catches the quiet case between those two: the budget still has
  * out-of-period rows, but not the ones somebody looked at. One row becoming
  * two is a new defect wearing an old defect's name.
+ *
+ * ── ⭐⭐ AND A FIFTH OUTCOME: THE PUBLISHER MOVED, AND TT KEPT UP ───────────
+ *
+ * The four outcomes above were written for STATIC published files, and they
+ * are wrong for a live one. West Hollywood's FY2025-26 register is the city's
+ * CURRENT register: its out-of-period count went 1,164 → 6,393 in a day, and
+ * the registry predicts ~1,500 more a month. Under the rules above this gate
+ * would go red every month on a budget where red means nothing new, which is
+ * how a gate stops being read.
+ *
+ *   publisherConfirmed   the count MOVED, and the publisher's own data holds
+ *                        exactly the number TT now holds              NOTICE
+ *
+ * ⚠⚠ THIS IS NOT A TOLERANCE. The comparison is still exact — it is against
+ * the live publisher instead of a number somebody wrote down once, so nothing
+ * can hide inside an old defect's allowance. A count that moves and does NOT
+ * match the publisher is still `mismatched`, and still fails.
+ *
+ * ⚠⚠⚠ A MISSING PUBLISHER COUNT IS NOT AGREEMENT. `publisherCounts` maps a
+ * key to a number, or to null when the publisher could not be asked. null
+ * falls through to `mismatched` — "could not look" must never read as "looked
+ * and agreed", the same rule the row-coverage gate holds.
  */
 
 /** Build the registry key for a hit or an entry. Case and spacing are noise. */
@@ -48,8 +70,11 @@ export function periodKey({ municipality, state, fiscalYear, fiscal_year }) {
 /**
  * @param {Array<object>} hits        rows from treasury.out_of_period_transaction_status()
  * @param {Array<object>} exceptions  entries from scripts/data/outOfPeriodExceptions.mjs
+ * @param {Map<string, number|null>} [publisherCounts] keyed by periodKey — the
+ *   publisher's OWN out-of-period count, or null where it could not be asked.
+ *   Omitted entirely, every moved count fails as before.
  */
-export function classifyOutOfPeriod(hits, exceptions) {
+export function classifyOutOfPeriod(hits, exceptions, publisherCounts = new Map()) {
   const byKey = new Map();
   const duplicates = [];
   for (const e of exceptions) {
@@ -64,6 +89,7 @@ export function classifyOutOfPeriod(hits, exceptions) {
   const declared = [];
   const undeclared = [];
   const mismatched = [];
+  const publisherConfirmed = [];
   const seen = new Set();
 
   for (const hit of hits) {
@@ -76,16 +102,34 @@ export function classifyOutOfPeriod(hits, exceptions) {
     seen.add(k);
     const expected = Number(entry.outRows);
     const actual = Number(hit.out_rows ?? hit.outRows);
-    if (expected !== actual) mismatched.push({ hit, entry, expected, actual });
-    else declared.push({ hit, entry });
+    if (expected === actual) {
+      declared.push({ hit, entry });
+      continue;
+    }
+
+    // ⚠ The count moved. Whether that is news or a defect is the publisher's
+    // to settle, and ONLY an exact match settles it: `null` (could not ask)
+    // and any disagreement both fall through to `mismatched`.
+    const published = publisherCounts.get(k);
+    if (published !== null && published !== undefined && Number(published) === actual) {
+      publisherConfirmed.push({ hit, entry, expected, actual, published: Number(published) });
+    } else {
+      mismatched.push({ hit, entry, expected, actual, published: published ?? null });
+    }
   }
 
   const stale = exceptions.filter((e) => !seen.has(periodKey(e)));
 
-  return { declared, undeclared, mismatched, stale, duplicates };
+  return { declared, undeclared, mismatched, publisherConfirmed, stale, duplicates };
 }
 
-/** True when nothing needs a human. */
+/**
+ * True when nothing needs a human.
+ *
+ * ⚠ `publisherConfirmed` is deliberately absent — see the header. TT matching
+ * a publisher that restated is NEWS, and failing on it is what would make this
+ * gate cry wolf every month on West Hollywood's live register.
+ */
 export function isClean({ undeclared, mismatched, stale, duplicates }) {
   return undeclared.length === 0
     && mismatched.length === 0

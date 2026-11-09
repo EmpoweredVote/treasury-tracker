@@ -29,7 +29,8 @@
  * all three directions matter.
  */
 import { createClient } from '@supabase/supabase-js';
-import { classifyOutOfPeriod, isClean } from './lib/outOfPeriodRows.mjs';
+import { classifyOutOfPeriod, isClean, periodKey } from './lib/outOfPeriodRows.mjs';
+import { publisherOutOfPeriodCount } from './lib/outOfPeriodPublisher.mjs';
 import { OUT_OF_PERIOD_EXCEPTIONS } from './data/outOfPeriodExceptions.mjs';
 
 // ⚠ Lazy, not module scope. A client built at import time throws without a
@@ -73,7 +74,37 @@ async function main() {
   }
 
   const hits = data || [];
-  const result = classifyOutOfPeriod(hits, OUT_OF_PERIOD_EXCEPTIONS);
+
+  // ⭐⭐ ASK THE PUBLISHERS, but only about budgets whose count has actually
+  // MOVED. A count that still matches its registry entry needs no network
+  // call, so a steady run makes none at all — and the budgets that do move are
+  // exactly the ones worth a question.
+  const moved = hits.filter((h) => {
+    const e = OUT_OF_PERIOD_EXCEPTIONS.find((x) => periodKey(x) === periodKey(h));
+    return e && Number(e.outRows) !== Number(h.out_rows);
+  });
+  const publisherCounts = new Map();
+  if (moved.length) {
+    console.log(`asking ${moved.length} publisher(s) about a count that moved…`);
+    const { data: sources, error: sErr } = await db().schema('treasury')
+      .from('data_sources')
+      .select('name, api_type, base_url, dataset_id, column_mapping')
+      .in('name', [...new Set(moved.map((h) => h.data_source))]);
+    if (sErr) {
+      // ⚠ NOT fatal and NOT agreement: leaving publisherCounts empty makes
+      // every moved count fail, which is the safe direction.
+      console.error(`   could not load source config: ${sErr.message}`);
+    }
+    const byName = new Map((sources || []).map((s) => [s.name, s]));
+    for (const h of moved) {
+      publisherCounts.set(
+        periodKey(h),
+        await publisherOutOfPeriodCount(byName.get(h.data_source), h),
+      );
+    }
+  }
+
+  const result = classifyOutOfPeriod(hits, OUT_OF_PERIOD_EXCEPTIONS, publisherCounts);
   const rows = hits.reduce((n, h) => n + Number(h.out_rows), 0);
 
   console.log(`checked ${evaluated} transaction budget(s); ${hits.length} hold `
@@ -107,11 +138,30 @@ async function main() {
     console.error('   evidence. If TT binned them into the wrong year, that is TT’s bug to fix.');
   }
 
+  // ⭐ A NOTICE, NOT A FAILURE. The publisher restated and TT kept up; only
+  // the recorded baseline is stale. Failing here would turn West Hollywood's
+  // live register into a monthly red gate, and a gate that cries wolf is not a
+  // gate. See scripts/lib/outOfPeriodPublisher.mjs for why this is not a
+  // tolerance.
+  if (result.publisherConfirmed.length) {
+    console.log(`\nℹ️  ${result.publisherConfirmed.length} declared budget(s) moved and the PUBLISHER AGREES `
+      + '— refresh scripts/data/outOfPeriodExceptions.mjs when convenient:');
+    for (const p of result.publisherConfirmed) {
+      console.log(`   ${where(p.hit)} — registry says ${p.expected}, TT and the publisher both hold ${p.actual}`);
+    }
+  }
+
   if (result.mismatched.length) {
-    console.error(`\n⛔ ${result.mismatched.length} declared budget(s) whose row count has MOVED:`);
+    console.error(`\n⛔ ${result.mismatched.length} declared budget(s) whose row count has MOVED `
+      + 'without the publisher confirming it:');
     for (const m of result.mismatched) {
       console.error(`   ${where(m.hit)} — registry says ${m.expected}, found ${m.actual} `
         + `(${m.entry.key})`);
+      console.error(m.published === null
+        // ⚠⚠ "Could not look" is NOT "looked and agreed", and this line has to
+        // say which one happened or an operator will assume the wrong one.
+        ? '      the publisher could NOT be asked, so this is unconfirmed — not agreed'
+        : `      the publisher holds ${m.published}, which is neither figure`);
     }
     console.error('   A budget already on the list is not permission for a NEW defect in it.');
   }

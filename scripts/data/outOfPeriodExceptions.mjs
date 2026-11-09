@@ -143,17 +143,58 @@ export const OUT_OF_PERIOD_EXCEPTIONS = [
   // ⚠ Counts measured 2026-11-05 AFTER the reload. `before`/`after` say which
   // side of the fiscal period the rows fall on, because a file reaching
   // forward and a file reaching back are different publisher behaviours.
+  // ⚠⚠ FY2017 AND FY2018 ADDED 2026-11-08, and they are not a new defect —
+  // they are the same publisher behaviour in two files TT did not know existed
+  // until #356 found them by asking data.weho.org what it has EVER served.
+  // They were loaded AFTER this registry was last measured, which is the only
+  // reason the gate went red.
+  //
+  // ⭐⭐ CONFIRMED AGAINST THE PUBLISHER, NOT TT'S OWN COPY. data.weho.org was
+  // asked for its own count of rows outside each file's fiscal period, and it
+  // returned TT's numbers exactly:
+  //
+  //   jaed-p39k (FY2016-17)   before 2016-07-01: 1,341   on/after 2017-07-01: 288
+  //   cz69-a684 (FY2017-18)   before 2017-07-01:   192   on/after 2018-07-01: 278
+  //
+  // A tree built from TT's transactions always ties to TT's transactions, so
+  // the only reading that settles anything is the publisher's.
+  // ── ⭐⭐ `readerFacing` — WHICH OF THESE A READER IS ACTUALLY TOLD ──────────
+  //
+  // All ten years hold out-of-period rows; only five of them distort the
+  // headline enough to be worth a reader's attention. The share of each year's
+  // published total that was paid OUTSIDE the year, measured 2026-11-08:
+  //
+  //     FY2024  27.6%   FY2026  25.0%   FY2019  18.6%   ← flagged
+  //     FY2017   6.6%   FY2021   4.6%   FY2022   4.0%   ← register only
+  //     FY2023   2.4%   FY2018   0.6%   FY2020   0.1%
+  //     FY2025   0.0%
+  //
+  // ⚠ FY2020 and FY2025 are flagged DESPITE being clean themselves, because
+  // they are the RECEIVING side of a seam: $31.05M paid during FY2020 sits in
+  // FY2019's total, and $68.52M paid during FY2025 sits in FY2024's. A reader
+  // landing on FY2025 sees $132.28M against FY2024's $249.36M and would read
+  // spending as halving. Flagging only the odd-looking side of a seam leaves
+  // the other silently misleading — the rule tests/figureFlags.test.ts already
+  // enforces for Fulton FY2017/FY2018.
+  //
+  // ⚠⚠ A 2.4% skew is not worth a banner. Spending a reader's attention on
+  // FY2023 would make the FY2024 banner matter less, which is how flagging
+  // everything becomes flagging nothing.
   ...[
-    { fiscalYear: 2019, outRows: 4222, outAmount: '31,081,374.14', before: 48, after: 4174, span: '2015-07-02 … 2019-09-13', source: 'FY2018-19' },
-    { fiscalYear: 2020, outRows: 91, outAmount: '110,773.46', before: 91, after: 0, span: '2015-07-02 … 2019-06-28', source: 'FY2019-20' },
+    { fiscalYear: 2017, outRows: 1629, outAmount: '7,520,308.03', before: 1341, after: 288, span: '2014-05-08 … 2017-07-07', source: 'FY2016-17' },
+    { fiscalYear: 2018, outRows: 470, outAmount: '735,649.20', before: 192, after: 278, span: '2015-01-02 … 2018-07-06', source: 'FY2017-18' },
+    { fiscalYear: 2019, outRows: 4222, outAmount: '31,081,374.14', before: 48, after: 4174, span: '2015-07-02 … 2019-09-13', source: 'FY2018-19', readerFacing: true },
+    { fiscalYear: 2020, outRows: 91, outAmount: '110,773.46', before: 91, after: 0, span: '2015-07-02 … 2019-06-28', source: 'FY2019-20', readerFacing: true },
     { fiscalYear: 2021, outRows: 512, outAmount: '7,385,478.24', before: 88, after: 424, span: '2016-07-21 … 2021-07-09', source: 'FY2020-21' },
     { fiscalYear: 2022, outRows: 499, outAmount: '6,210,359.08', before: 57, after: 442, span: '2015-07-23 … 2022-07-08', source: 'FY2021-22' },
     { fiscalYear: 2023, outRows: 367, outAmount: '3,788,357.34', before: 23, after: 344, span: '2021-04-16 … 2023-07-07', source: 'FY2022-23' },
-    { fiscalYear: 2024, outRows: 5791, outAmount: '68,811,162.33', before: 84, after: 5707, span: '2016-12-09 … 2024-10-25', source: 'FY2022-24' },
-    { fiscalYear: 2025, outRows: 11, outAmount: '12,195.00', before: 11, after: 0, span: '2021-08-13 … 2023-12-29', source: 'FY2024-25' },
+    { fiscalYear: 2024, outRows: 5791, outAmount: '68,811,162.33', before: 84, after: 5707, span: '2016-12-09 … 2024-10-25', source: 'FY2022-24', readerFacing: true },
+    { fiscalYear: 2025, outRows: 11, outAmount: '12,195.00', before: 11, after: 0, span: '2021-08-13 … 2023-12-29', source: 'FY2024-25', readerFacing: true },
     // ⚠⚠⚠ THE ONLY LIVE ONE, AND IT GROWS EVERY WEEK. See the FY2026 note above.
-    { fiscalYear: 2026, outRows: 6393, outAmount: '68,952,678.80', before: 1170, after: 5223, span: '2024-03-14 … 2026-10-09', source: 'FY2025-26' },
+    { fiscalYear: 2026, outRows: 6393, outAmount: '68,952,678.80', before: 1170, after: 5223, span: '2024-03-14 … 2026-10-09', source: 'FY2025-26', readerFacing: true },
   ].map((w) => ({
+    id: `west-hollywood-ca-fy${w.fiscalYear}-fiscal-straddle`,
+    readerFacing: w.readerFacing === true,
     key: `west-hollywood-ca-fy${w.fiscalYear}-out-of-period-rows`,
     municipality: 'West Hollywood',
     state: 'CA',
@@ -182,9 +223,110 @@ export const OUT_OF_PERIOD_EXCEPTIONS = [
       + 'never drew.',
     readerImpact:
       `⚠ REAL. FY${w.fiscalYear}'s headline includes $${w.outAmount} paid outside the year it names.`,
-    corroboration:
-      '⚠ PARTIAL. One analyst, 2026-11-05, against the publisher\'s own Socrata datasets. '
-      + '⛔ Short of the src/data/figureFlags.ts bar, which requires independent AGENTS. '
-      + 'Not reader-facing yet.',
+    /**
+     * ⭐⭐ CONFIRMED BY THE PUBLISHER, PER YEAR, 2026-11-08. data.weho.org was
+     * asked for its OWN count and sum of rows outside each file's fiscal
+     * period, and returned TT's figures exactly — FY2019 4,222/$31,081,374.14,
+     * FY2020 91/$110,773.46, FY2024 5,791/$68,811,162.33, FY2025 11/$12,195.00,
+     * FY2026 6,393/$68,952,678.80.
+     *
+     * ⚠⚠ FY2024 NEEDED A DIFFERENT QUESTION. Its dataset (b8ph-69yc) stores
+     * check_date as TEXT in MM-DD-YYYY, so a date comparison is lexicographic
+     * and matches the WHOLE FILE — it answered 23,553. Asked with
+     * substring(check_date,7,4) for the year and substring(check_date,1,2) for
+     * the month, it returned 17,762/$180,549,103.56 inside and
+     * 5,791/$68,811,162.33 outside, which is TT to the cent. Three other
+     * registers share that text format: FY2021, FY2022 and FY2023.
+     *
+     * ⚠ What is published to a reader is a FACT ABOUT THE FILE — the dates it
+     * contains and the share of its total paid outside the year it names. Why
+     * the city's files straddle is NOT published; nothing establishes it, and
+     * it would be an inference about a government's internal process. Same line
+     * scripts/data/mckinneyRegisterAnomalies.mjs draws.
+     */
+    corroboration: w.readerFacing === true
+      ? '✅ Publisher-confirmed 2026-11-08 against data.weho.org\'s own counts and sums. '
+        + 'Reader-facing: the claim is the period the file covers, not an inference about '
+        + 'why it covers it.'
+      : '⚠ PARTIAL. One analyst, 2026-11-05, against the publisher\'s own Socrata datasets. '
+        + 'Register only — the distortion is too small to spend a reader\'s attention on.',
   })),
+
+  // ── Los Angeles, CA ─────────────────────────────────────────────────────
+  //
+  // ⭐⭐ THE PUBLISHER CLASSIFIES THESE ROWS ITSELF, AND TT OBEYED IT.
+  //
+  // TT bins the LA City Checkbook by the dataset's OWN `fiscal_year` column
+  // (`fiscal_year_column` in its column_mapping), not by the payment date. So
+  // when LA labels a payment dated 2024-12-05 as fiscal year 2026, TT files it
+  // in FY2026 — exactly as published. Nothing here is TT's placement.
+  //
+  // Verified 2026-11-08 by asking controllerdata.lacity.org directly:
+  //
+  //   $where=fiscal_year='2026' AND transaction_date < '2025-07-01T00:00:00'
+  //     → count 38, sum $216,953.17
+  //
+  // which is TT's 38 rows and $216,953.17 to the cent.
+  //
+  // ⚠ ISOLATED TO FY2026. TT holds LA FY2018-FY2026 and this gate finds
+  // out-of-period rows in none of the other eight — and because TT bins on the
+  // publisher's own field and keeps the publisher's date, TT's count for a
+  // year IS the publisher's count for that year. So this is not routine LA
+  // behaviour; it is particular to FY2026.
+  {
+    key: 'la-city-ca-fy2026-publisher-dated-rows-in-fy2026',
+    municipality: 'Los Angeles',
+    state: 'CA',
+    fiscalYear: 2026,
+    outRows: 38,
+    disposition: 'loaded-as-published',
+
+    what:
+      '38 transactions in Los Angeles FY2026 are dated 2024-12-05 and 2024-12-06 — about '
+      + 'seven months before the fiscal period opens on 2025-07-01 — totalling $216,953.17. '
+      + 'All 38 are payments to INSIGHT PUBLIC SECTOR, INC. for software and subscriptions, '
+      + 'from the "LA City Checkbook" source.',
+
+    evidence: [
+      "LA's own dataset carries fiscal_year '2026' on every one of these rows while dating "
+        + 'them in December 2024. Asked directly: $where=fiscal_year=\'2026\' AND '
+        + "transaction_date < '2025-07-01T00:00:00' returns count 38, sum $216,953.17 — TT's "
+        + 'figures exactly.',
+      'TT bins this source by the publisher\'s `fiscal_year` column, so the year is the '
+        + "city's classification and not TT's inference from the date.",
+      'The descriptions name coverage periods that begin in late 2024 — "Adobe Pro DC '
+        + 'coverage 10/1/24-9/30/25", "ZOHO ManageEngine AD360 … 10/25/24-10/24/25", "BMC '
+        + 'Track-It … 10/30/24-10/29/25" — so these are subscription terms, one vendor, two '
+        + 'adjacent payment dates.',
+      'None of the other eight LA fiscal years TT holds has any out-of-period row, so this '
+        + 'is specific to FY2026 rather than a habit of the dataset.',
+    ],
+
+    magnitude:
+      '$216,953.17 — a rounding error against the billions TT publishes for LA City FY2026, '
+      + 'and the YEAR TOTAL is unaffected either way: the rows carry the publisher\'s own '
+      + 'FY2026 label and belong in the FY2026 total. Only the dates sit outside it.',
+
+    /**
+     * ⚠⚠ WHY NO EXPLANATION IS RECORDED. A prepaid subscription re-coded to
+     * the year its term is recognised in would produce exactly this shape, and
+     * so would a keying slip, and so would a re-issued encumbrance. Nothing LA
+     * publishes distinguishes them, so the register says WHAT and not WHY —
+     * the same line scripts/data/mckinneyRegisterAnomalies.mjs draws between a
+     * fact about the file and an inference about the publisher.
+     */
+    whyNotCorrected:
+      "The fiscal year is the city's own, stated in its own column. Re-binning these rows by "
+      + 'payment date would make TT overrule a classification Los Angeles published, and the '
+      + 'reader could not see that the judgement had been made.',
+
+    readerImpact:
+      '⚠ NEGLIGIBLE but real. FY2026\'s headline includes $216,953.17 paid in December 2024.',
+
+    corroboration:
+      '⚠ PARTIAL. One analyst, 2026-11-08, against the publisher\'s own Socrata dataset. '
+      + '⛔ Short of the src/data/figureFlags.ts bar, which requires independent AGENTS. '
+      + 'Not reader-facing, and at this magnitude a banner would cost a reader more attention '
+      + 'than the figure is worth.',
+  },
 ];

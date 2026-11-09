@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { figureFlags, figureFlagFor } from '../src/data/figureFlags';
 import { GA_FIGURE_FLAGS } from '../scripts/data/gaRlgfAnomalies.mjs';
 import { MCKINNEY_REGISTER_ANOMALIES } from '../scripts/data/mckinneyRegisterAnomalies.mjs';
+import { OUT_OF_PERIOD_EXCEPTIONS } from '../scripts/data/outOfPeriodExceptions.mjs';
 
 /**
  * ⚠⚠ EVERY AUTHOR-FACING REGISTER, NOT JUST GEORGIA'S.
@@ -25,7 +26,32 @@ import { MCKINNEY_REGISTER_ANOMALIES } from '../scripts/data/mckinneyRegisterAno
 const AUTHOR_FACING_REGISTERS = [
   ...GA_FIGURE_FLAGS,
   ...MCKINNEY_REGISTER_ANOMALIES,
+  ...OUT_OF_PERIOD_EXCEPTIONS,
 ];
+
+/**
+ * ⚠⚠ WHICH ENTRIES ARE *SUPPOSED* TO REACH A READER.
+ *
+ * `loaded` means the DATA is loaded — true of every out-of-period entry, since
+ * the whole point of that registry is that TT keeps the publisher's rows. It
+ * does NOT mean the finding is worth a banner. West Hollywood FY2023 is 2.4%
+ * out of period; a banner there costs a reader attention and teaches them to
+ * skip the FY2024 one that matters.
+ *
+ * So promotion is explicit: `readerFacing === true`, or a GA entry's `loaded`,
+ * which has always carried both meanings for that register.
+ */
+const shouldSurface = (f) => f.readerFacing === true
+  || (f.readerFacing === undefined && f.loaded === true);
+
+/**
+ * ⚠ TWO REGISTERS SPELL "LOADED" DIFFERENTLY, and both spellings are honest.
+ * GA uses a `loaded` boolean; the out-of-period registry states it as
+ * `disposition: 'loaded-as-published'` / `'loaded-below-publisher-total'`,
+ * which is more precise about HOW it was loaded. The guard below only needs to
+ * know that TT holds the figure, so it accepts either.
+ */
+const isLoaded = (f) => f?.loaded === true || String(f?.disposition ?? '').startsWith('loaded');
 
 /**
  * ⚠⚠ THE GUARD THAT MATTERS: the author-facing register and the reader-facing
@@ -41,7 +67,7 @@ describe('figure flags — reader-facing surfacing', () => {
     // failure this whole file was written to make impossible.
     const surfaced = new Set(Object.values(figureFlags).map((f) => f.id));
     const missing = AUTHOR_FACING_REGISTERS
-      .filter((f) => f.loaded)
+      .filter(shouldSurface)
       .map((f) => f.id)
       .filter((id) => !surfaced.has(id));
     expect(missing, `recorded for maintainers but never shown to readers: ${missing.join(', ')}`)
@@ -80,7 +106,7 @@ describe('figure flags — reader-facing surfacing', () => {
     // flag on a figure TT declined to load would be describing an absence.
     const byId = new Map(AUTHOR_FACING_REGISTERS.map((f) => [f.id, f]));
     for (const f of Object.values(figureFlags)) {
-      expect(byId.get(f.id)?.loaded).toBe(true);
+      expect(isLoaded(byId.get(f.id)), `${f.id} is flagged but its register entry is not loaded`).toBe(true);
     }
   });
 
@@ -154,6 +180,27 @@ describe('figure flags — reader-facing surfacing', () => {
       'Fulton County|GA|2017|revenue',
       'Fulton County|GA|2018|revenue',
     ]);
+  });
+
+  /**
+   * ⚠⚠ WEST HOLLYWOOD HAS TWO SEAMS, and the receiving side of each is the
+   * one that reads wrong without a banner: FY2025 shows $132.28M against
+   * FY2024's $249.36M and looks like spending halved. Flagging only the
+   * odd-looking side leaves the other silently misleading.
+   */
+  it('⚠⚠ both sides of each West Hollywood seam are flagged', () => {
+    for (const [giving, receiving] of [[2019, 2020], [2024, 2025]]) {
+      expect(figureFlagFor('West Hollywood', 'CA', giving, 'transactions'), `FY${giving}`)
+        .toBeTruthy();
+      expect(figureFlagFor('West Hollywood', 'CA', receiving, 'transactions'), `FY${receiving}`)
+        .toBeTruthy();
+    }
+    // ⚠ And the years whose skew is too small for a banner stay unflagged, or
+    // the ones that matter stop standing out.
+    for (const quiet of [2018, 2021, 2022, 2023]) {
+      expect(figureFlagFor('West Hollywood', 'CA', quiet, 'transactions'), `FY${quiet}`)
+        .toBeUndefined();
+    }
   });
 
   it('⚠ states plainly that the figure is shown as filed', () => {

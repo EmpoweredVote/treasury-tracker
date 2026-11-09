@@ -56,6 +56,20 @@ describe('FigureFlagBanner', () => {
     expect(text).toMatch(/as published/i);
   });
 
+  /**
+   * ⚠⚠ THE RECEIVING SIDE OF A SEAM. FY2025 is clean in itself and still
+   * carries a banner, because the money paid during it sits in FY2024. If this
+   * ever stops rendering, a reader sees $132M beside $249M and concludes
+   * spending halved.
+   */
+  it('⚠⚠ renders on the clean side of a two-year seam', () => {
+    mount('West Hollywood', 2025, 'transactions', 'CA');
+    const text = host.textContent ?? '';
+    expect(text).toMatch(/FY2024/);
+    expect(text).toMatch(/68\.5 million/);
+    expect(text).toMatch(/as published/i);
+  });
+
   it('⚠⚠ shows the warning and the “as filed” assurance before any interaction', () => {
     mount('Fulton County', 2021);
     const note = host.querySelector('[role="note"]');
