@@ -86,7 +86,8 @@
     "scripts/data/hiCountiesCreatedIds.json",
     "scripts/data/laCityScoFy2025CreatedIds.json",
     "scripts/data/laCityAuditedAcfrCreatedIds.json",
-    "scripts/data/caScoFy2025CreatedIds.json"
+    "scripts/data/caScoFy2025CreatedIds.json",
+    "scripts/data/loads20261108CreatedIds.json"
   ],
   "_frozen_note": "Both digests are computed over current rows MINUS the ids listed in `excluded_ids_files`. created_at is NOT usable to identify the frozen set directly -- 19 of 80,076 rows have it non-NULL -- and committing all ~80k ids would be a ~3MB permanent repo artifact, so the invariant is computed as an exclusion instead of an inclusion list. EVERY milestone that inserts rows MUST append its own created-ids file to `excluded_ids_files` in the same commit as the write. ⚠⚠ SINCE v2.34 THERE ARE TWO KINDS OF ENTRY IN `excluded_ids_files`, and they are not interchangeable. (1) PROVENANCE — one created-ids file per milestone that inserted rows; registerCreatedRows.mjs reconciles the deficit against these, so a row appearing in two of them is a bookkeeping error. (2) SCOPE — scripts/data/liveSyncExcludedIds.json, the rows owned by an ENABLED data source, which can be rewritten by a cron sync with no human involved and so were never meaningfully 'frozen'. The scope file is a COMPLETE statement of its own scope, not a diff, so it OVERLAPS the milestone files by design (16 overlaps on the day it was added) and everything unions into a Set before use. Re-measure it with `npm run verify:live-sync`; re-snapshot with `node scripts/liveSyncExclusions.mjs --write`.",
   "_rebased_at_v2_30": {
@@ -146,9 +147,6 @@
       "superseded_by": "see _rebased_at_v2_37 — TT's own six Empowered Vote rows left the digest when their feeds were registered as data_sources",
       "rebased": "2026-09-18"
     }
-  ],
-  "figure_change_files": [
-    "scripts/data/figureChanges.json"
   ],
   "_rebased_at_v2_33": {
     "_what": "Second rebase, from 4cce9d6a8dfe9ac235dfd488f1903243892c7ebc4ac41b17dbd9022bfb068b9a to 90f009fe396d20dcd211258e534ea81c237aa0bddd3d2412680c1dcce3af76fe. Row count unchanged at 79,916.",
