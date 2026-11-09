@@ -2483,28 +2483,62 @@ export const figureFlags: Record<string, FigureFlag> = {
     ],
   },
 
+  // ⚠⚠⚠ THE ONLY FLAG WHOSE SUBJECT IS STILL GROWING, AND THE ONLY ONE WHOSE
+  // COPY IS WRITTEN TO SURVIVE THAT.
+  //
+  // `West Hollywood Demand Register FY2025-26` is sync_frequency WEEKLY and the
+  // city is still posting into it; the other nine registers are `manual` and
+  // static. So the figure this page prints for FY2026 RISES ON ITS OWN, every
+  // week, while anything hard-coded here does not.
+  //
+  // ⚠⚠ A BANNER THAT DISAGREES WITH THE TOTAL BESIDE IT IS WORSE THAN NO
+  // BANNER. The first version of this entry said "$275.28 million shown here"
+  // and "25.0%" flat, which would have been contradicted by the page's own
+  // figure within weeks — and would have understated the very distortion the
+  // banner exists to describe.
+  //
+  // ⭐ So the durable claims carry the headline (the city has not opened an
+  // FY2026-27 register; payments run past the year end; both numbers rise), and
+  // every precise figure is stated AS OF a date. `stillGrowing` on the register
+  // entry makes that a tested requirement, not a habit — see
+  // tests/figureFlags.test.ts.
   'West Hollywood|CA|2026|transactions': {
     id: 'west-hollywood-ca-fy2026-fiscal-straddle',
     severity: 'not-comparable',
-    headline: 'About $69.0 million — 25.0% of this total — was paid outside the year',
+    headline:
+      'The city is still posting to this file — about $69 million fell outside the year as of 8 November 2026',
     summary:
-      'West Hollywood publishes one demand register per fiscal year, and it is still posting '
-      + 'payments into the FY2025-26 file after that year has ended. Of the $275.28 million '
-      + 'shown here, $60.00 million was paid on or after 1 July 2026 and $8.95 million before '
-      + '1 July 2025, running from March 2024 to October 2026. The total is shown exactly as '
-      + 'published, and it is not comparable with the years around it.',
+      'West Hollywood publishes one demand register per fiscal year, and it has not opened an '
+      + 'FY2026-27 one — it is still posting payments into the FY2025-26 file after that year '
+      + 'ended. So this register keeps growing, and the share of it paid outside 1 July 2025 – '
+      + '30 June 2026 grows with it: as of 8 November 2026 that was $68.95 million of the '
+      + '$275.28 million then published, about a quarter. The total is shown exactly as '
+      + 'published and is not comparable with the years around it.',
     whatThisMeans:
-      'Treat this as “the FY2025-26 register to date”. A quarter of it was paid outside FY2026, '
-      + 'and the figure will keep growing while the city posts here.',
+      'Read this as the FY2025-26 register so far, not as a finished year. Both the total and '
+      + 'the share paid outside it rise each week the city posts.',
     entries: [
       {
-        title: 'What the file covers, and that it is still open',
+        title: 'What the file covered when this was measured',
         text:
-          'The register holds 6,393 payments dated outside 1 July 2025 – 30 June 2026 — 1,170 '
-          + 'before it and 5,223 after — worth $68,952,678.80 of the $275,281,324.20 published, '
-          + 'spanning 14 March 2024 to 9 October 2026. The city has not opened a FY2026-27 '
-          + 'register and is continuing to publish here, so the later portion grows. '
-          + 'data.weho.org returns the same 6,393 rows and the same $68,952,678.80.',
+          'As of 8 November 2026 the register held 6,393 payments dated outside 1 July 2025 – 30 '
+          + 'June 2026 — 1,170 before it and 5,223 after — worth $68,952,678.80 of the '
+          + '$275,281,324.20 then published, spanning 14 March 2024 to 9 October 2026. Asked for '
+          + 'its own count, data.weho.org returned the same 6,393 rows and the same '
+          + '$68,952,678.80. Both figures were current on that date and both have risen since if '
+          + 'the city has posted again.',
+        source_name: 'West Hollywood Demand Register FY2025-26',
+        source_url: 'https://data.weho.org/resource/5d72-njxw.json',
+        source_date: '2026-11-08',
+      },
+      {
+        title: 'Why this one keeps moving when the other years do not',
+        text:
+          'West Hollywood’s nine earlier registers are closed files and are loaded on request; '
+          + 'this one is refreshed weekly because the city is still adding to it. On 5 November '
+          + '2026 it held 1,164 payments outside the year and on 6 November 2026 it held 6,393, '
+          + 'after the city published 8,675 further rows overnight. Figures quoted for this year '
+          + 'are true on the date given and no later.',
         source_name: 'West Hollywood Demand Register FY2025-26',
         source_url: 'https://data.weho.org/resource/5d72-njxw.json',
         source_date: '2026-11-08',

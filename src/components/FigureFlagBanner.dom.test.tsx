@@ -57,6 +57,25 @@ describe('FigureFlagBanner', () => {
   });
 
   /**
+   * ⚠⚠⚠ THE AS-OF DATE MUST BE VISIBLE WITHOUT A CLICK.
+   *
+   * West Hollywood FY2026 is the one flag whose subject still grows — the file
+   * is synced weekly and the city is still posting into it. A date buried in
+   * the evidence panel protects nobody: the reader who misreads a stale figure
+   * is precisely the one who never opens it.
+   */
+  it('⚠⚠ shows the as-of date for a still-growing figure before any interaction', () => {
+    mount('West Hollywood', 2026, 'transactions', 'CA');
+    const note = host.querySelector('[role="note"]');
+    expect(note).toBeTruthy();
+    // ⚠ Read from the always-visible note, not from the whole host, so copy
+    // hidden behind the disclosure cannot satisfy this.
+    const visible = note?.textContent ?? '';
+    expect(visible).toMatch(/as of 8 November 2026/);
+    expect(visible).toMatch(/still posting/i);
+  });
+
+  /**
    * ⚠⚠ THE RECEIVING SIDE OF A SEAM. FY2025 is clean in itself and still
    * carries a banner, because the money paid during it sits in FY2024. If this
    * ever stops rendering, a reader sees $132M beside $249M and concludes
