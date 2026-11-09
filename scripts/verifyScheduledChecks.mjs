@@ -20,9 +20,19 @@
  *   zero-baseline-tie-assert  03:23      assert_last_zero_baseline_tie_ok()
  *   transaction-tree-weekly   Sun 05:12  run_transaction_tree_check()
  *   transaction-tree-assert   Sun 05:13  assert_last_transaction_tree_ok()
+ *   out-of-period-weekly      Sun 05:40  run_out_of_period_check()
+ *   out-of-period-assert      Sun 05:41  assert_last_out_of_period_ok()
  *   frozen-invariant-weekly   Mon 06:23  (pre-existing)
  *   frozen-invariant-assert   Mon 06:33  assert_last_frozen_invariant_ok()
  *   anon-execute-sweep        Mon 02:47  (pre-existing, with its assert)
+ *
+ * ⚠⚠ out-of-period ASSERTS THE SET, NOT THE COUNTS, and that is deliberate.
+ * West Hollywood's FY2025-26 register is synced weekly and its out-of-period
+ * count climbs ~1,500 rows a month BY DESIGN; alarming on that would make this
+ * a weekly false alarm. The SET of affected budgets changes only when a year is
+ * loaded or a reload repairs one. ⛔ Whether each budget is DECLARED remains
+ * `npm run verify:out-of-period`'s question — it holds the baselines in code on
+ * purpose and asks the publishers, neither of which Postgres can do.
  *
  * ⚠ CADENCE IS NOT UNIFORM ON PURPOSE. zero-baseline-tie counts duplicate root
  * labels over every budget in the fleet and manual loads happen on weekdays, so
