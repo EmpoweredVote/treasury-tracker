@@ -50,6 +50,10 @@ COMMENT ON TABLE treasury.budget_insert_log IS
 -- service_role / postgres (which bypass RLS) read it.
 ALTER TABLE treasury.budget_insert_log ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON treasury.budget_insert_log FROM PUBLIC, anon, authenticated;
+-- ⚠ The view below is security_invoker, so its READER needs SELECT here too.
+-- Without this, registerCreatedRows (service_role) got "permission denied for
+-- table budget_insert_log" on first live use, 2026-11-09.
+GRANT SELECT ON treasury.budget_insert_log TO service_role;
 
 -- Statement-level with a transition table: one INSERT ... SELECT per load
 -- statement, not one per row. An upsert that UPDATEs an existing row does not
