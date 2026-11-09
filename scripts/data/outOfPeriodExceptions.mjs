@@ -191,10 +191,18 @@ export const OUT_OF_PERIOD_EXCEPTIONS = [
     { fiscalYear: 2024, outRows: 5791, outAmount: '68,811,162.33', before: 84, after: 5707, span: '2016-12-09 … 2024-10-25', source: 'FY2022-24', readerFacing: true },
     { fiscalYear: 2025, outRows: 11, outAmount: '12,195.00', before: 11, after: 0, span: '2021-08-13 … 2023-12-29', source: 'FY2024-25', readerFacing: true },
     // ⚠⚠⚠ THE ONLY LIVE ONE, AND IT GROWS EVERY WEEK. See the FY2026 note above.
-    { fiscalYear: 2026, outRows: 6393, outAmount: '68,952,678.80', before: 1170, after: 5223, span: '2024-03-14 … 2026-10-09', source: 'FY2025-26', readerFacing: true },
+    //
+    // ⭐⭐ `stillGrowing` IS NOT DECORATION — IT IS A COPY REQUIREMENT. This
+    // source is sync_frequency WEEKLY while the other nine are `manual`, so the
+    // figure the page prints for FY2026 rises on its own. Any reader-facing
+    // copy about it must therefore state its numbers AS OF A DATE, or the
+    // banner will end up contradicting the total displayed beside it — which is
+    // worse than no banner. tests/figureFlags.test.ts enforces it.
+    { fiscalYear: 2026, outRows: 6393, outAmount: '68,952,678.80', before: 1170, after: 5223, span: '2024-03-14 … 2026-10-09', source: 'FY2025-26', readerFacing: true, stillGrowing: true },
   ].map((w) => ({
     id: `west-hollywood-ca-fy${w.fiscalYear}-fiscal-straddle`,
     readerFacing: w.readerFacing === true,
+    stillGrowing: w.stillGrowing === true,
     key: `west-hollywood-ca-fy${w.fiscalYear}-out-of-period-rows`,
     municipality: 'West Hollywood',
     state: 'CA',

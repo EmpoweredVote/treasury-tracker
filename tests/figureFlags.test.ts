@@ -203,6 +203,47 @@ describe('figure flags — reader-facing surfacing', () => {
     }
   });
 
+  /**
+   * ⚠⚠⚠ A FIGURE THAT IS STILL GROWING MUST BE DATED ON THE PAGE.
+   *
+   * West Hollywood's FY2025-26 register is sync_frequency WEEKLY and the city
+   * is still posting into it, so the total this page prints for FY2026 rises on
+   * its own. The first version of that banner said "$275.28 million shown here"
+   * and "25.0%" flat — within weeks it would have been contradicted by the
+   * figure displayed beside it, and would have UNDERSTATED the distortion it
+   * exists to describe. A banner that disagrees with its own page is worse than
+   * no banner.
+   *
+   * So any register entry marked `stillGrowing` must have reader-facing copy
+   * that pins its numbers to a date, and must say the numbers move.
+   */
+  it('⚠⚠ a still-growing figure states its numbers as of a date', () => {
+    const growing = AUTHOR_FACING_REGISTERS.filter((f) => f.stillGrowing === true && shouldSurface(f));
+    expect(growing.length, 'no still-growing entry is surfaced — has the registry changed?')
+      .toBeGreaterThan(0);
+
+    const surfacedById = new Map(Object.values(figureFlags).map((f) => [f.id, f]));
+    for (const entry of growing) {
+      const f = surfacedById.get(entry.id);
+      expect(f, `${entry.id} is marked stillGrowing but is not surfaced`).toBeTruthy();
+
+      // ⚠ "as of <date>" has to be in the ALWAYS-VISIBLE copy, not only in the
+      // evidence a reader must open. A skimming reader is exactly who misreads
+      // a stale number.
+      const visible = `${f.headline} ${f.summary}`;
+      expect(/\bas of\b/i.test(visible), `${entry.id} quotes figures with no "as of" date`).toBe(true);
+      expect(/\d{1,2} \w+ \d{4}|\d{4}-\d{2}-\d{2}/.test(visible), `${entry.id} has no explicit date`)
+        .toBe(true);
+
+      // ⚠ And it must tell the reader the number moves, or "as of" reads as
+      // precision rather than as a warning.
+      expect(
+        /grow|rise|rising|keeps? (growing|rising)|still (posting|adding)|each week/i.test(visible),
+        `${entry.id} does not say the figure moves`,
+      ).toBe(true);
+    }
+  });
+
   it('⚠ states plainly that the figure is shown as filed', () => {
     // The reader must be able to tell that TT did not alter the number — that
     // is the whole difference between flagging and quietly correcting.
