@@ -44,7 +44,53 @@ const MD_BASE = 'https://www.marylandcomptroller.gov/content/dam/mdcomp/md/repor
 // CASE CHANGE at FY2024: lowercase acfr{YYYY}.pdf for FY2024+, uppercase ACFR{YYYY}.pdf for FY2022-2023.
 const SRC = { 2022: 'ACFR2022.pdf', 2023: 'ACFR2023.pdf', 2024: 'acfr2024.pdf', 2025: 'acfr2025.pdf' };
 const YEARS = Object.keys(SRC).map(Number).sort((a, b) => a - b);
-const urlFor = (fy) => `${MD_BASE}/${SRC[fy]}`;
+
+/**
+ * ⚠⚠ THE COMPTROLLER RETIRED FY2022 — THE TEMPLATE STILL WORKS, THE YEAR IS GONE.
+ *
+ * Measured 2026-11-10 with HEAD *and* a real GET (so this is not #376's HEAD-404
+ * defect): `ACFR2022.pdf` 404s while `ACFR2023.pdf`, `acfr2024.pdf` and
+ * `acfr2025.pdf` all answer 206 `application/pdf` from the same directory. The
+ * Comptroller's own ACFR index now lists exactly three years — FY2023, FY2024
+ * and FY2025 — so this is a back-catalogue purge, not a rename or a CMS move.
+ *
+ * ⚠ IT IS NOT THE CASE CHANGE EITHER. `acfr2022.pdf` 404s too, and so do
+ * `ACFR_2022.pdf`, `acfr-2022.pdf`, `ACFR2022.PDF` and `acfr2022-1.pdf`. Every
+ * variant was probed INDIVIDUALLY rather than inferred from the FY2024 case rule
+ * — the South Carolina lesson (#374) applied before guessing instead of after.
+ * `ACFR2023.pdf` is live upper-case while `acfr2023.pdf` 404s, which is the proof
+ * that case here is per-file and not a boundary that could be extrapolated.
+ *
+ * ⭐ THE REPLACEMENT IS LIVE, NOT ARCHIVED. Maryland files its Single Audit with
+ * the Federal Audit Clearinghouse, and that filing OPENS with the ACFR — page 1
+ * reads "ANNUAL COMPREHENSIVE FINANCIAL REPORT , STATE OF MARYLAND / FOR THE YEAR
+ * ENDED JUNE 30, 2022" — with the single audit appended (370 pp against the
+ * ACFR's 193). ⚠ FAC IS NOT AUTOMATICALLY THE ACFR: Cornelius OR's FY2022 filing
+ * turned out to be a 3-page CSLFRF compliance examination with no fund statements
+ * at all (#376). This one was downloaded and read before it was believed.
+ *
+ * ⭐⭐ VERIFIED TO THE DOLLAR, AND RE-DERIVED. All 28 figures TT publishes for
+ * FY2022 were found inside the governmental-funds operating statement, and the
+ * SIXTEEN expenditure components sum to the publisher's own printed total:
+ *
+ *     sum(16 components) = 45,744,096 (thousands)
+ *     printed total      = 45,744,096
+ *     delta              = $0
+ *
+ * The Internet Archive also holds captures of the Comptroller's own file (two,
+ * both 18,076,907 B, `%%EOF` intact, 193 pp, identical) and they pass the same
+ * check. FAC is preferred because it answers 200 TODAY; web.archive.org
+ * rate-limits automated clients and would probe `unreachable`.
+ *
+ * ⛔ A TARGETED UPDATE, NEVER A RE-LOAD (#372). This override exists because
+ * `urlFor` BUILDS the URL from a template — without it the next run re-mints the
+ * dead link, exactly as loadWICMREB.js would have for FY2020-FY2022 (#379).
+ */
+const RETIRED_BY_PUBLISHER = Object.freeze({
+  2022: 'https://app.fac.gov/dissemination/report/pdf/2022-06-CENSUS-0000147719',
+});
+
+const urlFor = (fy) => RETIRED_BY_PUBLISHER[Number(fy)] ?? `${MD_BASE}/${SRC[fy]}`;
 const dataSource = (fy) => `Maryland State ACFR — General Fund Revenue (FY${fy} actual, GAAP basis)`;
 function clampForRender(a) { return Math.max(a, 0); }
 function loadYear(fy) {
