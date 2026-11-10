@@ -11,6 +11,7 @@ import {
   familyOf,
   censusUncited,
 } from '../scripts/lib/sourceUrlProbe.mjs';
+import { PUBLISHER_OUTAGES } from '../scripts/data/publisherOutages.mjs';
 
 /**
  * `budgets.source_url` was read by NO gate in this repo until this one.
@@ -303,5 +304,126 @@ describe('judgeUncited — the ratchet over budgets that cite nothing at all', (
     const j = judgeUncited({ families: { 'MA General Fund Expenditures': 8408 }, total: 8408 }, baseline);
     expect(j.ok).toBe(true);
     expect(j.paidDown).toContainEqual({ family: 'LA City Payroll', count: 0, expected: 10 });
+  });
+});
+
+/**
+ * ⭐⭐⭐ A PUBLISHER THAT IS DOWN IS NOT A DOCUMENT THAT IS GONE.
+ *
+ * This gate shipped with one rule about a 404 — "the publisher says this
+ * document is gone; repair the URL, never annotate it" — and on its first live
+ * run that rule was wrong about 60 URLs covering 6,616 budgets, 93% of every
+ * dead citation TT holds. Ohio's Auditor of State has been offline since a
+ * cyberattack on 2026-10-25. Acting on `dead` would have meant rewriting 6,616
+ * correct citations during an outage, with no live file to check a replacement
+ * against.
+ *
+ * ⚠ The excusal is fenced three ways, and each fence is a test below, because
+ * an outage that cannot expire is exactly the permanent annotation the original
+ * rule existed to forbid.
+ */
+describe('publisher outages', () => {
+  const OUTAGE = {
+    id: 'test-outage',
+    host: 'down.gov',
+    began: '2026-10-25',
+    observedOn: '2026-11-09',
+    recheckAfter: '2026-12-10',
+    evidence: 'We took the web server offline.',
+    evidenceUrl: 'https://down.gov/',
+  };
+  const NOW = new Date('2026-11-09');
+  const dead = (url) => ({ url, status: 404, contentType: 'text/html', error: null });
+  // ⚠ `application/pdf`, not `text/html`. A `.pdf` answered with HTML judges
+  // `wrong-type`, NOT `ok` — which is correct, and means a maintenance page
+  // served under a document's URL does not read as the publisher recovering.
+  // Only a genuine `ok` retires an outage.
+  const live = (url) => ({ url, status: 200, contentType: 'application/pdf', error: null });
+
+  it('reports a declared outage as a NOTICE, not a dead citation', () => {
+    const c = classifyCitations(
+      [dead('https://down.gov/a.pdf'), dead('https://down.gov/b.pdf')],
+      [], [OUTAGE], NOW,
+    );
+    expect(c.dead).toHaveLength(0);
+    expect(c.publisherDown).toHaveLength(2);
+    expect(citationsAreClean(c)).toBe(true);
+  });
+
+  it('⚠⚠ excuses NOTHING on a host that is merely having a bad day', () => {
+    // cg.sc.gov answers its root with a working site while 24 of its documents
+    // 404. Those really did move, and no outage is declared for it.
+    const c = classifyCitations([dead('https://moved.gov/a.pdf')], [], [OUTAGE], NOW);
+    expect(c.dead).toHaveLength(1);
+    expect(citationsAreClean(c)).toBe(false);
+  });
+
+  it('⛔ FENCE 1: an expired declaration fails the run', () => {
+    const c = classifyCitations([dead('https://down.gov/a.pdf')], [], [OUTAGE], new Date('2027-01-01'));
+    expect(c.expiredOutages).toHaveLength(1);
+    expect(c.publisherDown).toHaveLength(0);
+    expect(citationsAreClean(c)).toBe(false);
+  });
+
+  it('⛔ FENCE 2: one live URL on the host means the outage is over', () => {
+    // The publisher is serving files again, so whatever is still 404 is
+    // genuinely gone and must be repaired, not excused.
+    const c = classifyCitations(
+      [dead('https://down.gov/a.pdf'), live('https://down.gov/b.pdf')],
+      [], [OUTAGE], NOW,
+    );
+    expect(c.staleOutages).toHaveLength(1);
+    expect(c.publisherDown).toHaveLength(0);
+    expect(c.dead).toHaveLength(1);
+    expect(citationsAreClean(c)).toBe(false);
+  });
+
+  it('⛔ FENCE 3: an outage cannot excuse an EXPIRING link', () => {
+    // Shape is not liveness. A presigned link is broken by its own form and no
+    // outage makes it citable.
+    const c = classifyCitations(
+      [{ url: 'https://down.gov/a.pdf?X-Amz-Expires=30&X-Amz-Signature=x', status: 404, error: null }],
+      [], [OUTAGE], NOW,
+    );
+    expect(c.uncitable).toHaveLength(1);
+    expect(c.publisherDown).toHaveLength(0);
+    expect(citationsAreClean(c)).toBe(false);
+  });
+
+  it('reports a declaration for a host nothing cites any more as stale', () => {
+    const c = classifyCitations([dead('https://other.gov/a.pdf')], [], [OUTAGE], NOW);
+    expect(c.staleOutages).toHaveLength(1);
+    expect(c.staleOutages[0].why_stale).toMatch(/no stored citation/);
+  });
+
+  it('⚠ an unreachable host under a declared outage is a notice too, not a failure', () => {
+    // The outage is the reason it cannot be asked; saying so twice helps nobody.
+    const c = classifyCitations(
+      [{ url: 'https://down.gov/a.pdf', status: null, error: 'ETIMEDOUT' }],
+      [], [OUTAGE], NOW,
+    );
+    expect(c.publisherDown).toHaveLength(1);
+    expect(c.unreachable).toHaveLength(0);
+  });
+});
+
+describe('the Ohio declaration itself', () => {
+  it('⚠ names a real host, carries a quote, and expires', () => {
+    const ohio = PUBLISHER_OUTAGES.find((o) => o.host === 'www.ohioauditor.gov');
+    expect(ohio, 'the Ohio AOS outage is not declared').toBeTruthy();
+    expect(ohio.recheckAfter, 'an outage with no expiry is a permanent excuse').toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    expect(new Date(ohio.recheckAfter) > new Date(ohio.observedOn)).toBe(true);
+    expect(ohio.evidence.length).toBeGreaterThan(40);
+    expect(ohio.evidenceUrl).toMatch(/^https:\/\//);
+  });
+
+  it('⚠⚠ every declared outage expires, with no exceptions', () => {
+    for (const o of PUBLISHER_OUTAGES) {
+      expect(o.recheckAfter, `${o.host} has no recheckAfter`).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+      expect(o.host, `${o.id} declares no host`).toBeTruthy();
+      // ⚠ A host, not a URL prefix: the excusal is host-wide by design, because
+      // "every citation on this host still fails" is what makes it safe.
+      expect(o.host).not.toMatch(/\//);
+    }
   });
 });
