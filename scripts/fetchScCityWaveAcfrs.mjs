@@ -35,7 +35,9 @@ import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 import { parseArgs } from 'node:util';
 
-import { FAC_PDF_BASE, SC_CITY_ENTITIES } from './data/scCityAcfrEntities.mjs';
+import {
+  FAC_PDF_BASE, SC_CITY_ENTITIES, scCityYearsFor, scCityDocumentFor,
+} from './data/scCityAcfrEntities.mjs';
 
 const ROOT = process.cwd();
 const BASE = path.join(ROOT, '_acfr-work', 'sc-cities', 'acfr');
@@ -78,26 +80,24 @@ function assertPdf(file) {
  * URL from it, and the manifest records the publisher explicitly so a reader can
  * tell a federally-filed year from an issuer-served one without inference.
  */
+/**
+ * ⚠⚠ DELEGATES TO `scCityDocumentFor`, AND MUST KEEP DOING SO. This function
+ * and the loader's citation used to resolve the per-year document separately,
+ * and they diverged: the fetcher read the registry while the loader wrote
+ * `entity.publicationPage`, so TT parsed one document and cited another. One
+ * resolver is the fix — see `scCityDocumentFor` for the full account.
+ */
 function plannedDocuments(entity) {
   const self = entity.selfPublishedReports || {};
-  const fac = entity.facReports || {};
-
-  const both = Object.keys(fac).filter((fy) => fy in self);
-  if (both.length) {
-    throw new Error(`${entity.key}: FY${both.join(', FY')} declares BOTH a FAC report id and a `
-      + 'self-published URL. One government-year gets ONE recorded source — remove one, '
-      + 'and record why in scripts/data/scCityAcfrEntities.mjs.');
-  }
-
-  const docs = [
-    ...Object.entries(fac).map(([fy, reportId]) => ({
-      fy: Number(fy), url: `${FAC_PDF_BASE}/${reportId}`, reportId, publisher: 'fac',
-    })),
-    ...Object.entries(self).map(([fy, spec]) => ({
-      fy: Number(fy), url: spec.url, reportId: null, publisher: 'self', why: spec.why,
-    })),
-  ];
-  return docs.sort((a, b) => a.fy - b.fy);
+  return scCityYearsFor(entity).map((fy) => {
+    // ⚠ Throws on a year that declares both publishers. That refusal is the
+    // point: ambiguous provenance is decided deliberately, never by precedence.
+    const doc = scCityDocumentFor(entity, fy);
+    if (!doc) throw new Error(`${entity.key}: FY${fy} is listed as a year but records no document`);
+    return doc.publisher === 'self'
+      ? { fy, ...doc, why: self[fy]?.why }
+      : { fy, ...doc };
+  });
 }
 
 async function main() {

@@ -1120,6 +1120,68 @@ export function scCityYearsFor(entity) {
 }
 
 /**
+ * ⚠⚠⚠ THE DOCUMENT FOR ONE GOVERNMENT-YEAR — AND THE THING TO CITE.
+ *
+ * ── WHY THIS EXISTS ────────────────────────────────────────────────────────
+ *
+ * `loadScCityAcfrs.mjs` wrote `p_source_url: entity.publicationPage` — the
+ * city's finance landing page — for EVERY fiscal year, while this registry
+ * held the exact per-year document the loader had just parsed. Eleven
+ * governments, 186 budgets, ten fiscal years each pointing at one page.
+ *
+ * ⭐ THE DEAD LINKS WERE THE SMALLEST PART OF IT. Three of those eleven pages
+ * had moved, so `verify:source-urls` called them dead and they reached the
+ * repair backlog. The other EIGHT answered 200 and were exactly as wrong: a
+ * landing page carries no file extension, so `citationShape` asserts nothing
+ * about its content-type and a themed index page passes as a citation. The
+ * gate could not have found them. Only reading the loader could.
+ *
+ * A reader who clicks the source chip under the FY2018 chart is owed the
+ * FY2018 statements. A landing page hands them a list — and when the city
+ * reorganises, not even that. ⛔ That is worse than a dead link, because a
+ * dead link at least ADMITS it.
+ *
+ * ⚠ The pattern was already right in this repo. Columbia and Myrtle Beach,
+ * loaded earlier from `scAcfrSources.mjs`, cite the per-year FAC PDF. Wave 1
+ * lost it, and the loss then propagated through five waves.
+ *
+ * ── THE RULE ───────────────────────────────────────────────────────────────
+ *
+ * One government-year gets ONE recorded source. A year declaring both a FAC
+ * report id and a self-published URL is ambiguous provenance and is REFUSED,
+ * never resolved by precedence order — the same refusal `plannedDocuments`
+ * in `fetchScCityWaveAcfrs.mjs` already made at fetch time, which now
+ * delegates here so the fetcher and the citation cannot drift apart.
+ *
+ * ⚠ `reportId` is null for a self-published document. Nothing may rebuild a
+ * FAC URL from it.
+ *
+ * @returns {{url: string, reportId: string|null, publisher: 'fac'|'self'}|null}
+ */
+export function scCityDocumentFor(entity, fiscalYear) {
+  const fy = String(fiscalYear);
+  const fac = entity.facReports || {};
+  const self = entity.selfPublishedReports || {};
+
+  if (fy in fac && fy in self) {
+    throw new Error(`${entity.key}: FY${fy} declares BOTH a FAC report id and a self-published `
+      + 'URL. One government-year gets ONE recorded source — remove one, and record why in '
+      + 'scripts/data/scCityAcfrEntities.mjs.');
+  }
+
+  if (fy in fac) {
+    return { url: `${FAC_PDF_BASE}/${fac[fy]}`, reportId: fac[fy], publisher: 'fac' };
+  }
+  if (fy in self) {
+    return { url: self[fy].url, reportId: null, publisher: 'self' };
+  }
+  // ⚠ No document recorded for this year. Return null and let the caller
+  // report a gap — never fall back to the landing page, which is the whole
+  // defect this function exists to end.
+  return null;
+}
+
+/**
  * Every (entity, fiscalYear) the wave intends to LOAD. Deferred entities are excluded.
  *
  * ⚠⚠ THIS MUST ENUMERATE BOTH PUBLISHERS. Wave 5 added `selfPublishedReports`
