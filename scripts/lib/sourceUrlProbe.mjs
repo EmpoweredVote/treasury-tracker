@@ -205,9 +205,14 @@ export function judgeProbe({ url, status, contentType, error }) {
  * Ask one host about one URL.
  *
  * ⚠ HEAD FIRST, THEN A ONE-BYTE GET. Plenty of government servers answer HEAD
- * with 405 or 501 while serving the same URL happily to a GET; treating that
- * as dead would invent failures across whole families at once. The fallback
- * asks for `bytes=0-0` so a 300 MB ACFR is not downloaded to prove it exists.
+ * with 405, 501 — or, on CivicPlus, a flat 404 — while serving the same URL
+ * happily to a GET; treating that as dead would invent failures across whole
+ * families at once. The fallback asks for `bytes=0-0` so a 300 MB ACFR is not
+ * downloaded to prove it exists.
+ *
+ * ⚠⚠⚠ SO A HEAD MAY NOT CONDEMN A DOCUMENT BY ITSELF — a 404 or 410 from HEAD
+ * is re-asked with a GET before it is believed. See NEEDS_A_SECOND_OPINION
+ * below for what it cost to learn that.
  *
  * ⚠⚠ AND THEN curl. mckinneytexas.org answers Node with a flat 403 — not for
  * want of headers: the identical User-Agent, Sec-Fetch trio, Referer and
@@ -236,10 +241,38 @@ export async function probeUrl(url, { fetchImpl = fetch, curlImpl = null, timeou
     }
   };
 
+  // ⚠⚠⚠ A HEAD IS NEVER ALLOWED TO CONDEMN A DOCUMENT ON ITS OWN.
+  //
+  // HEAD asks about the METHOD; only the method that actually fetches
+  // documents can tell us the document is gone. So 404 and 410 — the two
+  // statuses that produce `dead`, the one verdict that orders a destructive
+  // edit — must be CONFIRMED by a GET before we believe them.
+  //
+  // ⭐ This shipped as `405, 501, 403` and it was wrong in the same way #373
+  // was wrong about Ohio and #374 about web.archive.org, one rung lower down
+  // the ladder. The comment above already had the right idea — "plenty of
+  // government servers answer HEAD with 405 while serving the same URL happily
+  // to a GET" — but enumerated the refusals it had happened to meet. CivicPlus
+  // DocumentCenter is exactly that case and says 404:
+  //
+  //   corneliusor.gov/DocumentCenter/View/1301/…FY2024-PDF
+  //       HEAD → 404 text/html        GET → 200 application/pdf, 1,781,772 B
+  //
+  // The gate called that document dead and demanded we rewrite a citation that
+  // was never broken. CivicPlus runs a large share of US municipal sites, so
+  // this is the "invent failures across whole families at once" the comment
+  // above warns about, realised.
+  //
+  // ⚠ Confirming costs one extra request, and ONLY for a URL we are otherwise
+  // about to declare dead. A document that really is gone answers 404 to the
+  // GET as well and still lands on `dead` — see the test named
+  // "confirmation is not immunity".
+  const NEEDS_A_SECOND_OPINION = new Set([403, 404, 405, 410, 501]);
+
   let last = null;
   try {
     last = await attempt('HEAD', {});
-    if (last.status !== 405 && last.status !== 501 && last.status !== 403) {
+    if (!NEEDS_A_SECOND_OPINION.has(last.status)) {
       return { url, ...last, error: null };
     }
   } catch (e) {

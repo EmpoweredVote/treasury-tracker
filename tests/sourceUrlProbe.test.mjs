@@ -193,6 +193,52 @@ describe('probeUrl — how the question is asked', () => {
     expect(calls[1].range).toBe('bytes=0-0'); // not the whole 300 MB ACFR
   });
 
+  it('⚠⚠⚠ CONFIRMS A HEAD 404 WITH A GET — CivicPlus 404s HEAD on a file it serves', async () => {
+    // ⚠⚠⚠ THIS SHIPPED BROKEN AND IT COST US CORNELIUS, OR.
+    //
+    // CivicPlus DocumentCenter answers HEAD with `404 text/html` for a document
+    // it will hand you in full on a GET. Measured on the publisher, 2026-11-10:
+    //
+    //   /DocumentCenter/View/1301/…FY2024-PDF   HEAD 404   GET 200 application/pdf 1,781,772 B
+    //
+    // The escalation list was `405, 501, 403` — written for "the server will
+    // not do HEAD", which is the right idea with an incomplete enumeration. A
+    // HEAD 404 returned immediately and became `dead`, and `dead` carries an
+    // instruction: REPAIR THE URL. The gate demanded we rewrite two live
+    // citations.
+    //
+    // ⭐ THE RULE: `dead` is the one verdict that orders a destructive edit, so
+    // it may NEVER rest on a HEAD alone. HEAD asks about the METHOD; only the
+    // method that actually fetches documents can say the document is gone.
+    // Same error as #373 (a down publisher is not a gone document) and #374 (a
+    // 429 is not a gone document), one rung lower down the ladder.
+    const calls = [];
+    const fetchImpl = async (url, opts) => {
+      calls.push(opts.method);
+      return opts.method === 'HEAD' ? res(404) : res(200, 'application/pdf');
+    };
+    const out = await probeUrl('https://www.corneliusor.gov/DocumentCenter/View/1301/x-PDF', { fetchImpl });
+    expect(calls).toEqual(['HEAD', 'GET']);
+    expect(out.status).toBe(200);
+    expect(judgeProbe(out).verdict).toBe('ok');
+  });
+
+  it('still calls a 404 dead when the GET agrees — confirmation is not immunity', async () => {
+    // The other half of the rule. Escalating must not make `dead` unreachable:
+    // Cornelius FY2022 really is gone, and answers 404 to HEAD and GET alike.
+    const calls = [];
+    const fetchImpl = async (url, opts) => { calls.push(opts.method); return res(404); };
+    const out = await probeUrl('https://www.corneliusor.gov/DocumentCenter/View/463/x-PDF', { fetchImpl });
+    expect(calls).toEqual(['HEAD', 'GET']);
+    expect(judgeProbe(out).verdict).toBe('dead');
+  });
+
+  it('confirms a HEAD 410 with a GET too — same instruction, same bar', async () => {
+    const fetchImpl = async (url, opts) => (opts.method === 'HEAD' ? res(410) : res(200, 'application/pdf'));
+    const out = await probeUrl('https://h.gov/a.pdf', { fetchImpl });
+    expect(judgeProbe(out).verdict).toBe('ok');
+  });
+
   it('⚠⚠ falls back to curl on a 403 — McKinney refuses Node\'s TLS fingerprint, not its headers', async () => {
     const fetchImpl = async () => res(403);
     const curlImpl = async () => ({ status: 200, contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
