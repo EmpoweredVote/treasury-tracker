@@ -58,21 +58,44 @@
  * "2014 CAFR.pdf", "2019 MOA CAFR.pdf", "Municipality of Anchorage ACFR 22.pdf"
  * and "...ACFR 2024 (S).pdf" are five different conventions in thirteen years.
  * Read off the publisher's own listing, never rebuilt from a rule.
+ *
+ * ── ⚠⚠ REPAIRED 2026-11-09 — ALL 13 WERE 404 ──────────────────────────────
+ *
+ * muni.org left SharePoint for a PHP CMS. The flat folder
+ * /Departments/finance/controller/ACFR/ is gone; each year now has its OWN
+ * folder under /Documents/Departments/Finance/Controller/Controller ACFR/,
+ * named "<FY> ACFR". ⭐ Every basename survived unchanged, so the five naming
+ * conventions above still describe the files exactly — only the parent moved.
+ *
+ * ⭐ The publisher is UP: www.muni.org/ returns 200 "Anchorage, AK". Moved,
+ * not withdrawn (see scripts/data/publisherOutages.mjs for the other case).
+ *
+ * ⚠⚠ IT 403s AN UNDECORATED CLIENT. The root and every HTML page refuse plain
+ * curl while the PDFs answer; probe with BROWSER_HEADERS from
+ * scripts/lib/sourceUrlProbe.mjs or you will read a live site as a dead one.
+ *
+ * ⚠ The listing emits each link with a `?t=<timestamp>` cache-buster. It is
+ * NOT required — every URL below was confirmed without it — and a citation
+ * carrying one would rot the next time the publisher touched the file.
+ *
+ * ⭐⭐ Each replacement was probed on its own and then OPENED: all 13 state
+ * "December 31, <FY>" in their front matter and name Anchorage. A 200 only
+ * says something answers at the new address.
  */
 export const ANCHORAGE_URL = Object.freeze({
-  2012: 'https://www.muni.org/Departments/finance/controller/ACFR/2012%20CAFR.pdf',
-  2013: 'https://www.muni.org/Departments/finance/controller/ACFR/Complete%202013%20CAFR.pdf',
-  2014: 'https://www.muni.org/Departments/finance/controller/ACFR/2014%20CAFR.pdf',
-  2015: 'https://www.muni.org/Departments/finance/controller/ACFR/Complete%202015%20CAFR.pdf',
-  2016: 'https://www.muni.org/Departments/finance/controller/ACFR/Complete%202016%20CAFR.pdf',
-  2017: 'https://www.muni.org/Departments/finance/controller/ACFR/2017%20CAFR.pdf',
-  2018: 'https://www.muni.org/Departments/finance/controller/ACFR/2018%20CAFR.pdf',
-  2019: 'https://www.muni.org/Departments/finance/controller/ACFR/2019%20MOA%20CAFR.pdf',
-  2020: 'https://www.muni.org/Departments/finance/controller/ACFR/2020%20MOA%20Annual%20Report-%20Final%20Web%20Version%20w%20Cover-%2010.15.21.pdf',
-  2021: 'https://www.muni.org/Departments/finance/controller/ACFR/2021%20MOA%20ACFR.pdf',
-  2022: 'https://www.muni.org/Departments/finance/controller/ACFR/Municipality%20of%20Anchorage%20ACFR%2022.pdf',
-  2023: 'https://www.muni.org/Departments/finance/controller/ACFR/2023%20MOA%20ACFR.pdf',
-  2024: 'https://www.muni.org/Departments/finance/controller/ACFR/Municipality%20of%20Anchorage%20ACFR%202024%20(S).pdf',
+  2012: 'https://www.muni.org/Documents/Departments/Finance/Controller/Controller%20ACFR/2012%20ACFR/2012%20CAFR.pdf',
+  2013: 'https://www.muni.org/Documents/Departments/Finance/Controller/Controller%20ACFR/2013%20ACFR/Complete%202013%20CAFR.pdf',
+  2014: 'https://www.muni.org/Documents/Departments/Finance/Controller/Controller%20ACFR/2014%20ACFR/2014%20CAFR.pdf',
+  2015: 'https://www.muni.org/Documents/Departments/Finance/Controller/Controller%20ACFR/2015%20ACFR/Complete%202015%20CAFR.pdf',
+  2016: 'https://www.muni.org/Documents/Departments/Finance/Controller/Controller%20ACFR/2016%20ACFR/Complete%202016%20CAFR.pdf',
+  2017: 'https://www.muni.org/Documents/Departments/Finance/Controller/Controller%20ACFR/2017%20ACFR/2017%20CAFR.pdf',
+  2018: 'https://www.muni.org/Documents/Departments/Finance/Controller/Controller%20ACFR/2018%20ACFR/2018%20CAFR.pdf',
+  2019: 'https://www.muni.org/Documents/Departments/Finance/Controller/Controller%20ACFR/2019%20ACFR/2019%20MOA%20CAFR.pdf',
+  2020: 'https://www.muni.org/Documents/Departments/Finance/Controller/Controller%20ACFR/2020%20ACFR/2020%20MOA%20Annual%20Report-%20Final%20Web%20Version%20w%20Cover-%2010.15.21.pdf',
+  2021: 'https://www.muni.org/Documents/Departments/Finance/Controller/Controller%20ACFR/2021%20ACFR/2021%20MOA%20ACFR.pdf',
+  2022: 'https://www.muni.org/Documents/Departments/Finance/Controller/Controller%20ACFR/2022%20ACFR/Municipality%20of%20Anchorage%20ACFR%2022.pdf',
+  2023: 'https://www.muni.org/Documents/Departments/Finance/Controller/Controller%20ACFR/2023%20ACFR/2023%20MOA%20ACFR.pdf',
+  2024: 'https://www.muni.org/Documents/Departments/Finance/Controller/Controller%20ACFR/2024%20ACFR/Municipality%20of%20Anchorage%20ACFR%202024%20(S).pdf',
 });
 
 /** The fiscal years this entity can be loaded for. */
@@ -96,9 +119,16 @@ export const KNOWN_DOCUMENT_GAPS = Object.freeze({
   2011: 'image-only scan (7 chars/page) — muni.org section PDFs',
 });
 
-/** The reader-facing publication page — what a budgets row cites. */
+/**
+ * The reader-facing publication page — what a budgets row cites.
+ *
+ * ⚠⚠ THIS WAS 404 TOO, AND NO GATE WOULD HAVE CAUGHT IT. `verify:source-urls`
+ * reads `budgets.source_url`; this value is written to `data_sources.base_url`,
+ * which nothing checks. The old SharePoint `Pages/ACFR.aspx` had been dead for
+ * as long as the thirteen documents had, and it was only found by hand.
+ */
 export const ANCHORAGE_PAGE =
-  'https://www.muni.org/Departments/finance/controller/Pages/ACFR.aspx';
+  'https://www.muni.org/departments/finance/controller/controller_acfr.php';
 
 /** Resolve the fetch URL for one fiscal year, or null if not published. */
 export function anchorageUrl(fiscalYear) {
