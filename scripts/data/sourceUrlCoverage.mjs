@@ -4,7 +4,7 @@
  * ⚠⚠⚠ THIS IS THE DEGENERATE CASE OF THE DEAD-CITATION DEFECT. A budget with a
  * broken `source_url` asks the reader to believe a figure and hands them a link
  * that fails; a budget with no `source_url` asks them to believe it and hands
- * them nothing. 24,960 budgets are in the second state, which is 4.3% of the
+ * them nothing. 24,938 budgets are in the second state, which is 4.3% of the
  * fleet — so `verify:source-urls` failing on their EXISTENCE would be red from
  * the first run, and a gate that is red by design is a gate nobody reads.
  *
@@ -16,6 +16,12 @@
  * The gate's only assertion is that **nothing grew**. Paying one down is a
  * NOTICE; lowering the number here is the PR that records it.
  *
+ * ⭐⭐ AND ONE HAS ALREADY BEEN PAID DOWN. The first measurement was 24,960
+ * across 75 families. #372 cited West Hollywood's 22 uncited budgets — 10
+ * demand registers and 12 budget-detail years — which removed THREE families
+ * outright, because every member of each was cited at once. That is what the
+ * ratchet is for: the number moved, in a PR, with the reason attached.
+ *
  * ── ⚠ WHAT A "FAMILY" IS ───────────────────────────────────────────────────
  *
  * `familyOf()` in scripts/lib/sourceUrlProbe.mjs, and both of its
@@ -23,19 +29,19 @@
  * families carry one `data_source` per town, 351 of them, three times over) and
  * the fiscal year is stripped wherever it sits, including the middle of the
  * federal names. That collapses ~1,060 distinct `data_source` strings to these
- * 75 families — small enough that every one is named here rather than hidden
+ * 72 families — small enough that every one is named here rather than hidden
  * in a tail bucket, so a new uncited year moves a COUNT a reviewer can see.
  *
- * ── ⚠⚠ THE FOUR THAT ARE 97.4% OF IT ───────────────────────────────────────
+ * ── ⚠⚠ THE FOUR THAT ARE 97.5% OF IT ───────────────────────────────────────
  *
  * MA General Fund Expenditures (8,408), CA publicpay (7,682), MA General Fund
  * Revenues (6,663) and MA DLS Revenue by Source (1,755). Each is ONE publisher
  * with one landing page, so each is one `UPDATE` away from being cited —
  * ⚠ a targeted UPDATE on `source_url` only, NEVER a re-load: re-running a
  * loader re-mints `budgets.id` and stales the id-keyed frozen registry.
- * See reference_source_url_never_verified.
+ * #372 is the worked example. See reference_source_url_never_verified.
  *
- * MEASURED 2026-11-09 against the live fleet.
+ * MEASURED 2026-11-09 against the live fleet, after #372.
  */
 export const UNCITED_BASELINE = {
   families: {
@@ -53,7 +59,6 @@ export const UNCITED_BASELINE = {
     "Bloomington Public Contracts": 11,
     "LA City Payroll": 10,
     "Plano Check Register": 10,
-    "West Hollywood Demand Register": 10,
     "Frisco Check Register": 9,
     "LA City Checkbook": 9,
     "Plano Operating Budget": 9,
@@ -63,8 +68,6 @@ export const UNCITED_BASELINE = {
     "Richardson Operating Budget": 8,
     "Fresno General Fund Operating Budget": 7,
     "Leonardtown Operating Budget": 6,
-    "West Hollywood Budget Expenditure Detail": 6,
-    "West Hollywood Budget Revenue Detail": 6,
     "McKinney Check Register": 5,
     "McKinney Revenue": 5,
     "San Jose General Fund Operating Budget": 5,
