@@ -157,8 +157,33 @@ export function judgeProbe({ url, status, contentType, error }) {
   if (typeof status !== 'number') {
     return { verdict: 'unreachable', detail: 'no status was recorded' };
   }
-  if (status >= 400) {
+  // ⚠⚠⚠ ONLY THE PUBLISHER'S "IT IS GONE" MAY BE `dead`.
+  //
+  // `dead` carries exactly one instruction — REPAIR THE URL, do not annotate
+  // it — so the bar for it is a statement ABOUT THE DOCUMENT. HTTP has two:
+  // 404 Not Found and 410 Gone. Everything else in 4xx/5xx is a statement
+  // about the REQUEST or the SERVER, and obeying `dead` on one of those means
+  // rewriting a citation that was never broken.
+  //
+  // ⭐ This shipped as `status >= 400` and it was wrong in the same way #373
+  // was wrong about Ohio: a publisher that cannot answer right now is not a
+  // document that is gone. The symptom was a backlog that would not hold
+  // still — three consecutive fleet runs reported 102, then 77, then 79 dead,
+  // because nine web.archive.org citations were being RATE LIMITED (429) and
+  // twenty more hosts answer automated clients with 403. A gate whose repair
+  // list changes between runs is measuring itself, not the publishers.
+  //
+  // `unreachable` is the honest bucket and is already declarable, precisely
+  // because a person with a browser can still click one of these.
+  if (status === 404 || status === 410) {
     return { verdict: 'dead', detail: `HTTP ${status}` };
+  }
+  if (status >= 400) {
+    return {
+      verdict: 'unreachable',
+      detail: `HTTP ${status} — the server refused or failed the request; `
+        + 'it did not say the document is gone',
+    };
   }
   if (status >= 300) {
     // ⚠ Only reachable if the caller did NOT follow redirects. Following is
