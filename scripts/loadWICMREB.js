@@ -49,7 +49,44 @@ export const SHEET_FOR_ENTITY = {
   county: 'Counties',
 };
 
+// ── ⚠⚠ DOR RETIRED THE OLDER BULLETINS — REPAIRED 2026-11-10 ─────────────────
+//
+// The template below still holds for the years DOR currently publishes, but it
+// is no longer true for all of them. CMREB2020/2021/2022.xlsx now 404 — asked
+// with HEAD *and* a real GET, per #376, so this is not the HEAD-404 defect.
+//
+// The publisher is UP, the folder still serves, and FY2023/FY2024 answer 200
+// `application/vnd.openxmlformats-...sheet` from exactly this template. What
+// changed is the CATALOGUE: the DOR's own CMRE page
+// (Pages/Report/county-municipal-revenues-expenditures.aspx) lists FY2023 and
+// FY2024 and nothing else. No live filename variant exists — lower-case, .xls,
+// .pdf, CMREB20, CMREB_2020 and 2020CMREB were each probed and all 404.
+//
+// ⭐⭐⭐ THE THREE ARCHIVED WORKBOOKS WERE NOT MERELY "REACHABLE" — THEY WERE
+// RE-DERIVED. scripts/rederiveWICMREB.py reads the workbook with a different
+// language and a different XLSX reader, rebuilds the column groupings from the
+// sheet's own printed subtotals, pulls what production holds over PostgREST and
+// diffs every category. Run against these captures:
+//
+//     rows compared: 20/20
+//     ALL CHECKS PASS — every re-derived figure ties to production at exactly $0
+//
+// That is a stronger statement than any of the #374–#378 repairs could make
+// about a PDF: not "this document contains our number" but "this workbook
+// regenerates every one of our numbers, category by category, at $0 delta".
+const RETIRED_BY_PUBLISHER = Object.freeze({
+  // DOR no longer publishes these; the capture is of DOR's own file at DOR's
+  // own URL. ⚠ web.archive.org rate-limits, so these probe 429 (`unreachable`)
+  // rather than green — honest, and better than `dead`, which would demand a
+  // repair that cannot be performed.
+  2020: 'https://web.archive.org/web/20250413192241id_/https://www.revenue.wi.gov/SLFReportscotvc/CMREB2020.xlsx',
+  2021: 'https://web.archive.org/web/20250414194705id_/https://www.revenue.wi.gov/SLFReportscotvc/CMREB2021.xlsx',
+  2022: 'https://web.archive.org/web/20250415104738id_/https://www.revenue.wi.gov/SLFReportscotvc/CMREB2022.xlsx',
+});
+
 export function sourceUrlForYear(fiscalYear) {
+  const retired = RETIRED_BY_PUBLISHER[Number(fiscalYear)];
+  if (retired) return retired;
   // Upper-case CMREB for the XLSX; the PDF bulletin is lower-case. Both verified 200.
   return `https://www.revenue.wi.gov/SLFReportscotvc/CMREB${fiscalYear}.xlsx`;
 }

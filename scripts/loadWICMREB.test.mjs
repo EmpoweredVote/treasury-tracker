@@ -158,6 +158,27 @@ test('source URL uses the upper-case XLSX form', () => {
     'https://www.revenue.wi.gov/SLFReportscotvc/CMREB2024.xlsx');
 });
 
+test('⚠ the three years DOR RETIRED do not get the live template', () => {
+  // CMREB2020/2021/2022.xlsx 404 — on HEAD and on a real GET alike, so this is
+  // not #376's HEAD-404 defect. DOR's own CMRE page now lists FY2023/FY2024
+  // only. Handing those years the template would mint a dead citation on every
+  // re-run, which is exactly what the repair playbook's step 5 exists to stop.
+  for (const fy of [2020, 2021, 2022]) {
+    const url = sourceUrlForYear(fy);
+    assert.ok(url.startsWith('https://web.archive.org/web/'),
+      `FY${fy} must cite the archived capture, got ${url}`);
+    assert.ok(url.endsWith(`/https://www.revenue.wi.gov/SLFReportscotvc/CMREB${fy}.xlsx`),
+      `FY${fy} must archive DOR's OWN url, got ${url}`);
+  }
+});
+
+test('⚠ a retired year and a live year never collide', () => {
+  // The replacements differ from each other only by a year and a timestamp, so
+  // a copy-paste slip would silently point two fiscal years at one workbook.
+  const urls = [2020, 2021, 2022, 2023, 2024].map(sourceUrlForYear);
+  assert.equal(new Set(urls).size, urls.length, 'two fiscal years share a source URL');
+});
+
 test('every entity type maps to a sheet', () => {
   assert.deepEqual(Object.keys(SHEET_FOR_ENTITY).sort(), ['city', 'county', 'town', 'village']);
 });
