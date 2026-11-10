@@ -115,12 +115,46 @@ const POPULATION = 15369; // Census PEP vintage 2024, matches the seeder
 const SANITY_MAX = 2_000_000_000;
 
 // Durable per-FY source PDF URLs, stamped onto every loaded budgets row
-// (verified 2026-07-27).
+// (verified 2026-07-27; FY2022 and FY2023 re-verified and re-pointed 2026-11-10).
+//
+// ── ⚠⚠⚠ THE CITY WITHDREW FY2022 AND FY2023 ───────────────────────────────────
+//
+// DocumentCenter ids 462 and 463 answer 404 to HEAD, to a ranged GET and to a
+// plain GET alike. Unlike South Carolina and Anchorage, these documents did NOT
+// move — Cornelius took them down. Measured 2026-11-10:
+//
+//   • The publisher is UP: www.corneliusor.gov/ returns 200 "Cornelius, OR".
+//   • Not an id-block purge — neighbouring id 460 still serves a PDF.
+//   • The City's OWN index, /258/Financial-Reporting, now lists FY2024 and
+//     FY2025 only. The sitemap has 227 pages and no documents.
+//   • The retired Drupal tree /sites/default/files/fileattachments/… is gone
+//     entirely; even cafr2019.pdf, still in search indexes, 404s.
+//   • The Federal Audit Clearinghouse has, for FY2022, only a THREE-PAGE
+//     CSLFRF compliance examination — right city, right period, wrong document,
+//     no fund statements — and nothing at all for FY2023.
+//
+// ⭐ So FY2022/FY2023 cite the Internet Archive's capture of the CITY'S OWN
+// FILE at the CITY'S OWN URL (2026-02-15). Not a substitute document — the
+// same bytes. Both were downloaded and read back before being written here:
+// 148 pp / 2,665,615 B stating "June 30, 2022" and 147 pp / 2,339,643 B
+// stating "June 30, 2023", both "Annual Comprehensive Financial Report",
+// "Cornelius", "Oregon". Nine other TT citations already do this (NH DAS ×8,
+// King County ×1).
+//
+// ⚠ Known cost, accepted: web.archive.org rate-limits automated clients, so
+// these two will intermittently probe 429 → `unreachable`. That is the honest
+// verdict for "could not ask today"; a reader with a browser can still open
+// them, and it beats `dead`, which orders a repair that cannot be performed.
+//
+// ⚠⚠ DO NOT "FIX" FY2024/FY2025, OR HILLSBORO, OR TIGARD. The gate called all
+// of them dead on 2026-11-10 and every one was LIVE: CivicPlus answers HEAD
+// with 404 for files it serves on GET. That defect is fixed in
+// scripts/lib/sourceUrlProbe.mjs — see NEEDS_A_SECOND_OPINION.
 const URLS = {
   2025: 'https://www.corneliusor.gov/DocumentCenter/View/2002/Annual-Comprehensive-Financial-Report-FY2025-PDF',
   2024: 'https://www.corneliusor.gov/DocumentCenter/View/1301/Annual-Comprehensive-Financial-Report-FY2024-PDF',
-  2023: 'https://www.corneliusor.gov/DocumentCenter/View/462/Annual-Comprehensive-Financial-Report-FY2023-PDF',
-  2022: 'https://www.corneliusor.gov/DocumentCenter/View/463/Annual-Comprehensive-Financial-Report-FY2022-PDF',
+  2023: 'https://web.archive.org/web/20260215072617id_/https://www.corneliusor.gov/DocumentCenter/View/462/Annual-Comprehensive-Financial-Report-FY2023-PDF',
+  2022: 'https://web.archive.org/web/20260215072618id_/https://www.corneliusor.gov/DocumentCenter/View/463/Annual-Comprehensive-Financial-Report-FY2022-PDF',
 };
 
 // ── Run the Python extractor, return parsed JSON (or throw) ───────────────────
