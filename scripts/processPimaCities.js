@@ -108,11 +108,49 @@ const CITIES = {
   SouthTucson: {
     muniName: 'South Tucson', slug: 'southtucson', population: 4535,
     fys: [2019, 2020, 2021, 2022],
+    // ── ⚠⚠ REPAIRED 2026-11-10 — ALL FOUR WERE 404 ──────────────────────────
+    //
+    // The City left a self-hosted Drupal for a Granicus/Municode-hosted one.
+    // The whole /sites/default/files/fileattachments/finance/page/<nodeid>/
+    // tree is gone; documents are now MEDIA ENTITIES at /media/<id>.
+    // Publisher is UP (200, "Home Page | South Tucson Arizona"), and each URL
+    // was asked with HEAD *and* a real GET — #376's rule, a HEAD 404 proves
+    // nothing. All four 404'd both ways.
+    //
+    // ⭐ The basename did NOT survive, so there is no path rule to derive. The
+    // City's own index at /finance/page/annual-financial-statements was read
+    // and the four reports taken off it BY NAME.
+    //
+    // ⚠⚠⚠ THE TRAP IS PICKING THE WRONG DOCUMENT, NOT THE PATH. Each year
+    // carries several filings. A "Notice of Pending Financial Statement
+    // Filing" is a short letter saying the audit is LATE and contains no
+    // statements; FY2019 has THREE of them. And size will not save you —
+    // FY2021's notices (659 KB, 713 KB) are BIGGER than its actual report
+    // (427 KB). Each id below is the entry named "Annual Financial Report".
+    //
+    // ⭐⭐ Verified to the exact dollar (the #377 bar) — every figure this
+    // loader publishes was found inside its document, which is the only check
+    // that distinguishes the report from the notice:
+    //
+    //     FY2019  media 5936  71 pp  exp 5,034,119  rev 5,138,816
+    //     FY2020  media 5921  72 pp  exp 5,555,457  rev 5,646,186
+    //     FY2021  media 5906  68 pp  exp 5,424,024  rev 6,207,597
+    //     FY2022  media 5896  69 pp  exp 5,883,806  rev 6,201,468
+    //
+    // All four are complete (%%EOF) and answer 200 application/pdf directly at
+    // /media/<id> with NO redirect. ⚠ No file extension, which is correct: a
+    // URL promising no type has nothing asserted about it (citationShape).
+    //
+    // ⚠ The host 403s a client sending only a User-Agent — full BROWSER_HEADERS
+    // are required, the same lesson Anchorage taught in #375.
+    //
+    // ⚠ base_url below is derived from the LAST entry in this table, so it is
+    // repaired by this edit too. No gate reads base_url.
     urls: {
-      2019: 'https://www.southtucsonaz.gov/sites/default/files/fileattachments/finance/page/4463/annual_financial_report_fye_6-30-2019.pdf',
-      2020: 'https://www.southtucsonaz.gov/sites/default/files/fileattachments/finance/page/1036/20_south_tucson-afr.pdf',
-      2021: 'https://www.southtucsonaz.gov/sites/default/files/fileattachments/finance/page/1036/annual_financial_report_fye_6-30-2021.pdf',
-      2022: 'https://www.southtucsonaz.gov/sites/default/files/fileattachments/finance/page/1036/annual_financial_report_fye_6-30-2022.pdf',
+      2019: 'https://www.southtucsonaz.gov/media/5936',
+      2020: 'https://www.southtucsonaz.gov/media/5921',
+      2021: 'https://www.southtucsonaz.gov/media/5906',
+      2022: 'https://www.southtucsonaz.gov/media/5896',
     },
   },
 };

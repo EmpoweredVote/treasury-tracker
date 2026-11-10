@@ -95,11 +95,19 @@ const CITIES = {
   SouthTucson: {
     muniName: 'South Tucson', slug: 'southtucson', waf403: true,
     fys: [2019, 2020, 2021, 2022],
+    // ⚠⚠ UPDATED 2026-11-10 WITH THE REPAIRED CITATIONS. This script asserts
+    // (b) "each row's source_url is the CORRECT-per-FY canonical origin URL",
+    // so it compares these strings against the live DB. Leaving the retired
+    // Drupal paths here would make it report a FALSE FAILURE the moment
+    // migration 20261110100000 landed — the audit would be measuring its own
+    // staleness, not the data. See scripts/processPimaCities.js for why each
+    // media id is the one it is (every year also has "Notice of Pending
+    // Financial Statement Filing" entries, which contain no statements).
     urls: {
-      2019: 'https://www.southtucsonaz.gov/sites/default/files/fileattachments/finance/page/4463/annual_financial_report_fye_6-30-2019.pdf',
-      2020: 'https://www.southtucsonaz.gov/sites/default/files/fileattachments/finance/page/1036/20_south_tucson-afr.pdf',
-      2021: 'https://www.southtucsonaz.gov/sites/default/files/fileattachments/finance/page/1036/annual_financial_report_fye_6-30-2021.pdf',
-      2022: 'https://www.southtucsonaz.gov/sites/default/files/fileattachments/finance/page/1036/annual_financial_report_fye_6-30-2022.pdf',
+      2019: 'https://www.southtucsonaz.gov/media/5936',
+      2020: 'https://www.southtucsonaz.gov/media/5921',
+      2021: 'https://www.southtucsonaz.gov/media/5906',
+      2022: 'https://www.southtucsonaz.gov/media/5896',
     },
   },
 };
