@@ -61,6 +61,7 @@
     "verify:out-of-period": "node scripts/verifyOutOfPeriodTransactions.mjs",
     "verify:source-row-coverage": "node scripts/verifySourceRowCoverage.mjs",
     "verify:bond-flags": "node scripts/generateBondFinancedRevenue.mjs --check",
+    "verify:source-urls": "node scripts/verifySourceUrls.mjs",
     "verify:xlsx-row-coverage": "node scripts/verifyXlsxRowCoverage.mjs"
   },
   "dependencies": {
