@@ -98,6 +98,15 @@ describe('every paged read orders by a total key', () => {
    */
   const TOTAL_WITHOUT_PK = [
     { rpc: 'transaction_roots', column: 'link_key' },
+    // ⚠ Both of these GROUP BY the column they are ordered on, so it is unique
+    // WITHIN THE RESULT SET even though it is wildly non-unique in `budgets` —
+    // which is the only thing that makes the exemption safe, and the reason it
+    // is keyed on the RPC name rather than on the column. Added 2026-11-09 with
+    // verify:source-urls, whose first draft used a generic `rpcAll(fn, orderBy)`
+    // helper; this guard rejected it, correctly, because variables hide which
+    // column is sorted on. See 20261109210000_source_url_census.sql.
+    { rpc: 'source_url_census', column: 'source_url' },
+    { rpc: 'uncited_budget_census', column: 'data_source' },
   ];
 
   it('EVERY paged read ends its ordering on the primary key', () => {
