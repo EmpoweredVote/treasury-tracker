@@ -24,8 +24,14 @@
  *   FY2023=2023-acfr-report.pdf, FY2022=2022_ACFR_Report.pdf, FY2021=FY21_ACFR.pdf,
  *   FY2020=ACFR_FY2020.pdf, FY2019=CAFR_Web_2019.pdf. Landing page states ACFR documents are
  *   "currently being remediated" but the underlying PDFs remain directly fetchable by filename.
+ *   ⚠⚠⚠ STALE AS OF 2026-11-10 — ALL FIVE OF THOSE FILENAMES NOW 404. The Controller purged
+ *   its whole ACFR back-catalogue; two were renamed and three were withdrawn. The live table
+ *   is SOURCES below; this paragraph is kept only to record what the names USED to be.
  *
- * PARTIAL-WINDOW LOAD (D-07): NV has NOT published a FY2024/FY2025 ACFR as of this load
+ * PARTIAL-WINDOW LOAD (D-07): ⚠ NO LONGER TRUE — the Controller's ACFR page listed a FY2024
+ *   ACFR when citations were repaired on 2026-11-10 (fy-2024-acfr.pdf, live). TT has not loaded
+ *   it; loading a year is a load, not a citation repair. Original note follows.
+ *   NV has NOT published a FY2024/FY2025 ACFR as of this load
  *   (re-checked controller.nv.gov live at Phase-120 load time -- 2026-07-04 -- every tested
  *   FY2024/FY2025 filename variant 404s, landing page still reads "currently being remediated",
  *   no FY2024/2025 mention). Loaded FY2019-FY2023 on ACFR; the FY2024 NASBO operating row is
@@ -79,12 +85,57 @@ const SUPABASE_URL = process.env.SUPABASE_URL || 'https://kxsdzaojfaibhuzmclfq.s
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 // EXPLICIT per-year URLs (no derivable pattern).
+//
+// ── ⚠⚠⚠ REPAIRED 2026-11-10 — ALL FIVE WERE 404 ───────────────────────────────
+//
+// The Controller PURGED ITS ENTIRE ACFR BACK-CATALOGUE. The publisher is up
+// (200, "Controller") and /siteassets/content/financialrpts/acfr/ still exists,
+// but the Internet Archive's CDX index — everything this host has EVER served
+// out of that folder — lists FY94All.pdf through FY18All.pdf plus three generic
+// names, and every one of them now 404s. The Controller's own ACFR page lists
+// exactly three documents: FY2022, FY2023, FY2024.
+//
+// Each of the five was asked with HEAD *and* a real GET, because #376 had just
+// shown a HEAD 404 proves nothing. All five 404'd both ways — genuinely dead.
+//
+// ⚠⚠ THE RENAME IS A TRAP — THE SOUTH CAROLINA TRAP AGAIN. FY2022/FY2023 are
+// now fy-2022-acfr.pdf / fy-2023-acfr.pdf, which reads as a site-wide kebab-case
+// convention. It is not: fy-2019-acfr.pdf, fy-2020-acfr.pdf and fy-2021-acfr.pdf
+// were each probed INDIVIDUALLY and all three 404. Extrapolating would have
+// swapped three dead links for three different dead links.
+//
+// ⭐⭐ AND A MATCHING COVER DATE IS NOT PROOF EITHER. Every figure this loader
+// publishes was searched for, and found TO THE EXACT DOLLAR, inside its
+// replacement document:
+//
+//     FY2019  exp 10,143,797,415  rev 10,411,179,917   FAC Single Audit Report
+//     FY2020  exp 10,390,703,854  rev 10,308,923,845   FAC Single Audit Report
+//     FY2021  exp 11,560,594,512  rev 12,265,829,792   archived FY21_ACFR.pdf
+//     FY2022  exp 12,335,115,024  rev 14,612,607,899   publisher, renamed
+//     FY2023  exp 12,405,372,737  rev 15,153,168,081   publisher, renamed
+//
+// ⚠⚠ FY2019 AND FY2020 ARE A DIFFERENT DOCUMENT, AND THAT IS STATED, NOT HIDDEN.
+// Both were withdrawn and the only archive capture of each is TRUNCATED at 5 MiB
+// with no %%EOF. What FAC holds is titled "Single Audit Report, June 30, <FY>,
+// State of Nevada" (Eide Bailly) — NOT the ACFR. It is complete (358 pp and
+// 356 pp, %%EOF intact) and it contains the audited basic financial statements
+// ("Basic Financial Statements" x16, "Statement of Net Position" x23, "General
+// Fund" x43/x48) — which is why the dollar-exact check above was run rather
+// than the filing being trusted. #376 is the cautionary case: Cornelius's FAC
+// filing was a THREE-PAGE CSLFRF compliance examination with no fund statements.
+//
+// ⚠⚠ FY2021: THE OBVIOUS SNAPSHOT WAS THE WRONG ONE. FY21_ACFR.pdf has two
+// captures; the newer (2026-02-12) is truncated at exactly 5 MiB with no %%EOF
+// and opens as a broken file. The older (2025-10-28) is whole — 12,751,690 B,
+// 235 pages, "June 30, 2021". ⭐ Citing a truncated capture is WORSE than a dead
+// link: the reader gets something that looks like a document and is not one.
+// Always check %%EOF and the page count, and compare stored lengths.
 const SOURCES = {
-  2019: { url: 'https://www.controller.nv.gov/siteassets/content/financialrpts/acfr/CAFR_Web_2019.pdf', date: '2019-06-30' },
-  2020: { url: 'https://www.controller.nv.gov/siteassets/content/financialrpts/acfr/ACFR_FY2020.pdf', date: '2020-06-30' },
-  2021: { url: 'https://www.controller.nv.gov/siteassets/content/financialrpts/acfr/FY21_ACFR.pdf', date: '2021-06-30' },
-  2022: { url: 'https://www.controller.nv.gov/siteassets/content/financialrpts/acfr/2022_ACFR_Report.pdf', date: '2022-06-30' },
-  2023: { url: 'https://www.controller.nv.gov/siteassets/content/financialrpts/acfr/2023-acfr-report.pdf', date: '2023-06-30' },
+  2019: { url: 'https://app.fac.gov/dissemination/report/pdf/2019-06-CENSUS-0000155928', date: '2019-06-30' },
+  2020: { url: 'https://app.fac.gov/dissemination/report/pdf/2020-06-CENSUS-0000155928', date: '2020-06-30' },
+  2021: { url: 'https://web.archive.org/web/20251028004655id_/https://www.controller.nv.gov/siteassets/content/financialrpts/acfr/FY21_ACFR.pdf', date: '2021-06-30' },
+  2022: { url: 'https://www.controller.nv.gov/siteassets/content/financialrpts/acfr/fy-2022-acfr.pdf', date: '2022-06-30' },
+  2023: { url: 'https://www.controller.nv.gov/siteassets/content/financialrpts/acfr/fy-2023-acfr.pdf', date: '2023-06-30' },
 };
 const dataSource = (fy) => `Nevada State ACFR — General Fund (FY${fy} actual, GAAP basis)`;
 
