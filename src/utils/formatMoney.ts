@@ -61,3 +61,26 @@ export function formatMoneyCompact(amount: number): string {
   if (n >= K) return `${sign}$${(n / K).toFixed(0)}K`;
   return formatMoneyExact(amount);
 }
+
+/**
+ * `$85.0 million` / `$2.64 billion` / `$913,400` — the SENTENCE form.
+ *
+ * ⚠ A third form, deliberately, and it belongs HERE rather than beside the
+ * thing that needed it. Banner copy has always spelled magnitudes out ("about
+ * $68.81 million was paid after the year ended") because `$68.8M` reads as
+ * chart furniture inside a paragraph. Every one of those strings was typed by
+ * hand, which is exactly how a figure in prose drifts from the figure in the
+ * chart beside it (PR #364). Generated copy needs a function, and putting it
+ * anywhere else would start the fifteenth ladder this module exists to end.
+ *
+ * ⚠ Billions get two decimals and millions one, because a tenth of a billion
+ * is $100M — too coarse to state a figure a reader is being asked to subtract.
+ */
+export function formatMoneyProse(amount: number): string {
+  if (!Number.isFinite(amount)) return formatMoneyExact(0);
+  const sign = amount < 0 ? '-' : '';
+  const n = Math.abs(amount);
+  if (n >= B) return `${sign}$${(n / B).toFixed(2)} billion`;
+  if (n >= M) return `${sign}$${(n / M).toFixed(1)} million`;
+  return formatMoneyExact(amount);
+}

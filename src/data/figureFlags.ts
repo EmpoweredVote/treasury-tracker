@@ -69,6 +69,7 @@
  */
 
 import type { ComparabilitySource } from '../types/budget';
+import { bondFinancedRevenueFlags } from './figureFlagRules';
 
 export type FigureFlagSeverity = 'understated' | 'outlier' | 'not-comparable';
 
@@ -117,7 +118,7 @@ const DCA_NAME = 'Georgia DCA Report of Local Government Finances';
  * Every entity, year and dataset without an entry is completely unaffected —
  * the additive pattern `cityBasisNotes` already uses.
  */
-export const figureFlags: Record<string, FigureFlag> = {
+const handWrittenFigureFlags: Record<string, FigureFlag> = {
 
   'Georgetown-Quitman County|GA|2023|operating': {
     id: 'georgetown-quitman-fy2023-six-month-transition-year',
@@ -2545,6 +2546,25 @@ export const figureFlags: Record<string, FigureFlag> = {
       },
     ],
   },
+};
+
+/**
+ * Every reader-facing flag: the ones written by hand above, plus the ones a
+ * RULE emits over the whole fleet.
+ *
+ * ⚠⚠ HAND-WRITTEN WINS ON A KEY COLLISION, and the order below is the whole
+ * reason. A rule knows one thing about a year; a person who sat with that year
+ * may know several, and the banner has room for one. If a rule ever lands on a
+ * key someone has already written, the authored entry is the better one and the
+ * rule must not silently replace it. `tests/figureFlags.test.ts` asserts the
+ * collision set stays empty anyway, so this is a guard, not a routine.
+ *
+ * ⭐ Why a rule at all: see `figureFlagRules.ts`. In short — every entry above
+ * exists because somebody looked, so "unflagged" never meant "checked".
+ */
+export const figureFlags: Record<string, FigureFlag> = {
+  ...bondFinancedRevenueFlags(),
+  ...handWrittenFigureFlags,
 };
 
 /** Look up the flag for a rendered figure. Returns undefined when there is none. */
