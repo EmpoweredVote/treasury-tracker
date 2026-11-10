@@ -67,31 +67,54 @@ const SUPABASE_URL = process.env.SUPABASE_URL || 'https://kxsdzaojfaibhuzmclfq.s
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 // EXPLICIT per-year URLs (no derivable pattern).
+//
+// ⚠⚠ REPAIRED 2026-11-09 — THE PUBLISHER REBUILT ITS SITE AND EVERY URL HERE 404'd.
+//   cg.sc.gov moved to a new Drupal build in 2026-10. The old tree
+//   /sites/cg/files/Documents/<Spaced Folder Names>/ is gone in both branches it
+//   used, and 23 of these 24 files were re-uploaded, under their ORIGINAL
+//   basenames, into the flat date folder /sites/cg/files/2026-10/. FY2025 alone
+//   stayed in the document tree, which survived with every space stripped out of
+//   the directory names and Documents/ lowercased.
+//
+//   ⭐ The publisher is UP and the documents are all still published — this was a
+//   move, not a withdrawal. The distinction is the host's root, which serves
+//   "Home | Comptroller General" (see scripts/data/publisherOutages.mjs for the
+//   case where it does not).
+//
+//   ⭐⭐ Each of the 24 replacements was confirmed individually: HTTP 200 with
+//   Content-Type application/pdf, then the PDF's own front matter read back and
+//   checked for "June 30, <FY>" plus "South Carolina". A 200 is not proof that a
+//   file is the document it is cited as; the cover line is.
+//
+// ⚠ The WINDOW NOTE above says SC's archive is live back to FY1993. That was
+//   measured on the OLD site and has NOT been re-measured since the rebuild —
+//   the directory listing it was read from no longer exists. Treat it as
+//   history, not as a current statement about what cg.sc.gov serves.
 const SOURCES = {
-  2002: { url: 'https://cg.sc.gov/sites/cg/files/Documents/Financial%20Reports/Annual%20Comprehensive%20Financial%20Reports%20(ACFRs)/Annual%20Comprehensive%20Financial%20Reports%20(2000%20-%202009)/SC%20FY%202002%20CAFR.pdf', date: '2002-06-30' },
-  2003: { url: 'https://cg.sc.gov/sites/cg/files/Documents/Financial%20Reports/Annual%20Comprehensive%20Financial%20Reports%20(ACFRs)/Annual%20Comprehensive%20Financial%20Reports%20(2000%20-%202009)/SC%20FY%202003%20CAFR.pdf', date: '2003-06-30' },
-  2004: { url: 'https://cg.sc.gov/sites/cg/files/Documents/Financial%20Reports/Annual%20Comprehensive%20Financial%20Reports%20(ACFRs)/Annual%20Comprehensive%20Financial%20Reports%20(2000%20-%202009)/SC%20FY%202004%20CAFR.pdf', date: '2004-06-30' },
-  2005: { url: 'https://cg.sc.gov/sites/cg/files/Documents/Financial%20Reports/Annual%20Comprehensive%20Financial%20Reports%20(ACFRs)/Annual%20Comprehensive%20Financial%20Reports%20(2000%20-%202009)/SC%20FY%202005%20CAFR.pdf', date: '2005-06-30' },
-  2006: { url: 'https://cg.sc.gov/sites/cg/files/Documents/Financial%20Reports/Annual%20Comprehensive%20Financial%20Reports%20(ACFRs)/Annual%20Comprehensive%20Financial%20Reports%20(2000%20-%202009)/SC%20FY%202006%20CAFR.pdf', date: '2006-06-30' },
-  2007: { url: 'https://cg.sc.gov/sites/cg/files/Documents/Financial%20Reports/Annual%20Comprehensive%20Financial%20Reports%20(ACFRs)/Annual%20Comprehensive%20Financial%20Reports%20(2000%20-%202009)/SC%20FY%202007%20CAFR.pdf', date: '2007-06-30' },
-  2008: { url: 'https://cg.sc.gov/sites/cg/files/Documents/Financial%20Reports/Annual%20Comprehensive%20Financial%20Reports%20(ACFRs)/Annual%20Comprehensive%20Financial%20Reports%20(2000%20-%202009)/SC%20FY%202008%20CAFR.pdf', date: '2008-06-30' },
-  2009: { url: 'https://cg.sc.gov/sites/cg/files/Documents/Financial%20Reports/Annual%20Comprehensive%20Financial%20Reports%20(ACFRs)/Annual%20Comprehensive%20Financial%20Reports%20(2000%20-%202009)/SC%20FY%202009%20CAFR.pdf', date: '2009-06-30' },
-  2010: { url: 'https://cg.sc.gov/sites/cg/files/Documents/Publications%20and%20Reports/Annual%20Accountability%20Reports/SC%20FY%202010%20CAFR.pdf', date: '2010-06-30' },
-  2011: { url: 'https://cg.sc.gov/sites/cg/files/Documents/Publications%20and%20Reports/Annual%20Accountability%20Reports/SC%20FY%202011%20CAFR.pdf', date: '2011-06-30' },
-  2012: { url: 'https://cg.sc.gov/sites/cg/files/Documents/Publications%20and%20Reports/Annual%20Accountability%20Reports/SC%20FY%202012%20CAFR.pdf', date: '2012-06-30' },
-  2013: { url: 'https://cg.sc.gov/sites/cg/files/Documents/Publications%20and%20Reports/Annual%20Accountability%20Reports/State%20of%20South%20Carolina%202013%20CAFR.pdf', date: '2013-06-30' },
-  2014: { url: 'https://cg.sc.gov/sites/cg/files/Documents/Publications%20and%20Reports/Annual%20Accountability%20Reports/CAFR%20-%20FY%202014.pdf', date: '2014-06-30' },
-  2015: { url: 'https://cg.sc.gov/sites/cg/files/Documents/Publications%20and%20Reports/Annual%20Accountability%20Reports/CAFR%20-%20FY%202015.pdf', date: '2015-06-30' },
-  2016: { url: 'https://cg.sc.gov/sites/cg/files/Documents/Publications%20and%20Reports/Annual%20Accountability%20Reports/CAFR%20-%20FY%202016%20-%20Final.pdf', date: '2016-06-30' },
-  2017: { url: 'https://cg.sc.gov/sites/cg/files/Documents/Publications%20and%20Reports/Annual%20Accountability%20Reports/State%20of%20SC%20FY%202017%20CAFR.pdf', date: '2017-06-30' },
-  2018: { url: 'https://cg.sc.gov/sites/cg/files/Documents/Publications%20and%20Reports/Annual%20Accountability%20Reports/FY%202018%20CAFR%20-%202018-11-15.pdf', date: '2018-06-30' },
-  2019: { url: 'https://cg.sc.gov/sites/cg/files/Documents/Publications%20and%20Reports/Annual%20Accountability%20Reports/001%20-%20302%20-%20CAFR%20-%20FY%202019.pdf', date: '2019-06-30' },
-  2020: { url: 'https://cg.sc.gov/sites/cg/files/Documents/Publications%20and%20Reports/Annual%20Accountability%20Reports/001-302-CAFR-FY2020.pdf', date: '2020-06-30' },
-  2021: { url: 'https://cg.sc.gov/sites/cg/files/Documents/Publications%20and%20Reports/Annual%20Accountability%20Reports/001-304-CAFR-FY2021.pdf', date: '2021-06-30' },
-  2022: { url: 'https://cg.sc.gov/sites/cg/files/Documents/Publications%20and%20Reports/Annual%20Accountability%20Reports/001-304-CAFR-FY2022.pdf', date: '2022-06-30' },
-  2023: { url: 'https://cg.sc.gov/sites/cg/files/Documents/Publications%20and%20Reports/Annual%20Accountability%20Reports/001-308-CAFR-FY2023.pdf', date: '2023-06-30' },
-  2024: { url: 'https://cg.sc.gov/sites/cg/files/Documents/Publications%20and%20Reports/Annual%20Accountability%20Reports/001-316-ACFR-FY2024.pdf', date: '2024-06-30' },
-  2025: { url: 'https://cg.sc.gov/sites/cg/files/Documents/Financial%20Reports/Annual%20Comprehensive%20Financial%20Reports%20(ACFRs)/Annual%20Comprehensive%20Financial%20Reports%20(2010%20-%202019)/ACFR%20Current%20Year/039-191-ACFR-FY2025-BasicFinancialStatements.pdf', date: '2025-06-30' },
+  2002: { url: 'https://cg.sc.gov/sites/cg/files/2026-10/SC%20FY%202002%20CAFR.pdf', date: '2002-06-30' },
+  2003: { url: 'https://cg.sc.gov/sites/cg/files/2026-10/SC%20FY%202003%20CAFR.pdf', date: '2003-06-30' },
+  2004: { url: 'https://cg.sc.gov/sites/cg/files/2026-10/SC%20FY%202004%20CAFR.pdf', date: '2004-06-30' },
+  2005: { url: 'https://cg.sc.gov/sites/cg/files/2026-10/SC%20FY%202005%20CAFR.pdf', date: '2005-06-30' },
+  2006: { url: 'https://cg.sc.gov/sites/cg/files/2026-10/SC%20FY%202006%20CAFR.pdf', date: '2006-06-30' },
+  2007: { url: 'https://cg.sc.gov/sites/cg/files/2026-10/SC%20FY%202007%20CAFR.pdf', date: '2007-06-30' },
+  2008: { url: 'https://cg.sc.gov/sites/cg/files/2026-10/SC%20FY%202008%20CAFR.pdf', date: '2008-06-30' },
+  2009: { url: 'https://cg.sc.gov/sites/cg/files/2026-10/SC%20FY%202009%20CAFR.pdf', date: '2009-06-30' },
+  2010: { url: 'https://cg.sc.gov/sites/cg/files/2026-10/SC%20FY%202010%20CAFR.pdf', date: '2010-06-30' },
+  2011: { url: 'https://cg.sc.gov/sites/cg/files/2026-10/SC%20FY%202011%20CAFR.pdf', date: '2011-06-30' },
+  2012: { url: 'https://cg.sc.gov/sites/cg/files/2026-10/SC%20FY%202012%20CAFR.pdf', date: '2012-06-30' },
+  2013: { url: 'https://cg.sc.gov/sites/cg/files/2026-10/State%20of%20South%20Carolina%202013%20CAFR.pdf', date: '2013-06-30' },
+  2014: { url: 'https://cg.sc.gov/sites/cg/files/2026-10/CAFR%20-%20FY%202014.pdf', date: '2014-06-30' },
+  2015: { url: 'https://cg.sc.gov/sites/cg/files/2026-10/CAFR%20-%20FY%202015.pdf', date: '2015-06-30' },
+  2016: { url: 'https://cg.sc.gov/sites/cg/files/2026-10/CAFR%20-%20FY%202016%20-%20Final.pdf', date: '2016-06-30' },
+  2017: { url: 'https://cg.sc.gov/sites/cg/files/2026-10/State%20of%20SC%20FY%202017%20CAFR.pdf', date: '2017-06-30' },
+  2018: { url: 'https://cg.sc.gov/sites/cg/files/2026-10/FY%202018%20CAFR%20-%202018-11-15.pdf', date: '2018-06-30' },
+  2019: { url: 'https://cg.sc.gov/sites/cg/files/2026-10/001%20-%20302%20-%20CAFR%20-%20FY%202019.pdf', date: '2019-06-30' },
+  2020: { url: 'https://cg.sc.gov/sites/cg/files/2026-10/001-302-CAFR-FY2020.pdf', date: '2020-06-30' },
+  2021: { url: 'https://cg.sc.gov/sites/cg/files/2026-10/001-304-CAFR-FY2021.pdf', date: '2021-06-30' },
+  2022: { url: 'https://cg.sc.gov/sites/cg/files/2026-10/001-304-CAFR-FY2022.pdf', date: '2022-06-30' },
+  2023: { url: 'https://cg.sc.gov/sites/cg/files/2026-10/001-308-CAFR-FY2023.pdf', date: '2023-06-30' },
+  2024: { url: 'https://cg.sc.gov/sites/cg/files/2026-10/001-316-ACFR-FY2024.pdf', date: '2024-06-30' },
+  2025: { url: 'https://cg.sc.gov/sites/cg/files/documents/FinancialReports/AnnualComprehensiveFinancialReports(ACFRs)/AnnualComprehensiveFinancialReports(2010-2019)/ACFRCurrentYear/039-191-ACFR-FY2025-BasicFinancialStatements.pdf', date: '2025-06-30' },
 };
 const dataSource = (fy) => `South Carolina State ACFR — General Fund (FY${fy} actual, GAAP basis)`;
 

@@ -102,6 +102,54 @@ describe('judgeProbe', () => {
     expect(at('https://h.gov/a.pdf', { status: 404 }).verdict).toBe('dead');
   });
 
+  it('calls a 410 dead — Gone is the publisher saying so in as many words', () => {
+    expect(at('https://h.gov/a.pdf', { status: 410 }).verdict).toBe('dead');
+  });
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // ⚠⚠⚠ ONLY THE PUBLISHER'S "IT IS GONE" MAY BE `dead`.
+  //
+  // `dead` carries one instruction: REPAIR THE URL, do not annotate it. So the
+  // bar for it is a statement ABOUT THE DOCUMENT — 404 Not Found, 410 Gone.
+  // Every other failure is a statement about the REQUEST or the SERVER, and
+  // obeying `dead` on one would rewrite a perfectly good citation to point
+  // somewhere else. That is the #373 mistake exactly: a publisher that cannot
+  // answer right now is not a document that is gone.
+  //
+  // Found live: a fleet run reported 102 dead, then 77, then 79, because nine
+  // web.archive.org citations were being rate-limited and twenty more hosts
+  // answer automated clients with 403. The backlog could not hold still, and
+  // every repair it demanded would have been damage.
+  // ══════════════════════════════════════════════════════════════════════════
+
+  it('⛔⛔ does NOT call a 429 dead — rate limiting means WE asked too fast', () => {
+    const j = at('https://web.archive.org/web/2020/https://h.gov/a.pdf', { status: 429 });
+    expect(j.verdict).toBe('unreachable');
+    expect(j.detail).toMatch(/429/);
+  });
+
+  it('⛔⛔ does NOT call a 403 dead — the documented rule is that a person can still click it', () => {
+    expect(at('https://h.gov/a.pdf', { status: 403 }).verdict).toBe('unreachable');
+  });
+
+  it('⛔⛔ does NOT call a 401 dead — an auth wall hides a document, it does not remove it', () => {
+    expect(at('https://h.gov/a.pdf', { status: 401 }).verdict).toBe('unreachable');
+  });
+
+  it('⛔⛔ does NOT call a 5xx dead — a broken server says nothing about the document', () => {
+    for (const status of [500, 502, 503, 520]) {
+      expect(at('https://h.gov/a.pdf', { status }).verdict).toBe('unreachable');
+    }
+  });
+
+  it('does not call a 4xx we cannot interpret dead either', () => {
+    // 400, 405, 406, 451 … none of them is the publisher saying the document
+    // is gone, so none of them may demand a repair.
+    for (const status of [400, 405, 406, 451]) {
+      expect(at('https://h.gov/a.pdf', { status }).verdict).toBe('unreachable');
+    }
+  });
+
   it('⚠⚠ does NOT call an unanswered host a pass', () => {
     // The shape this project keeps rediscovering: "we could not check" must
     // never be recorded as "we checked and it was fine".
@@ -158,7 +206,13 @@ describe('probeUrl — how the question is asked', () => {
 
   it('records a 403 that curl cannot rescue either, rather than inventing a pass', async () => {
     const out = await probeUrl('https://h.gov/a.pdf', { fetchImpl: async () => res(403), curlImpl: null });
-    expect(judgeProbe(out).verdict).toBe('dead');
+    // ⚠ This asserted `dead` until the taxonomy was corrected. The intent —
+    // never record "we could not check" as "we checked and it was fine" — is
+    // unchanged and still enforced: `unreachable` is not a pass, and the gate
+    // still exits non-zero on it. What changed is that a 403 no longer DEMANDS
+    // a repair, because a refusal to answer Node is not the publisher saying
+    // the document is gone. A person with a browser can still click it.
+    expect(judgeProbe(out).verdict).toBe('unreachable');
   });
 
   it('never asks a presigned URL at all', async () => {
