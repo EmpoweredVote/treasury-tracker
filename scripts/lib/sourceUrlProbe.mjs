@@ -267,11 +267,79 @@ export const BROWSER_HEADERS = {
  * and it can never excuse `dead` (a 404 is the publisher saying the document is
  * gone; the answer is to repair the URL, not to annotate it).
  */
-export function classifyCitations(observations, declared = []) {
+export function classifyCitations(observations, declared = [], outages = [], asOf = new Date()) {
   const byUrl = new Map(declared.map((d) => [d.url, d]));
   const matched = new Set();
 
-  const out = { ok: [], dead: [], wrongType: [], unreachable: [], uncitable: [], confirmed: [], stale: [] };
+  const out = {
+    ok: [], dead: [], wrongType: [], unreachable: [], uncitable: [], confirmed: [], stale: [],
+    publisherDown: [], expiredOutages: [], staleOutages: [],
+  };
+
+  // ── ⭐⭐ A PUBLISHER OUTAGE IS NOT A DEAD DOCUMENT ────────────────────────
+  //
+  // Ohio's Auditor of State took its web server offline on 2026-10-25 after a
+  // cyberattack. Every report path has 404'd since — including files that were
+  // fetched successfully before — while the root serves the office's own
+  // "Website Temporarily Unavailable" notice and the apex domain stops
+  // resolving entirely.
+  //
+  // ⚠⚠⚠ THIS GATE READ ALL 60 OF THOSE AS `dead`, WHICH SAYS "the publisher
+  // says this document is gone — repair the URL". Acting on that would have
+  // been wrong in the most expensive way available: rewriting 6,616 correct
+  // citations to point somewhere else, during an outage, with no live file to
+  // check any replacement against. The verdict demanded a repair that would
+  // have damaged the data.
+  //
+  // ⭐ The distinction is MEASURABLE, not rhetorical. Of the twenty hosts
+  // holding a dead citation, `cg.sc.gov` answers its root with a working site
+  // ("Home | Comptroller General") while 24 of its documents 404 — those
+  // documents really did move. Ohio answers its root with a notice saying it is
+  // down. Same 404, opposite meaning.
+  //
+  // ── ⚠⚠ WHAT MAY AND MAY NOT BE DECLARED ─────────────────────────────────
+  //
+  // An outage is the ONE thing that can excuse a `dead` verdict, and it is
+  // fenced three ways so it cannot become the annotation `dead` was forbidden
+  // to have:
+  //
+  //   1. ⚠ IT EXPIRES. `recheckAfter` is mandatory. A declaration that never
+  //      expires is a permanent excuse, which is precisely what "repair the
+  //      URL, do not annotate it" exists to prevent. Past that date the gate
+  //      FAILS until a person looks again.
+  //   2. ⚠⚠ EVERY CITATION ON THE HOST MUST STILL FAIL. If even one resolves,
+  //      the publisher is serving files again and the rest are genuinely gone —
+  //      the declaration is stale and the gate says so.
+  //   3. ⛔ IT CANNOT EXCUSE `uncitable`. An expiring link is broken by its own
+  //      shape; no outage makes it citable.
+  const outageFor = new Map(outages.map((o) => [o.host, o]));
+  const hostRows = new Map();
+  for (const obs of observations) {
+    const host = citationShape(obs.url).host || '(unparseable)';
+    if (!hostRows.has(host)) hostRows.set(host, []);
+    hostRows.get(host).push(obs);
+  }
+
+  /** Hosts whose outage declaration is live AND still describes reality. */
+  const downHosts = new Set();
+  const now = asOf instanceof Date ? asOf : new Date(asOf);
+  for (const o of outages) {
+    const rows = hostRows.get(o.host);
+    if (!rows || rows.length === 0) {
+      out.staleOutages.push({ ...o, why_stale: 'no stored citation points at this host any more' });
+      continue;
+    }
+    const anyOk = rows.some((r) => judgeProbe(r).verdict === 'ok');
+    if (anyOk) {
+      out.staleOutages.push({ ...o, why_stale: 'the host is serving files again — delete this and repair whatever is still dead' });
+      continue;
+    }
+    if (new Date(o.recheckAfter) < now) {
+      out.expiredOutages.push({ ...o, why_expired: `recheckAfter ${o.recheckAfter} has passed` });
+      continue;
+    }
+    downHosts.add(o.host);
+  }
 
   for (const obs of observations) {
     const { verdict, detail } = judgeProbe(obs);
@@ -287,12 +355,21 @@ export function classifyCitations(observations, declared = []) {
       else out.ok.push(row);
       continue;
     }
+    // ⛔ `uncitable` is checked BEFORE the outage, so an expiring link is never
+    // excused by one. Shape is not liveness.
+    if (verdict === 'uncitable') { out.uncitable.push(row); continue; }
+
+    const host = citationShape(obs.url).host;
+    if (downHosts.has(host)) {
+      out.publisherDown.push({ ...row, outage: outageFor.get(host) });
+      continue;
+    }
+
     if (verdict === 'unreachable' && dec) {
       out.confirmed.push({ ...row, declared: dec });
       continue;
     }
-    if (verdict === 'uncitable') out.uncitable.push(row);
-    else if (verdict === 'dead') out.dead.push(row);
+    if (verdict === 'dead') out.dead.push(row);
     else if (verdict === 'wrong-type') out.wrongType.push(row);
     else out.unreachable.push(row);
   }
@@ -311,7 +388,11 @@ export function citationsAreClean(c) {
     && c.wrongType.length === 0
     && c.unreachable.length === 0
     && c.uncitable.length === 0
-    && c.stale.length === 0;
+    && c.stale.length === 0
+    // ⚠ A declared outage that has expired or stopped being true is a FAILURE,
+    // not a notice. `publisherDown` itself is the notice.
+    && (c.expiredOutages ?? []).length === 0
+    && (c.staleOutages ?? []).length === 0;
 }
 
 /**

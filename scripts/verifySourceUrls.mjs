@@ -73,6 +73,7 @@ import {
   BROWSER_HEADERS,
 } from './lib/sourceUrlProbe.mjs';
 import { SOURCE_URL_EXCEPTIONS } from './data/sourceUrlExceptions.mjs';
+import { PUBLISHER_OUTAGES } from './data/publisherOutages.mjs';
 import { UNCITED_BASELINE } from './data/sourceUrlCoverage.mjs';
 
 /** Hosts asked in parallel. Requests to ONE host stay serial. */
@@ -258,17 +259,28 @@ export async function main(argv = process.argv.slice(2)) {
   // absence reported as deletion. So the exceptions list is narrowed by the
   // SAME predicate below.
   let declared = SOURCE_URL_EXCEPTIONS;
+  // ⚠⚠ THE OUTAGE LIST IS SCOPED BY THE SAME PREDICATE, for the same reason.
+  // An outage declaration whose host is not in the filtered set would otherwise
+  // report as stale on every narrowed run — absence read as recovery, which is
+  // the #360 defect wearing a different hat.
+  let outages = PUBLISHER_OUTAGES;
   if (values.host) {
     const needle = values.host.toLowerCase();
     const hit = (u) => String(u).toLowerCase().includes(needle);
     rows = rows.filter((r) => hit(r.source_url));
     declared = declared.filter((d) => hit(d.url));
+    outages = outages.filter((o) => hit(o.host));
   }
   if (values.limit) {
     const lim = Number(values.limit);
     rows = rows.slice(0, lim);
     const kept = new Set(rows.map((r) => r.source_url));
     declared = declared.filter((d) => kept.has(d.url));
+    // ⚠⚠⚠ AND A --limit RUN MUST DECLARE NO OUTAGE AT ALL. The excusal rule is
+    // "every citation on this host still fails"; a truncated run can only see
+    // some of them, so it could excuse a host on a sample while a URL it never
+    // asked about is serving fine. A smoke run must not be able to bless one.
+    outages = [];
   }
 
   console.log(`asking ${n(rows.length)} distinct citation(s) covering ${n(rows.reduce((a, r) => a + Number(r.budgets), 0))} budget(s)…`);
@@ -283,13 +295,51 @@ export async function main(argv = process.argv.slice(2)) {
   });
   console.log(`  asked ${n(observations.length)} URL(s) across ${n(hosts)} host(s) in ${Math.round((Date.now() - started) / 1000)}s`);
 
-  const c = classifyCitations(observations, declared);
+  const c = classifyCitations(observations, declared, outages);
   const u = judgeUncited(observedUncited, UNCITED_BASELINE);
 
   console.log(`\n✅ live: ${n(c.ok.length)}`);
   if (c.confirmed.length) console.log(`ℹ️  declared unreachable: ${n(c.confirmed.length)}`);
 
   let failed = false;
+
+  // ── ⭐⭐ A PUBLISHER THAT IS DOWN, NOT A DOCUMENT THAT IS GONE ───────────
+  //
+  // A NOTICE, deliberately. These citations are believed CORRECT; what cannot
+  // be done right now is confirm them. Reporting them as dead would demand a
+  // repair that would damage the data — see scripts/data/publisherOutages.mjs.
+  if (c.publisherDown.length) {
+    const byHost = new Map();
+    for (const r of c.publisherDown) {
+      const h = r.outage.host;
+      if (!byHost.has(h)) byHost.set(h, { outage: r.outage, rows: [], budgets: 0 });
+      const g = byHost.get(h);
+      g.rows.push(r);
+      g.budgets += Number(r.budgets ?? 0);
+    }
+    console.log(`\nℹ️  PUBLISHER OFFLINE (${n(c.publisherDown.length)} citation(s)) — not treated as dead, and not treated as confirmed either:`);
+    for (const [host, g] of byHost) {
+      console.log(`  ${host} — down since ${g.outage.began}, ${n(g.rows.length)} citation(s) over ${n(g.budgets)} budget(s)`);
+      console.log(`     observed ${g.outage.observedOn}; this declaration EXPIRES ${g.outage.recheckAfter}, after which this run fails`);
+      console.log(`     “${g.outage.evidence.slice(0, 120)}…”`);
+    }
+    console.log('  ⚠ These links are dead FOR READERS while the outage lasts. The repair is the');
+    console.log('    publisher coming back, not a new URL — there is no live file to check one against.');
+  }
+  if (c.expiredOutages.length) {
+    failed = true;
+    console.error(`\n⛔ OUTAGE DECLARATION EXPIRED (${c.expiredOutages.length}) — nobody has looked since:`);
+    for (const o of c.expiredOutages) {
+      console.error(`  ${o.host}: ${o.why_expired}. Re-probe a DATA path (never the homepage), then extend it or repair the URLs.`);
+    }
+  }
+  if (c.staleOutages.length) {
+    failed = true;
+    console.error(`\n⛔ OUTAGE DECLARATION NO LONGER TRUE (${c.staleOutages.length}):`);
+    for (const o of c.staleOutages) {
+      console.error(`  ${o.host}: ${o.why_stale}`);
+    }
+  }
 
   if (c.uncitable.length) {
     failed = true;
