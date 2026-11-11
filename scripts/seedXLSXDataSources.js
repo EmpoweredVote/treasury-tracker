@@ -26,6 +26,14 @@
 import { createClient } from '@supabase/supabase-js';
 
 import { listAllSourcesResult } from './lib/listAllSources.mjs';
+// ⚠⚠⚠ PROVENANCE IS NOT A FILE PATH. This loader used to write
+// `'file://' + <local path>` into `base_url`, recording the operator's hard
+// disk as the record of where a public document came from. 51 of those
+// reached production and nothing noticed until #381, because no gate had
+// ever read that column. `publisherUrlFor()` returns a PROVEN publisher URL
+// (sha256-matched against the parsed file) and THROWS otherwise — a loader
+// that cannot say where its document came from must stop, not invent it.
+import { publisherUrlFor } from './data/documentPublisherUrls.mjs';
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://kxsdzaojfaibhuzmclfq.supabase.co';
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
 
@@ -177,7 +185,7 @@ async function buildSources() {
       api_type: 'xlsx_download',
       dataset_type: 'transactions',
       dataset_id: `fy${fy}`,
-      base_url: `file://C:/Transparent Motivations/Data Drop/Plano, TX/${file}`,
+      base_url: publisherUrlFor(file),
       fiscal_years: [fy],
       municipality_id: muniId('Plano'),
       column_mapping: planoCm,
@@ -190,7 +198,7 @@ async function buildSources() {
     api_type: 'xlsx_download',
     dataset_type: 'transactions',
     dataset_id: 'fy2024',
-    base_url: 'file://C:/Transparent Motivations/Data Drop/Plano, TX/PlanoFinancialReport.csv',
+    base_url: publisherUrlFor('PlanoFinancialReport.csv'),
     fiscal_years: [2024],
     municipality_id: muniId('Plano'),
     column_mapping: planoCm,
@@ -202,7 +210,7 @@ async function buildSources() {
     api_type: 'xlsx_download',
     dataset_type: 'transactions',
     dataset_id: 'fy2025',
-    base_url: 'file://C:/Transparent Motivations/Data Drop/Plano, TX/PlanoFinancialReport_till05032026.csv',
+    base_url: publisherUrlFor('PlanoFinancialReport_till05032026.csv'),
     fiscal_years: [2025],
     municipality_id: muniId('Plano'),
     column_mapping: planoCm,

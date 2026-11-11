@@ -35,6 +35,14 @@ import { readdirSync, existsSync, readFileSync } from 'node:fs';
 import path                from 'node:path';
 import { fileURLToPath }   from 'node:url';
 import { resolve, dirname } from 'node:path';
+// ⚠⚠⚠ PROVENANCE IS NOT A FILE PATH. This loader used to write
+// `'file://' + <local path>` into `base_url`, recording the operator's hard
+// disk as the record of where a public document came from. 51 of those
+// reached production and nothing noticed until #381, because no gate had
+// ever read that column. `publisherUrlFor()` returns a PROVEN publisher URL
+// (sha256-matched against the parsed file) and THROWS otherwise — a loader
+// that cannot say where its document came from must stop, not invent it.
+import { publisherUrlFor } from './data/documentPublisherUrls.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname  = dirname(__filename);
@@ -200,7 +208,7 @@ async function upsertDataSource(muniId, fiscalYear, datasetType, pdfAbsPath) {
     api_type:        'pdf_download',
     dataset_type:    datasetType,
     dataset_id:      `fy${fiscalYear}`,
-    base_url:        'file://' + pdfAbsPath.replace(/\\/g, '/'),
+    base_url:        publisherUrlFor(pdfAbsPath),
     fiscal_years:    [fiscalYear],
     municipality_id: muniId,
   };
