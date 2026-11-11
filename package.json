@@ -62,7 +62,8 @@
     "verify:source-row-coverage": "node scripts/verifySourceRowCoverage.mjs",
     "verify:bond-flags": "node scripts/generateBondFinancedRevenue.mjs --check",
     "verify:source-urls": "node scripts/verifySourceUrls.mjs",
-    "verify:xlsx-row-coverage": "node scripts/verifyXlsxRowCoverage.mjs"
+    "verify:xlsx-row-coverage": "node scripts/verifyXlsxRowCoverage.mjs",
+    "verify:period-flags": "node scripts/generateFiscalPeriodFlags.mjs --check"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.122.0",
