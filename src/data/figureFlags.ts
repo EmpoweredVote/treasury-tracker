@@ -69,7 +69,7 @@
  */
 
 import type { ComparabilitySource } from '../types/budget';
-import { bondFinancedRevenueFlags } from './figureFlagRules';
+import { bondFinancedRevenueFlags, fiscalPeriodFlags } from './figureFlagRules';
 
 export type FigureFlagSeverity = 'understated' | 'outlier' | 'not-comparable';
 
@@ -2282,270 +2282,43 @@ const handWrittenFigureFlags: Record<string, FigureFlag> = {
     ],
   },
 
-  /**
-   * ⚠⚠ THE FIRST FLAG THAT IS NOT GEORGIA, AND NOT A FILED FORM.
-   *
-   * Every flag above describes a figure a government reported on a DCA return.
-   * This one describes a PERIOD: McKinney's FY2026 check register covers
-   * eleven months of a twelve-month year, so the total on the page is real but
-   * is not the year.
-   *
-   * `not-comparable` is the right severity and the precedent is
-   * Georgetown-Quitman FY2023 above — a six-month transition year, correct for
-   * what it covers, not comparable to its neighbours. Nothing here is
-   * understated in the sense that word carries in this file: TT holds 46,797
-   * of 46,797 published rows, verified against McKinney's own file.
-   */
-  'McKinney|TX|2026|transactions': {
-    id: 'mckinney-tx-fy2026-eleven-month-year',
-    severity: 'not-comparable',
-    headline: 'This covers eleven months, not twelve — September 2026 is not in the city’s file',
-    summary:
-      'McKinney’s fiscal year runs October to September. The check register the city publishes '
-      + 'for 2026 contains payments from 3 October 2025 to 28 August 2026 and none dated in '
-      + 'September 2026, so this total covers eleven months. It is shown exactly as published '
-      + 'and every payment in it is held — 46,797 of the 46,797 lines the city published — but '
-      + 'it is not a full year, which makes it not comparable with the years beside it.',
-    whatThisMeans:
-      'Expect about a month less than a normal year here. FY2026 looks lower than FY2025, and '
-      + 'per month it is actually higher: $54.3 million against $51.7 million.',
-    entries: [
-      {
-        title: 'What the file covers, and what the years beside it cover',
-        text:
-          'The 2026 register runs from 3 October 2025 to 28 August 2026 across eleven distinct '
-          + 'payment months. McKinney’s four earlier registers each span twelve: FY2022 ends 30 '
-          + 'September 2022, FY2023 ends 29 September 2023, FY2024 ends 30 September 2024 and '
-          + 'FY2025 ends 26 September 2025. The city’s own budget documents name each year “FY '
-          + '2025-2026”, “FY 2024-2025” and so on, an October-to-September year.',
-        source_name: 'City of McKinney FY26 Check Register',
-        source_url: 'https://www.mckinneytexas.org/Archive.aspx?ADID=2849',
-        source_date: '2026-11-08',
-      },
-      {
-        title: 'Why the total reads lower than the year actually ran',
-        text:
-          'FY2026 totals $597,313,687.70 against FY2025’s $619,940,294.15 — $22.6 million less, '
-          + 'about 3.6%. Spread over the months each file covers, FY2026 runs at $54.3 million a '
-          + 'month and FY2025 at $51.7 million. A twelfth month at FY2026’s own rate would put it '
-          + 'near $651 million. The comparison, not the figure, is what the missing month breaks.',
-        source_name: 'City of McKinney FY25 and FY26 Check Registers',
-        source_url: 'https://www.mckinneytexas.org/Archive.aspx?AMID=39',
-        source_date: '2026-11-08',
-      },
-    ],
-  },
-
   // ══════════════════════════════════════════════════════════════════════
-  // West Hollywood, CA — the demand registers that straddle fiscal years
+  // ⭐⭐⭐ SIX ENTRIES USED TO LIVE HERE. THEY ARE RULES NOW.
   // ══════════════════════════════════════════════════════════════════════
   //
-  // ⚠⚠⚠ THE CITY PUBLISHES ONE FILE PER FISCAL YEAR, AND THE FILES DO NOT
-  // RESPECT THE YEAR THEY NAME. Each register is loaded whole into the single
-  // year it predominantly covers — the year the publisher itself declares —
-  // and the payments inside it are dated by the city, not placed by TT.
+  // West Hollywood FY2019, FY2020, FY2024, FY2025 and FY2026 carried
+  // hand-written "fiscal straddle" banners, and McKinney FY2026 carried a
+  // hand-written "eleven months" banner. All six are now emitted by
+  // `fiscalPeriodFlags()` in ./figureFlagRules.ts, measured over every
+  // transactions budget instead of over the cities somebody visited.
   //
-  // Confirmed 2026-11-08 by asking data.weho.org for its OWN count and sum of
-  // rows outside each file's period. It returned TT's figures exactly.
+  // ⚠⚠ THEY WERE DELETED, NOT LEFT IN PLACE. `figureFlags` merges rule-emitted
+  // flags with hand-written ones and HAND-WRITTEN WINS, so an entry left here
+  // would silently suppress the rule and the whole exercise would be
+  // decorative. A test keeps the collision set empty.
   //
-  // ⭐⭐ BOTH SIDES OF EACH SEAM ARE FLAGGED. FY2020 and FY2025 are clean in
-  // themselves and are still flagged, because they are the RECEIVING side:
-  // money paid during those years sits in the year before. A reader landing on
-  // FY2025 sees $132.28M against FY2024's $249.36M and would read spending as
-  // halving. Flagging only the odd-looking side leaves the other silently
-  // misleading — the rule already enforced for Fulton FY2017/FY2018.
+  // ⭐ What the change bought, beyond deleting a standing human obligation:
   //
-  // ⚠ Five of ten years, not all ten. FY2023 is 2.4% out of period and FY2018
-  // is 0.6%; a banner there would cost attention and teach readers to skip the
-  // ones that matter. See scripts/data/outOfPeriodExceptions.mjs.
-
-  'West Hollywood|CA|2019|transactions': {
-    id: 'west-hollywood-ca-fy2019-fiscal-straddle',
-    severity: 'not-comparable',
-    headline: 'About $31.1 million of this year’s total was paid after the year ended',
-    summary:
-      'West Hollywood publishes one demand register per fiscal year, and its FY2018-19 file '
-      + 'runs past the year it names: of the $167.40 million shown here, $31.08 million — about '
-      + '18.6% — was paid between 1 July 2019 and 13 September 2019, which is the following '
-      + 'year. The total is shown exactly as published and every payment in it is the city’s, '
-      + 'but it is not comparable with the years around it.',
-    whatThisMeans:
-      'Read this as “the FY2018-19 register”, not as the money that moved during FY2019. About '
-      + 'a fifth of it was paid in FY2020.',
-    entries: [
-      {
-        title: 'What the file covers',
-        text:
-          'The register holds 4,222 payments dated outside 1 July 2018 – 30 June 2019: 48 before '
-          + 'it and 4,174 after, spanning 2 July 2015 to 13 September 2019, totalling '
-          + '$31,081,374.14 of the $167,395,089.72 published. Asked for its own count, '
-          + 'data.weho.org returns the same 4,222 rows and the same $31,081,374.14.',
-        source_name: 'West Hollywood Demand Register FY2018-19',
-        source_url: 'https://data.weho.org/resource/by9g-vc9g.json',
-        source_date: '2026-11-08',
-      },
-    ],
-  },
-
-  'West Hollywood|CA|2020|transactions': {
-    id: 'west-hollywood-ca-fy2020-fiscal-straddle',
-    severity: 'not-comparable',
-    headline: 'About $31.1 million paid during this year is counted in FY2019 instead',
-    summary:
-      'West Hollywood publishes one demand register per fiscal year, and the FY2018-19 file '
-      + 'runs into this one: $31.08 million was paid between 1 July 2019 and 13 September 2019 '
-      + 'but belongs to the previous register, so it appears in FY2019’s total rather than '
-      + 'here. This year’s own figure is shown exactly as published and is almost entirely '
-      + 'within its dates, which is why the comparison with FY2019 is the thing that breaks.',
-    whatThisMeans:
-      'FY2019 looks larger than this year partly because it is carrying payments made during '
-      + 'FY2020. Compare the registers, not the calendar.',
-    entries: [
-      {
-        title: 'Where this year’s early payments are counted',
-        text:
-          'The FY2019-20 register totals $157,355,440.14 and holds only 91 payments dated '
-          + 'outside its own year, worth $110,773.46. The 4,174 payments the city made between '
-          + '1 July 2019 and 13 September 2019 are in the FY2018-19 register instead, worth '
-          + '$31,051,795.52. Both counts come from data.weho.org’s own datasets.',
-        source_name: 'West Hollywood Demand Registers FY2018-19 and FY2019-20',
-        source_url: 'https://data.weho.org/resource/yjid-9pyh.json',
-        source_date: '2026-11-08',
-      },
-    ],
-  },
-
-  'West Hollywood|CA|2024|transactions': {
-    id: 'west-hollywood-ca-fy2024-fiscal-straddle',
-    severity: 'not-comparable',
-    headline: 'About $68.8 million — 27.6% of this total — was paid outside the year',
-    summary:
-      'West Hollywood publishes one demand register per fiscal year, and its FY2022-24 file is '
-      + 'the widest of them: of the $249.36 million shown here, $68.81 million was paid outside '
-      + '1 July 2023 – 30 June 2024, almost all of it afterwards, running to 25 October 2024. '
-      + 'The total is shown exactly as published and every payment is the city’s own, but it is '
-      + 'not comparable with FY2025, which excludes those same payments.',
-    whatThisMeans:
-      'This is the larger half of a two-year seam. Read FY2024 and FY2025 together — about $68.5 '
-      + 'million of this figure was paid during FY2025.',
-    entries: [
-      {
-        title: 'What the file covers, and what FY2025 is missing',
-        text:
-          'The register holds 23,553 payments totalling $249,360,265.89. Of those, 17,762 worth '
-          + '$180,549,103.56 fall inside 1 July 2023 – 30 June 2024, and 5,791 worth '
-          + '$68,811,162.33 fall outside — 84 before and 5,707 after. FY2025 publishes '
-          + '$132,277,410.01, which excludes the $68,522,896.10 of this file paid during FY2025.',
-        source_name: 'West Hollywood Demand Register FY2022-24',
-        source_url: 'https://data.weho.org/resource/b8ph-69yc.json',
-        source_date: '2026-11-08',
-      },
-      {
-        title: 'How this was checked against the city’s own data',
-        text:
-          'This dataset stores its check dates as text in month-day-year order, so a plain date '
-          + 'comparison matches every row in the file. Asked instead for the year and month '
-          + 'positions within that text, data.weho.org returns 17,762 payments worth '
-          + '$180,549,103.56 inside the year and 5,791 worth $68,811,162.33 outside it — the '
-          + 'same figures shown here, to the cent.',
-        source_name: 'West Hollywood Demand Register FY2022-24',
-        source_url: 'https://data.weho.org/resource/b8ph-69yc.json',
-        source_date: '2026-11-08',
-      },
-    ],
-  },
-
-  'West Hollywood|CA|2025|transactions': {
-    id: 'west-hollywood-ca-fy2025-fiscal-straddle',
-    severity: 'not-comparable',
-    headline: 'About $68.5 million paid during this year is counted in FY2024 instead',
-    summary:
-      'West Hollywood publishes one demand register per fiscal year, and the FY2022-24 file '
-      + 'runs deep into this one: $68.52 million was paid between 1 July 2024 and 25 October '
-      + '2024 but belongs to the previous register, so it appears in FY2024’s total rather than '
-      + 'here. This year’s own figure is shown exactly as published and is almost entirely '
-      + 'within its dates — the comparison with FY2024 is what breaks, not the number.',
-    whatThisMeans:
-      'FY2025 looks like about half of FY2024 and the drop is largely the file boundary, not '
-      + 'the city’s spending. Read the two years together.',
-    entries: [
-      {
-        title: 'Why this year reads lower than the one before it',
-        text:
-          'The FY2024-25 register totals $132,277,410.01 across 11,210 payments, and only 11 of '
-          + 'them — worth $12,195.00 — fall outside its own year. FY2024 publishes '
-          + '$249,360,265.89, of which $68,522,896.10 was paid between 1 July 2024 and 25 '
-          + 'October 2024, inside this year’s dates. Both figures come from data.weho.org’s own '
-          + 'datasets.',
-        source_name: 'West Hollywood Demand Registers FY2022-24 and FY2024-25',
-        source_url: 'https://data.weho.org/resource/y2yz-icwv.json',
-        source_date: '2026-11-08',
-      },
-    ],
-  },
-
-  // ⚠⚠⚠ THE ONLY FLAG WHOSE SUBJECT IS STILL GROWING, AND THE ONLY ONE WHOSE
-  // COPY IS WRITTEN TO SURVIVE THAT.
+  //   - The "both sides of a seam are flagged" rule DISAPPEARED. FY2020 and
+  //     FY2025 were flagged because a person noticed they were the receiving
+  //     side. Measuring that side as its own share (`displacedShare`) makes it
+  //     fall out of one number, and nobody has to notice a seam again.
   //
-  // `West Hollywood Demand Register FY2025-26` is sync_frequency WEEKLY and the
-  // city is still posting into it; the other nine registers are `manual` and
-  // static. So the figure this page prints for FY2026 RISES ON ITS OWN, every
-  // week, while anything hard-coded here does not.
+  //   - McKinney's banner RETIRES ITSELF. Its old register entry said, in
+  //     prose for a human, "retire this when September appears". The day the
+  //     city posts September the rule simply stops emitting, instead of
+  //     leaving a banner that tells a reader a COMPLETE year is incomplete.
   //
-  // ⚠⚠ A BANNER THAT DISAGREES WITH THE TOTAL BESIDE IT IS WORSE THAN NO
-  // BANNER. The first version of this entry said "$275.28 million shown here"
-  // and "25.0%" flat, which would have been contradicted by the page's own
-  // figure within weeks — and would have understated the very distortion the
-  // banner exists to describe.
+  //   - It found a year nobody had flagged: FRISCO FY2021 HOLDS TEN MONTHS.
+  //     Its file stops on 2021-07-29 with no payment in August or September
+  //     2021, drawn beside FY2020 and FY2022, both complete. Frisco has its
+  //     own anomaly register AND its own row-coverage baseline, and neither
+  //     asked this question — which is the entire argument for rules.
   //
-  // ⭐ So the durable claims carry the headline (the city has not opened an
-  // FY2026-27 register; payments run past the year end; both numbers rise), and
-  // every precise figure is stated AS OF a date. `stillGrowing` on the register
-  // entry makes that a tested requirement, not a habit — see
-  // tests/figureFlags.test.ts.
-  'West Hollywood|CA|2026|transactions': {
-    id: 'west-hollywood-ca-fy2026-fiscal-straddle',
-    severity: 'not-comparable',
-    headline:
-      'The city is still posting to this file — about $69 million fell outside the year as of 8 November 2026',
-    summary:
-      'West Hollywood publishes one demand register per fiscal year, and it has not opened an '
-      + 'FY2026-27 one — it is still posting payments into the FY2025-26 file after that year '
-      + 'ended. So this register keeps growing, and the share of it paid outside 1 July 2025 – '
-      + '30 June 2026 grows with it: as of 8 November 2026 that was $68.95 million of the '
-      + '$275.28 million then published, about a quarter. The total is shown exactly as '
-      + 'published and is not comparable with the years around it.',
-    whatThisMeans:
-      'Read this as the FY2025-26 register so far, not as a finished year. Both the total and '
-      + 'the share paid outside it rise each week the city posts.',
-    entries: [
-      {
-        title: 'What the file covered when this was measured',
-        text:
-          'As of 8 November 2026 the register held 6,393 payments dated outside 1 July 2025 – 30 '
-          + 'June 2026 — 1,170 before it and 5,223 after — worth $68,952,678.80 of the '
-          + '$275,281,324.20 then published, spanning 14 March 2024 to 9 October 2026. Asked for '
-          + 'its own count, data.weho.org returned the same 6,393 rows and the same '
-          + '$68,952,678.80. Both figures were current on that date and both have risen since if '
-          + 'the city has posted again.',
-        source_name: 'West Hollywood Demand Register FY2025-26',
-        source_url: 'https://data.weho.org/resource/5d72-njxw.json',
-        source_date: '2026-11-08',
-      },
-      {
-        title: 'Why this one keeps moving when the other years do not',
-        text:
-          'West Hollywood’s nine earlier registers are closed files and are loaded on request; '
-          + 'this one is refreshed weekly because the city is still adding to it. On 5 November '
-          + '2026 it held 1,164 payments outside the year and on 6 November 2026 it held 6,393, '
-          + 'after the city published 8,675 further rows overnight. Figures quoted for this year '
-          + 'are true on the date given and no later.',
-        source_name: 'West Hollywood Demand Register FY2025-26',
-        source_url: 'https://data.weho.org/resource/5d72-njxw.json',
-        source_date: '2026-11-08',
-      },
-    ],
-  },
+  // The author-facing records did not move: `scripts/data/outOfPeriodExceptions.mjs`
+  // still holds West Hollywood's exact out-of-period row counts for the gate,
+  // and `scripts/data/mckinneyRegisterAnomalies.mjs` still holds the
+  // corroboration of McKinney's October–September year.
 };
 
 /**
@@ -2564,6 +2337,7 @@ const handWrittenFigureFlags: Record<string, FigureFlag> = {
  */
 export const figureFlags: Record<string, FigureFlag> = {
   ...bondFinancedRevenueFlags(),
+  ...fiscalPeriodFlags(),
   ...handWrittenFigureFlags,
 };
 

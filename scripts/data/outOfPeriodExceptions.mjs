@@ -16,6 +16,34 @@
  * Measured 2026-11-05 against treasury.out_of_period_transaction_status():
  * 41 transaction budgets evaluated, 0 skipped, 9 with hits, 103 rows.
  */
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import path from 'node:path';
+
+/**
+ * ⭐⭐⭐ WHO GETS A BANNER IS READ, NOT TYPED.
+ *
+ * This register records every tolerated out-of-period budget for the gate.
+ * Which of them a READER is told about is a different question, and it used to
+ * be answered twice: once by a `readerFacing: true` typed into the rows below,
+ * and once by a hand-written entry in src/data/figureFlags.ts. Two authorities
+ * for one decision is how they drift.
+ *
+ * Now there is one. The published threshold in
+ * scripts/generateFiscalPeriodFlags.mjs decides, the generated register below
+ * records what it decided, and this file reads that.
+ *
+ * ⚠ Read with readFileSync rather than a JSON import attribute: this module is
+ * loaded by Node directly (the gate) AND by Vitest through Vite (the flag
+ * tests), and this is the one form both have always handled.
+ */
+const DISTORTION_REGISTER = JSON.parse(readFileSync(
+  path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..',
+    'src', 'data', 'fiscalPeriodDistortionYears.json'),
+  'utf8',
+));
+
+export const DISTORTION_FLAGGED_IDS = new Set(DISTORTION_REGISTER.rows.map((r) => r.id));
 
 /** @type {Array<Record<string, unknown>>} */
 export const OUT_OF_PERIOD_EXCEPTIONS = [
@@ -158,38 +186,51 @@ export const OUT_OF_PERIOD_EXCEPTIONS = [
   //
   // A tree built from TT's transactions always ties to TT's transactions, so
   // the only reading that settles anything is the publisher's.
-  // ── ⭐⭐ `readerFacing` — WHICH OF THESE A READER IS ACTUALLY TOLD ──────────
+  // ── ⭐⭐⭐ `readerFacing` IS NO LONGER TYPED HERE. IT IS MEASURED. ──────────
   //
-  // All ten years hold out-of-period rows; only five of them distort the
-  // headline enough to be worth a reader's attention. The share of each year's
-  // published total that was paid OUTSIDE the year, measured 2026-11-08:
+  // Until 2026-11-11 each of these ten years carried a hand-typed
+  // `readerFacing: true/false`, decided by a person reading a table of shares
+  // and picking a line to draw. That made this file a SECOND authority on who
+  // gets a banner, sitting beside src/data/figureFlags.ts, and both of them
+  // recorded a judgement rather than a rule.
   //
-  //     FY2024  27.6%   FY2026  25.0%   FY2019  18.6%   ← flagged
+  // Now the single published threshold decides, and this file reads it:
+  // `src/data/fiscalPeriodDistortionYears.json`, written by
+  // scripts/generateFiscalPeriodFlags.mjs from
+  // treasury.transaction_period_distortion(). An entry is reader-facing if and
+  // only if the rule emitted a flag for it, so the two cannot drift.
+  //
+  // ⭐⭐ THE SEAM RULE DIED WITH IT. FY2020 and FY2025 used to be flagged by
+  // hand DESPITE being clean themselves, because a person noticed they were
+  // the RECEIVING side: $31.05M paid during FY2020 sits in FY2019's total,
+  // $77.45M paid during FY2025 sits in FY2024's and FY2026's. The rule
+  // measures that as `displacedShare` — 18.7% and 36.9% — so both now qualify
+  // on their own numbers and nobody has to spot a seam.
+  //
+  // ⚠ The shares the threshold was set against, over all 43 transaction
+  // budgets (2026-11-11). The gap between 18.57% and 6.56% is the widest in
+  // the distribution, and 10% sits inside it:
+  //
+  //     FY2025  36.9%   FY2024  27.6%   FY2026  25.0%   ← flagged
+  //     FY2020  18.7%   FY2019  18.6%                   ← flagged
+  //     ──────────────────────── 10% ────────────────────────
   //     FY2017   6.6%   FY2021   4.6%   FY2022   4.0%   ← register only
-  //     FY2023   2.4%   FY2018   0.6%   FY2020   0.1%
-  //     FY2025   0.0%
+  //     FY2023   3.9%   FY2018   1.8%
   //
-  // ⚠ FY2020 and FY2025 are flagged DESPITE being clean themselves, because
-  // they are the RECEIVING side of a seam: $31.05M paid during FY2020 sits in
-  // FY2019's total, and $68.52M paid during FY2025 sits in FY2024's. A reader
-  // landing on FY2025 sees $132.28M against FY2024's $249.36M and would read
-  // spending as halving. Flagging only the odd-looking side of a seam leaves
-  // the other silently misleading — the rule tests/figureFlags.test.ts already
-  // enforces for Fulton FY2017/FY2018.
-  //
-  // ⚠⚠ A 2.4% skew is not worth a banner. Spending a reader's attention on
-  // FY2023 would make the FY2024 banner matter less, which is how flagging
-  // everything becomes flagging nothing.
+  // ⚠⚠ A 3.9% skew is still not worth a banner, and that is now a consequence
+  // of the published number rather than an opinion. Spending a reader's
+  // attention on FY2023 would make the FY2024 banner matter less, which is how
+  // flagging everything becomes flagging nothing.
   ...[
     { fiscalYear: 2017, outRows: 1629, outAmount: '7,520,308.03', before: 1341, after: 288, span: '2014-05-08 … 2017-07-07', source: 'FY2016-17' },
     { fiscalYear: 2018, outRows: 470, outAmount: '735,649.20', before: 192, after: 278, span: '2015-01-02 … 2018-07-06', source: 'FY2017-18' },
-    { fiscalYear: 2019, outRows: 4222, outAmount: '31,081,374.14', before: 48, after: 4174, span: '2015-07-02 … 2019-09-13', source: 'FY2018-19', readerFacing: true },
-    { fiscalYear: 2020, outRows: 91, outAmount: '110,773.46', before: 91, after: 0, span: '2015-07-02 … 2019-06-28', source: 'FY2019-20', readerFacing: true },
+    { fiscalYear: 2019, outRows: 4222, outAmount: '31,081,374.14', before: 48, after: 4174, span: '2015-07-02 … 2019-09-13', source: 'FY2018-19' },
+    { fiscalYear: 2020, outRows: 91, outAmount: '110,773.46', before: 91, after: 0, span: '2015-07-02 … 2019-06-28', source: 'FY2019-20' },
     { fiscalYear: 2021, outRows: 512, outAmount: '7,385,478.24', before: 88, after: 424, span: '2016-07-21 … 2021-07-09', source: 'FY2020-21' },
     { fiscalYear: 2022, outRows: 499, outAmount: '6,210,359.08', before: 57, after: 442, span: '2015-07-23 … 2022-07-08', source: 'FY2021-22' },
     { fiscalYear: 2023, outRows: 367, outAmount: '3,788,357.34', before: 23, after: 344, span: '2021-04-16 … 2023-07-07', source: 'FY2022-23' },
-    { fiscalYear: 2024, outRows: 5791, outAmount: '68,811,162.33', before: 84, after: 5707, span: '2016-12-09 … 2024-10-25', source: 'FY2022-24', readerFacing: true },
-    { fiscalYear: 2025, outRows: 11, outAmount: '12,195.00', before: 11, after: 0, span: '2021-08-13 … 2023-12-29', source: 'FY2024-25', readerFacing: true },
+    { fiscalYear: 2024, outRows: 5791, outAmount: '68,811,162.33', before: 84, after: 5707, span: '2016-12-09 … 2024-10-25', source: 'FY2022-24' },
+    { fiscalYear: 2025, outRows: 11, outAmount: '12,195.00', before: 11, after: 0, span: '2021-08-13 … 2023-12-29', source: 'FY2024-25' },
     // ⚠⚠⚠ THE ONLY LIVE ONE, AND IT GROWS EVERY WEEK. See the FY2026 note above.
     //
     // ⭐⭐ `stillGrowing` IS NOT DECORATION — IT IS A COPY REQUIREMENT. This
@@ -198,10 +239,16 @@ export const OUT_OF_PERIOD_EXCEPTIONS = [
     // copy about it must therefore state its numbers AS OF A DATE, or the
     // banner will end up contradicting the total displayed beside it — which is
     // worse than no banner. tests/figureFlags.test.ts enforces it.
-    { fiscalYear: 2026, outRows: 6393, outAmount: '68,952,678.80', before: 1170, after: 5223, span: '2024-03-14 … 2026-10-09', source: 'FY2025-26', readerFacing: true, stillGrowing: true },
+    //
+    // ⚠ This one is still declared by hand because it describes TT's SYNC
+    // configuration, not the publisher's figures. The rule derives the same
+    // fact independently (enabled + non-manual + newest year) and a test holds
+    // the two together.
+    { fiscalYear: 2026, outRows: 6393, outAmount: '68,952,678.80', before: 1170, after: 5223, span: '2024-03-14 … 2026-10-09', source: 'FY2025-26', stillGrowing: true },
   ].map((w) => ({
     id: `west-hollywood-ca-fy${w.fiscalYear}-fiscal-straddle`,
-    readerFacing: w.readerFacing === true,
+    // ⭐ MEASURED, not typed. See the note above.
+    readerFacing: DISTORTION_FLAGGED_IDS.has(`west-hollywood-ca-fy${w.fiscalYear}-fiscal-straddle`),
     stillGrowing: w.stillGrowing === true,
     key: `west-hollywood-ca-fy${w.fiscalYear}-out-of-period-rows`,
     municipality: 'West Hollywood',

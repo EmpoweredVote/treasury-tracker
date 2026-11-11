@@ -4,6 +4,12 @@ import { createElement, act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import FigureFlagBanner from './FigureFlagBanner';
 import { figureFlagFor } from '../data/figureFlags';
+import {
+  ABSENT_MONTH_YEARS,
+  FISCAL_PERIOD_DISTORTION_YEARS,
+  PERIOD_MEASURED_ON,
+} from '../data/figureFlagRules';
+import { formatMoneyProse } from '../utils/formatMoney';
 
 /**
  * ⚠⚠ THE WARNING MUST BE VISIBLE WITHOUT A CLICK.
@@ -42,16 +48,24 @@ describe('FigureFlagBanner', () => {
    * ⚠⚠ A PERIOD FLAG ON THE PAYMENTS VIEW, which is a path nothing else here
    * covers: every other flag is a Georgia filed-form figure on `operating` or
    * `revenue`. McKinney's is the first keyed to `transactions`, so this proves
-   * the dataset reaches the component at all — and that the eleven months and
+   * the dataset reaches the component at all — and that the absent month and
    * the "as published" assurance are both on screen without a click.
+   *
+   * ⚠ THE COPY IS GENERATED NOW, so this asserts against the REGISTER rather
+   * than against remembered wording. The old version matched /eleven months/i,
+   * which was the hand-written phrasing; the rule says "11 of 12 months", and a
+   * test pinned to a number that is supposed to change is a test that fails the
+   * day the rule does its job.
    */
-  it('⚠⚠ renders the eleven-month period flag on the payments view', () => {
+  it('⚠⚠ renders the absent-month period flag on the payments view', () => {
+    const row = ABSENT_MONTH_YEARS.find((r) => r.entity === 'McKinney' && r.fiscalYear === 2026);
+    expect(row, 'McKinney FY2026 is no longer measured as incomplete').toBeTruthy();
     mount('McKinney', 2026, 'transactions', 'TX');
     const note = host.querySelector('[role="note"]');
     expect(note).toBeTruthy();
     const text = host.textContent ?? '';
-    expect(text).toMatch(/eleven months/i);
-    expect(text).toMatch(/September 2026/);
+    expect(text).toMatch(new RegExp(`${row!.monthsCovered} of ${row!.monthsInPeriod} months`));
+    for (const month of row!.absentMonths) expect(text).toContain(month);
     // The reader must be able to tell TT did not alter the number.
     expect(text).toMatch(/as published/i);
   });
@@ -63,29 +77,51 @@ describe('FigureFlagBanner', () => {
    * is synced weekly and the city is still posting into it. A date buried in
    * the evidence panel protects nobody: the reader who misreads a stale figure
    * is precisely the one who never opens it.
+   *
+   * ⚠⚠ THE DATE IS READ FROM THE REGISTER, NOT TYPED. It moves every time the
+   * rule is re-measured, and the previous version of this test hard-coded
+   * "8 November 2026" — the same defect the banner itself was built to avoid,
+   * one layer out.
    */
   it('⚠⚠ shows the as-of date for a still-growing figure before any interaction', () => {
+    const row = FISCAL_PERIOD_DISTORTION_YEARS
+      .find((r) => r.entity === 'West Hollywood' && r.fiscalYear === 2026);
+    expect(row?.stillGrowing, 'WeHo FY2026 is no longer measured as still growing').toBe(true);
     mount('West Hollywood', 2026, 'transactions', 'CA');
     const note = host.querySelector('[role="note"]');
     expect(note).toBeTruthy();
     // ⚠ Read from the always-visible note, not from the whole host, so copy
     // hidden behind the disclosure cannot satisfy this.
     const visible = note?.textContent ?? '';
-    expect(visible).toMatch(/as of 8 November 2026/);
-    expect(visible).toMatch(/still posting/i);
+    const [y, m, d] = PERIOD_MEASURED_ON.split('-').map(Number);
+    const month = ['January', 'February', 'March', 'April', 'May', 'June', 'July',
+      'August', 'September', 'October', 'November', 'December'][m - 1];
+    expect(visible).toContain(`as of ${d} ${month} ${y}`);
+    expect(visible).toMatch(/still adding|still posting|rise|grow/i);
   });
 
   /**
    * ⚠⚠ THE RECEIVING SIDE OF A SEAM. FY2025 is clean in itself and still
-   * carries a banner, because the money paid during it sits in FY2024. If this
-   * ever stops rendering, a reader sees $132M beside $249M and concludes
-   * spending halved.
+   * carries a banner, because the money paid during it sits in the files
+   * either side. If this ever stops rendering, a reader sees $132M beside
+   * $249M and concludes spending halved.
+   *
+   * ⭐ THE FIGURE WENT UP WHEN THE RULE REPLACED THE ENTRY, and that is the
+   * rule being better rather than different. The hand-written banner said
+   * $68.5M, counting only what sits in FY2024. The rule asks where ALL the
+   * money paid during FY2025 ended up and finds $77.4M, across FY2024 AND
+   * FY2026 — the second neighbour nobody had added up by hand.
    */
   it('⚠⚠ renders on the clean side of a two-year seam', () => {
+    const row = FISCAL_PERIOD_DISTORTION_YEARS
+      .find((r) => r.entity === 'West Hollywood' && r.fiscalYear === 2025);
+    expect(row?.axis, 'WeHo FY2025 is flagged for its own rows, not as a receiver').toBe('displaced');
+    expect(row!.elsewhereYears.length, 'the second neighbour is no longer counted')
+      .toBeGreaterThan(1);
     mount('West Hollywood', 2025, 'transactions', 'CA');
     const text = host.textContent ?? '';
-    expect(text).toMatch(/FY2024/);
-    expect(text).toMatch(/68\.5 million/);
+    for (const fy of row!.elsewhereYears) expect(text).toContain(`FY${fy}`);
+    expect(text).toContain(formatMoneyProse(row!.elsewhereAmount));
     expect(text).toMatch(/as published/i);
   });
 

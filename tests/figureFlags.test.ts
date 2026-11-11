@@ -8,6 +8,14 @@ import {
   BOND_SHARE_THRESHOLD,
   bondFinancedRevenueFlags,
   bondSharePct,
+  ABSENT_MONTH_YEARS,
+  FISCAL_PERIOD_DISTORTION_YEARS,
+  PERIOD_DISTORTION_THRESHOLD,
+  PERIOD_FLEET_SIZE,
+  distortionPctText,
+  nearestCompleteYear,
+  fiscalPeriodFlags,
+  perMonth,
 } from '../src/data/figureFlagRules';
 import { formatMoneyExact, formatMoneyProse } from '../src/utils/formatMoney';
 
@@ -41,6 +49,18 @@ const AUTHOR_FACING_REGISTERS = [
   // below treat it exactly like the authored registers, which is the point:
   // a rule-emitted flag earns its place on the page the same way.
   ...BOND_FINANCED_YEARS,
+  // ⭐⭐⭐ THE TWO REGISTERS THAT REPLACED SIX HAND-WRITTEN ENTRIES. West
+  // Hollywood's five straddle banners and McKinney's eleven-month banner are
+  // now measured over every transactions budget rather than over the cities
+  // somebody visited — and the same question found Frisco FY2021, a ten-month
+  // year nobody had ever flagged.
+  //
+  // ⚠⚠ A REGISTER THAT IS NOT IN THIS LIST CANNOT SURFACE A FLAG, and the
+  // guard proving corroborated findings reach readers silently stops covering
+  // it. That is the latent bug #362 found; adding a register here is not
+  // optional bookkeeping.
+  ...FISCAL_PERIOD_DISTORTION_YEARS,
+  ...ABSENT_MONTH_YEARS,
 ];
 
 /**
@@ -342,11 +362,17 @@ describe('rule-emitted flags', () => {
     for (const row of BOND_FINANCED_YEARS) {
       const f = emitted[`${row.entity}|${row.state}|${row.fiscalYear}|${row.datasetType}`];
       const prose = `${f.headline} ${f.summary} ${f.whatThisMeans} ${f.entries.map((e) => e.text).join(' ')}`;
-      // ⚠ THE TRAILING-PERIOD TRAP: `[\d,.]+` swallows the full stop that ends
-      // the sentence, so a correct "$15,042,917" is reported as the unmeasured
-      // figure "$15,042,917.". Cents are genuinely possible in this data, so
-      // the fraction part is matched explicitly instead of lumped in.
-      const money = prose.match(/\$[\d,]+(?:\.\d+)?(?: (?:million|billion))?/g) ?? [];
+      // ⚠ THE TRAILING-PUNCTUATION TRAP: `[\d,.]+` swallows the full stop that
+      // ends the sentence, so a correct "$15,042,917" is reported as the
+      // unmeasured figure "$15,042,917.". Cents are genuinely possible in this
+      // data, so the fraction part is matched explicitly instead of lumped in.
+      //
+      // ⚠⚠ AND A COMMA DOES THE SAME THING, which `[\d,]+` did NOT catch — it
+      // is inside the class. "worth $77,446,980, are held in" matched
+      // "$77,446,980," and reported a measured figure as unmeasured. Found by
+      // the fiscal-period rule below, and fixed here too: the integer part must
+      // END on a digit.
+      const money = prose.match(/\$[\d,]*\d(?:\.\d+)?(?: (?:million|billion))?/g) ?? [];
       expect(money.length, `${row.id} states no figure at all`).toBeGreaterThan(0);
       const allowed = new Set([
         formatMoneyExact(row.total), formatMoneyExact(row.bondAmount),
@@ -401,5 +427,241 @@ describe('rule-emitted flags', () => {
     const prose = `${f.summary} ${f.entries.map((e) => e.text).join(' ')}`;
     expect(/quarter/i.test(prose), 'the banner never states the rule it was flagged by').toBe(true);
     expect(BOND_SHARE_THRESHOLD).toBe(0.25);
+  });
+});
+
+/**
+ * ⭐⭐⭐ THE PERIOD RULES — six hand-written entries, measured instead.
+ *
+ * West Hollywood had five straddle banners and McKinney an eleven-month
+ * banner, every one of them written because a person spent a day on that city.
+ * These guards fix what the replacements may do, because a rule writes copy for
+ * every government at once and nobody reads every sentence it produces.
+ */
+describe('fiscal-period rules', () => {
+  const emitted = fiscalPeriodFlags();
+  const keyOf = (r) => `${r.entity}|${r.state}|${r.fiscalYear}|${r.datasetType}`;
+  const proseOf = (f) =>
+    `${f.headline} ${f.summary} ${f.whatThisMeans} ${f.entries.map((e) => e.text).join(' ')}`;
+
+  it('⭐⭐ reproduces every hand-written banner it replaced', () => {
+    // The whole bargain: the rule replaces a judgement WITHOUT changing what a
+    // reader sees. If this ever fails, the threshold moved and somebody must
+    // look at who gained or lost a banner.
+    for (const fy of [2019, 2020, 2024, 2025, 2026]) {
+      expect(figureFlagFor('West Hollywood', 'CA', fy, 'transactions'), `WeHo FY${fy}`).toBeTruthy();
+    }
+    expect(figureFlagFor('McKinney', 'TX', 2026, 'transactions')).toBeTruthy();
+
+    // ⚠ And the years whose skew is below the published threshold stay
+    // unflagged, or the ones that matter stop standing out. FY2017 is the
+    // closest call at 6.6% and was deliberately left out.
+    for (const fy of [2017, 2018, 2021, 2022, 2023]) {
+      expect(figureFlagFor('West Hollywood', 'CA', fy, 'transactions'), `WeHo FY${fy}`).toBeUndefined();
+    }
+  });
+
+  it('⚠⚠⚠ no hand-written entry survives for a year a rule now covers', () => {
+    // `figureFlags` merges rule-emitted with hand-written and HAND-WRITTEN
+    // WINS. An entry left behind would silently suppress its own replacement
+    // and the migration would be decorative — the banner would still be a
+    // record of who was looking.
+    const authored = Object.keys(figureFlags).filter((k) => !(k in emitted));
+    const overlaps = authored.filter((k) => /^(West Hollywood\|CA|McKinney\|TX)\|\d+\|transactions$/.test(k));
+    expect(overlaps, `still hand-written: ${overlaps.join(', ')}`).toEqual([]);
+  });
+
+  it('⚠⚠ emits no key a hand-written flag already owns', () => {
+    const authored = new Set(Object.keys(figureFlags).filter((k) => !(k in emitted)));
+    const collisions = Object.keys(emitted).filter((k) => authored.has(k));
+    expect(collisions, `rule and author both claim: ${collisions.join(', ')}`).toEqual([]);
+  });
+
+  it('⚠⚠ the two period rules never claim the same key', () => {
+    // Only one banner renders per key, so a collision silently costs a reader
+    // whichever sentence lost the merge. ⭐ This is a live near-miss, not a
+    // hypothetical: West Hollywood FY2025 has no July 2024 payment of its own
+    // and would be an absent-month year, except that the month sits in the
+    // FY2022-24 register — displaced, not absent.
+    const distorted = new Set(FISCAL_PERIOD_DISTORTION_YEARS.map(keyOf));
+    const both = ABSENT_MONTH_YEARS.map(keyOf).filter((k) => distorted.has(k));
+    expect(both, `both period rules claim: ${both.join(', ')}`).toEqual([]);
+    expect(Object.keys(emitted).length)
+      .toBe(FISCAL_PERIOD_DISTORTION_YEARS.length + ABSENT_MONTH_YEARS.length);
+  });
+
+  it('⭐⭐ asks the whole series, not the cities somebody visited', () => {
+    // The register records the denominator it was measured over, and it must
+    // be bigger than the set it found — otherwise the rule only ever looked at
+    // the years that were already flagged.
+    expect(PERIOD_FLEET_SIZE).toBeGreaterThan(
+      FISCAL_PERIOD_DISTORTION_YEARS.length + ABSENT_MONTH_YEARS.length);
+
+    // ⭐⭐⭐ THE YEAR NOBODY HAD FLAGGED. Frisco FY2021 holds ten months: its
+    // file stops on 2021-07-29 and is drawn beside two complete years. Frisco
+    // has its own anomaly register AND its own row-coverage baseline, and
+    // neither asked this question. If this assertion ever has to be deleted,
+    // read the diff first — it is the proof that the rule beat the attention.
+    const frisco = ABSENT_MONTH_YEARS.find((r) => r.entity === 'Frisco' && r.fiscalYear === 2021);
+    expect(frisco, 'Frisco FY2021 is no longer measured as incomplete').toBeTruthy();
+    expect(frisco.monthsCovered).toBe(10);
+    expect(frisco.absentMonths).toEqual(['August 2021', 'September 2021']);
+  });
+
+  it('⚠⚠⚠ states no figure that is not measured', () => {
+    // THE defect this architecture exists to prevent (PR #364): a banner that
+    // hard-codes a number drifts from the chart beside it. Every money figure
+    // in the prose must come from the row it describes.
+    //
+    // ⚠⚠ THE TRAILING-PUNCTUATION TRAP, AND THE COMMA IS THE ONE THAT BIT.
+    // `[\d,]+` includes the comma, so "worth $77,446,980, are held in" matched
+    // "$77,446,980," and this test reported a correctly measured figure as
+    // unmeasured. The integer part must END on a digit. (The bond rule's copy
+    // happened never to put a comma after a figure, so its version of this
+    // guard carried the same hole untripped.)
+    const money = (s) => s.match(/\$[\d,]*\d(?:\.\d+)?(?: (?:million|billion))?/g) ?? [];
+    const forms = (...n) => new Set(n.flatMap((x) => [formatMoneyExact(x), formatMoneyProse(x)]));
+
+    for (const row of FISCAL_PERIOD_DISTORTION_YEARS) {
+      const f = emitted[keyOf(row)];
+      const allowed = forms(row.total, row.outAmount, row.elsewhereAmount);
+      const found = money(proseOf(f));
+      expect(found.length, `${row.id} states no figure at all`).toBeGreaterThan(0);
+      for (const m of found) {
+        expect(allowed.has(m), `${row.id} states ${m}, which is not a figure measured for this year`)
+          .toBe(true);
+      }
+    }
+
+    for (const row of ABSENT_MONTH_YEARS) {
+      const f = emitted[keyOf(row)];
+      // ⚠ The SAME selection the copy makes — nearest complete year, not most
+      // recent. When this test kept its own copy of that choice it went green
+      // on a sentence the rule had stopped writing.
+      const control = nearestCompleteYear(row);
+      const allowed = forms(
+        row.total,
+        perMonth(row.total, row.monthsCovered),
+        ...(control ? [control.total, perMonth(control.total, row.monthsInPeriod)] : []),
+      );
+      const found = money(proseOf(f));
+      expect(found.length, `${row.id} states no figure at all`).toBeGreaterThan(0);
+      for (const m of found) {
+        expect(allowed.has(m), `${row.id} states ${m}, which is not a figure measured for this year`)
+          .toBe(true);
+      }
+    }
+  });
+
+  it('⚠ every stated percentage is the measured share', () => {
+    for (const row of FISCAL_PERIOD_DISTORTION_YEARS) {
+      const f = emitted[keyOf(row)];
+      for (const pct of proseOf(f).match(/\d+(?:\.\d+)?%/g) ?? []) {
+        expect(pct, row.id).toBe(`${distortionPctText(row)}%`);
+      }
+    }
+  });
+
+  it('⚠ every emitted year actually crosses the published threshold', () => {
+    // A register row that does not meet its own rule is a banner telling a
+    // reader something untrue about a government.
+    for (const row of FISCAL_PERIOD_DISTORTION_YEARS) {
+      expect(row.total, row.id).toBeGreaterThan(0);
+      expect(Math.max(row.ownShare, row.displacedShare), row.id)
+        .toBeGreaterThan(PERIOD_DISTORTION_THRESHOLD);
+      // The axis the copy speaks from must be the one that qualified.
+      const share = row.axis === 'own' ? row.ownShare : row.displacedShare;
+      expect(share, `${row.id} leads with the axis that did not cross`)
+        .toBeGreaterThan(PERIOD_DISTORTION_THRESHOLD);
+    }
+    for (const row of ABSENT_MONTH_YEARS) {
+      expect(row.monthsCovered, row.id).toBeLessThan(row.monthsInPeriod);
+      expect(row.absentMonths.length, row.id).toBe(row.monthsInPeriod - row.monthsCovered);
+    }
+  });
+
+  it('⚠ the reader is told the threshold, so they can apply their own', () => {
+    for (const row of FISCAL_PERIOD_DISTORTION_YEARS) {
+      const f = emitted[keyOf(row)];
+      const prose = `${f.summary} ${f.entries.map((e) => e.text).join(' ')}`;
+      expect(/more than a tenth/i.test(prose), `${row.id} never states the rule it was flagged by`)
+        .toBe(true);
+    }
+    // ⚠ The words and the number must mean the same thing. "More than a tenth"
+    // beside a threshold of 0.25 would be a lie a reader cannot detect.
+    expect(PERIOD_DISTORTION_THRESHOLD).toBe(0.10);
+  });
+
+  it('⚠⚠ claims nothing about neighbouring years it has not measured', () => {
+    // West Hollywood is flagged in FY2019 AND FY2020, FY2024 AND FY2025 AND
+    // FY2026, so copy reading "unlike the years around it" is flatly false.
+    // Proven, not assumed:
+    const multi = new Map<string, number>();
+    for (const r of [...FISCAL_PERIOD_DISTORTION_YEARS, ...ABSENT_MONTH_YEARS]) {
+      const k = `${r.entity}|${r.state}`;
+      multi.set(k, (multi.get(k) ?? 0) + 1);
+    }
+    expect([...multi.values()].some((n) => n > 1)).toBe(true);
+
+    const forbidden = /unlike the years|years on either side|years around it|neither year/i;
+    for (const [key, f] of Object.entries(emitted)) {
+      expect(forbidden.test(proseOf(f)), `${key} makes a claim about adjacent years`).toBe(false);
+    }
+  });
+
+  it('⚠⚠ never says WHY a month or a payment is where it is', () => {
+    // ⛔ THE LINE BETWEEN A FACT AND AN INFERENCE. "McKinney has not posted
+    // September yet" is the obvious reading and may well be right, and it is
+    // still a guess about a government's internal process. Frisco's sibling
+    // register is held back from readers for exactly this reason; a rule that
+    // speculated would walk straight past that line for every city at once.
+    const speculation = /\b(has not (yet )?(posted|published|released)|not yet (posted|published|released)|delayed|late|behind schedule|forgot|failed to)\b/i;
+    for (const [key, f] of Object.entries(emitted)) {
+      expect(speculation.test(proseOf(f)), `${key} speculates about the publisher`).toBe(false);
+    }
+  });
+
+  it('⚠⚠⚠ an absent-month flag carries a MECHANICAL retirement condition', () => {
+    // The whole reason this rule exists. McKinney's hand-written entry stated
+    // its retirement condition in prose for a human to act on, and the banner
+    // becomes FALSE the day the city posts September. Here the condition is
+    // the rule itself — but the register must still SAY what it is waiting
+    // for, naming the months, so a reader of the register knows.
+    expect(ABSENT_MONTH_YEARS.length).toBeGreaterThan(0);
+    for (const row of ABSENT_MONTH_YEARS) {
+      expect(row.retireWhen, `${row.id} has no retirement condition`).toBeTruthy();
+      for (const month of row.absentMonths) {
+        expect(row.retireWhen, `${row.id} does not name ${month}`).toContain(month);
+      }
+      expect(row.retireWhen, `${row.id} does not name the file it is waiting on`)
+        .toContain(row.sourceName);
+    }
+  });
+
+  it('⚠⚠ the out-of-period register no longer decides who is flagged', () => {
+    // It used to hand-type `readerFacing` per year, which made it a SECOND
+    // authority beside src/data/figureFlags.ts for one decision. Both are gone;
+    // the published threshold decides and the register reads it. This proves
+    // they cannot drift apart again.
+    const flagged = new Set(FISCAL_PERIOD_DISTORTION_YEARS.map((r) => r.id));
+    for (const e of OUT_OF_PERIOD_EXCEPTIONS) {
+      if (!String(e.id ?? '').endsWith('-fiscal-straddle')) continue;
+      expect(e.readerFacing, `${e.id} disagrees with the rule about being reader-facing`)
+        .toBe(flagged.has(e.id));
+    }
+  });
+
+  it('⚠ a hand-declared stillGrowing and the measured one agree', () => {
+    // `stillGrowing` is declared by hand in the out-of-period register (it
+    // describes TT's SYNC configuration, not the publisher's figures) and
+    // derived independently by the rule from is_enabled + a non-manual sync
+    // frequency + being the newest year. Two derivations of one fact drift
+    // unless something holds them together.
+    const measured = new Map(FISCAL_PERIOD_DISTORTION_YEARS.map((r) => [r.id, r.stillGrowing]));
+    for (const e of OUT_OF_PERIOD_EXCEPTIONS) {
+      if (!measured.has(e.id)) continue;
+      expect(measured.get(e.id), `${e.id}: register says stillGrowing=${e.stillGrowing === true}`)
+        .toBe(e.stillGrowing === true);
+    }
   });
 });

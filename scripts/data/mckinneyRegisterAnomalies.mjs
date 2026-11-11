@@ -47,11 +47,50 @@
  *      the 3,033 paid in October against prior-year invoices.
  */
 
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * ⭐⭐⭐ RETIRED AS A READER-FACING ENTRY, 2026-11-11 — IT IS A RULE NOW.
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * The banner this entry used to surface is emitted by
+ * `absentMonthFlag()` in src/data/figureFlagRules.ts, from
+ * `treasury.transaction_absent_months()`, measured over every transactions
+ * budget in the series.
+ *
+ * ⚠⚠ THE REASON IS THE `retireWhen` TWELVE LINES BELOW. It states the
+ * retirement condition in PROSE, FOR A HUMAN: "holds any payment dated
+ * 2026-09-01 or later, or covers twelve distinct payment months". That
+ * sentence was true the day it shipped and becomes FALSE the moment McKinney
+ * posts September and TT reloads — at which point the banner would tell a
+ * reader that a COMPLETE year is incomplete, which is its own misinformation.
+ * The only thing standing between those two states was somebody remembering.
+ *
+ * Computed instead, the condition IS the rule: when September arrives the row
+ * leaves the generated register and the banner goes with it, with no edit to
+ * make and nobody to remind.
+ *
+ * ⚠ THE ENTRY STAYS, and so does everything above it. The corroboration of
+ * McKinney's October–September year — the budget archive naming "FY 2025-2026",
+ * the four earlier registers ending in late September, the file's own
+ * `fiscal_year` column — is what justifies the PERIOD the rule measures
+ * against, and `budgets.fiscal_year_start_month` is a TT configuration value,
+ * not a published fact. Deleting this would delete the evidence for it.
+ *
+ * ⚠⚠ `readerFacing: false` IS LOAD-BEARING. `tests/figureFlags.test.ts`
+ * requires every register entry that is `loaded` and not explicitly
+ * non-reader-facing to appear on the page. Without it this file would demand a
+ * banner under the OLD id, which nothing emits any more.
+ */
+
 /** @type {Array<Record<string, unknown>>} */
 export const MCKINNEY_REGISTER_ANOMALIES = [
   {
     id: 'mckinney-tx-fy2026-eleven-month-year',
     key: 'mckinney-tx-fy2026-eleven-month-year',
+
+    /** ⭐ Superseded by the rule — see the note above this array. */
+    readerFacing: false,
+    supersededBy: 'mckinney-tx-fy2026-absent-months',
     municipality: 'McKinney',
     state: 'TX',
     fiscalYears: [2026],
