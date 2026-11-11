@@ -178,6 +178,10 @@ scripts/load-mn-*.failures.txt
 # Phase 137 (v2.20) WI re-derivation working dir — source workbooks + scratch scripts
 _wi-recon/
 
+# SC city + MD Comptroller citation recon — downloaded ACFRs + scratch scripts
+_sc-recon/
+_md-recon/
+
 # Downloaded production bundles used for deploy verification — never source
 app*.html
 app*.js

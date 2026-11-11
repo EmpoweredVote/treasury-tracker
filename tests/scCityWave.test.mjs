@@ -6,6 +6,7 @@ import {
   SC_CITY_LIBRARY_FIXES, SC_CITY_READER_HISTORY, SC_CITY_NO_FEDERAL_FILING,
   SC_CITY_NO_TABLE_CORROBORATOR, SC_CITY_SUPERSEDED_REPORTS,
   scCityLoadableEntities, scCityFilings, scCityByKey, fiscalMonthFor,
+  scCityYearsFor, scCityDocumentFor, FAC_PDF_BASE,
 } from '../scripts/data/scCityAcfrEntities.mjs';
 import { KNOWN_DOCUMENT_GAPS } from '../scripts/extractScCitiesAll.mjs';
 import { sourceNameFor, sourcePrefixFor, FUND_SCOPE, BASIS_VALUE, DERIVATION } from '../scripts/loadScCityAcfrs.mjs';
@@ -816,5 +817,93 @@ describe('South Carolina city roster — universal invariants', () => {
     // ⚠⚠ Wave 5 introduced exactly one. If this ever reads 0 the feature has
     // been removed and the tests above are passing vacuously.
     expect(selfPublished).toBeGreaterThan(0);
+  });
+});
+
+/**
+ * ⚠⚠⚠ THE CITATION MUST BE THE DOCUMENT, NEVER THE PAGE IT IS LISTED ON.
+ *
+ * Eleven South Carolina governments shipped 186 budgets whose `source_url` was
+ * the city's FINANCE LANDING PAGE — one URL for every fiscal year — while the
+ * registry held the exact per-year document the loader had just parsed. Three
+ * of those pages had moved and the gate called them dead; the other eight were
+ * green and equally wrong, because a landing page has no file extension, so
+ * `citationShape` asserts nothing about it and a 200 passes.
+ *
+ * That is worse than a dead link. A reader who clicks from the FY2018 chart is
+ * owed the FY2018 statements, and a dead link at least says so.
+ *
+ * Columbia and Myrtle Beach — loaded earlier, from scAcfrSources.mjs — cite the
+ * per-year FAC PDF. The pattern was already right in this repo; wave 1 lost it.
+ */
+describe('the South Carolina city citation', () => {
+  it('⚠⚠⚠ resolves to the per-FISCAL-YEAR document, never to a landing page', () => {
+    let checked = 0;
+    for (const e of scCityLoadableEntities()) {
+      for (const fy of scCityYearsFor(e)) {
+        const doc = scCityDocumentFor(e, fy);
+        expect(doc, `${e.key} FY${fy} has no recorded document`).toBeTruthy();
+        expect(doc.url).not.toBe(e.publicationPage);
+        // A landing page is the thing being replaced; it may never come back
+        // through this door for any year.
+        for (const other of SC_CITY_ENTITIES) {
+          expect(doc.url).not.toBe(other.publicationPage);
+        }
+        checked += 1;
+      }
+    }
+    expect(checked).toBeGreaterThan(90);
+  });
+
+  it('gives each year the publisher the registry recorded for THAT year', () => {
+    for (const e of scCityLoadableEntities()) {
+      for (const fy of scCityYearsFor(e)) {
+        const doc = scCityDocumentFor(e, fy);
+        if (e.facReports?.[fy]) {
+          expect(doc.publisher).toBe('fac');
+          expect(doc.reportId).toBe(e.facReports[fy]);
+          expect(doc.url).toBe(`${FAC_PDF_BASE}/${e.facReports[fy]}`);
+        } else {
+          // ⚠ Hilton Head FY2020 has no federal filing and comes from the town
+          // itself. Nothing may rebuild a FAC URL for it.
+          expect(doc.publisher).toBe('self');
+          expect(doc.reportId).toBeNull();
+          expect(doc.url).toBe(e.selfPublishedReports[fy].url);
+        }
+      }
+    }
+  });
+
+  it('⚠ refuses a year that declares BOTH publishers rather than picking one', () => {
+    const e = scCityByKey('hilton-head');
+    expect(e, 'hilton-head is the entity with the self-published year').toBeTruthy();
+    expect(e.selfPublishedReports?.[2020]).toBeTruthy();
+    const twoPublishers = {
+      ...e,
+      facReports: { ...e.facReports, 2020: '2020-06-CENSUS-0000201322' },
+    };
+    expect(() => scCityDocumentFor(twoPublishers, 2020)).toThrow(/BOTH|two publishers/i);
+  });
+
+  it('returns null for a year with no recorded document, rather than guessing', () => {
+    expect(scCityDocumentFor(scCityByKey('charleston'), 1999)).toBeNull();
+  });
+
+  /**
+   * ⭐ The point of the whole exercise: a reader following the citation lands on
+   * a FILE. Every resolved URL either names its type or is a FAC report-pdf
+   * endpoint, which serves `application/pdf` and is what `citationShape`
+   * already treats as citable across Alaska, Hawaii, Indiana and NY.
+   */
+  it('resolves to something that serves a document, not a page of links', () => {
+    for (const e of scCityLoadableEntities()) {
+      for (const fy of scCityYearsFor(e)) {
+        const { url } = scCityDocumentFor(e, fy);
+        expect(
+          url.startsWith(`${FAC_PDF_BASE}/`) || /\.pdf$/i.test(url),
+          `${e.key} FY${fy} -> ${url}`,
+        ).toBe(true);
+      }
+    }
   });
 });
