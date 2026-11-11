@@ -38,6 +38,14 @@ import { createClient } from '@supabase/supabase-js';
 import { parseArgs } from 'node:util';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+// ⚠⚠⚠ PROVENANCE IS NOT A FILE PATH. This loader used to write
+// `'file://' + <local path>` into `base_url`, recording the operator's hard
+// disk as the record of where a public document came from. 51 of those
+// reached production and nothing noticed until #381, because no gate had
+// ever read that column. `publisherUrlFor()` returns a PROVEN publisher URL
+// (sha256-matched against the parsed file) and THROWS otherwise — a loader
+// that cannot say where its document came from must stop, not invent it.
+import { publisherUrlFor } from './data/documentPublisherUrls.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
@@ -443,7 +451,7 @@ async function processFY(supabase, muniId, fiscalYear, dryRun, verbose) {
     const { error: upErr } = await supabase.schema('treasury').from('data_sources')
       .update({
         api_type: 'xlsx_download',
-        base_url: 'local:' + config.file,
+        base_url: publisherUrlFor(config.file),
         fiscal_years: [fiscalYear],
         last_synced_at: new Date().toISOString(),
       })
@@ -464,7 +472,7 @@ async function processFY(supabase, muniId, fiscalYear, dryRun, verbose) {
       const { error: upErr } = await supabase.schema('treasury').from('data_sources')
         .update({
           api_type: 'xlsx_download',
-          base_url: 'local:' + config.file,
+          base_url: publisherUrlFor(config.file),
           last_synced_at: new Date().toISOString(),
         })
         .eq('id', existing.id);
@@ -480,7 +488,7 @@ async function processFY(supabase, muniId, fiscalYear, dryRun, verbose) {
           dataset_id: 'fy' + fiscalYear,
           dataset_type: 'operating',
           fiscal_years: [fiscalYear],
-          base_url: 'local:' + config.file,
+          base_url: publisherUrlFor(config.file),
           last_synced_at: new Date().toISOString(),
         })
         .select('id')
