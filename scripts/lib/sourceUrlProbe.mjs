@@ -221,7 +221,59 @@ export function judgeProbe({ url, status, contentType, error }) {
  * falls back this way, and a gate that called McKinney's own citation dead
  * would be reporting on Node, not on McKinney.
  */
-export async function probeUrl(url, { fetchImpl = fetch, curlImpl = null, timeoutMs = 20_000 } = {}) {
+/**
+ * ⚠⚠⚠ A CONNECTION THAT WAS NEVER ESTABLISHED IS NOT AN ANSWER.
+ *
+ * These are the errors where the host never got to say anything: the socket
+ * was refused, reset, or never opened. They are categorically different from
+ * `HTTP 403`, which IS an answer — a refusal, but a stable one that says the
+ * same thing on every run.
+ *
+ * ⛔ Deliberately NOT in here: timeouts. A host that is merely slow (Indiana
+ * Gateway takes 25s and sometimes loses) would double this gate's worst-case
+ * runtime for no gain in truth, and a timeout at least means something
+ * answered the SYN.
+ */
+const CONNECTION_NEVER_MADE = /Failed to connect|Connection refused|ECONNREFUSED|ECONNRESET|socket hang up|EAI_AGAIN|Could not connect to server|curl: \(3[56]\)|curl: \(7\)/i;
+
+/**
+ * ⭐⭐ WHY THIS RETRIES, AND WHY ONLY THIS CASE.
+ *
+ * #374 found the gate's repair list moving between runs — 102, then 77, then
+ * 79 dead — and named the rule: "a gate whose repair list changes between runs
+ * is measuring itself, not the publishers." It fixed the verdict (429 and 403
+ * became `unreachable`); it did not fix the measurement.
+ *
+ * It is still moving. Measured 2026-11-11 over the 27 web.archive.org
+ * citations: 22 live and 5 refused at the socket, a DIFFERENT five each run,
+ * and every one of them served the document on a retry seconds later. Three of
+ * those five are citations that predate this change. So the failure is the
+ * Archive blinking under load, not a statement about any URL — and reporting
+ * it as "could not be asked" asks a human to investigate the gate's own luck.
+ *
+ * ⚠ THE BUDGET IS SET FROM THE MEASURED RATE, NOT FROM WHATEVER MADE ONE RUN
+ * GREEN. Refusals ran at about 5 in 27 (~18%) per attempt and are independent
+ * — the New Hampshire citation that survived two retries answered 206 on five
+ * consecutive hand probes a minute later. Four attempts puts the per-URL odds
+ * near 0.1% and the odds of ANY of the 27 failing near 3%, against ~15% at two
+ * retries. ⛔ It does not make the gate deterministic, and nothing here should
+ * be read as claiming that; it makes a flake rare enough to be worth
+ * investigating when it happens.
+ */
+export async function probeUrl(url, options = {}) {
+  const { retries = 3, retryDelayMs = 1500, sleepImpl = null } = options;
+  let out = await probeOnce(url, options);
+  for (let i = 0; i < retries; i += 1) {
+    if (out.status !== null || !out.error || !CONNECTION_NEVER_MADE.test(out.error)) break;
+    const wait = retryDelayMs * (i + 1);
+    await (sleepImpl ? sleepImpl(wait) : new Promise((r) => { setTimeout(r, wait); }));
+    out = await probeOnce(url, options);
+    if (out.status !== null) out = { ...out, recoveredAfterRetry: true };
+  }
+  return out;
+}
+
+async function probeOnce(url, { fetchImpl = fetch, curlImpl = null, timeoutMs = 20_000 } = {}) {
   const shape = citationShape(url);
   if (!shape.citable) return { url, status: null, contentType: null, error: null };
 

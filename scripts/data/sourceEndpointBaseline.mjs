@@ -40,34 +40,51 @@ export const SOURCE_ENDPOINT_BASELINE = Object.freeze({
    * only copy of each document is on one machine, and TT recorded no publisher
    * URL for it anywhere.
    *
-   * ── 51 → 28, 2026-11-11 ────────────────────────────────────────────────
-   * 23 documents were found on their publishers and PROVEN byte-identical
-   * (sha256, full download) to the file the loader parsed — Long Beach 5,
-   * Fresno 7, Oakland 2, Riverside 2, Plano 7. The 30 budgets they back were
-   * citing NOTHING; they now cite the document. See
-   * supabase/migrations/20261111010000_laptop_paths_23_proven_documents.sql.
+   * ── 51 → 28 → 10, both passes on 2026-11-11 ────────────────────────────
+   * #382 proved 23 (Long Beach 5, Fresno 7, Oakland 2, Riverside 2, Plano 7)
+   * and recorded 28 as blocked, because six publishers 403 every automated
+   * client and the Internet Archive was offline that day.
    *
-   * ⛔⛔ THE REMAINING 28 ARE BLOCKED, NOT UNATTEMPTED. Each sits behind a WAF
-   * that refuses every automated client at the DOCUMENT endpoint. Measured
-   * 2026-11-11 against the full browser header set, the `Sec-Fetch-*` pair
-   * that unlocked the Oregon cities (#375), AND the real headless Chromium
-   * `npm run e2e` installs — including navigating the page first so the
-   * request carried the cookies a real visit sets. Every one still 403.
+   * ⭐⭐ RE-ASKING COST ALMOST NOTHING AND MOVED 18 OF THE 28. "Blocked" had
+   * been a statement about one day, not about the documents:
    *
-   *   Fremont      7  fremont.gov            403 to page AND document
-   *   Richardson   8  cor.net                403 to page AND document
-   *   San José     5  sanjoseca.gov          403 to page AND document
-   *   Santa Ana    4  santa-ana.org          403 (and to the santa-ana.gov
-   *                                          successor it redirects to)
-   *   Anaheim      2  anaheim.net            page 200, ArchiveCenter 403
-   *   Bakersfield  2  docs.bakersfieldcity.us  host 200, document not located
+   *   Anaheim      2/2  ArchiveCenter answers 200 to a BROWSER-SHAPED client.
+   *                     The recorded 403 came from a bare curl — the host had
+   *                     not refused us, we had asked it wrongly.
+   *   Santa Ana    4/4  santa-ana.org now redirects to santa-ana.gov (200),
+   *                     and the documents are not on the city host at all:
+   *                     they sit in a public GCS bucket with no WAF.
+   *   Fremont      6/7  via Wayback — publisher still 403s.
+   *   Richardson   5/8  via Wayback — publisher still 403s.
+   *   San José     1/5  via Wayback — publisher still 403s.
    *
-   * ⚠ web.archive.org — the usual answer for exactly this, and the one #376
-   * and #377 leaned on — was **temporarily offline** on the day this was done,
-   * so the Wayback copies that would have settled them could not be read.
-   * ⭐ THAT IS THE NEXT THING TO TRY, and it is cheap: the CDX index gives the
-   * publisher URL even when the publisher will not talk to us, and a capture
-   * can be hashed against the local file exactly as these 23 were.
+   * See supabase/migrations/20261111020000_laptop_paths_wayback_and_successor_hosts.sql.
+   * 31 more budgets that cited NOTHING now cite their document.
+   *
+   * ⛔⛔ THE REMAINING 10 EACH NAME THEIR OWN OBSTACLE NOW — that is the point
+   * of keeping them here rather than rounding them off:
+   *
+   *   Bakersfield  2  FOUND but not fetchable. Laserfiche WebLink DocView ids
+   *                   1957514 (FY2024-25) and 1957516 (FY2025-26) under
+   *                   \ADMINISTRATIVE SERVICES\CITY CLERK\PUBLIC ACCESS\
+   *                   BUDGET\ADOPTED. WebLink builds its download link at
+   *                   runtime and checks a CookieCheck.aspx cookie; three
+   *                   constructed endpoints each returned `200` with an EMPTY
+   *                   body — a success code wrapped around nothing.
+   *                   ⚠ The city's current budget page serves RE-COMPRESSED
+   *                   renditions (FY2024-25 at 18,973,665 bytes against the
+   *                   23,164,475 TT parsed), so the parsed bytes may no longer
+   *                   be published anywhere. NEXT: drive the viewer's own
+   *                   download control, or ask the City Clerk.
+   *   San José     4  sanjoseca.gov publishes ~90 PER-SECTION PDFs; TT parsed
+   *                   single whole-book files ("Entire Book for CSMFO",
+   *                   "ADOPTED OPERATING BOOK"). 246 archived captures in the
+   *                   right size band were downloaded and hashed; 245
+   *                   succeeded and exactly one was a book (FY2021-22).
+   *   Richardson   3  FY2024, FY2025 and FY2026 "Downloadable Budget" (ids
+   *                   39211 and 44456 among them) have NO capture at all.
+   *   Fremont      1  FY2024/25 Proposed — the one capture is TRUNCATED:
+   *                   1,960,986 bytes archived of a 12,847,218-byte document.
    *
    * ⛔ A URL may NOT be written here on the strength of a search result. The
    * value of this repair is that the citation is proven; an unproven one would
@@ -81,7 +98,7 @@ export const SOURCE_ENDPOINT_BASELINE = Object.freeze({
    * and the gate PRINTS all of them on every run, so a swap stays visible to a
    * reader. May shrink. May never grow.
    */
-  localPaths: 28,
+  localPaths: 10,
 
   /**
    * Endpoints that answered, and answered wrong. Probed with the gate's own
