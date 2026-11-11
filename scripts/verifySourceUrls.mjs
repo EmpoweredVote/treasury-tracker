@@ -54,6 +54,45 @@
  * a human reading it can settle. This gate closes "the link is dead", not "the
  * link is wrong". ⛔ Do not read a green run as saying the citations are
  * correct — only that they are LIVE.
+ *
+ * ── ⭐⭐⭐ AND FOR 937 BUDGETS IT WAS ASKING THE WRONG COLUMN ENTIRELY ──────
+ *
+ * Everything above reads `treasury.budgets.source_url`. That is the column TT
+ * WRITES. It is not, for every budget, the column a reader is SHOWN.
+ *
+ * The API picks the source chip's href in two branches (`mapBudget`,
+ * EV-Accounts `treasuryService.ts`), and the FIRST one does not look at
+ * `source_url` at all: when a budget carries a `data_source_id`, the href comes
+ * from `treasury.source_registry.url` and `treasury.data_sources.base_url`.
+ * **937 budgets take that branch, over 20 distinct URLs, and not one of those
+ * 20 had ever been asked by any gate in this repo.** One of them was a 404 —
+ * West Hollywood's open-checkbook page, published to every reader of eight
+ * demand registers for an unknown length of time.
+ *
+ * ⚠⚠ ASK WHAT THE API PUBLISHES, NOT WHAT THE CLIENT RENDERS. `data_source_info`
+ * carries TWO URL fields and both reach the browser; which one the chip links to
+ * is a single `||` in `src/App.tsx`. The first draft of `reader_link_census()`
+ * resolved that ternary and asked only the winner — and reported West Hollywood
+ * CLEAN, because `datasetUrl` wins for a city and `data.weho.org` answers 200
+ * while the dead `url` rode along in the same JSON object. A gate whose coverage
+ * depends on a component's ternary is not coverage.
+ *
+ * ⚠⚠ Worse than dead: 704 of those 937 ALREADY HOLD a precise `source_url` and
+ * are shown a portal root instead — 696 CA State Controller budgets across 87
+ * entities sent to `bythenumbers.sco.ca.gov` while TT holds the two exact
+ * dataset pages it parsed. That is #380's landing-page defect one layer up, and
+ * its repair is in ev-accounts, not here. This gate's job is that it can never
+ * again be true that nobody is looking.
+ *
+ * So the run now asks THREE censuses, and they mean different things:
+ *
+ *   1. `source_url_census()`      — what TT stored.           Citation rules.
+ *   2. `reader_link_census()`     — what the reader is shown. Citation rules.
+ *   3. `source_endpoint_census()` — every `data_sources.base_url`.
+ *                                   See scripts/lib/sourceEndpointJudge.mjs:
+ *                                   a sync endpoint, a provenance note and a
+ *                                   path on somebody's laptop are three
+ *                                   different promises and get three verdicts.
  */
 import { createClient } from '@supabase/supabase-js';
 import { parseArgs } from 'node:util';
@@ -65,6 +104,7 @@ import path from 'node:path';
 
 import {
   probeUrl,
+  judgeProbe,
   classifyCitations,
   citationsAreClean,
   judgeUncited,
@@ -72,9 +112,11 @@ import {
   citationShape,
   BROWSER_HEADERS,
 } from './lib/sourceUrlProbe.mjs';
+import { judgeEndpoints, endpointsAreClean } from './lib/sourceEndpointJudge.mjs';
 import { SOURCE_URL_EXCEPTIONS } from './data/sourceUrlExceptions.mjs';
 import { PUBLISHER_OUTAGES } from './data/publisherOutages.mjs';
 import { UNCITED_BASELINE } from './data/sourceUrlCoverage.mjs';
+import { SOURCE_ENDPOINT_BASELINE } from './data/sourceEndpointBaseline.mjs';
 
 /** Hosts asked in parallel. Requests to ONE host stay serial. */
 const HOST_CONCURRENCY = 8;
@@ -166,6 +208,43 @@ async function fetchSourceUrlCensus() {
   }
 }
 
+/**
+ * What a READER's chip resolves to, for the budgets whose href is NOT
+ * `budgets.source_url`. Paged under the same total order for the same reason.
+ *
+ * ⚠ The RPC names its first column `source_url` even though it is not one —
+ * so these rows drop straight into `observeAll()` and `classifyCitations()`
+ * beside the stored citations. Same verdicts, same exceptions file, one ladder.
+ * A reader cannot tell which column their broken link came out of, and neither
+ * should the gate's bar for it.
+ */
+async function fetchReaderLinkCensus() {
+  const out = [];
+  for (let from = 0; ; from += PAGE) {
+    const { data, error } = await db().schema('treasury').rpc('reader_link_census')
+      .select('*')
+      .order('source_url', { ascending: true })
+      .range(from, from + PAGE - 1);
+    if (error) throw new Error(`reader_link_census failed: ${error.message}`);
+    out.push(...data);
+    if (data.length < PAGE) return out;
+  }
+}
+
+/** Every distinct `data_sources.base_url`, with what it is for. */
+async function fetchSourceEndpointCensus() {
+  const out = [];
+  for (let from = 0; ; from += PAGE) {
+    const { data, error } = await db().schema('treasury').rpc('source_endpoint_census')
+      .select('*')
+      .order('source_url', { ascending: true })
+      .range(from, from + PAGE - 1);
+    if (error) throw new Error(`source_endpoint_census failed: ${error.message}`);
+    out.push(...data);
+    if (data.length < PAGE) return out;
+  }
+}
+
 /** Every uncited source, paged under a total order (`data_source` is the GROUP BY key). */
 async function fetchUncitedCensus() {
   const out = [];
@@ -249,10 +328,24 @@ export async function main(argv = process.argv.slice(2)) {
     return 0;
   }
 
-  // ── Every distinct citation ──────────────────────────────────────────────
+  // ── Every distinct citation, plus every link a reader is actually shown ──
+  //
+  // ⚠⚠ THE UNION, NOT EITHER ONE. `source_url_census()` is what TT stored;
+  // `reader_link_census()` is what the API hands the chip for the 937 budgets
+  // whose `data_source_id` makes the API ignore `source_url`. A URL in only
+  // one of them still has to resolve: a stored citation nobody is shown is
+  // still a claim this repo makes, and a shown link we never stored is still
+  // the thing a reader clicks.
+  //
+  // ⚠ Deduped by URL — the two censuses CAN name the same URL (a registry
+  // href that is also somebody's stored citation), and asking a publisher the
+  // same question twice in one run is rude, not rigorous.
   const census = await fetchSourceUrlCensus();
+  const readerLinks = await fetchReaderLinkCensus();
+  const storedUrls = new Set(census.map((r) => r.source_url));
+  const readerOnly = readerLinks.filter((r) => !storedUrls.has(r.source_url));
 
-  let rows = census;
+  let rows = [...census, ...readerOnly];
   // ⚠⚠ A FILTER MUST SCOPE THE EXPECTATION, NOT JUST THE OBSERVATION. #360
   // learned this the hard way: `--source` narrowed what was looked at but not
   // what was expected, and 21 untouched registry entries read as "stale" —
@@ -283,7 +376,26 @@ export async function main(argv = process.argv.slice(2)) {
     outages = [];
   }
 
+  // ⚠⚠ #360's rule again: a filter must scope the EXPECTATION, not just the
+  // observation. `readerLinks` is reported on below, so a narrowed run must
+  // narrow it by the SAME predicate — otherwise `--host bythenumbers` prints
+  // a 704-budget finding about hosts it deliberately never asked.
+  const asked = new Set(rows.map((r) => r.source_url));
+  const readerLinksInScope = readerLinks.filter((r) => asked.has(r.source_url));
+  const readerOnlyInScope = readerOnly.filter((r) => asked.has(r.source_url));
+
   console.log(`asking ${n(rows.length)} distinct citation(s) covering ${n(rows.reduce((a, r) => a + Number(r.budgets), 0))} budget(s)…`);
+  if (readerOnlyInScope.length) {
+    const unlinked = readerOnlyInScope.filter((r) => !r.is_chip_href).length;
+    console.log(`  …${n(readerOnlyInScope.length)} of them reach a reader WITHOUT being stored in budgets.source_url`);
+    // ⚠⚠ ASKED ANYWAY, AND THAT IS THE POINT. `data_source_info` carries TWO
+    // URL fields and the API ships both to the browser on every budget; which
+    // one the chip links to is one `||` in src/App.tsx. Asking only the winner
+    // would make this gate's coverage depend on a component's ternary — and it
+    // already hid a 404 once: West Hollywood's `url` is a dead open-checkbook
+    // page sitting in the same JSON object as a live `datasetUrl`.
+    if (unlinked) console.log(`     (${n(unlinked)} published in data_source_info but not currently linked)`);
+  }
   const started = Date.now();
   let lastPrint = 0;
   const { observations, hosts } = await observeAll(rows, {
@@ -302,6 +414,30 @@ export async function main(argv = process.argv.slice(2)) {
   if (c.confirmed.length) console.log(`ℹ️  declared unreachable: ${n(c.confirmed.length)}`);
 
   let failed = false;
+
+  // ── ⚠⚠ A LIVE LINK CAN STILL BE THE WRONG ONE ───────────────────────────
+  //
+  // Reported, NOT failed, and the distinction is deliberate: every URL below
+  // resolves, so there is nothing here for this gate — whose whole subject is
+  // "does it resolve" — to call broken. What is wrong is the CHOICE, and the
+  // code that makes it lives in ev-accounts (`mapBudget` prefers
+  // `source_registry.url` over `budgets.source_url` whenever a budget carries
+  // a `data_source_id`). Failing a TT run over a defect TT cannot fix would
+  // make this gate unfixably red; saying nothing would repeat #380, where
+  // eight South Carolina cities sat green and wrong because nothing printed
+  // the sentence. So it prints, every run, until the precedence changes.
+  const overridden = readerLinksInScope.filter((r) => Number(r.overrides_stored_url) > 0);
+  if (overridden.length) {
+    const budgets = overridden.reduce((a, r) => a + Number(r.overrides_stored_url), 0);
+    console.log(`\n⚠⚠ SHOWN A LANDING PAGE WHILE TT HOLDS THE DOCUMENT (${n(budgets)} budget(s)):`);
+    for (const r of overridden.sort((a, b) => Number(b.overrides_stored_url) - Number(a.overrides_stored_url))) {
+      console.log(`  ${where(r)} — ${n(r.overrides_stored_url)} budget(s) via ${r.via}`);
+      console.log(`     reader is sent to  ${r.source_url}`);
+      console.log(`     TT already stores  ${n(r.distinct_stored_urls)} precise source_url(s) for them`);
+    }
+    console.log('  ⛔ The repair is in EmpoweredVote/ev-accounts: treasuryService.ts `mapBudget`');
+    console.log('     must prefer b.source_url over sr.url when the budget carries one.');
+  }
 
   // ── ⭐⭐ A PUBLISHER THAT IS DOWN, NOT A DOCUMENT THAT IS GONE ───────────
   //
@@ -367,6 +503,85 @@ export async function main(argv = process.argv.slice(2)) {
     failed = true;
     console.error(`\n⚠ STALE DECLARATIONS (${c.stale.length}) — the repo carries a sentence about the web that is no longer true. Delete them:`);
     for (const r of c.stale) console.error(`  ${r.url}\n     ${r.detail}`);
+  }
+
+  // ── ⭐ `treasury.data_sources.base_url` — the other unwatched column ──────
+  //
+  // ⚠ SKIPPED on a narrowed run. `--host` and `--limit` scope the citation
+  // census; running the endpoint census anyway would ask about hosts the
+  // operator deliberately excluded, and `--limit`'s whole promise is a quick
+  // smoke test. #360's rule — a filter must scope the EXPECTATION, not just
+  // the observation — so the cleanest scoping here is not to pretend.
+  if (!values.host && !values.limit) {
+    const endpointRows = await fetchSourceEndpointCensus();
+    // ⚠ A laptop path cannot be asked, and asking would waste a request and
+    // print a confusing `unreachable`. `judgeEndpoints` routes on
+    // `is_local_path` before it looks at any verdict, so give it none.
+    const askable = endpointRows.filter((r) => !r.is_local_path);
+    console.log(`\nasking ${n(askable.length)} distinct data_sources.base_url(s)…`);
+    // ⚠ Same ladder, same courtesy, same host-parallelism as the citations —
+    // a base_url that needed curl to answer would otherwise read as dead here
+    // and live there, from one run, about one publisher.
+    const { observations: endpointObs } = await observeAll(askable);
+    const observedEndpoints = endpointObs.map((o) => ({ ...o, verdict: judgeProbe(o).verdict }));
+    const e = judgeEndpoints(
+      [...observedEndpoints, ...endpointRows.filter((r) => r.is_local_path)],
+      SOURCE_ENDPOINT_BASELINE,
+    );
+
+    console.log(`✅ endpoints live: ${n(e.ok.length)}`);
+    if (e.provenanceDeclared.length) {
+      console.log(`ℹ️  declared broken provenance: ${n(e.provenanceDeclared.length)} — see scripts/data/sourceEndpointBaseline.mjs`);
+    }
+
+    // ⛔ A SYNC ENDPOINT IS THE ONLY ONE A JOB ACTUALLY CALLS. `treasury-sync`
+    // refuses every api_type but socrata, so a dead one here is a cron that
+    // fails on its next tick — and it may never be declared away.
+    if (e.syncBroken.length) {
+      failed = true;
+      console.error(`\n⛔⛔ A SYNC ENDPOINT IS BROKEN (${e.syncBroken.length}) — treasury-sync calls this on a schedule:`);
+      for (const r of e.syncBroken) {
+        console.error(`  ${where(r)} — ${r.verdict}, ${n(r.enabled_rows)} enabled row(s)\n     ${r.source_url}`);
+      }
+    }
+    if (e.provenanceBroken.length) {
+      failed = true;
+      console.error(`\n⛔ A PROVENANCE ENDPOINT BROKE AND IS NOT DECLARED (${e.provenanceBroken.length}):`);
+      for (const r of e.provenanceBroken) {
+        console.error(`  ${where(r)} — ${r.verdict} (${r.api_types})\n     ${r.source_url}`);
+      }
+      console.error('  Check it by hand. If the publisher moved, repair the row; if the document is');
+      console.error('  simply gone, declare it in scripts/data/sourceEndpointBaseline.mjs with the date.');
+    }
+    if (e.stale.length) {
+      failed = true;
+      console.error(`\n⚠ STALE ENDPOINT DECLARATIONS (${e.stale.length}) — these recovered or were deleted. Remove the paragraph:`);
+      for (const d of e.stale) console.error(`  ${d.url}`);
+    }
+
+    // ⚠⚠⚠ NOT a citation verdict. `citationShape()` would file these under
+    // "uncitable" — correct silence for a URL that promises nothing, a lie
+    // about a provenance record. See sourceEndpointJudge.mjs.
+    if (e.localCount) {
+      console.log(`\n⚠⚠⚠ RECORDED AS A PATH ON SOMEBODY'S LAPTOP (${n(e.localCount)}, baseline ${n(e.localBaseline)}):`);
+      for (const r of e.localPaths.slice().sort((a, b) => a.source_url.localeCompare(b.source_url))) {
+        console.log(`  ${where(r)}  ${r.source_url}`);
+      }
+      console.log('  These are not citations and never were — the provenance was never recorded.');
+      console.log('  The repair is to find each document on the publisher and cite it.');
+    }
+    if (e.localGrew) {
+      failed = true;
+      console.error(`\n⛔ LAPTOP PATHS GREW: ${n(e.localCount)}, baseline ${n(e.localBaseline)}`);
+      console.error('   A loader wrote a local filesystem path into the production database.');
+    }
+    if (e.localPaidDown) {
+      console.log(`ℹ️  laptop paths paid down: ${n(e.localCount)}, baseline ${n(e.localBaseline)}`);
+      console.log('   Lower `localPaths` in scripts/data/sourceEndpointBaseline.mjs.');
+    }
+    if (endpointsAreClean(e)) console.log('✅ no base_url regressed.');
+  } else {
+    console.log('\nℹ️  data_sources.base_url census SKIPPED — a narrowed run cannot scope it honestly.');
   }
 
   // ── The uncited ratchet ──────────────────────────────────────────────────
