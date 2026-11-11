@@ -52,6 +52,41 @@ describe('probeUrl retries a connection that was never made', () => {
     expect(r.recoveredAfterRetry).toBeUndefined();
   });
 
+  /**
+   * ⚠⚠ 429 IS NOT A REFUSAL — IT IS A REQUEST FOR SPACING.
+   *
+   * #374 moved web.archive.org's rate limiting out of `dead` and into
+   * `unreachable` and stopped there. #383 took the Archive from 16 citations
+   * to 27, and a run's burst now trips the limit: the gate asks 27 times in a
+   * few seconds and is told to slow down 26 times, while a single curl to any
+   * one of those URLs answers 200 in a couple of seconds.
+   */
+  it('⭐ BACKS OFF and re-asks on 429, because the server said to', async () => {
+    let n = 0;
+    const impl = async () => {
+      n += 1;
+      // ⚠ A 429 is returned by the HEAD itself (only a 403 falls through to
+      // the one-byte GET), so each attempt is ONE call: initial + 3 retries.
+      if (n >= 4) return { status: 200, headers: { get: () => 'application/pdf' } };
+      return { status: 429, headers: { get: () => 'text/html' } };
+    };
+    const waited = [];
+    const r = await probeUrl('https://web.archive.org/web/1id_/https://x.gov/a.pdf',
+      { fetchImpl: impl, sleepImpl: (ms) => { waited.push(ms); return Promise.resolve(); } });
+    expect(r.status).toBe(200);
+    expect(r.recoveredAfterRetry).toBe(true);
+    // and it waits LONGER than it would for a dropped socket
+    expect(Math.min(...waited)).toBeGreaterThanOrEqual(10000);
+  });
+
+  it('⚠ still reports 429 when the publisher never relents', async () => {
+    const impl = async () => ({ status: 429, headers: { get: () => 'text/html' } });
+    const r = await probeUrl('https://web.archive.org/web/1id_/https://x.gov/a.pdf',
+      { fetchImpl: impl, sleepImpl: () => Promise.resolve() });
+    expect(r.status).toBe(429);
+    expect(r.recoveredAfterRetry).toBeUndefined();
+  });
+
   it('⛔ NEVER re-asks an HTTP answer — a 403 is stable and means something', async () => {
     // Bend, OR answers 403 to every client. Retrying it would treble this
     // gate's runtime against ~20 citations to learn nothing new.
