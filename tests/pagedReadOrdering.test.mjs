@@ -107,6 +107,19 @@ describe('every paged read orders by a total key', () => {
     // column is sorted on. See 20261109210000_source_url_census.sql.
     { rpc: 'source_url_census', column: 'source_url' },
     { rpc: 'uncited_budget_census', column: 'data_source' },
+    // ⚠ Added 2026-11-10 with the base_url blind spot. Same exemption, same
+    // reason, and this guard rejected both of them first — which is what it is
+    // for. Each GROUPs BY the column it is ordered on and joins its sample
+    // 1:1, so the ordering column is unique WITHIN THE RESULT SET:
+    // 13 rows / 13 distinct URLs, and 156 / 156, measured against the live
+    // database before the exemption was written rather than argued from the
+    // SQL. ⛔ Both RPCs return their URL under the name `source_url` — the
+    // first deliberately, so reader-facing links drop into the same
+    // `observeAll()` pipeline as stored citations — so an exemption keyed on
+    // the COLUMN rather than the RPC would have leaked to anything ordering on
+    // `source_url` at all. See 20261110140000_reader_link_and_source_endpoint_census.sql.
+    { rpc: 'reader_link_census', column: 'source_url' },
+    { rpc: 'source_endpoint_census', column: 'source_url' },
   ];
 
   it('EVERY paged read ends its ordering on the primary key', () => {
