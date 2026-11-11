@@ -120,8 +120,48 @@ describe('judgeEndpoints', () => {
     expect(endpointsAreClean(j)).toBe(true);
   });
 
-  it.each(['dead', 'wrong-type', 'unreachable'])('treats %s as broken', (verdict) => {
+  it.each(['dead', 'wrong-type'])('treats %s as broken', (verdict) => {
     expect(judgeEndpoints([row({ verdict })], EMPTY).provenanceBroken).toHaveLength(1);
+  });
+
+  /**
+   * ⚠⚠⚠ `unreachable` USED TO BE LUMPED IN WITH `dead` HERE, and the
+   * citation path has never done that — #373: "unreachable is the honest
+   * bucket ... precisely because a person with a browser can still click one
+   * of these."
+   *
+   * It stopped being academic when #383 put eleven web.archive.org URLs into
+   * `data_sources.base_url`. The Archive refuses a random fraction of
+   * connections, so a clean run failed with "A PROVENANCE ENDPOINT BROKE AND
+   * IS NOT DECLARED (12)" about twelve endpoints that answered 206 with the
+   * right content type a minute later.
+   */
+  it('⛔⛔ a REFUSED provenance endpoint is a notice, not a failure', () => {
+    const j = judgeEndpoints([row({ verdict: 'unreachable' })], EMPTY);
+    expect(j.provenanceBroken).toHaveLength(0);
+    expect(j.provenanceUnreachable).toHaveLength(1);
+    expect(endpointsAreClean(j)).toBe(true);
+  });
+
+  it('⚠ but a SYNC endpoint still fails on it — that is a job, not a note', () => {
+    const j = judgeEndpoints([row({ verdict: 'unreachable', drives_a_sync: true })], EMPTY);
+    expect(j.syncBroken).toHaveLength(1);
+    expect(j.provenanceUnreachable).toHaveLength(0);
+    expect(endpointsAreClean(j)).toBe(false);
+  });
+
+  it('⭐ a DEAD provenance endpoint still fails — 404 is the publisher speaking', () => {
+    const j = judgeEndpoints([row({ verdict: 'dead' })], EMPTY);
+    expect(j.provenanceBroken).toHaveLength(1);
+    expect(endpointsAreClean(j)).toBe(false);
+  });
+
+  it('a DECLARED unreachable endpoint is still declared, not re-bucketed', () => {
+    const o = row({ verdict: 'unreachable' });
+    const j = judgeEndpoints([o], { localPaths: 0, provenanceBroken: [{ url: o.source_url, verdict: 'unreachable', observedOn: '2026-11-11', why: 'x' }] });
+    expect(j.provenanceDeclared).toHaveLength(1);
+    expect(j.provenanceUnreachable).toHaveLength(0);
+    expect(j.stale).toHaveLength(0);
   });
 });
 

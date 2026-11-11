@@ -114,6 +114,9 @@ import {
 } from './lib/sourceUrlProbe.mjs';
 import { judgeEndpoints, endpointsAreClean } from './lib/sourceEndpointJudge.mjs';
 import { judgeDrift, pickDriftSample, sampleKey } from './lib/readerLinkDrift.mjs';
+import {
+  SCO_ENTITY_HOSTS, scoCorpus, scoBranch, judgeScoTie, scoTotalsUrl, isScoEntityUrl,
+} from './lib/scoEntityCitation.mjs';
 import { SOURCE_URL_EXCEPTIONS } from './data/sourceUrlExceptions.mjs';
 import { PUBLISHER_OUTAGES } from './data/publisherOutages.mjs';
 import { UNCITED_BASELINE } from './data/sourceUrlCoverage.mjs';
@@ -288,6 +291,69 @@ async function fetchSourceEndpointCensus() {
 }
 
 /** Every uncited source, paged under a total order (`data_source` is the GROUP BY key). */
+/**
+ * ⭐ TIE EVERY SCO FIGURE TO THE PUBLISHER'S OWN.
+ *
+ * Replaces a liveness probe that could not fail. One request per
+ * (corpus, branch, year) returns every entity's total for it, so 92 calls
+ * cover 24,354 citations — asking the publisher 24,354 times for what it will
+ * hand over in 92 would be rude as well as slow.
+ */
+async function fetchScoCitedBudgets() {
+  const out = [];
+  for (let from = 0; ; from += PAGE) {
+    const { data, error } = await db().schema('treasury').from('budgets')
+      .select('id, fiscal_year, dataset_type, total_budget::text, source_url, municipality_id')
+      .like('source_url', '%.bythenumbers.sco.ca.gov/#!%')
+      .order('id').range(from, from + PAGE - 1);
+    if (error) throw new Error(`sco budgets read failed: ${error.message}`);
+    out.push(...data);
+    if (data.length < PAGE) break;
+  }
+  const munis = [];
+  for (let from = 0; ; from += PAGE) {
+    const { data, error } = await db().schema('treasury').from('municipalities')
+      .select('id, name, entity_type').eq('state', 'CA')
+      .order('id').range(from, from + PAGE - 1);
+    if (error) throw new Error(`municipalities read failed: ${error.message}`);
+    munis.push(...data);
+    if (data.length < PAGE) break;
+  }
+  const byId = new Map(munis.map((m) => [m.id, m]));
+  return out.map((b) => {
+    const m = byId.get(b.municipality_id);
+    return {
+      id: b.id,
+      entityName: m ? m.name : null,
+      entityType: m ? m.entity_type : null,
+      fiscalYear: b.fiscal_year,
+      datasetType: b.dataset_type,
+      total: b.total_budget,
+      source_url: b.source_url,
+    };
+  });
+}
+
+async function fetchScoTotals(keys) {
+  const totals = new Map();
+  let failed = 0;
+  for (const key of keys) {
+    const [corpus, branch, year] = key.split('|');
+    let ok = false;
+    for (let attempt = 0; attempt < 3 && !ok; attempt += 1) {
+      try {
+        const j = await apiJson(scoTotalsUrl(corpus, branch, year));
+        for (const e of (j.entities || [])) totals.set(`${key}|${e.org1}`, Number(e.total));
+        ok = true;
+      } catch {
+        await new Promise((r) => { setTimeout(r, 1200 * (attempt + 1)); });
+      }
+    }
+    if (!ok) failed += 1;
+  }
+  return { totals, failed };
+}
+
 async function fetchUncitedCensus() {
   const out = [];
   for (let from = 0; ; from += PAGE) {
@@ -388,6 +454,25 @@ export async function main(argv = process.argv.slice(2)) {
   const readerOnly = readerLinks.filter((r) => !storedUrls.has(r.source_url));
 
   let rows = [...census, ...readerOnly];
+
+  // ── ⛔⛔ A FAMILY WHOSE LIVENESS CANNOT MEAN ANYTHING ─────────────────────
+  //
+  // The CA State Controller's per-entity view is an Angular `#!` route, and a
+  // fragment NEVER REACHES THE SERVER. Measured 2026-11-11: a real entity, a
+  // fake entity and complete nonsense all return the same 236,927-byte shell.
+  // So probing these would return 200 for every one of 24,354 citations
+  // whether or not the entity exists — hours of runtime and ~24k requests to a
+  // state government site, in exchange for a number that can only say "yes".
+  //
+  // ⭐ They are NOT unchecked. `scoTieCensus()` below asks the publisher's own
+  // totals API — one call per (corpus, branch, year), 92 in all — and compares
+  // every stored figure to theirs. A 200 says a server answered; a tie says
+  // the number is the publisher's. That is the stronger claim, and unlike a
+  // liveness probe on a fragment route, it can fail.
+  const scoEntityRows = rows.filter((r) => SCO_ENTITY_HOSTS.some(
+    (h) => typeof r.source_url === 'string' && r.source_url.includes(`://${h}/`)));
+  rows = rows.filter((r) => !scoEntityRows.includes(r));
+
   // ⚠⚠ A FILTER MUST SCOPE THE EXPECTATION, NOT JUST THE OBSERVATION. #360
   // learned this the hard way: `--source` narrowed what was looked at but not
   // what was expected, and 21 untouched registry entries read as "stale" —
@@ -521,6 +606,43 @@ export async function main(argv = process.argv.slice(2)) {
     }
   }
 
+  // ── ⭐⭐ THE SCO FAMILY: TIED, NOT PINGED ────────────────────────────────
+  //
+  // Skipped on a narrowed run, like the other whole-fleet checks: a tie drawn
+  // from a filtered list reports on whatever survived the filter.
+  if (!values.host && !values.limit && scoEntityRows.length) {
+    const cited = await fetchScoCitedBudgets();
+    const shapeBad = cited.filter((r) => !isScoEntityUrl(r.source_url));
+    if (shapeBad.length) {
+      failed = true;
+      console.error(`\n⛔ MALFORMED SCO ENTITY CITATION (${shapeBad.length}):`);
+      for (const r of shapeBad.slice(0, 10)) console.error(`  ${r.entityName} FY${r.fiscalYear}: ${r.source_url}`);
+    }
+    const keys = new Set(cited
+      .filter((r) => r.entityType)
+      .map((r) => `${scoCorpus(r.entityType)}|${scoBranch(r.datasetType)}|${r.fiscalYear}`));
+    const { totals, failed: pagesFailed } = await fetchScoTotals(keys);
+    const tie = judgeScoTie(cited.filter((r) => r.entityType), totals);
+    console.log(`\n✅ SCO figures tied to the publisher: ${n(tie.tie)} of ${n(tie.checked)} `
+      + `(${n(keys.size)} API page(s), ${n(pagesFailed)} unreachable)`);
+    if (tie.mismatch.length) {
+      failed = true;
+      console.error(`\n⛔⛔ TT AND THE PUBLISHER DISAGREE (${tie.mismatch.length}):`);
+      for (const m of tie.mismatch.slice(0, 25)) {
+        console.error(`  ${m.entityName} FY${m.fiscalYear} ${m.datasetType}: `
+          + `TT ${Number(m.total).toLocaleString()} vs publisher ${m.publisher.toLocaleString()}`);
+      }
+      console.error('  ⛔ This is a FIGURE defect, not a citation one — the link is fine and the');
+      console.error('     number behind it is not. Do not "repair" it by changing the URL.');
+    }
+    if (tie.absent.length) {
+      console.log(`ℹ️  ${n(tie.absent.length)} entity-year(s) the publisher does not list — not treated as agreement`);
+    }
+  } else if (scoEntityRows.length) {
+    console.log(`\nℹ️  ${n(scoEntityRows.length)} SCO per-entity citation(s) NOT probed — a `
+      + '#! route cannot be liveness-checked; the figure-tie is skipped on a narrowed run.');
+  }
+
   // ── ⭐⭐ A PUBLISHER THAT IS DOWN, NOT A DOCUMENT THAT IS GONE ───────────
   //
   // A NOTICE, deliberately. These citations are believed CORRECT; what cannot
@@ -614,6 +736,23 @@ export async function main(argv = process.argv.slice(2)) {
     console.log(`✅ endpoints live: ${n(e.ok.length)}`);
     if (e.provenanceDeclared.length) {
       console.log(`ℹ️  declared broken provenance: ${n(e.provenanceDeclared.length)} — see scripts/data/sourceEndpointBaseline.mjs`);
+    }
+
+    // ⚠⚠ REFUSED, NOT GONE — printed in full, never failed. #373's distinction,
+    // which this path had never applied: a 403, a 429 or a refused socket is a
+    // host declining to answer, not a publisher saying the document is gone.
+    // It became load-bearing when #383 put eleven web.archive.org URLs in here
+    // for documents whose publishers refuse every client we have; the Archive
+    // declines a random fraction of connections, and a clean run was failing
+    // over endpoints that answered 206 a minute later.
+    if (e.provenanceUnreachable.length) {
+      console.log(`\nℹ️  REFUSED, NOT GONE (${n(e.provenanceUnreachable.length)}) — a host declined to answer; it did not say the document is gone:`);
+      for (const r of e.provenanceUnreachable) {
+        console.log(`  ${where(r)} — ${r.detail || r.verdict} (${r.api_type})`);
+        console.log(`     ${r.source_url}`);
+      }
+      console.log('  ⚠ Not a failure, and not agreement either. If one of these is actually');
+      console.log('    gone, it will say 404 and fail the next run.');
     }
 
     // ⛔ A SYNC ENDPOINT IS THE ONLY ONE A JOB ACTUALLY CALLS. `treasury-sync`

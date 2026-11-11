@@ -51,6 +51,11 @@ import { createClient } from '@supabase/supabase-js';
 import { parseArgs } from 'node:util';
 import { monthForSource } from './lib/loaderFiscalCalendars.mjs';
 import { classifySyncResult } from './lib/rpcResult.mjs';
+// ⚠⚠⚠ CITE THE ENTITY, NOT THE STATE. This loader used to write the bare
+// dataset PAGE url, which sent every reader to a grid of every CA entity for
+// every year — 24,354 budgets did that until #385. `scoEntityUrl()` builds the
+// publisher's own per-entity, per-year view, whose totals tie to ours.
+import { scoEntityUrl } from './lib/scoEntityCitation.mjs';
 
 // ── Supabase client ──────────────────────────────────────────────────────────
 
@@ -251,6 +256,8 @@ async function backfillPopulation(municipalityId, population, populationYear) {
 
 async function syncYear(opts) {
   const { municipalityId, year, rows, ds, fetchDate, dryRun } = opts;
+  // ⚠ `opts.entityName` is the DB name ("Merced County"); scoEntityUrl strips
+  // the suffix because the publisher labels it "Merced".
   const { jsonTree, total, kept, skipped } = buildTree(rows);
 
   const catCount = jsonTree.length;
@@ -283,7 +290,10 @@ async function syncYear(opts) {
     p_tree:             jsonTree,
     p_row_count:        rows.length,
     p_data_source_name: ds.label,
-    p_source_url:       ds.pageUrl,
+    p_source_url:       scoEntityUrl({
+      entityName: opts.entityName, entityType: 'county',
+      fiscalYear: year, datasetType: ds.type,
+    }),
     p_source_date:      fetchDate,
     // CA counties only (entity_type='county', per this script's locked
     // conventions). Cal. Gov. Code § 29001, the County Budget Act, defines the
@@ -314,7 +324,7 @@ async function syncYear(opts) {
     console.error(`    RPC refused: ${outcome.message}`);
     return { total, skipped: false };
   }
-  console.log(`    Synced (${data?.rows_inserted ?? '?'} rows reported) — source_url=${ds.pageUrl} source_date=${fetchDate}`);
+  console.log(`    Synced (${data?.rows_inserted ?? '?'} rows reported) — source_url=${scoEntityUrl({ entityName: opts.entityName, entityType: 'county', fiscalYear: year, datasetType: ds.type })} source_date=${fetchDate}`);
   return { total, skipped: false };
 }
 
@@ -444,7 +454,7 @@ async function main() {
       }
 
       // ── Sync ─────────────────────────────────────────────────────────────
-      const result = await syncYear({ municipalityId, year: fy, rows, ds, fetchDate, dryRun });
+      const result = await syncYear({ municipalityId, entityName, year: fy, rows, ds, fetchDate, dryRun });
       results.push({ fy, type: ds.type, total: result.total, skipped: result.skipped });
       console.log('');
     }

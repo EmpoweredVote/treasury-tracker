@@ -34,6 +34,11 @@ import { monthForCity } from './lib/caCityFiscalExceptions.mjs';
 import { censusGuard } from './lib/facFiscalYearCensus.mjs';
 
 import { ensureMunicipality } from './lib/ensureMunicipality.mjs';
+// ⚠⚠⚠ CITE THE ENTITY, NOT THE STATE. This loader used to write the bare
+// dataset PAGE url, which sent every reader to a grid of every CA entity for
+// every year — 24,354 budgets did that until #385. `scoEntityUrl()` builds the
+// publisher's own per-entity, per-year view, whose totals tie to ours.
+import { scoEntityUrl } from './lib/scoEntityCitation.mjs';
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://kxsdzaojfaibhuzmclfq.supabase.co';
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
 if (!SUPABASE_KEY) { console.error('Missing SUPABASE_SERVICE_KEY'); process.exit(1); }
@@ -184,7 +189,10 @@ async function importCityData(cityName, state, population, rows, fiscalYear, dat
     p_tree: jsonTree,
     p_row_count: rows.length,
     p_data_source_name: runSourceName(ds),
-    p_source_url: ds.pageUrl,
+    p_source_url: scoEntityUrl({
+      entityName: cityName, entityType: 'city',
+      fiscalYear: fiscalYear, datasetType: datasetType,
+    }),
     p_source_date: fetchDate,
     // SCOPE-02: the SCO Annual Report is citywide all funds (Modesto FY2024 ties
     // to the dollar) and reports a closed year's actuals.

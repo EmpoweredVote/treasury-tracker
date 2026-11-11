@@ -264,11 +264,29 @@ export async function probeUrl(url, options = {}) {
   const { retries = 3, retryDelayMs = 1500, sleepImpl = null } = options;
   let out = await probeOnce(url, options);
   for (let i = 0; i < retries; i += 1) {
-    if (out.status !== null || !out.error || !CONNECTION_NEVER_MADE.test(out.error)) break;
-    const wait = retryDelayMs * (i + 1);
+    const refusedSocket = out.status === null && out.error && CONNECTION_NEVER_MADE.test(out.error);
+    // ⚠⚠ 429 IS THE SERVER TELLING US WHAT TO DO, AND WE WERE NOT LISTENING.
+    //
+    // #374 re-bucketed web.archive.org's rate limiting from `dead` to
+    // `unreachable` and left it there — "nine web.archive.org citations were
+    // being RATE LIMITED (429)". That stopped it corrupting the dead list; it
+    // never stopped it happening.
+    //
+    // #383 took the Archive from 16 citations to 27, which pushes a run's
+    // burst past the limit: the gate asks 27 times in a few seconds and is
+    // told to slow down 26 times, while a single curl to any one of those URLs
+    // answers 200 in a couple of seconds. A 429 is not a refusal and not an
+    // outage — it is a request for spacing, and the honest response is to wait
+    // longer and ask again rather than to report the citation as unaskable.
+    const rateLimited = out.status === 429;
+    if (!refusedSocket && !rateLimited) break;
+    // A rate limit needs real spacing, not the courtesy pause a dropped socket
+    // wants — the Archive's own guidance is measured in tens of seconds.
+    const base = rateLimited ? Math.max(retryDelayMs, 5000) : retryDelayMs;
+    const wait = base * (i + 1) * (rateLimited ? 2 : 1);
     await (sleepImpl ? sleepImpl(wait) : new Promise((r) => { setTimeout(r, wait); }));
     out = await probeOnce(url, options);
-    if (out.status !== null) out = { ...out, recoveredAfterRetry: true };
+    if (out.status !== null && out.status !== 429) out = { ...out, recoveredAfterRetry: true };
   }
   return out;
 }
