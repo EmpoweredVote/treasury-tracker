@@ -47,6 +47,34 @@
 const BROKEN = new Set(['dead', 'wrong-type', 'unreachable']);
 
 /**
+ * ⚠⚠⚠ `unreachable` IS NOT `dead`, AND THIS FILE USED TO TREAT THEM ALIKE.
+ *
+ * #373 drew the line for CITATIONS: a 403, a 429 or a refused socket means the
+ * host declined to answer, not that the document is gone — "unreachable is the
+ * honest bucket ... precisely because a person with a browser can still click
+ * one of these." The citation path has worked that way ever since. This path
+ * did not, and nobody noticed while every provenance endpoint was an ordinary
+ * government host.
+ *
+ * #383 put eleven web.archive.org URLs into `data_sources.base_url`, for
+ * documents whose publishers refuse every client we have. The Archive declines
+ * a random fraction of connections under load, so a clean fleet run reported
+ *
+ *     ⛔ A PROVENANCE ENDPOINT BROKE AND IS NOT DECLARED (12)
+ *
+ * about twelve endpoints that answered `206` with the right content type when
+ * asked again a minute later. That is the gate measuring its own luck — the
+ * thing #374 named and this file was still doing.
+ *
+ * ⛔ So an unreachable PROVENANCE endpoint is a NOTICE, printed in full every
+ * run, not a failure. `dead` (404/410 — the publisher saying it is gone) and
+ * `wrong-type` still fail, and a SYNC endpoint still fails on anything, because
+ * that one is a job that breaks on its next tick rather than a note in a column
+ * no reader sees.
+ */
+const REFUSED_NOT_GONE = 'unreachable';
+
+/**
  * @param {Array<object>} observations rows from `source_endpoint_census()`,
  *   each already carrying a `verdict` from `judgeProbe()`.
  * @param {{localPaths: number, provenanceBroken: Array<{url: string, why: string}>}} baseline
@@ -60,6 +88,7 @@ export function judgeEndpoints(observations, baseline) {
   const localPaths = [];
   const provenanceBroken = [];
   const provenanceDeclared = [];
+  const provenanceUnreachable = [];
 
   for (const o of observations) {
     // ⚠ ORDER MATTERS. A laptop path is reported AS a laptop path even when it
@@ -81,9 +110,14 @@ export function judgeEndpoints(observations, baseline) {
     if (d) {
       seen.add(o.source_url);
       provenanceDeclared.push({ ...o, declaration: d });
-    } else {
-      provenanceBroken.push(o);
+      continue;
     }
+    // ⚠ A host that refused to answer has not said the document is gone.
+    if (o.verdict === REFUSED_NOT_GONE) {
+      provenanceUnreachable.push(o);
+      continue;
+    }
+    provenanceBroken.push(o);
   }
 
   // ⚠⚠ A DECLARATION THAT IS NO LONGER TRUE IS A SENTENCE THE REPO TELLS ITSELF
@@ -99,6 +133,7 @@ export function judgeEndpoints(observations, baseline) {
     localPaths,
     provenanceBroken,
     provenanceDeclared,
+    provenanceUnreachable,
     stale,
     localCount: localPaths.length,
     localBaseline,

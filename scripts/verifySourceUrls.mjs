@@ -738,6 +738,23 @@ export async function main(argv = process.argv.slice(2)) {
       console.log(`ℹ️  declared broken provenance: ${n(e.provenanceDeclared.length)} — see scripts/data/sourceEndpointBaseline.mjs`);
     }
 
+    // ⚠⚠ REFUSED, NOT GONE — printed in full, never failed. #373's distinction,
+    // which this path had never applied: a 403, a 429 or a refused socket is a
+    // host declining to answer, not a publisher saying the document is gone.
+    // It became load-bearing when #383 put eleven web.archive.org URLs in here
+    // for documents whose publishers refuse every client we have; the Archive
+    // declines a random fraction of connections, and a clean run was failing
+    // over endpoints that answered 206 a minute later.
+    if (e.provenanceUnreachable.length) {
+      console.log(`\nℹ️  REFUSED, NOT GONE (${n(e.provenanceUnreachable.length)}) — a host declined to answer; it did not say the document is gone:`);
+      for (const r of e.provenanceUnreachable) {
+        console.log(`  ${where(r)} — ${r.detail || r.verdict} (${r.api_type})`);
+        console.log(`     ${r.source_url}`);
+      }
+      console.log('  ⚠ Not a failure, and not agreement either. If one of these is actually');
+      console.log('    gone, it will say 404 and fail the next run.');
+    }
+
     // ⛔ A SYNC ENDPOINT IS THE ONLY ONE A JOB ACTUALLY CALLS. `treasury-sync`
     // refuses every api_type but socrata, so a dead one here is a cron that
     // fails on its next tick — and it may never be declared away.
