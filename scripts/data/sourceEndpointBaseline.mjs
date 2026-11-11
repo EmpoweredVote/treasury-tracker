@@ -33,25 +33,55 @@
 export const SOURCE_ENDPOINT_BASELINE = Object.freeze({
   /**
    * ⚠⚠⚠ PATHS ON ONE CONTRIBUTOR'S LAPTOP, IN THE PRODUCTION DATABASE.
-   * 51 distinct, 86 rows, 11 cities (Anaheim, Bakersfield, Fremont, Fresno,
-   * Long Beach, Oakland, Plano, Richardson, Riverside, San Jose, Santa Ana),
-   * spelled two ways: `file://C:/treasury-tracker/docs/...` from the
+   * Spelled two ways: `file://C:/treasury-tracker/docs/...` from the
    * pdf_download loaders and `local:docs/...` from the xlsx ones.
    *
-   * ⭐ THIS IS WHERE THE LOST PROVENANCE WENT. Those eleven cities have 234
-   * budgets citing nothing at all, and `docs/*` is gitignored — so the only
-   * copy of each document is on one machine, and TT records no publisher URL
-   * for it anywhere. The repair is to find the document on the publisher's
-   * site and cite it; there is no cheaper one.
+   * ⭐ THIS IS WHERE THE LOST PROVENANCE WENT — `docs/*` is gitignored, so the
+   * only copy of each document is on one machine, and TT recorded no publisher
+   * URL for it anywhere.
+   *
+   * ── 51 → 28, 2026-11-11 ────────────────────────────────────────────────
+   * 23 documents were found on their publishers and PROVEN byte-identical
+   * (sha256, full download) to the file the loader parsed — Long Beach 5,
+   * Fresno 7, Oakland 2, Riverside 2, Plano 7. The 30 budgets they back were
+   * citing NOTHING; they now cite the document. See
+   * supabase/migrations/20261111010000_laptop_paths_23_proven_documents.sql.
+   *
+   * ⛔⛔ THE REMAINING 28 ARE BLOCKED, NOT UNATTEMPTED. Each sits behind a WAF
+   * that refuses every automated client at the DOCUMENT endpoint. Measured
+   * 2026-11-11 against the full browser header set, the `Sec-Fetch-*` pair
+   * that unlocked the Oregon cities (#375), AND the real headless Chromium
+   * `npm run e2e` installs — including navigating the page first so the
+   * request carried the cookies a real visit sets. Every one still 403.
+   *
+   *   Fremont      7  fremont.gov            403 to page AND document
+   *   Richardson   8  cor.net                403 to page AND document
+   *   San José     5  sanjoseca.gov          403 to page AND document
+   *   Santa Ana    4  santa-ana.org          403 (and to the santa-ana.gov
+   *                                          successor it redirects to)
+   *   Anaheim      2  anaheim.net            page 200, ArchiveCenter 403
+   *   Bakersfield  2  docs.bakersfieldcity.us  host 200, document not located
+   *
+   * ⚠ web.archive.org — the usual answer for exactly this, and the one #376
+   * and #377 leaned on — was **temporarily offline** on the day this was done,
+   * so the Wayback copies that would have settled them could not be read.
+   * ⭐ THAT IS THE NEXT THING TO TRY, and it is cheap: the CDX index gives the
+   * publisher URL even when the publisher will not talk to us, and a capture
+   * can be hashed against the local file exactly as these 23 were.
+   *
+   * ⛔ A URL may NOT be written here on the strength of a search result. The
+   * value of this repair is that the citation is proven; an unproven one would
+   * be the #380 defect (a plausible link that is not the document) wearing yet
+   * another hat.
    *
    * ⚠ A COUNT, DELIBERATELY, AND IT IS THE WEAKER CHOICE. A count cannot tell
    * "one repaired, one new" from "nothing changed". It is a count because the
-   * alternative is committing 51 absolute paths from a contributor's
-   * filesystem into a public repo to buy a distinction nobody would act on
-   * differently — and the gate PRINTS all of them on every run, so a swap is
-   * still visible to a reader. May shrink. May never grow.
+   * alternative is committing absolute paths from a contributor's filesystem
+   * into a public repo to buy a distinction nobody would act on differently —
+   * and the gate PRINTS all of them on every run, so a swap stays visible to a
+   * reader. May shrink. May never grow.
    */
-  localPaths: 51,
+  localPaths: 28,
 
   /**
    * Endpoints that answered, and answered wrong. Probed with the gate's own

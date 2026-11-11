@@ -4,7 +4,7 @@
  * ⚠⚠⚠ THIS IS THE DEGENERATE CASE OF THE DEAD-CITATION DEFECT. A budget with a
  * broken `source_url` asks the reader to believe a figure and hands them a link
  * that fails; a budget with no `source_url` asks them to believe it and hands
- * them nothing. 24,938 budgets are in the second state, which is 4.3% of the
+ * them nothing. 24,908 budgets are in the second state, which is 4.3% of the
  * fleet — so `verify:source-urls` failing on their EXISTENCE would be red from
  * the first run, and a gate that is red by design is a gate nobody reads.
  *
@@ -16,11 +16,23 @@
  * The gate's only assertion is that **nothing grew**. Paying one down is a
  * NOTICE; lowering the number here is the PR that records it.
  *
- * ⭐⭐ AND ONE HAS ALREADY BEEN PAID DOWN. The first measurement was 24,960
- * across 75 families. #372 cited West Hollywood's 22 uncited budgets — 10
- * demand registers and 12 budget-detail years — which removed THREE families
- * outright, because every member of each was cited at once. That is what the
- * ratchet is for: the number moved, in a PR, with the reason attached.
+ * ⭐⭐ AND IT HAS BEEN PAID DOWN TWICE. The first measurement was 24,960 across
+ * 75 families. #372 cited West Hollywood's 22 uncited budgets — 10 demand
+ * registers and 12 budget-detail years — which removed THREE families
+ * outright, because every member of each was cited at once.
+ *
+ * ⭐ 2026-11-11: 24,938 → 24,908, and SEVEN more families went to zero. Those
+ * budgets had no citation because the only record of where their document came
+ * from was a path on a contributor's laptop in `data_sources.base_url`; the
+ * documents were found on their publishers and proven BYTE-IDENTICAL by sha256
+ * to the file the loader parsed, so the citation is the strongest kind this
+ * repo issues. Fresno General Fund Operating Budget (7), Plano Operating
+ * Budget (9), Plano Revenue (4), Riverside General Fund Operating Budget (4),
+ * Long Beach Operating + Revenue (2+2), Oakland General Purpose Fund Operating
+ * Budget (2). See 20261111010000_laptop_paths_23_proven_documents.sql.
+ *
+ * That is what the ratchet is for: the number moves in a PR, with the reason
+ * attached.
  *
  * ── ⚠ WHAT A "FAMILY" IS ───────────────────────────────────────────────────
  *
@@ -61,12 +73,10 @@ export const UNCITED_BASELINE = {
     "Plano Check Register": 10,
     "Frisco Check Register": 9,
     "LA City Checkbook": 9,
-    "Plano Operating Budget": 9,
     "cambridge-open-data": 8,
     "Fremont Operating Budget": 8,
     "Fremont Revenue Budget": 8,
     "Richardson Operating Budget": 8,
-    "Fresno General Fund Operating Budget": 7,
     "Leonardtown Operating Budget": 6,
     "McKinney Check Register": 5,
     "McKinney Revenue": 5,
@@ -75,8 +85,6 @@ export const UNCITED_BASELINE = {
     "ArcGIS: https://services.arcgis.com/RmCCgQtiZLDCtblq/arcgis/rest/services/LA_County_Employee_Salaries/FeatureServer/0": 4,
     "Empowered Vote Financial Records": 4,
     "McKinney Payroll Register": 4,
-    "Plano Revenue": 4,
-    "Riverside General Fund Operating Budget": 4,
     "San Francisco Operating Budget": 4,
     "San Francisco Revenue Budget": 4,
     "Santa Ana General Fund Operating Budget": 4,
@@ -87,9 +95,6 @@ export const UNCITED_BASELINE = {
     "Anaheim General Fund Revenue Budget": 2,
     "Bakersfield Operating Budget": 2,
     "Bakersfield Revenue Budget": 2,
-    "Long Beach General Fund Operating Budget": 2,
-    "Long Beach General Fund Revenue Budget": 2,
-    "Oakland General Purpose Fund Operating Budget": 2,
     "Allen ACFR": 1,
     "Allen Revenue": 1,
     "Barnstable County Operating Budget": 1,
