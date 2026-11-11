@@ -113,6 +113,7 @@ import {
   BROWSER_HEADERS,
 } from './lib/sourceUrlProbe.mjs';
 import { judgeEndpoints, endpointsAreClean } from './lib/sourceEndpointJudge.mjs';
+import { judgeDrift, pickDriftSample, sampleKey } from './lib/readerLinkDrift.mjs';
 import { SOURCE_URL_EXCEPTIONS } from './data/sourceUrlExceptions.mjs';
 import { PUBLISHER_OUTAGES } from './data/publisherOutages.mjs';
 import { UNCITED_BASELINE } from './data/sourceUrlCoverage.mjs';
@@ -229,6 +230,47 @@ async function fetchReaderLinkCensus() {
     out.push(...data);
     if (data.length < PAGE) return out;
   }
+}
+
+/**
+ * ⭐ THE PUBLIC API, ASKED AS A READER WOULD ASK IT.
+ *
+ * No key, no service role — this is the same endpoint `npm run dev` proxies
+ * to. The point is to see what is actually served, so reading it any other way
+ * would defeat the exercise.
+ */
+const READER_API = process.env.TT_API_URL || 'https://accounts-api.empowered.vote';
+
+const cityIndexByState = new Map();
+const budgetsByCity = new Map();
+
+async function apiJson(url) {
+  const res = await fetch(url, { headers: { Accept: 'application/json' } });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json();
+}
+
+/** Resolve `(entity, state)` to a municipality id through the API's own index. */
+async function resolveCityId(entity, state) {
+  if (!state) return null;
+  if (!cityIndexByState.has(state)) {
+    const rows = await apiJson(
+      `${READER_API}/api/treasury/cities?state=${encodeURIComponent(state)}&fields=index&datasets=summary`,
+    );
+    const byName = new Map();
+    for (const r of rows) if (r && r.name) byName.set(r.name.toLowerCase(), r.id);
+    cityIndexByState.set(state, byName);
+  }
+  return cityIndexByState.get(state).get(String(entity).toLowerCase()) || null;
+}
+
+async function liveBudgetsFor(entity, state) {
+  const id = await resolveCityId(entity, state);
+  if (!id) return null;
+  if (!budgetsByCity.has(id)) {
+    budgetsByCity.set(id, await apiJson(`${READER_API}/api/treasury/cities/${id}/budgets`));
+  }
+  return budgetsByCity.get(id);
 }
 
 /** Every distinct `data_sources.base_url`, with what it is for. */
@@ -377,11 +419,16 @@ export async function main(argv = process.argv.slice(2)) {
   }
 
   // ⚠⚠ #360's rule again: a filter must scope the EXPECTATION, not just the
-  // observation. `readerLinks` is reported on below, so a narrowed run must
+  // observation. `readerOnly` is reported on below, so a narrowed run must
   // narrow it by the SAME predicate — otherwise `--host bythenumbers` prints
-  // a 704-budget finding about hosts it deliberately never asked.
+  // a finding about hosts it deliberately never asked.
+  //
+  // ⚠ `readerLinksInScope` used to sit here too, feeding the landing-page
+  // report. That report is gone (the defect it described shipped a fix in
+  // ev-accounts#1372), and its successor — the live-API drift check — is
+  // skipped outright on a narrowed run rather than scoped, because a sample
+  // drawn from a filtered list reports on whatever survived the filter.
   const asked = new Set(rows.map((r) => r.source_url));
-  const readerLinksInScope = readerLinks.filter((r) => asked.has(r.source_url));
   const readerOnlyInScope = readerOnly.filter((r) => asked.has(r.source_url));
 
   console.log(`asking ${n(rows.length)} distinct citation(s) covering ${n(rows.reduce((a, r) => a + Number(r.budgets), 0))} budget(s)…`);
@@ -415,28 +462,63 @@ export async function main(argv = process.argv.slice(2)) {
 
   let failed = false;
 
-  // ── ⚠⚠ A LIVE LINK CAN STILL BE THE WRONG ONE ───────────────────────────
+  // ── ✅ "SHOWN A LANDING PAGE WHILE TT HOLDS THE DOCUMENT" IS GONE ────────
   //
-  // Reported, NOT failed, and the distinction is deliberate: every URL below
-  // resolves, so there is nothing here for this gate — whose whole subject is
-  // "does it resolve" — to call broken. What is wrong is the CHOICE, and the
-  // code that makes it lives in ev-accounts (`mapBudget` prefers
-  // `source_registry.url` over `budgets.source_url` whenever a budget carries
-  // a `data_source_id`). Failing a TT run over a defect TT cannot fix would
-  // make this gate unfixably red; saying nothing would repeat #380, where
-  // eight South Carolina cities sat green and wrong because nothing printed
-  // the sentence. So it prints, every run, until the precedence changes.
-  const overridden = readerLinksInScope.filter((r) => Number(r.overrides_stored_url) > 0);
-  if (overridden.length) {
-    const budgets = overridden.reduce((a, r) => a + Number(r.overrides_stored_url), 0);
-    console.log(`\n⚠⚠ SHOWN A LANDING PAGE WHILE TT HOLDS THE DOCUMENT (${n(budgets)} budget(s)):`);
-    for (const r of overridden.sort((a, b) => Number(b.overrides_stored_url) - Number(a.overrides_stored_url))) {
-      console.log(`  ${where(r)} — ${n(r.overrides_stored_url)} budget(s) via ${r.via}`);
-      console.log(`     reader is sent to  ${r.source_url}`);
-      console.log(`     TT already stores  ${n(r.distinct_stored_urls)} precise source_url(s) for them`);
+  // That report printed, every run, "704 budgets … the repair is in
+  // EmpoweredVote/ev-accounts: treasuryService.ts `mapBudget` must prefer
+  // b.source_url over sr.url". ev-accounts#1372 made exactly that change and
+  // deployed it, so the sentence became an instruction to redo merged work.
+  //
+  // ⛔ It is REMOVED rather than re-pointed. Under the deployed rule a
+  // `source_url` becomes BOTH published fields, so "the reader is shown
+  // something other than the source_url this budget holds" cannot happen —
+  // 0 of 704, measured. A check that can only ever print zero is not
+  // reassurance, it is furniture.
+  //
+  // ⚠⚠ WHAT REPLACES IT IS BELOW, AND IT IS A DIFFERENT KIND OF CHECK. The
+  // census is a MODEL of another service, and a model cannot notice the
+  // service changing — which is precisely how it sat stale for a day. So the
+  // gate now asks the LIVE API what it actually publishes and fails when the
+  // two disagree.
+  //
+  // ⚠ Skipped on a narrowed run for the same reason the base_url census is:
+  // `--host` and `--limit` scope the observation, and a sample drawn from a
+  // scoped list would report on whatever happened to survive the filter.
+  if (!values.host && !values.limit) {
+    const sample = pickDriftSample(readerLinks);
+    const observed = new Map();
+    let apiReachable = true;
+    for (const s of sample) {
+      const key = sampleKey(s);
+      if (observed.has(key)) continue;
+      try {
+        const got = await liveBudgetsFor(s.sample_entity, s.sample_state);
+        observed.set(key, got === null ? 'unreachable' : got);
+      } catch {
+        observed.set(key, 'unreachable');
+        apiReachable = false;
+      }
     }
-    console.log('  ⛔ The repair is in EmpoweredVote/ev-accounts: treasuryService.ts `mapBudget`');
-    console.log('     must prefer b.source_url over sr.url when the budget carries one.');
+    const drift = judgeDrift(sample, observed);
+    if (drift.drifted.length) {
+      failed = true;
+      console.error(`\n⛔⛔ THE CENSUS AND THE LIVE API DISAGREE (${drift.drifted.length} of ${drift.checked}):`);
+      for (const d of drift.drifted) {
+        console.error(`  ${where(d)} — the census says this URL reaches a reader:`);
+        console.error(`     census  ${d.source_url}`);
+        console.error(`     API     ${d.published.join('\n             ')}`);
+      }
+      console.error('  ⛔ treasury.reader_link_census() models ev-accounts\' precedence. One of');
+      console.error('     them has changed. Read backend/src/lib/treasuryCitation.ts on master,');
+      console.error('     then bring the census into line with a new migration — do NOT edit the');
+      console.error('     comment and leave the SQL.');
+    } else if (drift.agreed) {
+      console.log(`\n✅ census agrees with the live API on ${n(drift.agreed)} sampled budget(s)`);
+    }
+    if (drift.unresolved.length) {
+      const why = apiReachable ? 'not matched in the API response' : 'the API could not be asked';
+      console.log(`ℹ️  ${n(drift.unresolved.length)} sampled budget(s) ${why} — not treated as agreement`);
+    }
   }
 
   // ── ⭐⭐ A PUBLISHER THAT IS DOWN, NOT A DOCUMENT THAT IS GONE ───────────
