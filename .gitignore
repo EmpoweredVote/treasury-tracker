@@ -207,3 +207,6 @@ blob-report/
 e2e/.api-down
 _ds-recon/
 _lp-recon/
+
+# CA State Controller per-entity citation recon — scratch scripts, not committed
+_ca-recon/
