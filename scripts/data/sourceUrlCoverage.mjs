@@ -4,7 +4,7 @@
  * ⚠⚠⚠ THIS IS THE DEGENERATE CASE OF THE DEAD-CITATION DEFECT. A budget with a
  * broken `source_url` asks the reader to believe a figure and hands them a link
  * that fails; a budget with no `source_url` asks them to believe it and hands
- * them nothing. 24,908 budgets are in the second state, which is 4.3% of the
+ * them nothing. 24,877 budgets are in the second state, which is 4.3% of the
  * fleet — so `verify:source-urls` failing on their EXISTENCE would be red from
  * the first run, and a gate that is red by design is a gate nobody reads.
  *
@@ -30,6 +30,20 @@
  * Budget (9), Plano Revenue (4), Riverside General Fund Operating Budget (4),
  * Long Beach Operating + Revenue (2+2), Oakland General Purpose Fund Operating
  * Budget (2). See 20261111010000_laptop_paths_23_proven_documents.sql.
+ *
+ * ⭐ 2026-11-11, SAME DAY, SECOND PASS: 24,908 → 24,877, four more families to
+ * zero — Anaheim General Fund Operating and Revenue, Santa Ana General Fund
+ * Operating and Revenue — plus partial pay-downs in Fremont (8→2 each side),
+ * Richardson (8→3) and San José (5→4 each side).
+ *
+ * ⭐⭐ AND THE LESSON IS CHEAPER THAN THE FIRST PASS'S. The pass above recorded
+ * 28 documents as unreachable; re-asking the SAME six hosts the next day moved
+ * 18 of them. Anaheim had never refused us — a bare curl had been refused, and
+ * a browser-shaped request gets the PDF. Santa Ana had MOVED, to a domain that
+ * answers and to a GCS bucket with no WAF at all. The other three really do
+ * refuse everything, and the Internet Archive — offline the day before —
+ * settled eleven of those. See
+ * 20261111020000_laptop_paths_wayback_and_successor_hosts.sql.
  *
  * That is what the ratchet is for: the number moves in a PR, with the reason
  * attached.
@@ -74,27 +88,23 @@ export const UNCITED_BASELINE = {
     "Frisco Check Register": 9,
     "LA City Checkbook": 9,
     "cambridge-open-data": 8,
-    "Fremont Operating Budget": 8,
-    "Fremont Revenue Budget": 8,
-    "Richardson Operating Budget": 8,
     "Leonardtown Operating Budget": 6,
     "McKinney Check Register": 5,
     "McKinney Revenue": 5,
-    "San Jose General Fund Operating Budget": 5,
-    "San Jose General Fund Revenue Budget": 5,
     "ArcGIS: https://services.arcgis.com/RmCCgQtiZLDCtblq/arcgis/rest/services/LA_County_Employee_Salaries/FeatureServer/0": 4,
     "Empowered Vote Financial Records": 4,
     "McKinney Payroll Register": 4,
     "San Francisco Operating Budget": 4,
     "San Francisco Revenue Budget": 4,
-    "Santa Ana General Fund Operating Budget": 4,
-    "Santa Ana General Fund Revenue Budget": 4,
+    "San Jose General Fund Operating Budget": 4,
+    "San Jose General Fund Revenue Budget": 4,
     "Prosper ACFR": 3,
     "Prosper Revenue": 3,
-    "Anaheim General Fund Operating Budget": 2,
-    "Anaheim General Fund Revenue Budget": 2,
+    "Richardson Operating Budget": 3,
     "Bakersfield Operating Budget": 2,
     "Bakersfield Revenue Budget": 2,
+    "Fremont Operating Budget": 2,
+    "Fremont Revenue Budget": 2,
     "Allen ACFR": 1,
     "Allen Revenue": 1,
     "Barnstable County Operating Budget": 1,

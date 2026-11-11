@@ -82,10 +82,41 @@ describe('publisherUrlFor', () => {
   });
 
   it('⛔⛔ THROWS for a document whose publisher URL is not proven', () => {
-    // Fremont is one of the 28 whose publisher refuses every automated client.
+    // ⚠ This case used to name a FREMONT document, and the second pass proved
+    // it — which is the right reason for a test to need editing. Bakersfield
+    // is one of the 10 still outstanding: the document is found (Laserfiche
+    // DocView id 1957514) and still cannot be fetched, because WebLink's
+    // download link is built at runtime behind a cookie check.
     // The old behaviour here was to write `file://` + the operator's path.
-    expect(() => publisherUrlFor('docs/Fremont/FY 201920 Adopted Budget.pdf'))
+    expect(() => publisherUrlFor('docs/Bakersfield/fy2024-25-adopted-budget.pdf'))
       .toThrow(/No PROVEN publisher URL/);
+  });
+
+  it('⚠⚠ an archive citation must carry the publisher URL inside it', () => {
+    // Eleven entries cite web.archive.org, because fremont.gov, cor.net and
+    // sanjoseca.gov answer an identical 466-byte WAF page to every client we
+    // have — curl, full browser headers, and real headless Chromium alike.
+    // That is only defensible while the publisher's own URL rides along in the
+    // link, so a bare `/web/<ts>/` form is not allowed here.
+    const archived = Object.entries(PROVEN_DOCUMENT_URLS).filter(([, v]) => v.archived);
+    expect(archived.length).toBeGreaterThan(0);
+    for (const [key, v] of archived) {
+      expect(v.url, key).toMatch(/^https:\/\/web\.archive\.org\/web\/\d{14}id_\/https?:\/\/.+/);
+      expect(v.publisher, key).toMatch(/^https:\/\/[a-z0-9.-]+\/.+/i);
+      expect(v.url, key).toContain(v.publisher);
+      expect(v.publisher, key).not.toContain('web.archive.org');
+    }
+  });
+
+  it('⭐ never cites an archive for a document the publisher still serves', () => {
+    // The other half of the rule, from scripts/lib/ncAcfrSources.mjs. Anaheim
+    // and Santa Ana were proven against their own hosts on the same day, so an
+    // archive link for either would be a shortcut, not a necessity.
+    for (const [key, v] of Object.entries(PROVEN_DOCUMENT_URLS)) {
+      if (!v.url.includes('web.archive.org')) continue;
+      expect(key, `${key} is archived but its host answers us`)
+        .not.toMatch(/^docs\/(Anaheim|Santa Ana|Fresno|Long Beach|Oakland|Plano|Riverside)\//);
+    }
   });
 
   it('⚠ the error tells the next person what to actually do', () => {
