@@ -9,7 +9,7 @@
       "linkless": 0
     },
     "CA State Controller — Government Compensation in California (publicpay.ca.gov)": {
-      "unregisteredRows": 7682,
+      "unregisteredRows": 0,
       "linkless": 7682
     },
     "Georgia DCA Report of Local Government Finances — Revenue by Source (FY2013 actual, self-reported)": {
@@ -766,7 +766,7 @@
     },
     "West Hollywood Budget Expenditure Detail": {
       "unregisteredRows": 4,
-      "linkless": 4
+      "linkless": 0
     },
     "Georgia DCA Report of Local Government Finances — Expenditure by Function (FY2023 actual, self-reported)": {
       "unregisteredRows": 226,
@@ -1401,7 +1401,7 @@
       "linkless": 19
     },
     "ArcGIS: https://services.arcgis.com/RmCCgQtiZLDCtblq/arcgis/rest/services/LA_County_Employee_Salaries/FeatureServer/0": {
-      "unregisteredRows": 4,
+      "unregisteredRows": 0,
       "linkless": 4
     },
     "Winthrop — MA General Fund Revenues": {
@@ -1970,7 +1970,7 @@
     },
     "Fremont Revenue Budget FY2021": {
       "unregisteredRows": 1,
-      "linkless": 1
+      "linkless": 0
     },
     "Princeton — MA General Fund Expenditures": {
       "unregisteredRows": 24,
@@ -2126,7 +2126,7 @@
     },
     "Fremont Operating Budget FY2023": {
       "unregisteredRows": 1,
-      "linkless": 1
+      "linkless": 0
     },
     "Bourne — MA General Fund Expenditures": {
       "unregisteredRows": 24,
@@ -2493,10 +2493,6 @@
       "linkless": 19
     },
     "Whitman — MA General Fund Expenditures": {
-      "unregisteredRows": 24,
-      "linkless": 24
-    },
-    "Bloomington Annual Compensation": {
       "unregisteredRows": 24,
       "linkless": 24
     },
@@ -3130,7 +3126,7 @@
     },
     "Fremont Operating Budget FY2022": {
       "unregisteredRows": 1,
-      "linkless": 1
+      "linkless": 0
     },
     "South Carolina State ACFR — General Fund Revenue (FY2011 actual, GAAP basis)": {
       "unregisteredRows": 1,
@@ -3410,7 +3406,7 @@
     },
     "Plano Operating Budget FY2022": {
       "unregisteredRows": 2,
-      "linkless": 2
+      "linkless": 0
     },
     "Wilbraham — MA General Fund Expenditures": {
       "unregisteredRows": 24,
@@ -3418,7 +3414,7 @@
     },
     "Plano Operating Budget FY2023": {
       "unregisteredRows": 1,
-      "linkless": 1
+      "linkless": 0
     },
     "City of Sherwood ACFR — General Fund Expenditure by Function (FY2023 actual, GAAP basis)": {
       "unregisteredRows": 1,
@@ -3614,7 +3610,7 @@
     },
     "Fremont Operating Budget FY2020": {
       "unregisteredRows": 1,
-      "linkless": 1
+      "linkless": 0
     },
     "North Andover — MA DLS General Fund Revenue by Source": {
       "unregisteredRows": 5,
@@ -3703,10 +3699,6 @@
     "Petersham — MA DLS General Fund Revenue by Source": {
       "unregisteredRows": 5,
       "linkless": 5
-    },
-    "West Hollywood Demand Register FY2024-25": {
-      "unregisteredRows": 1,
-      "linkless": 1
     },
     "New York City ACFR — General Fund Revenue by Source (FY2004 actual, GAAP basis)": {
       "unregisteredRows": 1,
@@ -3871,10 +3863,6 @@
     "Taunton — MA DLS General Fund Revenue by Source": {
       "unregisteredRows": 5,
       "linkless": 5
-    },
-    "Plano Check Register FY2022": {
-      "unregisteredRows": 1,
-      "linkless": 1
     },
     "Holliston — MA General Fund Expenditures": {
       "unregisteredRows": 24,
@@ -4202,7 +4190,7 @@
     },
     "West Hollywood Budget Revenue Detail FY15-18": {
       "unregisteredRows": 2,
-      "linkless": 2
+      "linkless": 0
     },
     "Swansea — MA DLS General Fund Revenue by Source": {
       "unregisteredRows": 5,
@@ -4358,7 +4346,7 @@
     },
     "Anaheim General Fund Revenue Budget FY2025": {
       "unregisteredRows": 1,
-      "linkless": 1
+      "linkless": 0
     },
     "City of Durham ACFR — General Fund Revenue by Source (FY2015 actual, GAAP basis)": {
       "unregisteredRows": 1,
@@ -4718,7 +4706,7 @@
     },
     "San Jose General Fund Operating Budget FY2022": {
       "unregisteredRows": 1,
-      "linkless": 1
+      "linkless": 0
     },
     "Medford — MA DLS General Fund Revenue by Source": {
       "unregisteredRows": 5,
@@ -4792,10 +4780,6 @@
       "unregisteredRows": 1,
       "linkless": 0
     },
-    "Frisco Check Register FY2025": {
-      "unregisteredRows": 1,
-      "linkless": 1
-    },
     "Southwick — MA General Fund Expenditures": {
       "unregisteredRows": 24,
       "linkless": 24
@@ -4822,7 +4806,7 @@
     },
     "Long Beach General Fund Revenue Budget FY2026": {
       "unregisteredRows": 1,
-      "linkless": 1
+      "linkless": 0
     },
     "South Dakota State ACFR — General Fund (FY2020 actual, GAAP basis)": {
       "unregisteredRows": 1,
@@ -5154,7 +5138,7 @@
     },
     "Plano Operating Budget FY2020": {
       "unregisteredRows": 2,
-      "linkless": 2
+      "linkless": 0
     },
     "Manchester By The Sea — MA DLS General Fund Revenue by Source": {
       "unregisteredRows": 5,
@@ -5303,10 +5287,6 @@
     "Sherborn — MA DLS General Fund Revenue by Source": {
       "unregisteredRows": 5,
       "linkless": 5
-    },
-    "Plano Check Register FY2020": {
-      "unregisteredRows": 1,
-      "linkless": 1
     },
     "Florida State ACFR — General Fund (FY2024 actual, GAAP basis)": {
       "unregisteredRows": 1,
@@ -5554,7 +5534,7 @@
     },
     "Fremont Revenue Budget FY2023": {
       "unregisteredRows": 1,
-      "linkless": 1
+      "linkless": 0
     },
     "Berlin — MA DLS General Fund Revenue by Source": {
       "unregisteredRows": 5,
@@ -5594,11 +5574,7 @@
     },
     "Anaheim General Fund Operating Budget FY2025": {
       "unregisteredRows": 1,
-      "linkless": 1
-    },
-    "McKinney Check Register FY2024": {
-      "unregisteredRows": 1,
-      "linkless": 1
+      "linkless": 0
     },
     "WA State Auditor — Tacoma Annual Financial Report FY2005 (General Fund, Revenue by Source)": {
       "unregisteredRows": 1,
@@ -5662,7 +5638,7 @@
     },
     "Anaheim General Fund Operating Budget FY2026": {
       "unregisteredRows": 1,
-      "linkless": 1
+      "linkless": 0
     },
     "Lincoln — MA DLS General Fund Revenue by Source": {
       "unregisteredRows": 5,
@@ -5770,7 +5746,7 @@
     },
     "Fremont Revenue Budget FY2022": {
       "unregisteredRows": 1,
-      "linkless": 1
+      "linkless": 0
     },
     "Dallas Revenue Budget": {
       "unregisteredRows": 2,
@@ -6062,7 +6038,7 @@
     },
     "West Hollywood Budget Expenditure Detail FY15-18": {
       "unregisteredRows": 2,
-      "linkless": 2
+      "linkless": 0
     },
     "Gresham Operating Budget FY2025": {
       "unregisteredRows": 1,
@@ -6114,7 +6090,7 @@
     },
     "Fresno General Fund Operating Budget FY2020": {
       "unregisteredRows": 1,
-      "linkless": 1
+      "linkless": 0
     },
     "WA State Auditor — Vancouver Annual Financial Report FY2013 (General Fund, Revenue by Source)": {
       "unregisteredRows": 1,
@@ -6278,11 +6254,11 @@
     },
     "Riverside General Fund Operating Budget FY2024": {
       "unregisteredRows": 1,
-      "linkless": 1
+      "linkless": 0
     },
     "West Hollywood Budget Revenue Detail": {
       "unregisteredRows": 4,
-      "linkless": 4
+      "linkless": 0
     },
     "Connecticut State CAFR — General Fund Revenue (FY1995 actual, pre-GASB-34 combined statement basis)": {
       "unregisteredRows": 1,
@@ -6497,7 +6473,7 @@
       "linkless": 5
     },
     "LA County Open Data - Employee Salaries": {
-      "unregisteredRows": 1,
+      "unregisteredRows": 0,
       "linkless": 1
     },
     "Idaho State ACFR — General Fund Revenue (FY2014 actual, GAAP basis)": {
@@ -6623,10 +6599,6 @@
     "City of Tucson ACFR — General Fund Revenue by Source (FY2017 actual, GAAP basis)": {
       "unregisteredRows": 1,
       "linkless": 0
-    },
-    "LA City Payroll": {
-      "unregisteredRows": 10,
-      "linkless": 10
     },
     "Kentucky State ACFR — General Fund Revenue (FY2013 actual, GAAP basis)": {
       "unregisteredRows": 1,
@@ -6839,10 +6811,6 @@
     "Chelmsford — MA DLS General Fund Revenue by Source": {
       "unregisteredRows": 5,
       "linkless": 5
-    },
-    "McKinney Payroll Register FY2024": {
-      "unregisteredRows": 1,
-      "linkless": 1
     },
     "Blackstone — MA DLS General Fund Revenue by Source": {
       "unregisteredRows": 5,
@@ -7074,7 +7042,7 @@
     },
     "Richardson Operating Budget FY2018": {
       "unregisteredRows": 1,
-      "linkless": 1
+      "linkless": 0
     },
     "Indiana State ACFR — General Fund Revenue (FY2017 actual, GAAP basis)": {
       "unregisteredRows": 1,
@@ -7243,10 +7211,6 @@
     "City of Bend ACFR — General Fund Revenue by Source (FY2008 actual, GAAP basis)": {
       "unregisteredRows": 1,
       "linkless": 0
-    },
-    "Plano Check Register FY2024": {
-      "unregisteredRows": 1,
-      "linkless": 1
     },
     "Tennessee State ACFR — General Fund Revenue (FY2021 actual, GAAP basis)": {
       "unregisteredRows": 1,
@@ -7490,7 +7454,7 @@
     },
     "Long Beach General Fund Operating Budget FY2026": {
       "unregisteredRows": 1,
-      "linkless": 1
+      "linkless": 0
     },
     "Lynnfield — MA DLS General Fund Revenue by Source": {
       "unregisteredRows": 5,
@@ -7778,7 +7742,7 @@
     },
     "Plano Revenue FY2024": {
       "unregisteredRows": 1,
-      "linkless": 1
+      "linkless": 0
     },
     "Wisconsin State ACFR — General Fund (FY2003 actual, GAAP basis)": {
       "unregisteredRows": 1,
@@ -7964,10 +7928,6 @@
       "unregisteredRows": 1,
       "linkless": 0
     },
-    "West Hollywood Demand Register FY2021-22": {
-      "unregisteredRows": 1,
-      "linkless": 1
-    },
     "South Tucson ACFR — General Fund Revenue by Source (FY2020 actual, GAAP basis)": {
       "unregisteredRows": 1,
       "linkless": 0
@@ -8078,7 +8038,7 @@
     },
     "Santa Ana General Fund Operating Budget FY2025": {
       "unregisteredRows": 1,
-      "linkless": 1
+      "linkless": 0
     },
     "Becket — MA DLS General Fund Revenue by Source": {
       "unregisteredRows": 5,
@@ -8154,7 +8114,7 @@
     },
     "Fresno General Fund Operating Budget FY2021": {
       "unregisteredRows": 1,
-      "linkless": 1
+      "linkless": 0
     },
     "Durham County ACFR — General Fund Expenditure by Function (FY2005 actual, GAAP basis)": {
       "unregisteredRows": 1,
@@ -8288,10 +8248,6 @@
       "unregisteredRows": 1,
       "linkless": 0
     },
-    "West Hollywood Demand Register FY2018-19": {
-      "unregisteredRows": 2,
-      "linkless": 2
-    },
     "Arizona State ACFR — General Fund (FY2016 actual, GAAP basis)": {
       "unregisteredRows": 1,
       "linkless": 0
@@ -8311,10 +8267,6 @@
     "South Dakota State ACFR — General Fund (FY2022 actual, GAAP basis)": {
       "unregisteredRows": 1,
       "linkless": 0
-    },
-    "West Hollywood Demand Register FY2025-26": {
-      "unregisteredRows": 1,
-      "linkless": 1
     },
     "Harrison County ACFR — General Fund Expenditure by Function (FY2023 actual, GAAP basis)": {
       "unregisteredRows": 1,
@@ -8446,15 +8398,11 @@
     },
     "Fremont Revenue Budget FY2019": {
       "unregisteredRows": 1,
-      "linkless": 1
+      "linkless": 0
     },
     "State of Minnesota ACFR — General Fund Revenue (FY2025 actual, GAAP basis)": {
       "unregisteredRows": 1,
       "linkless": 0
-    },
-    "Frisco Check Register FY2024": {
-      "unregisteredRows": 1,
-      "linkless": 1
     },
     "Texas State ACFR — General Revenue Fund (FY2020 actual, GAAP basis)": {
       "unregisteredRows": 1,
@@ -8510,7 +8458,7 @@
     },
     "Riverside General Fund Operating Budget FY2025": {
       "unregisteredRows": 1,
-      "linkless": 1
+      "linkless": 0
     },
     "Bakersfield Operating Budget FY2025": {
       "unregisteredRows": 1,
@@ -8586,7 +8534,7 @@
     },
     "Plano Revenue FY2023": {
       "unregisteredRows": 1,
-      "linkless": 1
+      "linkless": 0
     },
     "WA State Auditor — Kent Annual Financial Report FY2022 (General Fund, Revenue by Source)": {
       "unregisteredRows": 1,
@@ -8598,7 +8546,7 @@
     },
     "Santa Ana General Fund Operating Budget FY2024": {
       "unregisteredRows": 1,
-      "linkless": 1
+      "linkless": 0
     },
     "Fremont Operating Budget FY2025": {
       "unregisteredRows": 1,
@@ -8770,7 +8718,7 @@
     },
     "Fremont Revenue Budget FY2026": {
       "unregisteredRows": 1,
-      "linkless": 1
+      "linkless": 0
     },
     "Vermont State ACFR — General Fund Revenue (FY2019 actual, GAAP basis)": {
       "unregisteredRows": 1,
@@ -8778,7 +8726,7 @@
     },
     "Richardson Operating Budget FY2019": {
       "unregisteredRows": 1,
-      "linkless": 1
+      "linkless": 0
     },
     "Somerset — MA DLS General Fund Revenue by Source": {
       "unregisteredRows": 5,
@@ -8790,7 +8738,7 @@
     },
     "Santa Ana General Fund Revenue Budget FY2025": {
       "unregisteredRows": 1,
-      "linkless": 1
+      "linkless": 0
     },
     "Oklahoma State ACFR — General Fund Revenue (FY2013 actual, GAAP basis)": {
       "unregisteredRows": 1,
@@ -8859,10 +8807,6 @@
     "City of Bend ACFR — General Fund Revenue by Source (FY2018 actual, GAAP basis)": {
       "unregisteredRows": 1,
       "linkless": 0
-    },
-    "West Hollywood Demand Register FY2020-21": {
-      "unregisteredRows": 1,
-      "linkless": 1
     },
     "Kentucky State ACFR — General Fund (FY2011 actual, GAAP basis)": {
       "unregisteredRows": 1,
@@ -8938,7 +8882,7 @@
     },
     "Long Beach General Fund Operating Budget FY2025": {
       "unregisteredRows": 1,
-      "linkless": 1
+      "linkless": 0
     },
     "New Jersey State ACFR — General Fund (FY2014 actual, GAAP basis)": {
       "unregisteredRows": 1,
@@ -8982,7 +8926,7 @@
     },
     "Anaheim General Fund Revenue Budget FY2026": {
       "unregisteredRows": 1,
-      "linkless": 1
+      "linkless": 0
     },
     "Connecticut State ACFR — General Fund Revenue (FY2024 actual, GAAP basis)": {
       "unregisteredRows": 1,
@@ -9426,7 +9370,7 @@
     },
     "Fremont Operating Budget FY2026": {
       "unregisteredRows": 1,
-      "linkless": 1
+      "linkless": 0
     },
     "Hawaii State ACFR — General Fund Revenue (FY2009 actual, GAAP basis)": {
       "unregisteredRows": 1,
@@ -9474,7 +9418,7 @@
     },
     "Fremont Operating Budget FY2019": {
       "unregisteredRows": 1,
-      "linkless": 1
+      "linkless": 0
     },
     "Wisconsin State ACFR — General Fund Revenue (FY2006 actual, GAAP basis)": {
       "unregisteredRows": 1,
@@ -9499,10 +9443,6 @@
     "Massachusetts State CAFR — General Fund (FY2001 actual, pre-GASB-34 combined statement basis)": {
       "unregisteredRows": 1,
       "linkless": 0
-    },
-    "McKinney Check Register FY2025": {
-      "unregisteredRows": 1,
-      "linkless": 1
     },
     "Grand Forks County ACFR — General Fund Revenue by Source (FY2021 actual, GAAP basis)": {
       "unregisteredRows": 1,
@@ -9706,7 +9646,7 @@
     },
     "Santa Ana General Fund Operating Budget FY2026": {
       "unregisteredRows": 1,
-      "linkless": 1
+      "linkless": 0
     },
     "Florida State ACFR — General Fund Revenue (FY2022 actual, GAAP basis)": {
       "unregisteredRows": 1,
@@ -10106,7 +10046,7 @@
     },
     "Santa Ana General Fund Operating Budget FY2023": {
       "unregisteredRows": 1,
-      "linkless": 1
+      "linkless": 0
     },
     "City of Sherwood ACFR — General Fund Expenditure by Function (FY2014 actual, GAAP basis)": {
       "unregisteredRows": 1,
@@ -10115,10 +10055,6 @@
     "California State ACFR — General Fund (FY2021 actual, GAAP basis)": {
       "unregisteredRows": 1,
       "linkless": 0
-    },
-    "Frisco Check Register FY2023": {
-      "unregisteredRows": 1,
-      "linkless": 1
     },
     "Hawaii State ACFR — General Fund Revenue (FY2019 actual, GAAP basis)": {
       "unregisteredRows": 1,
@@ -10170,15 +10106,11 @@
     },
     "Plano Revenue FY2021": {
       "unregisteredRows": 1,
-      "linkless": 1
+      "linkless": 0
     },
     "Massachusetts State ACFR — General Fund (FY2013 actual, GAAP basis)": {
       "unregisteredRows": 1,
       "linkless": 0
-    },
-    "LA City Checkbook": {
-      "unregisteredRows": 2,
-      "linkless": 2
     },
     "US Federal Receipts by Source FY2013 (OMB Historical Table 2.1)": {
       "unregisteredRows": 1,
@@ -10240,10 +10172,6 @@
       "unregisteredRows": 1,
       "linkless": 0
     },
-    "McKinney Check Register FY2022": {
-      "unregisteredRows": 1,
-      "linkless": 1
-    },
     "Mississippi State ACFR — General Fund Revenue (FY2021 actual, GAAP basis)": {
       "unregisteredRows": 1,
       "linkless": 0
@@ -10302,7 +10230,7 @@
     },
     "Fremont Revenue Budget FY2020": {
       "unregisteredRows": 1,
-      "linkless": 1
+      "linkless": 0
     },
     "Hawaii State ACFR — General Fund (FY2010 actual, GAAP basis)": {
       "unregisteredRows": 1,
@@ -10449,10 +10377,6 @@
       "linkless": 0
     },
     "US Federal Outlays by Function FY2012 (OMB Public Budget Database)": {
-      "unregisteredRows": 1,
-      "linkless": 1
-    },
-    "Frisco Check Register FY2021": {
       "unregisteredRows": 1,
       "linkless": 1
     },
@@ -10688,10 +10612,6 @@
       "unregisteredRows": 1,
       "linkless": 0
     },
-    "McKinney Payroll Register FY2022": {
-      "unregisteredRows": 1,
-      "linkless": 1
-    },
     "Wisconsin State ACFR — General Fund (FY2007 actual, GAAP basis)": {
       "unregisteredRows": 1,
       "linkless": 0
@@ -10783,10 +10703,6 @@
     "Texas State ACFR — General Revenue Fund Revenue (FY2020 actual, GAAP basis)": {
       "unregisteredRows": 1,
       "linkless": 0
-    },
-    "McKinney Check Register FY2023": {
-      "unregisteredRows": 1,
-      "linkless": 1
     },
     "US Federal Outlays by Agency FY2011 (OMB Public Budget Database)": {
       "unregisteredRows": 1,
@@ -10886,7 +10802,7 @@
     },
     "Santa Ana General Fund Revenue Budget FY2026": {
       "unregisteredRows": 1,
-      "linkless": 1
+      "linkless": 0
     },
     "Iowa State ACFR — General Fund Revenue (FY2017 actual, GAAP basis)": {
       "unregisteredRows": 1,
@@ -10902,7 +10818,7 @@
     },
     "Fresno General Fund Operating Budget FY2025": {
       "unregisteredRows": 1,
-      "linkless": 1
+      "linkless": 0
     },
     "Georgia DCA Report of Local Government Finances — Revenue by Source (FY2009 actual, audit status not stated)": {
       "unregisteredRows": 1,
@@ -11012,10 +10928,6 @@
       "unregisteredRows": 1,
       "linkless": 0
     },
-    "West Hollywood Demand Register FY2022-23": {
-      "unregisteredRows": 1,
-      "linkless": 1
-    },
     "New York City ACFR — Total Governmental Funds Revenue by Source (FY2016 actual, GAAP basis)": {
       "unregisteredRows": 1,
       "linkless": 0
@@ -11054,7 +10966,7 @@
     },
     "Fresno General Fund Operating Budget FY2026": {
       "unregisteredRows": 1,
-      "linkless": 1
+      "linkless": 0
     },
     "City of Bend ACFR — General Fund Expenditure by Function (FY2025 actual, GAAP basis)": {
       "unregisteredRows": 1,
@@ -11270,7 +11182,7 @@
     },
     "Richardson Operating Budget FY2021": {
       "unregisteredRows": 1,
-      "linkless": 1
+      "linkless": 0
     },
     "US Federal Outlays by Function FY1985 (OMB Public Budget Database)": {
       "unregisteredRows": 1,
@@ -11396,10 +11308,6 @@
       "unregisteredRows": 1,
       "linkless": 0
     },
-    "Frisco Check Register FY2022": {
-      "unregisteredRows": 1,
-      "linkless": 1
-    },
     "WA State Auditor — Kent Annual Financial Report FY2004 (General Fund, Expenditure by Function)": {
       "unregisteredRows": 1,
       "linkless": 0
@@ -11470,7 +11378,7 @@
     },
     "Plano Revenue FY2018": {
       "unregisteredRows": 1,
-      "linkless": 1
+      "linkless": 0
     },
     "New York State ACFR — General Fund (FY2017 actual, GAAP basis)": {
       "unregisteredRows": 1,
@@ -11582,7 +11490,7 @@
     },
     "Richardson Operating Budget FY2020": {
       "unregisteredRows": 1,
-      "linkless": 1
+      "linkless": 0
     },
     "New Jersey State ACFR — General Fund Revenue (FY2015 actual, GAAP basis)": {
       "unregisteredRows": 1,
@@ -11790,7 +11698,7 @@
     },
     "Plano Operating Budget FY2025": {
       "unregisteredRows": 1,
-      "linkless": 1
+      "linkless": 0
     },
     "Maine State ACFR — General Fund Revenue (FY2016 actual, GAAP basis)": {
       "unregisteredRows": 1,
@@ -11936,10 +11844,6 @@
       "unregisteredRows": 1,
       "linkless": 0
     },
-    "West Hollywood Demand Register FY2022-24": {
-      "unregisteredRows": 1,
-      "linkless": 1
-    },
     "US Federal Outlays by Function FY1976 (OMB Public Budget Database)": {
       "unregisteredRows": 1,
       "linkless": 1
@@ -11967,10 +11871,6 @@
     "Florida State ACFR — General Fund Revenue (FY2012 actual, GAAP basis)": {
       "unregisteredRows": 1,
       "linkless": 0
-    },
-    "Frisco Check Register FY2018": {
-      "unregisteredRows": 1,
-      "linkless": 1
     },
     "New York City ACFR — General Fund Revenue by Source (FY2019 actual, GAAP basis)": {
       "unregisteredRows": 1,
@@ -12002,7 +11902,7 @@
     },
     "Riverside General Fund Operating Budget FY2023": {
       "unregisteredRows": 1,
-      "linkless": 1
+      "linkless": 0
     },
     "California State ACFR — General Fund Revenue (FY2004 actual, GAAP basis)": {
       "unregisteredRows": 1,
@@ -12083,10 +11983,6 @@
     "New Mexico State ACFR — General Fund Revenue (FY2023 actual, GAAP basis)": {
       "unregisteredRows": 1,
       "linkless": 0
-    },
-    "Plano Check Register FY2023": {
-      "unregisteredRows": 1,
-      "linkless": 1
     },
     "Durham County ACFR — General Fund Expenditure by Function (FY2015 actual, GAAP basis)": {
       "unregisteredRows": 1,
@@ -12226,7 +12122,7 @@
     },
     "Santa Ana General Fund Revenue Budget FY2024": {
       "unregisteredRows": 1,
-      "linkless": 1
+      "linkless": 0
     },
     "Florida State ACFR — General Fund Revenue (FY2017 actual, GAAP basis)": {
       "unregisteredRows": 1,
@@ -12310,7 +12206,7 @@
     },
     "Plano Operating Budget FY2024": {
       "unregisteredRows": 1,
-      "linkless": 1
+      "linkless": 0
     },
     "New York State ACFR — General Fund (FY2024 actual, GAAP basis)": {
       "unregisteredRows": 1,
@@ -12662,7 +12558,7 @@
     },
     "Oakland General Purpose Fund Operating Budget FY2025": {
       "unregisteredRows": 1,
-      "linkless": 1
+      "linkless": 0
     },
     "California State ACFR — General Fund (FY2024 actual, GAAP basis)": {
       "unregisteredRows": 1,
@@ -12858,7 +12754,7 @@
     },
     "Oakland General Purpose Fund Operating Budget FY2024": {
       "unregisteredRows": 1,
-      "linkless": 1
+      "linkless": 0
     },
     "Oro Valley ACFR — General Fund Expenditure by Function (FY2024 actual, GAAP basis)": {
       "unregisteredRows": 1,
@@ -13040,13 +12936,9 @@
       "unregisteredRows": 1,
       "linkless": 0
     },
-    "Frisco Check Register FY2020": {
-      "unregisteredRows": 1,
-      "linkless": 1
-    },
     "Santa Ana General Fund Revenue Budget FY2023": {
       "unregisteredRows": 1,
-      "linkless": 1
+      "linkless": 0
     },
     "New Hampshire State ACFR — General Fund Revenue (FY2024 actual, GAAP basis)": {
       "unregisteredRows": 1,
@@ -13134,7 +13026,7 @@
     },
     "Long Beach General Fund Revenue Budget FY2025": {
       "unregisteredRows": 1,
-      "linkless": 1
+      "linkless": 0
     },
     "Kansas State ACFR — General Fund Revenue (FY2023 actual, GAAP basis)": {
       "unregisteredRows": 1,
@@ -13203,10 +13095,6 @@
     "WA State Auditor — Tacoma Annual Financial Report FY2003 (General Fund, Expenditure by Function)": {
       "unregisteredRows": 1,
       "linkless": 0
-    },
-    "Frisco Check Register FY2026": {
-      "unregisteredRows": 1,
-      "linkless": 1
     },
     "Florida State ACFR — General Fund Revenue (FY2009 actual, GAAP basis)": {
       "unregisteredRows": 1,
@@ -13422,7 +13310,7 @@
     },
     "Plano Operating Budget FY2019": {
       "unregisteredRows": 2,
-      "linkless": 2
+      "linkless": 0
     },
     "Wisconsin State ACFR — General Fund (FY2025 actual, GAAP basis)": {
       "unregisteredRows": 1,
@@ -13534,15 +13422,11 @@
     },
     "Fremont Operating Budget FY2021": {
       "unregisteredRows": 1,
-      "linkless": 1
+      "linkless": 0
     },
     "New York City ACFR — Total Governmental Funds Expenditure by Function (FY2013 actual, GAAP basis)": {
       "unregisteredRows": 1,
       "linkless": 0
-    },
-    "Plano Check Register FY2021": {
-      "unregisteredRows": 1,
-      "linkless": 1
     },
     "California State ACFR — General Fund Revenue (FY2022 actual, GAAP basis)": {
       "unregisteredRows": 1,
@@ -13610,7 +13494,7 @@
     },
     "Riverside General Fund Operating Budget FY2026": {
       "unregisteredRows": 1,
-      "linkless": 1
+      "linkless": 0
     },
     "Rhode Island State ACFR — General Fund (FY2022 actual, GAAP basis)": {
       "unregisteredRows": 1,
@@ -13915,10 +13799,6 @@
     "Sahuarita ACFR — General Fund Revenue by Source (FY2023 actual, GAAP basis)": {
       "unregisteredRows": 1,
       "linkless": 0
-    },
-    "McKinney Payroll Register FY2023": {
-      "unregisteredRows": 1,
-      "linkless": 1
     },
     "Harrison County ACFR — General Fund Expenditure by Function (FY2016 actual, GAAP basis)": {
       "unregisteredRows": 1,
@@ -14236,10 +14116,6 @@
       "unregisteredRows": 1,
       "linkless": 0
     },
-    "Frisco Check Register FY2019": {
-      "unregisteredRows": 1,
-      "linkless": 1
-    },
     "North Carolina State ACFR — General Fund Revenue (FY2018 actual, GAAP basis)": {
       "unregisteredRows": 1,
       "linkless": 0
@@ -14290,7 +14166,7 @@
     },
     "Richardson Operating Budget FY2022": {
       "unregisteredRows": 1,
-      "linkless": 1
+      "linkless": 0
     },
     "New York City ACFR — General Fund Revenue by Source (FY2017 actual, GAAP basis)": {
       "unregisteredRows": 1,
@@ -14396,17 +14272,9 @@
       "unregisteredRows": 1,
       "linkless": 0
     },
-    "West Hollywood Demand Register FY2019-20": {
-      "unregisteredRows": 1,
-      "linkless": 1
-    },
     "Pennsylvania State ACFR — General Fund (FY2025 actual, GAAP basis)": {
       "unregisteredRows": 1,
       "linkless": 0
-    },
-    "Plano Check Register FY2025": {
-      "unregisteredRows": 1,
-      "linkless": 1
     },
     "Louisiana State ACFR — General Fund Revenue (FY2025 actual, GAAP basis)": {
       "unregisteredRows": 1,
@@ -14550,7 +14418,7 @@
     },
     "Fresno General Fund Operating Budget FY2022": {
       "unregisteredRows": 1,
-      "linkless": 1
+      "linkless": 0
     },
     "Texas State ACFR — General Revenue Fund Revenue (FY2024 actual, GAAP basis)": {
       "unregisteredRows": 1,
@@ -15130,7 +14998,7 @@
     },
     "Fresno General Fund Operating Budget FY2023": {
       "unregisteredRows": 1,
-      "linkless": 1
+      "linkless": 0
     },
     "California State ACFR — General Fund (FY2002 actual, GAAP basis)": {
       "unregisteredRows": 1,
@@ -15218,7 +15086,7 @@
     },
     "Fresno General Fund Operating Budget FY2024": {
       "unregisteredRows": 1,
-      "linkless": 1
+      "linkless": 0
     },
     "New Mexico State ACFR — General Fund Revenue (FY2024 actual, GAAP basis)": {
       "unregisteredRows": 1,
@@ -15259,10 +15127,6 @@
     "Delaware State ACFR — General Fund Revenue (FY2024 actual, GAAP basis)": {
       "unregisteredRows": 1,
       "linkless": 0
-    },
-    "McKinney Payroll Register FY2025": {
-      "unregisteredRows": 1,
-      "linkless": 1
     },
     "Massachusetts State ACFR — General Fund (FY2025 actual, GAAP basis)": {
       "unregisteredRows": 1,
@@ -15514,7 +15378,7 @@
     },
     "San Jose General Fund Revenue Budget FY2022": {
       "unregisteredRows": 1,
-      "linkless": 1
+      "linkless": 0
     },
     "Arizona State ACFR — General Fund (FY2024 actual, GAAP basis)": {
       "unregisteredRows": 1,
