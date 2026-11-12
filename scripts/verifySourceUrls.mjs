@@ -97,10 +97,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { parseArgs } from 'node:util';
 import { pathToFileURL } from 'node:url';
-import { spawnSync } from 'node:child_process';
-import { mkdtempSync, rmSync } from 'node:fs';
-import { tmpdir } from 'node:os';
-import path from 'node:path';
 
 import {
   probeUrl,
@@ -110,8 +106,8 @@ import {
   judgeUncited,
   censusUncited,
   citationShape,
-  BROWSER_HEADERS,
 } from './lib/sourceUrlProbe.mjs';
+import { curlProbe } from './lib/curlProbe.mjs';
 import { judgeEndpoints, endpointsAreClean } from './lib/sourceEndpointJudge.mjs';
 import { judgeDrift, pickDriftSample, sampleKey } from './lib/readerLinkDrift.mjs';
 import {
@@ -139,32 +135,9 @@ function db() {
   return _db;
 }
 
-/**
- * curl, for the hosts that refuse Node outright.
- *
- * ⚠⚠ mckinneytexas.org answers `fetch()` with a flat 403 — and NOT for want of
- * headers: the identical User-Agent, Sec-Fetch trio, Referer and Accept all
- * still 403 while curl is let straight through, so it is the TLS/client
- * fingerprint being matched, not anything Node can set. `xlsxRows.downloadXLSX`
- * already falls back this way. Without it this gate would call McKinney's own
- * citation dead and be reporting on Node rather than on McKinney.
- */
-function curlProbe(url) {
-  const dir = mkdtempSync(path.join(tmpdir(), 'tt-url-'));
-  const sink = path.join(dir, 'body.bin');
-  try {
-    const args = ['-sS', '-L', '-r', '0-0', '--max-time', '25', '-o', sink, '-w', '%{http_code} %{content_type}'];
-    for (const [k, v] of Object.entries(BROWSER_HEADERS)) args.push('-H', `${k}: ${v}`);
-    args.push(url);
-    const r = spawnSync('curl', args, { encoding: 'utf8' });
-    if (r.error) throw new Error(`curl is not available: ${r.error.message}`);
-    if (r.status !== 0) throw new Error(r.stderr?.trim() || `curl exit ${r.status}`);
-    const [code, ...rest] = String(r.stdout).trim().split(/\s+/);
-    return { status: Number(code), contentType: rest.join(' ') };
-  } finally {
-    rmSync(dir, { recursive: true, force: true });
-  }
-}
+// ⚠ `curlProbe` moved to scripts/lib/curlProbe.mjs on 2026-11-12, when
+// scripts/citeNonStatementSources.mjs became its second caller. One definition,
+// so the two cannot drift. Behaviour unchanged.
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 

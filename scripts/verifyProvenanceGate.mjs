@@ -26,30 +26,41 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { missingAxes } from './lib/registeredFamilies.mjs';
-import { summarizeProvenanceDebt, toBaseline } from './lib/provenanceDebt.mjs';
+import {
+  summarizeProvenanceDebt, toBaseline, familyIsShapeAnswered, gradeDecayOf,
+} from './lib/provenanceDebt.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const BASELINE = join(HERE, 'data', 'provenanceDebtBaseline.json');
 
-/** One row per data_source: how many rows, how many linkless, registered? */
+/**
+ * One row per data_source: how many rows, how many linkless, registered?
+ *
+ * ⚠ `dataset_type` is read so a family can be recognised as SHAPE-ANSWERED —
+ * see `SHAPE_ANSWERED_DATASET_TYPES` for why a check or payroll register can
+ * never satisfy the registry and must not be asked to.
+ */
 export async function measure(client) {
   const fam = new Map();
   for (let from = 0; ; from += 1000) {
     // ⚠ A paged read needs a total order — broken five times in this repo.
     const { data, error } = await client.schema('treasury').from('budgets')
-      .select('id,data_source,source_url').order('id').range(from, from + 999);
+      .select('id,data_source,source_url,dataset_type,audit_grade').order('id').range(from, from + 999);
     if (error) throw new Error(`budgets read failed: ${error.message}`);
     for (const r of data) {
-      const e = fam.get(r.data_source) ?? { rows: 0, linkless: 0 };
+      const e = fam.get(r.data_source) ?? { rows: 0, linkless: 0, types: new Set(), decayed: 0 };
       e.rows += 1;
       if (r.source_url == null || String(r.source_url).trim() === '') e.linkless += 1;
+      e.types.add(r.dataset_type);
+      e.decayed += gradeDecayOf([r]);
       fam.set(r.data_source, e);
     }
     if (data.length < 1000) break;
   }
   return [...fam.entries()].map(([data_source, e]) => ({
-    data_source, rows: e.rows, linkless: e.linkless,
+    data_source, rows: e.rows, linkless: e.linkless, decayed: e.decayed,
     unregistered: missingAxes(data_source).length > 0,
+    shapeAnswered: familyIsShapeAnswered(e.types),
   }));
 }
 
@@ -92,6 +103,27 @@ async function main() {
   }
   for (const a of r.added) {
     console.error(`  ❌ NEW DEBT ${a.name}: unregistered ${a.unregisteredRows}, linkless ${a.linkless}`);
+  }
+
+  // ⚠⚠ THE EXCUSE MUST NOT OUTLIVE THE GRADE. Salaries and transactions rows
+  // are excused the registry because their audit grade is answered by shape —
+  // true only while something applies it. If
+  // `budgets_fill_not_applicable_audit_grade` is dropped, they fall back to
+  // `unknown`, this gate keeps excusing them, and a correct rule becomes a
+  // blindfold. Zero tolerance: the trigger makes 0 the steady state, so any
+  // number above it means the mechanism is gone, not that debt crept up.
+  const decayed = current.reduce((a, f) => a + (f.decayed ?? 0), 0);
+  if (decayed > 0) {
+    console.error(`\n❌ ${decayed} shape-answered row(s) have fallen back to audit_grade='unknown'.`);
+    for (const f of current.filter((x) => (x.decayed ?? 0) > 0).slice(0, 10)) {
+      console.error(`     ${f.decayed} × ${f.data_source}`);
+    }
+    console.error('   These are excused the registry BECAUSE the grade is answered by shape,'
+      + '\n   so an unknown here makes the excuse a blindfold. Check the trigger'
+      + '\n   `budgets_fill_not_applicable_audit_grade` still exists, then re-run'
+      + '\n   `node scripts/stampNotApplicableGrade.mjs`.');
+    process.exitCode = 1;
+    return;
   }
 
   if (!r.ok) {
