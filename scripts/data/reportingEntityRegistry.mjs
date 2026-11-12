@@ -961,4 +961,20 @@ export const REPORTING_ENTITY_REGISTRY = [
              + 'future reader should not retire the Stanislaus evidence as superseded.',
     },
   },
+  {
+    // ⚠ Anchored and enumerated — see the note in fundScopeRegistry.mjs.
+    id: 'nv-local-acfr-gf',
+    match: /^(?:Reno ACFR — General Fund (?:Expenditure by Function|Revenue by Source) \(FY202[1-5] actual, GAAP basis\)|Washoe County ACFR — General Fund (?:Expenditure by Function|Revenue by Source) \(FY(?:2019|2020|202[2-5]) actual, GAAP basis\))$/,
+    value: REPORTING_ENTITY.PRIMARY,
+    evidence: {
+      document: 'The General Fund column of the governmental-funds statement is the primary '
+        + 'government’s own fund. Component units are reported discretely in both issuers '
+        + '— Reno’s notes name the Redevelopment Agency and the Housing Authority of '
+        + 'the City of Reno as included units, and neither sits in the General Fund column read '
+        + 'here.',
+      figures: 'The column read is headed `General Fund` and is the first money column; the '
+        + 'discretely presented component units appear in the government-wide statements, not in '
+        + 'the fund statement this extracts.',
+    },
+  },
 ];

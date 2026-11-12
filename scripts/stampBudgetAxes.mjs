@@ -642,6 +642,14 @@ export const EXPECTED_BASIS_ROWS = Object.freeze({
   // localities and TT holds 161 of them. A later onboarding wave moves this
   // number legitimately; re-measure, do not assume.
   'va-apa-comparative-report': 608,
+
+  // Nevada's first local entities — 11 filings x 2 faces. Reno FY2021-FY2025
+  // and Washoe County FY2019, FY2020, FY2022-FY2025. Two fiscal-year sets are
+  // deliberately absent and NEITHER is a zero row: Reno FY2017-FY2020 print
+  // the statement over two pages, and Washoe FY2021 is published but its
+  // filename has not been found (403 on the directory, not 404). Both are
+  // declared in scripts/data/nvAcfrSources.mjs.
+  'nv-local-acfr-gf': 22,
 });
 
 export const EXPECTED_REPORTING_ENTITY_ROWS = Object.freeze({
@@ -838,6 +846,14 @@ export const EXPECTED_REPORTING_ENTITY_ROWS = Object.freeze({
   'ca-sco-city-rev': 10932,
   'ca-sco-county-exp': 1245,
   'ca-sco-county-rev': 1245,
+
+  // Nevada's first local entities — 11 filings x 2 faces. Reno FY2021-FY2025
+  // and Washoe County FY2019, FY2020, FY2022-FY2025. Two fiscal-year sets are
+  // deliberately absent and NEITHER is a zero row: Reno FY2017-FY2020 print
+  // the statement over two pages, and Washoe FY2021 is published but its
+  // filename has not been found (403 on the directory, not 404). Both are
+  // declared in scripts/data/nvAcfrSources.mjs.
+  'nv-local-acfr-gf': 22,
 });
 
 /** The last fiscal year that has closed. A row after this cannot be an actual. */

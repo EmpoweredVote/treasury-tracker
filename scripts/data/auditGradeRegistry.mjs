@@ -1672,6 +1672,30 @@ export const AUDIT_GRADE_REGISTRY = [
              + 'this family loads.',
     },
   },
+  {
+    // ⚠ Anchored and enumerated — see the note in fundScopeRegistry.mjs.
+    // Reno County, Kansas is a different government; FY2026 must not grade
+    // itself off a document nobody has opened; and Washoe FY2021 is excluded
+    // because its file has not been found, so no opinion has been read for it.
+    id: 'nv-local-acfr-gf',
+    match: /^(?:Reno ACFR — General Fund (?:Expenditure by Function|Revenue by Source) \(FY202[1-5] actual, GAAP basis\)|Washoe County ACFR — General Fund (?:Expenditure by Function|Revenue by Source) \(FY(?:2019|2020|202[2-5]) actual, GAAP basis\))$/,
+    value: AUDIT_GRADE.AUDITED_GAAP,
+    evidence: {
+      document: 'All 11 documents, read 2026-11-11 from the issuers’ own live hosts and '
+        + 'recorded with their bytes and SHA-256 in docs/Reno/manifest.json and '
+        + 'docs/WashoeCounty/manifest.json — the same URLs stamped on the rows this entry '
+        + 'grades, so the document attested here is the one the reader is offered.',
+      figures: '⚠⚠ GRADED FROM THE OPINION PARAGRAPH, NOT A WORD SEARCH. '
+        + '`scripts/checkOpinionType.py` reads a window around the fair-presentation sentence, '
+        + 'because a QUALIFIED opinion contains the same `present fairly, in all material '
+        + 'respects ... in accordance with accounting principles generally accepted` wording as a '
+        + 'clean one and passes a whole-document search. All 11 returned `clean — no '
+        + 'modifier near the opinion sentence`: 0 modified, 0 unreadable. '
+        + '⚠ Washoe FY2024 is a REISSUED report carrying a reissued auditor’s report; '
+        + 'its Note 21 restates for $11,654,076 of underreported federal grant revenue, and the '
+        + 'reissued opinion is the one read here.',
+    },
+  },
 ];
 
 /**

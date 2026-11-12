@@ -278,6 +278,16 @@ const REQUIRED = {
   'loadInCountyAcfrs.mjs': 'Indiana county audited ACFRs (Marion, Lake, Allen, Hamilton) — '
     + '62 rows, total_governmental / actual, written ALONGSIDE the same counties\' '
     + 'Gateway all_funds rows',
+  // Nevada's first local entities. Measured in the live table after the load:
+  // all 22 rows are general_fund/actual/published, one combination, no spread.
+  // ⚠ The pair matters MORE here than the row count suggests, because Reno and
+  // Washoe County are NOT empty fiscal years. Nevada's state node already holds
+  // FY2019-FY2024 budgets, and a future statewide NV source would land on the
+  // same (municipality, fiscal_year, dataset_type) for the county. The RPC keys
+  // on FUND_SCOPE and BASIS too, so omitting the pair would ask for
+  // unknown/unknown, match neither these rows nor any other family's, and
+  // duplicate all 22 on the next re-run instead of updating them.
+  'loadNevadaAcfrs.mjs': 'Reno + Washoe County ACFRs — 22 rows, general_fund / actual',
   'loadFloridaDFS.mjs': 'Florida DFS AFR — 190 rows, total_governmental/actual',
   // ⚠ The statewide sweep writes the SAME family as loadFloridaDFS.mjs and imports
   // its FUND_SCOPE/BASIS_VALUE constants rather than restating them, so the two

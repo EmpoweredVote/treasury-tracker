@@ -699,4 +699,15 @@ export const EXPECTED_ROWS = Object.freeze({
   // localities. The gap is entities TT has not onboarded, not rows dropped by
   // the loader, so a later onboarding wave moves this number legitimately.
   'va-apa-comparative-report': 608,
+
+  // Nevada's FIRST local entities. 11 filings x 2 faces = 22:
+  //     Reno           FY2021-FY2025            5 x 2 = 10
+  //     Washoe County  FY2019,2020,2022-2025    6 x 2 = 12
+  // ⚠ TWO FISCAL YEARS ARE DELIBERATELY ABSENT AND NEITHER IS A ZERO ROW.
+  // Reno FY2017-FY2020 print the statement across TWO pages, which the
+  // coordinate reader cannot yet span; Washoe FY2021 is published (its
+  // directory answers 403, not 404) but its filename has not been found.
+  // Both are declared in scripts/data/nvAcfrSources.mjs, so when either is
+  // recovered this number moves for a stated reason.
+  'nv-local-acfr-gf': 22,
 });
