@@ -956,4 +956,22 @@ export const BASIS_REGISTRY = [
              + 'above had to be steered around.',
     },
   },
+  {
+    // ⚠ Anchored and enumerated — see the note in fundScopeRegistry.mjs.
+    // Reno County, Kansas is a different government.
+    id: 'nv-local-acfr-gf',
+    match: /^(?:Reno ACFR — General Fund (?:Expenditure by Function|Revenue by Source) \(FY202[1-5] actual, GAAP basis\)|Washoe County ACFR — General Fund (?:Expenditure by Function|Revenue by Source) \(FY(?:2019|2020|202[2-5]) actual, GAAP basis\))$/,
+    value: BASIS.ACTUAL,
+    evidence: {
+      document: 'The governmental-funds statement of each ACFR: what the government actually '
+        + 'received and spent in a closed fiscal year, audited after the fact. NRS 354.624 '
+        + 'requires the annual independent audit.',
+      figures: '⚠ BOTH ISSUERS ALSO PRINT A BUDGETARY STATEMENT IN THE SAME DOCUMENT '
+        + '(`Statement of Revenues, Expenditures and Changes in Fund Balance - Budget to Actual`, '
+        + 'Reno FY2025 p52-53). It is NOT what is loaded: the reader requires the words '
+        + '`Governmental Funds`, which the budgetary statement does not carry, and the loaded '
+        + 'figures tie to the GAAP statement’s own printed totals at $0 in all 22 '
+        + 'extractions.',
+    },
+  },
 ];

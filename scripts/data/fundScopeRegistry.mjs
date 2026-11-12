@@ -2032,6 +2032,40 @@ export const FUND_SCOPE_REGISTRY = [
              + '$184,096,945, Capital Project $68,220,162.',
     },
   },
+  {
+    // ⚠⚠ ANCHORED AT BOTH ENDS AND ENUMERATED PER ENTITY, for two reasons.
+    //
+    // 1. RENO COUNTY, KANSAS IS A DIFFERENT GOVERNMENT. Same class as the
+    //    City of Sedgwick (Harvey County, not Sedgwick County) and Boulder
+    //    City, Nevada, both of which this repo has already been bitten by.
+    //    `^Reno ACFR ` cannot match `Reno County ACFR ...`; a loose `/^Reno/`
+    //    would.
+    // 2. A BARE `FY\d{4}` WOULD CLASSIFY A FUTURE FILING OFF A DOCUMENT
+    //    NOBODY HAD OPENED. FY2026 must fail to match and load `unknown`
+    //    until somebody reads it.
+    //
+    // ⚠ Washoe FY2021 is DELIBERATELY ABSENT. Its file is published (its
+    // directory answers 403, not 404) but has not been found, so if it is
+    // later loaded its opinion must be read before it is graded.
+    id: 'nv-local-acfr-gf',
+    match: /^(?:Reno ACFR — General Fund (?:Expenditure by Function|Revenue by Source) \(FY202[1-5] actual, GAAP basis\)|Washoe County ACFR — General Fund (?:Expenditure by Function|Revenue by Source) \(FY(?:2019|2020|202[2-5]) actual, GAAP basis\))$/,
+    scope: SCOPE.GENERAL_FUND,
+    evidence: {
+      document: 'The statement titled `Statement of Revenues, Expenditures and Changes in Fund '
+        + 'Balances — Governmental Funds` in each ACFR, whose FIRST money column is headed '
+        + '`General Fund`. Both entities are read by `scripts/lib/acfrGfCoords.py`, which '
+        + 'establishes that column by glyph geometry rather than by position — `pdftotext '
+        + '-table` renders it at several character offsets by value width in both issuers.',
+      figures: 'Scope measured per year with `scripts/ncScopeProbe.py`, which identifies Total '
+        + 'Governmental by a self-validating additive identity (every other fund column must sum '
+        + 'to it exactly) rather than by taking the rightmost number. Reno FY2025 General Fund '
+        + 'revenue 308,004,408 of 436,014,904 total governmental (70.6%), expenditure '
+        + '306,331,904 of 464,680,965 (65.9%); Washoe FY2025 523,846,426 (64.4%) and 456,199,780 '
+        + '(57.5%). Across 11 probes the General Fund is 64-73% of revenue and 52-69% of '
+        + 'expenditure — comfortable discriminators, unlike the 93-95% Durham County case '
+        + 'where the revenue share alone cannot identify the column.',
+    },
+  },
 ];
 
 export default FUND_SCOPE_REGISTRY;
