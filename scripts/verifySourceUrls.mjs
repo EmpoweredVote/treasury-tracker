@@ -100,6 +100,7 @@ import { pathToFileURL } from 'node:url';
 
 import {
   probeUrl,
+  createHostPacer,
   judgeProbe,
   classifyCitations,
   citationsAreClean,
@@ -120,8 +121,18 @@ import { SOURCE_ENDPOINT_BASELINE } from './data/sourceEndpointBaseline.mjs';
 
 /** Hosts asked in parallel. Requests to ONE host stay serial. */
 const HOST_CONCURRENCY = 8;
-/** Courtesy pause between two requests to the same host. */
+/** Courtesy pause between two requests to the same host, before it objects. */
 const PER_HOST_PAUSE_MS = 150;
+
+/**
+ * ⭐⭐ ONE PACER FOR THE WHOLE RUN, SHARED BY BOTH PASSES.
+ *
+ * The citations pass meets web.archive.org 27 times; the `base_url` pass meets
+ * it again minutes later. A pacer per pass would throw away what the first one
+ * learned and re-trip the limiter from a standing start — and on 2026-11-11
+ * both passes did fail, 16 citations and 7 endpoints. See `createHostPacer`.
+ */
+const hostPacer = createHostPacer({ basePauseMs: PER_HOST_PAUSE_MS });
 
 // ⚠ Lazy: importing this module must not require credentials, so --help works
 // with nothing set. Same reason as verifyXlsxRowCoverage.mjs.
@@ -340,8 +351,18 @@ async function fetchUncitedCensus() {
   }
 }
 
-/** Ask every URL, host by host, politely and in parallel across hosts. */
-async function observeAll(rows, { onProgress } = {}) {
+/**
+ * Ask every URL, host by host, politely and in parallel across hosts.
+ *
+ * ⚠ `probeImpl`/`sleepImpl` exist so the pacing is testable without the
+ * network. Nothing in the gate passes them.
+ */
+export async function observeAll(rows, {
+  onProgress,
+  probeImpl = (url) => probeUrl(url, { curlImpl: async (u) => curlProbe(u) }),
+  sleepImpl = sleep,
+  pacer = hostPacer,
+} = {}) {
   const byHost = new Map();
   for (const row of rows) {
     const shape = citationShape(row.source_url);
@@ -359,11 +380,14 @@ async function observeAll(rows, { onProgress } = {}) {
     while (cursor < hosts.length) {
       const host = hosts[cursor++];
       for (const row of byHost.get(host)) {
-        const probe = await probeUrl(row.source_url, { curlImpl: async (u) => curlProbe(u) });
+        const probe = await probeImpl(row.source_url);
         observations.push({ ...probe, ...row, url: row.source_url });
         done += 1;
         if (onProgress) onProgress(done, rows.length, host);
-        await sleep(PER_HOST_PAUSE_MS);
+        // ⚠⚠ THE PAUSE IS READ AFTER THE ANSWER, NOT BEFORE IT. What this URL
+        // was told is the only warning the URLs behind it will ever get.
+        pacer.record(host, probe);
+        await sleepImpl(pacer.pauseFor(host));
       }
     }
   };

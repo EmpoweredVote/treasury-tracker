@@ -291,6 +291,69 @@ export async function probeUrl(url, options = {}) {
   return out;
 }
 
+/**
+ * ⭐⭐⭐ A RATE LIMIT IS A PROPERTY OF THE HOST. THE BACKOFF WAS A PROPERTY OF
+ * ONE URL, AND THAT IS WHY #385 ONLY HALF-WORKED.
+ *
+ * The 2026-11-11 fleet run measured it: web.archive.org 429s fell from 24 to
+ * 16 and stopped. `probeUrl` waits and re-asks, which is right for the URL in
+ * hand and useless for the twenty-six behind it — each one discovered the
+ * limit privately, spent three retries inside it (three MORE requests into a
+ * limiter, which deepens it), and handed back to a loop that waited 150 ms and
+ * asked about the next. That is not a backoff, it is twenty-seven bursts.
+ *
+ * ⚠⚠ PROBED BY HAND, AND THE SHAPE DECIDES THE DESIGN. The Archive served
+ * twelve rapid requests for one URL, dropped the thirteenth connection
+ * outright, and then refused eight DISTINCT archive URLs in a row. The limiter
+ * is cumulative, host-wide, and once tripped it STOPS ANSWERING rather than
+ * saying 429 — so a pacer that watched only for the status code would speed
+ * back up at the exact moment it must not.
+ *
+ * ⛔ It is deliberately NOT a global rate limit. 128 of 129 hosts never
+ * complain, and slowing them to protect one would add hours to a 23-minute run
+ * to fix a problem they do not have.
+ */
+export function createHostPacer({
+  basePauseMs = 150,
+  limitFloorMs = 5_000,
+  maxPauseMs = 60_000,
+  easeAfter = 10,
+} = {}) {
+  const state = new Map();
+  const get = (host) => state.get(host) ?? { pauseMs: basePauseMs, limited: false, calm: 0 };
+  const widen = (from, stated) => Math.min(
+    maxPauseMs,
+    Number.isFinite(stated) && stated > 0 ? stated : Math.max(limitFloorMs, from * 2),
+  );
+
+  return {
+    pauseFor: (host) => get(host).pauseMs,
+    record(host, probe = {}) {
+      const s = { ...get(host) };
+      const rateLimited = probe.status === 429;
+      const refused = probe.status === null && Boolean(probe.error);
+      if (rateLimited) {
+        s.limited = true;
+        s.calm = 0;
+        s.pauseMs = widen(s.pauseMs, probe.retryAfterMs);
+      } else if (s.limited && refused) {
+        // Silence from a host that has already said 429 is the same message.
+        s.calm = 0;
+        s.pauseMs = widen(s.pauseMs);
+      } else if (s.limited) {
+        // ⚠ Ease back rather than snapping to base: the run is long and the
+        // limit is cumulative, so one good answer proves very little.
+        s.calm += 1;
+        if (s.calm >= easeAfter) {
+          s.calm = 0;
+          s.pauseMs = Math.max(basePauseMs, Math.round(s.pauseMs / 2));
+        }
+      }
+      state.set(host, s);
+    },
+  };
+}
+
 async function probeOnce(url, { fetchImpl = fetch, curlImpl = null, timeoutMs = 20_000 } = {}) {
   const shape = citationShape(url);
   if (!shape.citable) return { url, status: null, contentType: null, error: null };
@@ -305,7 +368,16 @@ async function probeOnce(url, { fetchImpl = fetch, curlImpl = null, timeoutMs = 
         signal: ac.signal,
         headers: { ...BROWSER_HEADERS, ...extraHeaders },
       });
-      return { status: res.status, contentType: res.headers.get('content-type') || '' };
+      const seen = { status: res.status, contentType: res.headers.get('content-type') || '' };
+      // ⚠ A server that states how long to wait has told us more than our own
+      // guess can. Seconds only: the HTTP-date form is legal and nothing we
+      // ask has ever sent one, and a header we cannot parse must leave the
+      // pause alone rather than poison it with NaN.
+      if (res.status === 429) {
+        const stated = Number(res.headers.get('retry-after'));
+        if (Number.isFinite(stated) && stated > 0) seen.retryAfterMs = stated * 1000;
+      }
+      return seen;
     } finally {
       clearTimeout(timer);
     }
