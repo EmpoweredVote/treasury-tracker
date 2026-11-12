@@ -409,7 +409,15 @@ async function probeOnce(url, { fetchImpl = fetch, curlImpl = null, timeoutMs = 
   // about to declare dead. A document that really is gone answers 404 to the
   // GET as well and still lands on `dead` — see the test named
   // "confirmation is not immunity".
-  const NEEDS_A_SECOND_OPINION = new Set([403, 404, 405, 410, 501]);
+  // ⛔⛔⛔ 429 IS IN THIS SET BECAUSE IT IS NOT A RATE LIMIT. Measured
+  // 2026-11-11 on the same URL in the same minute: curl answered 200/206 four
+  // times running while Node fetch answered 429 four times running.
+  // web.archive.org is matching Node's fingerprint, exactly as
+  // mckinneytexas.org does with a 403. Returning early here is what kept a
+  // refusal away from the curl fallback that already existed for this case.
+  const NEEDS_A_SECOND_OPINION = new Set([403, 404, 405, 410, 429, 501]);
+  /** Statuses that mean "this client is not welcome" — try curl before believing them. */
+  const FINGERPRINT_REFUSALS = new Set([403, 429]);
 
   let last = null;
   try {
@@ -425,7 +433,7 @@ async function probeOnce(url, { fetchImpl = fetch, curlImpl = null, timeoutMs = 
   // HEAD was refused or unsupported — ask for a single byte instead.
   try {
     const got = await attempt('GET', { Range: 'bytes=0-0' });
-    if (got.status !== 403) return { url, ...got, error: null };
+    if (!FINGERPRINT_REFUSALS.has(got.status)) return { url, ...got, error: null };
     last = got;
   } catch (e) {
     if (!last) last = { error: e.message };
@@ -443,7 +451,13 @@ async function probeOnce(url, { fetchImpl = fetch, curlImpl = null, timeoutMs = 
     }
   }
 
-  if (last && typeof last.status === 'number') return { url, status: last.status, contentType: last.contentType || '', error: null };
+  if (last && typeof last.status === 'number') {
+    const out = { url, status: last.status, contentType: last.contentType || '', error: null };
+    // ⚠ Carried to the end: a 429 now falls through to the curl fallback, and
+    // the host pacer still wants what the server said if curl cannot help.
+    if (last.retryAfterMs) out.retryAfterMs = last.retryAfterMs;
+    return out;
+  }
   if (last && last.timedOut) return { url, status: null, contentType: null, error: `no answer within ${timeoutMs} ms` };
   return { url, status: null, contentType: null, error: (last && last.error) || 'the host did not answer' };
 }

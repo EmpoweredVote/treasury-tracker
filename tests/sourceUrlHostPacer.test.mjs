@@ -181,3 +181,59 @@ describe('observeAll paces each host by what that host has said', () => {
     expect(waited[0]).toBeGreaterThanOrEqual(5000);
   });
 });
+
+/**
+ * ⛔⛔⛔ THE 429 WAS NEVER ABOUT RATE. IT IS A FINGERPRINT REFUSAL.
+ *
+ * Measured 2026-11-11, same URL, same minute, alternating clients:
+ *
+ *     curl  HEAD 200  GET 206   ×4 consecutive
+ *     node  HEAD 429  GET 429   ×4 consecutive (one lone 200)
+ *
+ * web.archive.org is matching Node's client fingerprint, exactly as
+ * mckinneytexas.org does with a 403 — the case `curlImpl` was added for. So
+ * #385 waited for a window that was never going to open, and the host pacing
+ * in this same change spaced out requests that were never too close: a paced
+ * run took 2,369s for 27 URLs, about 88s each, and still returned nine 429s
+ * while a single hand curl answered 206 throughout.
+ *
+ * ⚠ The pacer is kept — it is correct hygiene for a host that really is
+ * counting, and with this fallback a 429 resolves to curl's 200, so it never
+ * widens on this host at all. But it is NOT the fix, and nothing here should
+ * be read as claiming it was.
+ */
+describe('a 429 reaches the curl fallback, because it is a refusal not a rate', () => {
+  it('⭐ falls back to curl when fetch is refused with 429, and reports what curl got', async () => {
+    const { probeUrl } = await import('../scripts/lib/sourceUrlProbe.mjs');
+    let curled = 0;
+    const r = await probeUrl('https://web.archive.org/web/1id_/https://x.gov/a.pdf', {
+      fetchImpl: async () => ({ status: 429, headers: { get: () => 'text/html' } }),
+      curlImpl: async () => { curled += 1; return { status: 200, contentType: 'application/pdf' }; },
+      sleepImpl: () => Promise.resolve(),
+    });
+    expect(curled).toBe(1);
+    expect(r.status).toBe(200);
+    expect(r.contentType).toBe('application/pdf');
+    expect(r.viaCurl).toBe(true);
+  });
+
+  it('⛔ a 429 that curl ALSO meets is still reported, never laundered into a pass', async () => {
+    const { probeUrl } = await import('../scripts/lib/sourceUrlProbe.mjs');
+    const r = await probeUrl('https://web.archive.org/web/1id_/https://x.gov/a.pdf', {
+      fetchImpl: async () => ({ status: 429, headers: { get: () => 'text/html' } }),
+      curlImpl: async () => ({ status: 429, contentType: 'text/html' }),
+      sleepImpl: () => Promise.resolve(),
+    });
+    expect(r.status).toBe(429);
+    expect(r.viaCurl).toBe(true);
+  });
+
+  it('⚠ with no curl available the verdict is unchanged — still 429, still unreachable', async () => {
+    const { probeUrl } = await import('../scripts/lib/sourceUrlProbe.mjs');
+    const r = await probeUrl('https://web.archive.org/web/1id_/https://x.gov/a.pdf', {
+      fetchImpl: async () => ({ status: 429, headers: { get: () => 'text/html' } }),
+      sleepImpl: () => Promise.resolve(),
+    });
+    expect(r.status).toBe(429);
+  });
+});
