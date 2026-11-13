@@ -109,7 +109,7 @@ import {
   citationShape,
 } from './lib/sourceUrlProbe.mjs';
 import { curlProbe } from './lib/curlProbe.mjs';
-import { askWaybackAvailability } from './lib/waybackCitation.mjs';
+import { askWaybackAvailability, askWaybackCdx } from './lib/waybackCitation.mjs';
 import { judgeEndpoints, endpointsAreClean } from './lib/sourceEndpointJudge.mjs';
 import { judgeDrift, pickDriftSample, sampleKey } from './lib/readerLinkDrift.mjs';
 import {
@@ -362,6 +362,7 @@ export async function observeAll(rows, {
   onProgress,
   probeImpl = (url) => probeUrl(url, {
     curlImpl: async (u) => curlProbe(u),
+    cdxImpl: (capture) => askWaybackCdx(capture),
     waybackImpl: (capture) => askWaybackAvailability(capture),
   }),
   sleepImpl = sleep,
@@ -548,9 +549,18 @@ export async function main(argv = process.argv.slice(2)) {
   // The Archive's availability endpoint says the capture exists; it does not
   // serve the bytes, so nothing was checked about the document's TYPE. That is
   // a weaker pass than the other `ok`s on this line and it is stated as one.
-  const confirmed = c.ok.filter((o) => o.viaWayback);
-  if (confirmed.length) {
-    console.log(`   of which ${n(confirmed.length)} confirmed by the Internet Archive's availability`
+  //
+  // ⚠ The two oracles do NOT make the same claim, so they are never summed
+  // into one number. CDX states the archived mimetype and the probe checks it;
+  // the availability endpoint states no type at all.
+  const viaCdx = c.ok.filter((o) => o.viaCdx);
+  const viaAvailability = c.ok.filter((o) => o.viaWayback && !o.viaCdx);
+  if (viaCdx.length) {
+    console.log(`   of which ${n(viaCdx.length)} confirmed by the Internet Archive's CDX index,`
+      + ' not fetched — the capture exists and its archived type matches what the URL promises');
+  }
+  if (viaAvailability.length) {
+    console.log(`   of which ${n(viaAvailability.length)} confirmed by the Internet Archive's availability`
       + ' endpoint, not fetched — the capture exists; its content type was NOT checked');
   }
   if (c.confirmed.length) console.log(`ℹ️  declared unreachable: ${n(c.confirmed.length)}`);

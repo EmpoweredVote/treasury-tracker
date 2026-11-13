@@ -142,3 +142,105 @@ export async function askWaybackAvailability(parsed, { fetchImpl = fetch, timeou
     clearTimeout(timer);
   }
 }
+
+/**
+ * ⭐⭐⭐ THE CDX INDEX — the Archive's canonical answer, and a better one.
+ *
+ * ⚠⚠⚠ MEASURED 2026-11-12, AND IT IS WHY THIS EXISTS: `/wayback/available`
+ * answered `archived_snapshots: {}` — "the Archive holds no snapshot of this
+ * URL" — TWENTY TIMES RUNNING for a capture it had confirmed twenty minutes
+ * earlier, and that playback itself serves. Not random flake: 20/20 empty for
+ * one URL while its neighbour was 20/20 confirmed in the same breath. That
+ * false negative failed the fleet run at 2,045 of 2,047.
+ *
+ * CDX answers the same question keyed to an EXACT timestamp range rather than
+ * to a "closest" guess, and answers it with more: the archived status code AND
+ * the archived mimetype. 5/5 in 135–335 ms immediately after a heavy run.
+ *
+ * ⛔⛔ IT STILL MAY NEVER CONVICT. An index that can invent a "no" can invent a
+ * wrong mimetype too — see `sourceUrlProbe.mjs`, where a row that fails the
+ * citation's promised type falls through to a real fetch instead of condemning
+ * it.
+ */
+export function cdxApiUrl({ timestamp, original } = {}) {
+  return 'https://web.archive.org/cdx/search/cdx'
+    + `?url=${encodeURIComponent(original)}`
+    + `&output=json&from=${encodeURIComponent(timestamp)}&to=${encodeURIComponent(timestamp)}&limit=20`;
+}
+
+/**
+ * Judge a CDX response against the capture that was cited.
+ *
+ * ⚠ Columns are read BY NAME. The Archive is free to reorder or extend its own
+ * output, and a fixed index would then read a digest as a status code.
+ */
+export function judgeCdx(parsed, payload) {
+  if (!parsed || typeof parsed.timestamp !== 'string') {
+    return { confirmed: false, reason: 'not a wayback capture' };
+  }
+  if (!Array.isArray(payload) || payload.length < 2 || !Array.isArray(payload[0])) {
+    return { confirmed: false, reason: 'the index holds no row for this URL' };
+  }
+  const [header, ...rows] = payload;
+  const col = (name) => header.findIndex((h) => String(h).toLowerCase() === name);
+  const iTs = col('timestamp');
+  const iStatus = col('statuscode');
+  const iMime = col('mimetype');
+  if (iTs < 0) return { confirmed: false, reason: 'the index response states no timestamp column' };
+
+  let neighbour = null;
+  for (const r of rows) {
+    if (!Array.isArray(r)) continue;
+    const ts = String(r[iTs] ?? '');
+    // ⚠⚠ THE SAME TRAP THE AVAILABILITY PATH HAS. A citation names ONE
+    // capture; a row for the one beside it is a different document.
+    if (ts !== parsed.timestamp) { if (!neighbour) neighbour = ts; continue; }
+
+    const raw = iStatus >= 0 ? String(r[iStatus] ?? '') : '';
+    const status = Number(raw);
+    if (!Number.isFinite(status) || status < 200 || status >= 300) {
+      return {
+        confirmed: false,
+        reason: raw === '-'
+          // A revisit says "the same bytes as some other capture" and states no
+          // status of its own. That is not this citation answering.
+          ? 'the index row is a REVISIT and states no status of its own'
+          : `the capture exists but archived HTTP ${raw} — a snapshot of an error page is not a citation`,
+      };
+    }
+    return {
+      confirmed: true,
+      archivedStatus: status,
+      archivedMime: iMime >= 0 ? String(r[iMime] ?? '') : '',
+      reason: `the CDX index confirms capture ${parsed.timestamp}`,
+    };
+  }
+  return {
+    confirmed: false,
+    reason: neighbour
+      ? `the index offered a DIFFERENT capture (${neighbour}) than the one cited `
+        + `(${parsed.timestamp}) — a neighbouring capture is not this citation`
+      : 'the index holds no row for this capture',
+  };
+}
+
+/** Ask the CDX index. Never throws: it is a courtesy, never a dependency. */
+export async function askWaybackCdx(parsed, { fetchImpl = fetch, timeoutMs = 15_000 } = {}) {
+  if (!parsed) return { confirmed: false, reason: 'not a wayback capture' };
+  const ac = new AbortController();
+  const timer = setTimeout(() => ac.abort(), timeoutMs);
+  try {
+    const res = await fetchImpl(cdxApiUrl(parsed), {
+      signal: ac.signal,
+      headers: { Accept: 'application/json' },
+    });
+    if (!res || res.ok !== true) {
+      return { confirmed: false, reason: `the CDX index answered HTTP ${res ? res.status : '?'}` };
+    }
+    return judgeCdx(parsed, await res.json());
+  } catch (e) {
+    return { confirmed: false, reason: `the CDX index could not be asked: ${e.message}` };
+  } finally {
+    clearTimeout(timer);
+  }
+}

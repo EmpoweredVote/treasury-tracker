@@ -357,7 +357,7 @@ export function createHostPacer({
 }
 
 async function probeOnce(url, {
-  fetchImpl = fetch, curlImpl = null, waybackImpl = null, timeoutMs = 20_000,
+  fetchImpl = fetch, curlImpl = null, waybackImpl = null, cdxImpl = null, timeoutMs = 20_000,
 } = {}) {
   const shape = citationShape(url);
   if (!shape.citable) return { url, status: null, contentType: null, error: null };
@@ -456,8 +456,36 @@ async function probeOnce(url, {
   //
   // ⛔⛔ IT MAY ACQUIT, IT MAY NEVER CONVICT: anything short of a clean
   // confirmation falls through and the refusal stands exactly as it was.
+  const capture = (cdxImpl || waybackImpl) ? parseWaybackCitation(url) : null;
+
+  // ⭐ CDX FIRST. It answers on an EXACT timestamp range rather than a
+  // "closest" guess, and it states the archived status AND mimetype — so
+  // unlike the availability endpoint it can satisfy the type promise too.
+  //
+  // ⛔⛔ AND IT MAY STILL NEVER CONVICT. Measured 2026-11-12: the availability
+  // endpoint returned "no snapshot" 20/20 for a capture that exists, so these
+  // indexes demonstrably invent a "no". One that can invent a "no" can invent
+  // a wrong mimetype, and `wrong-type` orders a repair. A row that fails the
+  // promised type therefore falls THROUGH to a real fetch rather than
+  // condemning the citation on an index's word.
+  if (capture && cdxImpl) {
+    try {
+      const verdict = await cdxImpl(capture);
+      if (verdict && verdict.confirmed
+          && typeSatisfies(promisedType(url), verdict.archivedMime || '')) {
+        return {
+          url,
+          status: verdict.archivedStatus,
+          contentType: verdict.archivedMime || '',
+          error: null,
+          viaWayback: true,
+          viaCdx: true,
+        };
+      }
+    } catch { /* the index is a courtesy, never a dependency */ }
+  }
+
   if (waybackImpl) {
-    const capture = parseWaybackCitation(url);
     if (capture) {
       try {
         const verdict = await waybackImpl(capture);
