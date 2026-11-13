@@ -42,3 +42,21 @@ This repo's Render services (`treasury-tracker-frontend`) are managed by the Ren
 - Env var **values** are the exception: set them in the Render dashboard. Add a
   new variable's name to ev-infra (with `sync: false`) so the record stays complete.
 - Do not add a `render.yaml` to this repo. Render does not read it.
+
+## Never aggregate the big tables in production
+
+The production database (E.V Backend, `kxsdzaojfaibhuzmclfq`) runs on a small compute size with a
+daily Disk IO budget. One whole-table read of a large table uses gigabytes of that budget. In
+November 2026 audit scripts and ad-hoc counts used it up (ev-cto decision 0038).
+
+- **Never run `count(*)`, `sum()`, `count(distinct …)` or any other unfiltered aggregate** on these
+  tables in production: `transparent_motivations.contributions`, `treasury.budgets`,
+  `treasury.budget_categories`, `treasury.transactions`, `essentials.legislative_votes`.
+- **For a row estimate,** read `pg_class.reltuples` (or `pg_stats` for distinct counts). For a
+  sample, use `TABLESAMPLE SYSTEM (1)`.
+- **Never page an RPC that scans a whole table with `.range()`.** PostgREST re-runs the function for
+  every page. Page by key instead: pass the last key back in, as `source_url_census_page` does.
+- **For whole-table work on contributions,** use the local FEC mirror
+  (`ev-accounts/backend/scripts/033-fec-mirror-bootstrap.ts`), not production.
+- **After adding a script that reads the database,** check `extensions.pg_stat_statements`
+  (`shared_blks_read`, `temp_blks_written`) after one run.
