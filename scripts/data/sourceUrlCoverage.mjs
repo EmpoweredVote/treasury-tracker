@@ -4,10 +4,17 @@
  * ⚠⚠⚠ THIS IS THE DEGENERATE CASE OF THE DEAD-CITATION DEFECT. A budget with a
  * broken `source_url` asks the reader to believe a figure and hands them a link
  * that fails; a budget with no `source_url` asks them to believe it and hands
- * them nothing. 24,806 budgets are in the second state, which is 4.2% of the
- * fleet (585,666 budgets) — so `verify:source-urls` failing on their EXISTENCE
- * would be red from the first run, and a gate that is red by design is a gate
- * nobody reads.
+ * them nothing. 309 budgets are in the second state, which is 0.05% of the
+ * fleet (~585,300 rows: `pg_class.reltuples` for `treasury.budgets`, read
+ * 2026-11-13) — so `verify:source-urls` failing on their EXISTENCE would be
+ * red from the first run, and a gate that is red by design is a gate nobody
+ * reads.
+ *
+ * ⚠ THE FLEET SIZE IS AN ESTIMATE ON PURPOSE. It used to say 585,666, taken
+ * from a `count(*)` on `treasury.budgets` — 49,474 blocks, ~390 MB of the
+ * shared project's daily Disk IO budget for one number in a comment. CLAUDE.md
+ * forbids that aggregate now (ev-cto decision 0038); `pg_class.reltuples` is
+ * what to read instead, and a percentage does not need the exact figure.
  *
  * ⭐ SO IT RATCHETS, exactly like the totals baselines, and for the reason
  * 20261104180000 gives: "Its baselines live in code ON PURPOSE — paying one
@@ -17,10 +24,11 @@
  * The gate's only assertion is that **nothing grew**. Paying one down is a
  * NOTICE; lowering the number here is the PR that records it.
  *
- * ⭐⭐ AND IT HAS BEEN PAID DOWN FOUR TIMES. The first measurement was 24,960
- * across 75 families. #372 cited West Hollywood's 22 uncited budgets — 10 demand
- * registers and 12 budget-detail years — which removed THREE families
- * outright, because every member of each was cited at once.
+ * ⭐⭐ AND IT HAS BEEN PAID DOWN FIVE TIMES, THE LAST ONE BY 98.8%. The first
+ * measurement was 24,960 across 75 families. #372 cited West Hollywood's 22
+ * uncited budgets — 10 demand registers and 12 budget-detail years — which
+ * removed THREE families outright, because every member of each was cited at
+ * once.
  *
  * ⭐ 2026-11-11: 24,938 → 24,908, and SEVEN more families went to zero. Those
  * budgets had no citation because the only record of where their document came
@@ -67,6 +75,26 @@
  * 32 of 32 live, exit 0 each — checkregister.plano.gov, friscotexas.gov,
  * mckinneytexas.org, controllerdata.lacity.org, data.bloomington.in.gov.
  *
+ * ⭐⭐⭐ 2026-11-13, SECOND PASS: 24,806 → 309, and the four families that
+ * were 97.5% of this file are gone. MA General Fund Expenditures (8,408), CA
+ * publicpay (7,682), MA General Fund Revenues (6,663) and MA DLS General Fund
+ * Revenue by Source (1,755) — 24,497 budgets cited in one migration. CA cites
+ * the annual raw export the loader actually reads (16 URLs, live, and every
+ * one of the 7,682 figures recomputed from the files: 7,682 of 7,682 tie). MA
+ * cites the DLS Gateway per MUNICIPALITY-YEAR, 16,815 distinct URLs, one per
+ * budget — the publisher takes its form inputs as query parameters, so there
+ * was never a reason to settle for a landing page.
+ *
+ * ⛔⛔ ELEVEN MA BUDGETS WERE LEFT UNCITED ON PURPOSE, AND THEY ARE THE ONLY
+ * MA ROWS LEFT IN THIS FILE. Every stored MA figure was compared to the
+ * publisher's own printed total; 16,815 of 16,826 tie exactly. Six of the
+ * eleven now print 0 at DLS (the municipality withdrew or has not re-filed),
+ * four were restated downward, and Abington FY2025 differs by ONE DOLLAR.
+ * Citing them would hand a reader a link to a page that contradicts the figure
+ * above it. ⚠ They are debt of a different kind — a FIGURE defect, not a
+ * citation one — and they stay here, named, until someone re-derives those
+ * rows. See 20261113140000_ma_and_ca_citations.sql for the list.
+ *
  * That is what the ratchet is for: the number moves in a PR, with the reason
  * attached.
  *
@@ -76,9 +104,9 @@
  * normalisations are load-bearing: the per-town prefix is dropped (the MA DLS
  * families carry one `data_source` per town, 351 of them, three times over) and
  * the fiscal year is stripped wherever it sits, including the middle of the
- * federal names. That collapses the 1,271 distinct `data_source` strings now
- * carrying uncited budgets to these 54 families — small enough that every one
- * is named here rather than hidden in a tail bucket, so a new uncited year
+ * federal names. That collapses every distinct `data_source` string still
+ * carrying an uncited budget to these 52 families — small enough that every
+ * one is named here rather than hidden in a tail bucket, so a new uncited year
  * moves a COUNT a reviewer can see.
  *
  * ⚠ A key here must already BE a family: `familyOf(key) === key`. A raw
@@ -86,23 +114,27 @@
  * anything the census produces, so it would sit here as debt that cannot be
  * paid while its real family came back as `appeared`. Pinned by test.
  *
- * ── ⚠⚠ THE FOUR THAT ARE 97.5% OF IT ───────────────────────────────────────
+ * ── ⚠⚠ THE FOUR THAT WERE 97.5% OF IT ───────────────────────────────────────
  *
- * MA General Fund Expenditures (8,408), CA publicpay (7,682), MA General Fund
- * Revenues (6,663) and MA DLS Revenue by Source (1,755). Each is ONE publisher
- * with one landing page, so each is one `UPDATE` away from being cited —
- * ⚠ a targeted UPDATE on `source_url` only, NEVER a re-load: re-running a
+ * ⭐ PAID, on 2026-11-13. MA General Fund Expenditures (8,408), CA publicpay
+ * (7,682), MA General Fund Revenues (6,663) and MA DLS Revenue by Source
+ * (1,755) — 24,497 of those 24,508 budgets now carry a citation, and the
+ * remaining 11 are figure defects named above rather than citation debt.
+ *
+ * ⚠ What is left is 309 budgets across 52 families, none of them over 50, so
+ * the next pay-down is one-by-one rather than wholesale: the three federal
+ * OMB/MTS families (150), Bloomington's blocked checkbook (24 + 11), and what
+ * remains of the laptop-path backlog — Sacramento 28, San Francisco 8,
+ * San José 8, Bakersfield 4, Fremont 4, Richardson 3.
+ *
+ * ⚠ A targeted UPDATE on `source_url` only, NEVER a re-load: re-running a
  * loader re-mints `budgets.id` and stales the id-keyed frozen registry.
  * #372 is the worked example. See reference_source_url_never_verified.
  *
- * MEASURED 2026-11-13 against the live fleet, after #389.
+ * MEASURED 2026-11-13 against the live fleet, after 20261113140000.
  */
 export const UNCITED_BASELINE = {
   families: {
-    "MA General Fund Expenditures": 8408,
-    "Government Compensation in California (publicpay.ca.gov)": 7682,
-    "MA General Fund Revenues": 6663,
-    "MA DLS General Fund Revenue by Source": 1755,
     "US Federal Outlays by Function (OMB Public Budget Database)": 50,
     "US Federal Outlays by Agency (OMB Public Budget Database)": 49,
     "US Federal Receipts by Source (OMB Historical Table 2.1)": 49,
@@ -110,6 +142,7 @@ export const UNCITED_BASELINE = {
     "Sacramento Operating Budget": 14,
     "Sacramento Revenue Budget": 14,
     "Bloomington Public Contracts": 11,
+    "MA DLS General Fund Revenue by Source": 10,
     "cambridge-open-data": 8,
     "Leonardtown Operating Budget": 6,
     "McKinney Revenue": 5,
@@ -139,6 +172,7 @@ export const UNCITED_BASELINE = {
     "LA County Open Data - Employee Salaries": 1,
     "Longview Operating Budget": 1,
     "Longview Revenue": 1,
+    "MA General Fund Expenditures": 1,
     "Murphy Operating Budget": 1,
     "Norfolk County Operating Budget": 1,
     "platform exports": 1,
@@ -153,5 +187,5 @@ export const UNCITED_BASELINE = {
     "US Federal Receipts by Source (MTS Table 9)": 1,
     "US Federal Receipts by Source Transition Quarter (Jul–Sep 1976) (OMB Historical Table 2.1)": 1,
     "Wylie Operating Budget": 1,
-  },
+  }
 };

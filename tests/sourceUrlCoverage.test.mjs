@@ -20,9 +20,22 @@ import { familyOf } from '../scripts/lib/sourceUrlProbe.mjs';
 describe('the uncited baseline as shipped', () => {
   const total = Object.values(UNCITED_BASELINE.families).reduce((a, b) => a + b, 0);
 
-  it('carries 24,806 uncited budgets across 54 families', () => {
-    expect(total).toBe(24806);
-    expect(Object.keys(UNCITED_BASELINE.families)).toHaveLength(54);
+  it('carries 309 uncited budgets across 52 families', () => {
+    expect(total).toBe(309);
+    expect(Object.keys(UNCITED_BASELINE.families)).toHaveLength(52);
+  });
+
+  it('⛔ does not carry the four families 20261113140000 cited', () => {
+    // 24,497 of 24,508 budgets across these four were cited on 2026-11-13.
+    // Two of the four left nothing behind at all; the other two keep only the
+    // eleven rows whose figure the publisher no longer prints, which is why
+    // this asserts a CEILING rather than absence for them. Re-loading any of
+    // these linkless would otherwise land as a pay-down notice, not a failure.
+    expect(UNCITED_BASELINE.families['Government Compensation in California (publicpay.ca.gov)'])
+      .toBeUndefined();
+    expect(UNCITED_BASELINE.families['MA General Fund Revenues']).toBeUndefined();
+    expect(UNCITED_BASELINE.families['MA General Fund Expenditures']).toBe(1);
+    expect(UNCITED_BASELINE.families['MA DLS General Fund Revenue by Source']).toBe(10);
   });
 
   it('⛔ does not carry the seven families #389 cited', () => {

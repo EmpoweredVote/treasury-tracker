@@ -99,6 +99,7 @@ import { parseArgs } from 'node:util';
 import { pathToFileURL } from 'node:url';
 
 import {
+  BROWSER_HEADERS,
   probeUrl,
   createHostPacer,
   judgeProbe,
@@ -115,6 +116,10 @@ import { judgeDrift, pickDriftSample, sampleKey } from './lib/readerLinkDrift.mj
 import {
   SCO_ENTITY_HOSTS, scoCorpus, scoBranch, judgeScoTie, scoTotalsUrl, isScoEntityUrl,
 } from './lib/scoEntityCitation.mjs';
+import {
+  MA_DLS_HOST, MA_DLS_CHUNK, isMaDlsUrl, parseMaDlsUrl, maDlsCorpusUrl,
+  readMaDlsRows, judgeMaDlsTie, maDlsTieKey,
+} from './lib/maDlsCitation.mjs';
 import { SOURCE_URL_EXCEPTIONS } from './data/sourceUrlExceptions.mjs';
 import { PUBLISHER_OUTAGES } from './data/publisherOutages.mjs';
 import { UNCITED_BASELINE } from './data/sourceUrlCoverage.mjs';
@@ -124,6 +129,8 @@ import { SOURCE_ENDPOINT_BASELINE } from './data/sourceEndpointBaseline.mjs';
 const HOST_CONCURRENCY = 8;
 /** Courtesy pause between two requests to the same host, before it objects. */
 const PER_HOST_PAUSE_MS = 150;
+/** The DLS tie census is hundreds of requests to ONE state server. */
+const MA_DLS_PAUSE_MS = 1200;
 
 /**
  * ⭐⭐ ONE PACER FOR THE WHOLE RUN, SHARED BY BOTH PASSES.
@@ -353,6 +360,99 @@ async function fetchScoTotals(keys) {
   return { totals, failed };
 }
 
+/**
+ * Every budget citing the DLS Gateway's Schedule A General Fund report.
+ *
+ * ⚠⚠ KEYSET ON `source_url`, NOT `.range()` ON `id`. This is 16,815 rows, and
+ * offset paging re-scans and re-sorts the whole table for every page: measured
+ * at 74,180 blocks read across 17 pages (~580 MB) before this was changed,
+ * against 30,153 for the SCO reader doing MORE rows. `source_url` is both the
+ * filter and the order here, so `budgets_source_url_census_idx` serves the
+ * whole run as one index range. Same lesson as 20261113120000, one layer up.
+ *
+ * ⚠ A PREFIX `like`, for the same reason: a leading `%` cannot use that index.
+ */
+async function fetchMaDlsCitedBudgets() {
+  const prefix = `https://${MA_DLS_HOST}/reports/rdPage.aspx?rdReport=ScheduleA.GeneralFund`;
+  const byId = new Map();
+  let after = null;
+  for (;;) {
+    let q = db().schema('treasury').from('budgets')
+      .select('id, data_source, fiscal_year, total_budget::text, source_url')
+      .like('source_url', `${prefix}%`);
+    // ⚠⚠ `gte`, NEVER `gt`. `source_url` is one per budget TODAY, but nothing
+    // enforces that, and a `gt` boundary falling between two budgets that share
+    // one citation drops the second SILENTLY — a paged read needs a total
+    // order, and this repo has broken that five times. Re-reading the boundary
+    // row and de-duplicating by id costs one row per page and cannot skip.
+    if (after !== null) q = q.gte('source_url', after);
+    const { data, error } = await q.order('source_url', { ascending: true }).limit(PAGE);
+    if (error) throw new Error(`ma dls budgets read failed: ${error.message}`);
+    let fresh = 0;
+    for (const r of data) if (!byId.has(r.id)) { byId.set(r.id, r); fresh += 1; }
+    if (data.length < PAGE) break;
+    const last = data[data.length - 1].source_url;
+    if (last === after && fresh === 0) {
+      throw new Error(`ma dls read stalled on ${last} — over ${PAGE} budgets share one citation`);
+    }
+    after = last;
+  }
+  return [...byId.values()].map((b) => {
+    const parsed = parseMaDlsUrl(b.source_url);
+    return {
+      id: b.id,
+      dataSource: b.data_source,
+      fiscalYear: b.fiscal_year,
+      total: b.total_budget,
+      source_url: b.source_url,
+      dorCode: parsed ? parsed.dorCode : null,
+      amountType: parsed ? parsed.amountType : null,
+    };
+  });
+}
+
+/**
+ * Ask the publisher for every (municipality, year, amount type) that is cited.
+ *
+ * ⚠⚠ ONE REQUEST CARRIES 40 MUNICIPALITIES, because that is the report's page
+ * size and a plain GET cannot hold the `rdDataCache` token server-side paging
+ * needs. Asking for more silently returns 40 — see `maDlsCorpusUrl`.
+ */
+async function fetchMaDlsPublished(wanted) {
+  const byYearType = new Map();
+  for (const { dorCode, fiscalYear, amountType } of wanted) {
+    const k = `${fiscalYear}|${amountType}`;
+    if (!byYearType.has(k)) byYearType.set(k, new Set());
+    byYearType.get(k).add(dorCode);
+  }
+  const published = new Map();
+  let calls = 0;
+  let failed = 0;
+  for (const [k, codes] of byYearType) {
+    const [fy, amountType] = k.split('|');
+    const all = [...codes].sort();
+    for (let i = 0; i < all.length; i += MA_DLS_CHUNK) {
+      const chunk = all.slice(i, i + MA_DLS_CHUNK);
+      const url = maDlsCorpusUrl(Number(fy), amountType, chunk);
+      // ⚠ One host, asked hundreds of times. 1.2 s is the spacing
+      // scripts/scrapeMaDLS.js settled on against this same server.
+      if (calls) await new Promise((r) => { setTimeout(r, MA_DLS_PAUSE_MS); });
+      calls += 1;
+      try {
+        const res = await fetch(url, { headers: BROWSER_HEADERS });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        for (const row of readMaDlsRows(await res.text())) {
+          if (row.fiscalYear !== Number(fy)) continue;
+          published.set(maDlsTieKey(row.dorCode, row.fiscalYear, amountType), row.total);
+        }
+      } catch {
+        failed += 1;
+      }
+    }
+  }
+  return { published, calls, failed };
+}
+
 async function fetchUncitedCensus() {
   const out = [];
   for (let from = 0; ; from += PAGE) {
@@ -488,6 +588,23 @@ export async function main(argv = process.argv.slice(2)) {
   const scoEntityRows = rows.filter((r) => SCO_ENTITY_HOSTS.some(
     (h) => typeof r.source_url === 'string' && r.source_url.includes(`://${h}/`)));
   rows = rows.filter((r) => !scoEntityRows.includes(r));
+
+  // ── ⛔⛔ AND A SECOND ONE, FOR A DIFFERENT REASON THAT LOOKS THE SAME ────
+  //
+  // The DLS Gateway answers 200 to everything. Measured 2026-11-13 against the
+  // live host: a real municipality-year, a DOR code that does not exist, a
+  // fiscal year that does not exist, nonsense, and A REPORT NAME THAT DOES NOT
+  // EXIST all returned HTTP 200. Unlike the SCO case this is not a fragment
+  // route — the parameters DO reach the server — but the answer is the same
+  // either way, so a probe still cannot tell a correct citation from a typo.
+  // 16,826 of them would also add hours to every run and 16,826 requests to a
+  // Massachusetts state server.
+  //
+  // ⭐ Replaced by the tie below, which reads the publisher's own printed
+  // total for every cited municipality-year. See scripts/lib/maDlsCitation.mjs.
+  const maDlsRows = rows.filter((r) => typeof r.source_url === 'string'
+    && r.source_url.startsWith(`https://${MA_DLS_HOST}/reports/rdPage.aspx?rdReport=ScheduleA.GeneralFund`));
+  rows = rows.filter((r) => !maDlsRows.includes(r));
 
   // ⚠⚠ A FILTER MUST SCOPE THE EXPECTATION, NOT JUST THE OBSERVATION. #360
   // learned this the hard way: `--source` narrowed what was looked at but not
@@ -675,6 +792,41 @@ export async function main(argv = process.argv.slice(2)) {
   } else if (scoEntityRows.length) {
     console.log(`\nℹ️  ${n(scoEntityRows.length)} SCO per-entity citation(s) NOT probed — a `
       + '#! route cannot be liveness-checked; the figure-tie is skipped on a narrowed run.');
+  }
+
+  // ── ⭐⭐ THE MASSACHUSETTS FAMILY: TIED, NOT PINGED ──────────────────────
+  //
+  // Skipped on a narrowed run for the same reason as the SCO tie: a tie drawn
+  // from a filtered list reports on whatever survived the filter.
+  if (!values.host && !values.limit && maDlsRows.length) {
+    const cited = await fetchMaDlsCitedBudgets();
+    const shapeBad = cited.filter((r) => !isMaDlsUrl(r.source_url));
+    if (shapeBad.length) {
+      failed = true;
+      console.error(`\n⛔ MALFORMED DLS CITATION (${shapeBad.length}):`);
+      for (const r of shapeBad.slice(0, 10)) console.error(`  ${r.dataSource} FY${r.fiscalYear}: ${r.source_url}`);
+    }
+    const askable = cited.filter((r) => r.dorCode && r.amountType);
+    const { published, calls, failed: chunksFailed } = await fetchMaDlsPublished(askable);
+    const tie = judgeMaDlsTie(askable, published);
+    console.log(`\n✅ MA DLS figures tied to the publisher: ${n(tie.tie)} of ${n(tie.checked)} `
+      + `(${n(calls)} report page(s), ${n(chunksFailed)} unreachable)`);
+    if (tie.mismatch.length) {
+      failed = true;
+      console.error(`\n⛔⛔ TT AND THE PUBLISHER DISAGREE (${tie.mismatch.length}):`);
+      for (const m of tie.mismatch.slice(0, 25)) {
+        console.error(`  ${m.dataSource} FY${m.fiscalYear} (DOR ${m.dorCode} ${m.amountType}): `
+          + `TT ${Number(m.total).toLocaleString()} vs publisher ${m.publisher.toLocaleString()}`);
+      }
+      console.error('  ⛔ This is a FIGURE defect, not a citation one — the link is fine and the');
+      console.error('     number behind it is not. Do not "repair" it by changing the URL.');
+    }
+    if (tie.absent.length) {
+      console.log(`ℹ️  ${n(tie.absent.length)} municipality-year(s) the publisher does not list — not treated as agreement`);
+    }
+  } else if (maDlsRows.length) {
+    console.log(`\nℹ️  ${n(maDlsRows.length)} MA DLS citation(s) NOT probed — the Gateway answers `
+      + '200 to a report name that does not exist; the figure-tie is skipped on a narrowed run.');
   }
 
   // ── ⭐⭐ A PUBLISHER THAT IS DOWN, NOT A DOCUMENT THAT IS GONE ───────────
