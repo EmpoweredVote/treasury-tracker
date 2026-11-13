@@ -100,6 +100,7 @@ import { pathToFileURL } from 'node:url';
 
 import {
   probeUrl,
+  createHostPacer,
   judgeProbe,
   classifyCitations,
   citationsAreClean,
@@ -108,6 +109,7 @@ import {
   citationShape,
 } from './lib/sourceUrlProbe.mjs';
 import { curlProbe } from './lib/curlProbe.mjs';
+import { askWaybackAvailability, askWaybackCdx } from './lib/waybackCitation.mjs';
 import { judgeEndpoints, endpointsAreClean } from './lib/sourceEndpointJudge.mjs';
 import { judgeDrift, pickDriftSample, sampleKey } from './lib/readerLinkDrift.mjs';
 import {
@@ -120,8 +122,18 @@ import { SOURCE_ENDPOINT_BASELINE } from './data/sourceEndpointBaseline.mjs';
 
 /** Hosts asked in parallel. Requests to ONE host stay serial. */
 const HOST_CONCURRENCY = 8;
-/** Courtesy pause between two requests to the same host. */
+/** Courtesy pause between two requests to the same host, before it objects. */
 const PER_HOST_PAUSE_MS = 150;
+
+/**
+ * ⭐⭐ ONE PACER FOR THE WHOLE RUN, SHARED BY BOTH PASSES.
+ *
+ * The citations pass meets web.archive.org 27 times; the `base_url` pass meets
+ * it again minutes later. A pacer per pass would throw away what the first one
+ * learned and re-trip the limiter from a standing start — and on 2026-11-11
+ * both passes did fail, 16 citations and 7 endpoints. See `createHostPacer`.
+ */
+const hostPacer = createHostPacer({ basePauseMs: PER_HOST_PAUSE_MS });
 
 // ⚠ Lazy: importing this module must not require credentials, so --help works
 // with nothing set. Same reason as verifyXlsxRowCoverage.mjs.
@@ -340,8 +352,22 @@ async function fetchUncitedCensus() {
   }
 }
 
-/** Ask every URL, host by host, politely and in parallel across hosts. */
-async function observeAll(rows, { onProgress } = {}) {
+/**
+ * Ask every URL, host by host, politely and in parallel across hosts.
+ *
+ * ⚠ `probeImpl`/`sleepImpl` exist so the pacing is testable without the
+ * network. Nothing in the gate passes them.
+ */
+export async function observeAll(rows, {
+  onProgress,
+  probeImpl = (url) => probeUrl(url, {
+    curlImpl: async (u) => curlProbe(u),
+    cdxImpl: (capture) => askWaybackCdx(capture),
+    waybackImpl: (capture) => askWaybackAvailability(capture),
+  }),
+  sleepImpl = sleep,
+  pacer = hostPacer,
+} = {}) {
   const byHost = new Map();
   for (const row of rows) {
     const shape = citationShape(row.source_url);
@@ -359,11 +385,14 @@ async function observeAll(rows, { onProgress } = {}) {
     while (cursor < hosts.length) {
       const host = hosts[cursor++];
       for (const row of byHost.get(host)) {
-        const probe = await probeUrl(row.source_url, { curlImpl: async (u) => curlProbe(u) });
+        const probe = await probeImpl(row.source_url);
         observations.push({ ...probe, ...row, url: row.source_url });
         done += 1;
         if (onProgress) onProgress(done, rows.length, host);
-        await sleep(PER_HOST_PAUSE_MS);
+        // ⚠⚠ THE PAUSE IS READ AFTER THE ANSWER, NOT BEFORE IT. What this URL
+        // was told is the only warning the URLs behind it will ever get.
+        pacer.record(host, probe);
+        await sleepImpl(pacer.pauseFor(host));
       }
     }
   };
@@ -516,6 +545,24 @@ export async function main(argv = process.argv.slice(2)) {
   const u = judgeUncited(observedUncited, UNCITED_BASELINE);
 
   console.log(`\n✅ live: ${n(c.ok.length)}`);
+  // ⚠⚠ A CONFIRMATION IS NOT A FETCH, AND THE REPORT MAY NOT BLUR THEM.
+  // The Archive's availability endpoint says the capture exists; it does not
+  // serve the bytes, so nothing was checked about the document's TYPE. That is
+  // a weaker pass than the other `ok`s on this line and it is stated as one.
+  //
+  // ⚠ The two oracles do NOT make the same claim, so they are never summed
+  // into one number. CDX states the archived mimetype and the probe checks it;
+  // the availability endpoint states no type at all.
+  const viaCdx = c.ok.filter((o) => o.viaCdx);
+  const viaAvailability = c.ok.filter((o) => o.viaWayback && !o.viaCdx);
+  if (viaCdx.length) {
+    console.log(`   of which ${n(viaCdx.length)} confirmed by the Internet Archive's CDX index,`
+      + ' not fetched — the capture exists and its archived type matches what the URL promises');
+  }
+  if (viaAvailability.length) {
+    console.log(`   of which ${n(viaAvailability.length)} confirmed by the Internet Archive's availability`
+      + ' endpoint, not fetched — the capture exists; its content type was NOT checked');
+  }
   if (c.confirmed.length) console.log(`ℹ️  declared unreachable: ${n(c.confirmed.length)}`);
 
   let failed = false;

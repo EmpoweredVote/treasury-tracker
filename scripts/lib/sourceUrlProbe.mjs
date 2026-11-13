@@ -42,6 +42,8 @@
  * document extension promises nothing, so nothing is asserted about its type.
  */
 
+import { parseWaybackCitation } from './waybackCitation.mjs';
+
 /** Verdicts, worst first. The gate's exit code is decided from these. */
 export const VERDICTS = ['uncitable', 'dead', 'wrong-type', 'unreachable', 'ok'];
 
@@ -291,7 +293,72 @@ export async function probeUrl(url, options = {}) {
   return out;
 }
 
-async function probeOnce(url, { fetchImpl = fetch, curlImpl = null, timeoutMs = 20_000 } = {}) {
+/**
+ * ⭐⭐⭐ A RATE LIMIT IS A PROPERTY OF THE HOST. THE BACKOFF WAS A PROPERTY OF
+ * ONE URL, AND THAT IS WHY #385 ONLY HALF-WORKED.
+ *
+ * The 2026-11-11 fleet run measured it: web.archive.org 429s fell from 24 to
+ * 16 and stopped. `probeUrl` waits and re-asks, which is right for the URL in
+ * hand and useless for the twenty-six behind it — each one discovered the
+ * limit privately, spent three retries inside it (three MORE requests into a
+ * limiter, which deepens it), and handed back to a loop that waited 150 ms and
+ * asked about the next. That is not a backoff, it is twenty-seven bursts.
+ *
+ * ⚠⚠ PROBED BY HAND, AND THE SHAPE DECIDES THE DESIGN. The Archive served
+ * twelve rapid requests for one URL, dropped the thirteenth connection
+ * outright, and then refused eight DISTINCT archive URLs in a row. The limiter
+ * is cumulative, host-wide, and once tripped it STOPS ANSWERING rather than
+ * saying 429 — so a pacer that watched only for the status code would speed
+ * back up at the exact moment it must not.
+ *
+ * ⛔ It is deliberately NOT a global rate limit. 128 of 129 hosts never
+ * complain, and slowing them to protect one would add hours to a 23-minute run
+ * to fix a problem they do not have.
+ */
+export function createHostPacer({
+  basePauseMs = 150,
+  limitFloorMs = 5_000,
+  maxPauseMs = 60_000,
+  easeAfter = 10,
+} = {}) {
+  const state = new Map();
+  const get = (host) => state.get(host) ?? { pauseMs: basePauseMs, limited: false, calm: 0 };
+  const widen = (from, stated) => Math.min(
+    maxPauseMs,
+    Number.isFinite(stated) && stated > 0 ? stated : Math.max(limitFloorMs, from * 2),
+  );
+
+  return {
+    pauseFor: (host) => get(host).pauseMs,
+    record(host, probe = {}) {
+      const s = { ...get(host) };
+      const rateLimited = probe.status === 429;
+      const refused = probe.status === null && Boolean(probe.error);
+      if (rateLimited) {
+        s.limited = true;
+        s.calm = 0;
+        s.pauseMs = widen(s.pauseMs, probe.retryAfterMs);
+      } else if (s.limited && refused) {
+        // Silence from a host that has already said 429 is the same message.
+        s.calm = 0;
+        s.pauseMs = widen(s.pauseMs);
+      } else if (s.limited) {
+        // ⚠ Ease back rather than snapping to base: the run is long and the
+        // limit is cumulative, so one good answer proves very little.
+        s.calm += 1;
+        if (s.calm >= easeAfter) {
+          s.calm = 0;
+          s.pauseMs = Math.max(basePauseMs, Math.round(s.pauseMs / 2));
+        }
+      }
+      state.set(host, s);
+    },
+  };
+}
+
+async function probeOnce(url, {
+  fetchImpl = fetch, curlImpl = null, waybackImpl = null, cdxImpl = null, timeoutMs = 20_000,
+} = {}) {
   const shape = citationShape(url);
   if (!shape.citable) return { url, status: null, contentType: null, error: null };
 
@@ -305,7 +372,16 @@ async function probeOnce(url, { fetchImpl = fetch, curlImpl = null, timeoutMs = 
         signal: ac.signal,
         headers: { ...BROWSER_HEADERS, ...extraHeaders },
       });
-      return { status: res.status, contentType: res.headers.get('content-type') || '' };
+      const seen = { status: res.status, contentType: res.headers.get('content-type') || '' };
+      // ⚠ A server that states how long to wait has told us more than our own
+      // guess can. Seconds only: the HTTP-date form is legal and nothing we
+      // ask has ever sent one, and a header we cannot parse must leave the
+      // pause alone rather than poison it with NaN.
+      if (res.status === 429) {
+        const stated = Number(res.headers.get('retry-after'));
+        if (Number.isFinite(stated) && stated > 0) seen.retryAfterMs = stated * 1000;
+      }
+      return seen;
     } finally {
       clearTimeout(timer);
     }
@@ -337,7 +413,15 @@ async function probeOnce(url, { fetchImpl = fetch, curlImpl = null, timeoutMs = 
   // about to declare dead. A document that really is gone answers 404 to the
   // GET as well and still lands on `dead` — see the test named
   // "confirmation is not immunity".
-  const NEEDS_A_SECOND_OPINION = new Set([403, 404, 405, 410, 501]);
+  // ⛔⛔⛔ 429 IS IN THIS SET BECAUSE IT IS NOT A RATE LIMIT. Measured
+  // 2026-11-11 on the same URL in the same minute: curl answered 200/206 four
+  // times running while Node fetch answered 429 four times running.
+  // web.archive.org is matching Node's fingerprint, exactly as
+  // mckinneytexas.org does with a 403. Returning early here is what kept a
+  // refusal away from the curl fallback that already existed for this case.
+  const NEEDS_A_SECOND_OPINION = new Set([403, 404, 405, 410, 429, 501]);
+  /** Statuses that mean "this client is not welcome" — try curl before believing them. */
+  const FINGERPRINT_REFUSALS = new Set([403, 429]);
 
   let last = null;
   try {
@@ -353,10 +437,68 @@ async function probeOnce(url, { fetchImpl = fetch, curlImpl = null, timeoutMs = 
   // HEAD was refused or unsupported — ask for a single byte instead.
   try {
     const got = await attempt('GET', { Range: 'bytes=0-0' });
-    if (got.status !== 403) return { url, ...got, error: null };
+    if (!FINGERPRINT_REFUSALS.has(got.status)) return { url, ...got, error: null };
     last = got;
   } catch (e) {
     if (!last) last = { error: e.message };
+  }
+
+  // ⭐⭐⭐ STILL REFUSED — AND IF THIS IS A WAYBACK CAPTURE, ASK THE ARCHIVE
+  // THE WAY THE ARCHIVE OFFERS TO BE ASKED.
+  //
+  // This goes BEFORE curl deliberately. Measured 2026-11-12: curl does not
+  // rescue web.archive.org (five 429s in six, cold, after 240s of silence),
+  // and every extra playback request re-arms a limiter that drains only on
+  // silence — one node HEAD was enough to re-arm it against curl. So for this
+  // host curl is not a second opinion, it is a third request into the thing
+  // that is refusing us. See scripts/lib/waybackCitation.mjs for the full
+  // measurement, and for why the timestamp must match EXACTLY.
+  //
+  // ⛔⛔ IT MAY ACQUIT, IT MAY NEVER CONVICT: anything short of a clean
+  // confirmation falls through and the refusal stands exactly as it was.
+  const capture = (cdxImpl || waybackImpl) ? parseWaybackCitation(url) : null;
+
+  // ⭐ CDX FIRST. It answers on an EXACT timestamp range rather than a
+  // "closest" guess, and it states the archived status AND mimetype — so
+  // unlike the availability endpoint it can satisfy the type promise too.
+  //
+  // ⛔⛔ AND IT MAY STILL NEVER CONVICT. Measured 2026-11-12: the availability
+  // endpoint returned "no snapshot" 20/20 for a capture that exists, so these
+  // indexes demonstrably invent a "no". One that can invent a "no" can invent
+  // a wrong mimetype, and `wrong-type` orders a repair. A row that fails the
+  // promised type therefore falls THROUGH to a real fetch rather than
+  // condemning the citation on an index's word.
+  if (capture && cdxImpl) {
+    try {
+      const verdict = await cdxImpl(capture);
+      if (verdict && verdict.confirmed
+          && typeSatisfies(promisedType(url), verdict.archivedMime || '')) {
+        return {
+          url,
+          status: verdict.archivedStatus,
+          contentType: verdict.archivedMime || '',
+          error: null,
+          viaWayback: true,
+          viaCdx: true,
+        };
+      }
+    } catch { /* the index is a courtesy, never a dependency */ }
+  }
+
+  if (waybackImpl) {
+    if (capture) {
+      try {
+        const verdict = await waybackImpl(capture);
+        if (verdict && verdict.confirmed) {
+          // ⚠ No content type is claimed. The availability endpoint does not
+          // serve the bytes, so it cannot speak to them — and `typeSatisfies`
+          // already treats silence as silence rather than as a lie.
+          return {
+            url, status: verdict.archivedStatus, contentType: '', error: null, viaWayback: true,
+          };
+        }
+      } catch { /* the endpoint is a courtesy, never a dependency */ }
+    }
   }
 
   // Still refused. If this host blocks Node's fingerprint, curl gets through.
@@ -371,7 +513,13 @@ async function probeOnce(url, { fetchImpl = fetch, curlImpl = null, timeoutMs = 
     }
   }
 
-  if (last && typeof last.status === 'number') return { url, status: last.status, contentType: last.contentType || '', error: null };
+  if (last && typeof last.status === 'number') {
+    const out = { url, status: last.status, contentType: last.contentType || '', error: null };
+    // ⚠ Carried to the end: a 429 now falls through to the curl fallback, and
+    // the host pacer still wants what the server said if curl cannot help.
+    if (last.retryAfterMs) out.retryAfterMs = last.retryAfterMs;
+    return out;
+  }
   if (last && last.timedOut) return { url, status: null, contentType: null, error: `no answer within ${timeoutMs} ms` };
   return { url, status: null, contentType: null, error: (last && last.error) || 'the host did not answer' };
 }
