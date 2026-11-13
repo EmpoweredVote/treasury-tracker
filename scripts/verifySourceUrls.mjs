@@ -109,6 +109,7 @@ import {
   citationShape,
 } from './lib/sourceUrlProbe.mjs';
 import { curlProbe } from './lib/curlProbe.mjs';
+import { askWaybackAvailability } from './lib/waybackCitation.mjs';
 import { judgeEndpoints, endpointsAreClean } from './lib/sourceEndpointJudge.mjs';
 import { judgeDrift, pickDriftSample, sampleKey } from './lib/readerLinkDrift.mjs';
 import {
@@ -359,7 +360,10 @@ async function fetchUncitedCensus() {
  */
 export async function observeAll(rows, {
   onProgress,
-  probeImpl = (url) => probeUrl(url, { curlImpl: async (u) => curlProbe(u) }),
+  probeImpl = (url) => probeUrl(url, {
+    curlImpl: async (u) => curlProbe(u),
+    waybackImpl: (capture) => askWaybackAvailability(capture),
+  }),
   sleepImpl = sleep,
   pacer = hostPacer,
 } = {}) {
@@ -540,6 +544,15 @@ export async function main(argv = process.argv.slice(2)) {
   const u = judgeUncited(observedUncited, UNCITED_BASELINE);
 
   console.log(`\n✅ live: ${n(c.ok.length)}`);
+  // ⚠⚠ A CONFIRMATION IS NOT A FETCH, AND THE REPORT MAY NOT BLUR THEM.
+  // The Archive's availability endpoint says the capture exists; it does not
+  // serve the bytes, so nothing was checked about the document's TYPE. That is
+  // a weaker pass than the other `ok`s on this line and it is stated as one.
+  const confirmed = c.ok.filter((o) => o.viaWayback);
+  if (confirmed.length) {
+    console.log(`   of which ${n(confirmed.length)} confirmed by the Internet Archive's availability`
+      + ' endpoint, not fetched — the capture exists; its content type was NOT checked');
+  }
   if (c.confirmed.length) console.log(`ℹ️  declared unreachable: ${n(c.confirmed.length)}`);
 
   let failed = false;

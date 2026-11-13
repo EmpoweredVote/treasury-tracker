@@ -42,6 +42,8 @@
  * document extension promises nothing, so nothing is asserted about its type.
  */
 
+import { parseWaybackCitation } from './waybackCitation.mjs';
+
 /** Verdicts, worst first. The gate's exit code is decided from these. */
 export const VERDICTS = ['uncitable', 'dead', 'wrong-type', 'unreachable', 'ok'];
 
@@ -354,7 +356,9 @@ export function createHostPacer({
   };
 }
 
-async function probeOnce(url, { fetchImpl = fetch, curlImpl = null, timeoutMs = 20_000 } = {}) {
+async function probeOnce(url, {
+  fetchImpl = fetch, curlImpl = null, waybackImpl = null, timeoutMs = 20_000,
+} = {}) {
   const shape = citationShape(url);
   if (!shape.citable) return { url, status: null, contentType: null, error: null };
 
@@ -437,6 +441,36 @@ async function probeOnce(url, { fetchImpl = fetch, curlImpl = null, timeoutMs = 
     last = got;
   } catch (e) {
     if (!last) last = { error: e.message };
+  }
+
+  // ⭐⭐⭐ STILL REFUSED — AND IF THIS IS A WAYBACK CAPTURE, ASK THE ARCHIVE
+  // THE WAY THE ARCHIVE OFFERS TO BE ASKED.
+  //
+  // This goes BEFORE curl deliberately. Measured 2026-11-12: curl does not
+  // rescue web.archive.org (five 429s in six, cold, after 240s of silence),
+  // and every extra playback request re-arms a limiter that drains only on
+  // silence — one node HEAD was enough to re-arm it against curl. So for this
+  // host curl is not a second opinion, it is a third request into the thing
+  // that is refusing us. See scripts/lib/waybackCitation.mjs for the full
+  // measurement, and for why the timestamp must match EXACTLY.
+  //
+  // ⛔⛔ IT MAY ACQUIT, IT MAY NEVER CONVICT: anything short of a clean
+  // confirmation falls through and the refusal stands exactly as it was.
+  if (waybackImpl) {
+    const capture = parseWaybackCitation(url);
+    if (capture) {
+      try {
+        const verdict = await waybackImpl(capture);
+        if (verdict && verdict.confirmed) {
+          // ⚠ No content type is claimed. The availability endpoint does not
+          // serve the bytes, so it cannot speak to them — and `typeSatisfies`
+          // already treats silence as silence rather than as a lie.
+          return {
+            url, status: verdict.archivedStatus, contentType: '', error: null, viaWayback: true,
+          };
+        }
+      } catch { /* the endpoint is a courtesy, never a dependency */ }
+    }
   }
 
   // Still refused. If this host blocks Node's fingerprint, curl gets through.
