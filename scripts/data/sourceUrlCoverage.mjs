@@ -4,9 +4,10 @@
  * ⚠⚠⚠ THIS IS THE DEGENERATE CASE OF THE DEAD-CITATION DEFECT. A budget with a
  * broken `source_url` asks the reader to believe a figure and hands them a link
  * that fails; a budget with no `source_url` asks them to believe it and hands
- * them nothing. 24,877 budgets are in the second state, which is 4.3% of the
- * fleet — so `verify:source-urls` failing on their EXISTENCE would be red from
- * the first run, and a gate that is red by design is a gate nobody reads.
+ * them nothing. 24,806 budgets are in the second state, which is 4.2% of the
+ * fleet (585,666 budgets) — so `verify:source-urls` failing on their EXISTENCE
+ * would be red from the first run, and a gate that is red by design is a gate
+ * nobody reads.
  *
  * ⭐ SO IT RATCHETS, exactly like the totals baselines, and for the reason
  * 20261104180000 gives: "Its baselines live in code ON PURPOSE — paying one
@@ -16,8 +17,8 @@
  * The gate's only assertion is that **nothing grew**. Paying one down is a
  * NOTICE; lowering the number here is the PR that records it.
  *
- * ⭐⭐ AND IT HAS BEEN PAID DOWN TWICE. The first measurement was 24,960 across
- * 75 families. #372 cited West Hollywood's 22 uncited budgets — 10 demand
+ * ⭐⭐ AND IT HAS BEEN PAID DOWN FOUR TIMES. The first measurement was 24,960
+ * across 75 families. #372 cited West Hollywood's 22 uncited budgets — 10 demand
  * registers and 12 budget-detail years — which removed THREE families
  * outright, because every member of each was cited at once.
  *
@@ -45,6 +46,27 @@
  * settled eleven of those. See
  * 20261111020000_laptop_paths_wayback_and_successor_hosts.sql.
  *
+ * ⭐⭐ 2026-11-13: 24,877 → 24,806, and SEVEN families went to zero at once —
+ * 71 budgets, every one of them a payment, payroll or compensation register.
+ * #389 shipped `scripts/citeNonStatementSources.mjs`, which reads the address
+ * out of `data_sources`, PROBES IT, and writes only the ones that answered;
+ * it ran on 2026-11-12 and these are what it earned. Bloomington Annual
+ * Compensation (24), LA City Payroll (10), Plano Check Register (10), Frisco
+ * Check Register (9), LA City Checkbook (9), McKinney Check Register (5),
+ * McKinney Payroll Register (4).
+ *
+ * ⚠⚠ AND A FAMILY REACHING ZERO IS THE ONE PAY-DOWN THAT HAS TO BE PROVED.
+ * This file counts budgets that cite NOTHING, so a family drops out of the
+ * census when its rows get cited — and equally when its rows are DELETED. The
+ * two are indistinguishable from here, and lowering the baseline for the
+ * second one would retire a debt by destroying what owed it. The check is the
+ * family's ROW count, not its uncited count: all seven still hold exactly the
+ * budgets the old baseline named (24, 10, 10, 9, 9, 5, 4), now with a
+ * `source_url` each — 31 distinct URLs for 71 budgets, because a register's
+ * landing page serves every year of it. Those five hosts were then asked:
+ * 32 of 32 live, exit 0 each — checkregister.plano.gov, friscotexas.gov,
+ * mckinneytexas.org, controllerdata.lacity.org, data.bloomington.in.gov.
+ *
  * That is what the ratchet is for: the number moves in a PR, with the reason
  * attached.
  *
@@ -54,9 +76,15 @@
  * normalisations are load-bearing: the per-town prefix is dropped (the MA DLS
  * families carry one `data_source` per town, 351 of them, three times over) and
  * the fiscal year is stripped wherever it sits, including the middle of the
- * federal names. That collapses ~1,060 distinct `data_source` strings to these
- * 72 families — small enough that every one is named here rather than hidden
- * in a tail bucket, so a new uncited year moves a COUNT a reviewer can see.
+ * federal names. That collapses the 1,271 distinct `data_source` strings now
+ * carrying uncited budgets to these 54 families — small enough that every one
+ * is named here rather than hidden in a tail bucket, so a new uncited year
+ * moves a COUNT a reviewer can see.
+ *
+ * ⚠ A key here must already BE a family: `familyOf(key) === key`. A raw
+ * `data_source` pasted in — "Plano Check Register FY2026" — can never match
+ * anything the census produces, so it would sit here as debt that cannot be
+ * paid while its real family came back as `appeared`. Pinned by test.
  *
  * ── ⚠⚠ THE FOUR THAT ARE 97.5% OF IT ───────────────────────────────────────
  *
@@ -67,7 +95,7 @@
  * loader re-mints `budgets.id` and stales the id-keyed frozen registry.
  * #372 is the worked example. See reference_source_url_never_verified.
  *
- * MEASURED 2026-11-09 against the live fleet, after #372.
+ * MEASURED 2026-11-13 against the live fleet, after #389.
  */
 export const UNCITED_BASELINE = {
   families: {
@@ -78,22 +106,15 @@ export const UNCITED_BASELINE = {
     "US Federal Outlays by Function (OMB Public Budget Database)": 50,
     "US Federal Outlays by Agency (OMB Public Budget Database)": 49,
     "US Federal Receipts by Source (OMB Historical Table 2.1)": 49,
-    "Bloomington Annual Compensation": 24,
     "bloomington-open-data": 24,
     "Sacramento Operating Budget": 14,
     "Sacramento Revenue Budget": 14,
     "Bloomington Public Contracts": 11,
-    "LA City Payroll": 10,
-    "Plano Check Register": 10,
-    "Frisco Check Register": 9,
-    "LA City Checkbook": 9,
     "cambridge-open-data": 8,
     "Leonardtown Operating Budget": 6,
-    "McKinney Check Register": 5,
     "McKinney Revenue": 5,
     "ArcGIS: https://services.arcgis.com/RmCCgQtiZLDCtblq/arcgis/rest/services/LA_County_Employee_Salaries/FeatureServer/0": 4,
     "Empowered Vote Financial Records": 4,
-    "McKinney Payroll Register": 4,
     "San Francisco Operating Budget": 4,
     "San Francisco Revenue Budget": 4,
     "San Jose General Fund Operating Budget": 4,
