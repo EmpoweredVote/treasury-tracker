@@ -37,7 +37,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 // Shared helpers (single source of truth — see loadCASalaries.js).
-import { normalizeDeptLabel, parseMoney } from './loadCASalaries.js';
+import { normalizeDeptLabel, parseMoney, gccCityExportUrl } from './loadCASalaries.js';
 import { classifySyncResult } from './lib/rpcResult.mjs';
 
 // ── Env / Supabase setup ─────────────────────────────────────────────────────
@@ -261,6 +261,8 @@ async function syncCityYear(municipalityId, year, rows, dryRun) {
     p_tree:             tree,
     p_row_count:        rowCount,
     p_data_source_name: DATA_SOURCE_NAME,
+    // ⭐ The file this row was built from. See gccCityExportUrl in loadCASalaries.js.
+    p_source_url:       gccCityExportUrl(year),
     // GCC is a W-2-based CALENDAR-year report, so month 1 — not the 7 the
     // RPC used to hardcode. Authority in lib/loaderFiscalCalendars.mjs.
     p_fiscal_year_start_month: monthForSource(DATA_SOURCE_NAME),

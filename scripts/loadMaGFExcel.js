@@ -278,6 +278,20 @@ async function loadFile(supabase, { typeName, cfg, fy, file }, municMap, progres
       }
     }
 
+    // ⚠⚠ THIS LOADER CANNOT CITE WHAT IT WRITES, AND A NEW YEAR WILL ARRIVE
+    // LINKLESS. `treasury_sync_budget_tree` takes no `p_source_url` — unlike
+    // `treasury_sync_city_budget`, which is why the CA salaries loaders could
+    // be wired directly. 20261113140000 cited all 15,071 existing MA rows with
+    // a targeted UPDATE to
+    //
+    //   dls-gw.dor.state.ma.us/reports/rdPage.aspx?rdReport=ScheduleA.GeneralFund
+    //     &iclMuni=<DOR>&islYear=<FY>&islAmountType=Revenues|Expenditures
+    //
+    // built by `maDlsUrl()` in scripts/lib/maDlsCitation.mjs from
+    // scripts/data/maDlsRoster.mjs. ⭐ Re-run that shape as a targeted UPDATE
+    // after loading a new year — NEVER by re-loading, which re-mints
+    // `budgets.id`. The uncited ratchet will catch a forgotten year as a
+    // family that GREW, but being caught is not the same as being right.
     const { error: rpcErr } = await supabase.rpc('treasury_sync_budget_tree', {
       p_data_source_id: dsId,
       p_fiscal_year:    fy,

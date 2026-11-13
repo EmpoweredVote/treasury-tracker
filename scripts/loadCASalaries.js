@@ -55,7 +55,22 @@ const supabase = SUPABASE_KEY ? createClient(SUPABASE_URL, SUPABASE_KEY) : null;
 // ── GCC constants (from 55-SPIKE-FINDINGS.md — do NOT re-derive) ────────────
 
 const GCC_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36';
-const GCC_ZIP_URL = (year) => `https://gcc.sco.ca.gov/RawExport/${year}_City.zip`;
+/**
+ * ⭐⭐ THIS IS ALSO THE CITATION, AND THAT IS WHY IT IS EXPORTED.
+ *
+ * It is the file this loader actually reads, so it is the strongest thing a
+ * reader can be handed — not a landing page. `20261113140000` wrote it onto
+ * all 7,682 existing publicpay budgets after rebuilding every city's total
+ * from these sixteen files and tying 7,682 of 7,682 exactly.
+ *
+ * ⚠ All three writers of this family — this loader, sweepCASalaries.js and
+ * sweepOCSalaries.js — must pass it as `p_source_url`, or the next load
+ * re-creates the debt the migration just paid. The uncited ratchet would catch
+ * that as a family that GREW, but a gate catching it is not as good as it not
+ * happening.
+ */
+export const gccCityExportUrl = (year) => `https://gcc.sco.ca.gov/RawExport/${year}_City.zip`;
+const GCC_ZIP_URL = gccCityExportUrl;
 
 // ── GCC CSV field indices (0-based, from spike findings Section 2.2) ─────────
 
@@ -440,6 +455,8 @@ async function syncYear(municipalityId, year, rows, dryRun) {
     p_tree:            tree,
     p_row_count:       rowCount,
     p_data_source_name: DATA_SOURCE_NAME,
+    // ⭐ The file this row was built from. See gccCityExportUrl.
+    p_source_url:       gccCityExportUrl(year),
     // GCC is a W-2-based CALENDAR-year report, so month 1 — not the 7 the
     // RPC used to hardcode. Authority in lib/loaderFiscalCalendars.mjs.
     p_fiscal_year_start_month: monthForSource(DATA_SOURCE_NAME),
