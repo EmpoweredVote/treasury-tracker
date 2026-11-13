@@ -183,17 +183,31 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
  */
 const PAGE = 1000;
 
-/** Every distinct citation, paged under a total order (`source_url` is the GROUP BY key). */
+/**
+ * Every distinct citation, KEYSET-paged on `source_url` (unique in the result).
+ *
+ * ⚠⚠⚠ NOT `.range()` OVER `source_url_census()`. PostgREST re-runs the whole
+ * function for every page, and that function scans all of `treasury.budgets`
+ * twice and sorts it: 377 MB read from disk PER PAGE, 27 pages per run, 249 GB
+ * in the 19 hours measured on 2026-11-13 — the largest Disk IO consumer on the
+ * whole E.V Backend project (ev-cto decision 0038). `source_url_census_page`
+ * reads only the URLs after `after_url`, from a covering index, so a full run
+ * reads the index once. See 20261113120000_census_pages_read_only_their_slice.sql.
+ *
+ * ⚠ The function returns rows ordered by `source_url`, one per URL, so the last
+ * row's URL is the next page's key — no row can be skipped or repeated. Page
+ * size stays under PostgREST's 1,000-row cap.
+ */
 async function fetchSourceUrlCensus() {
   const out = [];
-  for (let from = 0; ; from += PAGE) {
-    const { data, error } = await db().schema('treasury').rpc('source_url_census')
-      .select('*')
-      .order('source_url', { ascending: true })
-      .range(from, from + PAGE - 1);
-    if (error) throw new Error(`source_url_census failed: ${error.message}`);
+  let afterUrl = null;
+  for (;;) {
+    const { data, error } = await db().schema('treasury')
+      .rpc('source_url_census_page', { after_url: afterUrl, page_size: PAGE });
+    if (error) throw new Error(`source_url_census_page failed: ${error.message}`);
     out.push(...data);
     if (data.length < PAGE) return out;
+    afterUrl = data[data.length - 1].source_url;
   }
 }
 
