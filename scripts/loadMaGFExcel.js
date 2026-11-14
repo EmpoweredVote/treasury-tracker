@@ -293,34 +293,37 @@ async function loadFile(supabase, { typeName, cfg, fy, file }, municMap, progres
     // `budgets.id`. The uncited ratchet will catch a forgotten year as a
     // family that GREW, but being caught is not the same as being right.
     //
-    // ── ⛔⛔ THE WORKBOOKS ARE A DATED SNAPSHOT, AND ONE CELL OF THEM IS NOW
-    // STALE. RE-RUNNING `--fy 2025` WILL SILENTLY UNDO 20261114110000. ──────
+    // ── ⭐⭐⭐ REFRESHING A WORKBOOK IS HOW YOU FIND A MISSING ROW. ──────────
     //
-    // DLS restated Abington FY2025 expenditures AFTER
-    // docs/MA/GenFundExpenditures2025.xlsx was captured: it moved 6,566 out of
-    // Debt Service into its own `Other Expenditures` column, and the total
-    // fell by a dollar.
+    // GenFundExpenditures2025.xlsx was re-downloaded by hand on 2026-11-14
+    // (mass.gov answers 403 to every automated client, so this needs a person
+    // with a browser) and diffed against the captured copy. FIVE rows moved:
     //
-    //                          workbook (what this loader writes)   publisher
-    //     Other Expenditures                                   0       6,566
-    //     Debt Service                                 5,086,436   5,079,869
-    //     Total Expenditures                          69,061,344  69,061,343
+    //   · Abington — DLS RESTATED it, moving 6,566 out of Debt Service into
+    //     its own column; total 69,061,344 → 69,061,343. Confirms
+    //     20261114110000 exactly, which had already taken the Gateway's value.
+    //   · Brockton, Hopedale, Orange — were 0 in the captured file and are now
+    //     FILED. ⛔⛔ THIS LOADER SKIPS A ZERO ROW RATHER THAN WRITING ONE, so
+    //     TT held no expenditure row at all for them: Brockton's $569,559,551
+    //     was simply ABSENT. Loaded and cited by 20261114120000.
+    //   · the publisher's own `Totals:` row, which this loader ignores.
     //
-    // ⚠ The workbook could NOT simply be refreshed: mass.gov answers 403 to
-    // every automated client, so a genuine re-download needs a person with a
-    // browser. Until someone does that, this loader's input disagrees with the
-    // publisher for that one cell and a reload reverts the row.
+    // ⚠⚠ THE ZERO-SKIP IS WHY A REFRESH IS NOT OPTIONAL MAINTENANCE. Every
+    // gate TT has compares STORED rows to the publisher; none can see a row
+    // that was never stored. A late filer is invisible until the source file
+    // is fetched again. ⭐ Five municipalities are still 0 for FY2025 — expect
+    // the same shape when they file.
     //
-    // ⭐ MEASURED 2026-11-14, so the size of this is known rather than feared:
-    // it is the ONLY stale cell across all 48 workbooks. Every other MA row
-    // (16,825 of 16,826) is tied to the live publisher by verify:source-urls,
-    // and a restatement in a CITED row would fail that tie loudly. Abington
-    // drifted unseen precisely because it was the one uncited MA row.
-    //
-    // ⭐ AFTER REFRESHING THE WORKBOOKS, re-check this: if the new file says
-    // 69,061,343 with ten columns, delete this paragraph. If it still says
-    // 69,061,344, the publisher restated only in the Gateway and the
-    // disagreement is theirs, not ours — say so here rather than removing it.
+    // ⚠ Re-running this is SAFE for existing rows: treasury_sync_budget_tree
+    // finds the budget by (municipality, fiscal_year, dataset_type,
+    // period_label, data_source) and keeps it, replacing only its categories —
+    // so `budgets.id` and `source_url` survive. Verified 2026-11-14: the 343
+    // FY2025 rows that already existed came through with an identical
+    // id+total fingerprint. An id is re-minted only if the data_source NAME
+    // changes. ⛔ But a newly INSERTED row arrives linkless and must be cited
+    // by the targeted UPDATE above, and registered with
+    // `npm run register:rows -- --milestone <name> --pending` or the frozen
+    // invariant reports it as unaccounted for.
     const { error: rpcErr } = await supabase.rpc('treasury_sync_budget_tree', {
       p_data_source_id: dsId,
       p_fiscal_year:    fy,
