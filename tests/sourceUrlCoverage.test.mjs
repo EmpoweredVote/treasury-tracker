@@ -20,9 +20,9 @@ import { familyOf } from '../scripts/lib/sourceUrlProbe.mjs';
 describe('the uncited baseline as shipped', () => {
   const total = Object.values(UNCITED_BASELINE.families).reduce((a, b) => a + b, 0);
 
-  it('carries 299 uncited budgets across 51 families', () => {
-    expect(total).toBe(299);
-    expect(Object.keys(UNCITED_BASELINE.families)).toHaveLength(51);
+  it('carries 298 uncited budgets across 50 families', () => {
+    expect(total).toBe(298);
+    expect(Object.keys(UNCITED_BASELINE.families)).toHaveLength(50);
   });
 
   it('⛔ does not carry the four families 20261113140000 cited', () => {
@@ -34,7 +34,14 @@ describe('the uncited baseline as shipped', () => {
     expect(UNCITED_BASELINE.families['Government Compensation in California (publicpay.ca.gov)'])
       .toBeUndefined();
     expect(UNCITED_BASELINE.families['MA General Fund Revenues']).toBeUndefined();
-    expect(UNCITED_BASELINE.families['MA General Fund Expenditures']).toBe(1);
+    // ⭐⭐ 1 → GONE on 2026-11-14 (20261114110000). That last row was Abington
+    // FY2025, and it was never a TT defect: TT matched
+    // docs/MA/GenFundExpenditures2025.xlsx to the dollar and the PUBLISHER
+    // restated afterwards, moving 6,566 out of Debt Service into its own
+    // column. ⚠ It could drift unseen only because it was uncited — the
+    // figure tie runs over cited rows, so a restatement anywhere else in MA
+    // would have failed the tie loudly instead.
+    expect(UNCITED_BASELINE.families['MA General Fund Expenditures']).toBeUndefined();
     // ⭐⭐ 10 → 6 → GONE, over two migrations on 2026-11-14. None of the ten
     // was "a figure the publisher stopped printing": all were stale
     // Revenue-by-Source rows (Total Receipts, enterprise funds included)
