@@ -262,6 +262,34 @@ export function judgeProbe({ url, status, contentType, error }) {
 const CONNECTION_NEVER_MADE = /Failed to connect|Connection refused|ECONNREFUSED|ECONNRESET|socket hang up|EAI_AGAIN|ENOTFOUND|Could not resolve host|Could not connect to server|curl: \(3[56]\)|curl: \([67]\)/i;
 
 /**
+ * ⚠⚠⚠ NODE COLLAPSES EVERY FETCH FAILURE INTO THE WORDS "fetch failed".
+ *
+ * Measured 2026-11-14 against a hostname that cannot resolve:
+ *
+ *     e.message     "fetch failed"
+ *     e.cause       "getaddrinfo ENOTFOUND …"
+ *     e.cause.code  "ENOTFOUND"
+ *
+ * undici reports DNS failures, refused sockets and resets with the SAME
+ * four-teen characters and hides what actually happened one level down. Every
+ * token in `CONNECTION_NEVER_MADE` therefore matched nothing on the node path:
+ * the retry worked only because curl's verbose error reaches `error` further
+ * down `probeOnce`, which made the whole mechanism silently load-bearing on
+ * `curlImpl` being wired. A caller without curl lost the retry and could not
+ * have known.
+ *
+ * ⭐ So the cause is carried into the message. That makes the node path stand
+ * on its own AND makes a log line diagnostic: 2,067 identical "fetch failed"
+ * lines tell an operator nothing about which half of the network broke.
+ */
+export function describeFetchError(e) {
+  const base = e?.message ?? String(e);
+  const detail = e?.cause?.message || e?.cause?.code;
+  if (!detail || base.includes(detail)) return base;
+  return `${base}: ${detail}`;
+}
+
+/**
  * ⭐⭐ WHY THIS RETRIES, AND WHY ONLY THIS CASE.
  *
  * #374 found the gate's repair list moving between runs — 102, then 77, then
@@ -463,7 +491,7 @@ async function probeOnce(url, {
     if (!FINGERPRINT_REFUSALS.has(got.status)) return { url, ...got, error: null };
     last = got;
   } catch (e) {
-    if (!last) last = { error: e.message };
+    if (!last) last = { error: describeFetchError(e) };
   }
 
   // ⭐⭐⭐ STILL REFUSED — AND IF THIS IS A WAYBACK CAPTURE, ASK THE ARCHIVE
@@ -532,7 +560,7 @@ async function probeOnce(url, {
         return { url, status: viaCurl.status, contentType: viaCurl.contentType || '', error: null, viaCurl: true };
       }
     } catch (e) {
-      return { url, status: null, contentType: null, error: `curl also failed: ${e.message}` };
+      return { url, status: null, contentType: null, error: `curl also failed: ${describeFetchError(e)}` };
     }
   }
 
