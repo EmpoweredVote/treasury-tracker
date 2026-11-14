@@ -480,7 +480,18 @@ export const EXPECTED_ROWS = Object.freeze({
   // exists. It stays 'cambridge-open-data' and stays unknown.
   'ma-dls-gf-exp': 8408,
   'ma-dls-gf-rev': 6663,
-  'ma-dls-gf-rev-by-source': 1755,
+  // ⚠⚠ 1,755 → 1,749 on 2026-11-14 (20261114100000), and the six that left did
+  // NOT leave the fleet — they were renamed into the entry below because they
+  // were never General Fund. MEASURED after the migration, not derived: the
+  // two numbers still sum to 1,755.
+  'ma-dls-gf-rev-by-source': 1749,
+  // ⭐ MEASURED 2026-11-14 with the entry's own anchored pattern: 6 rows —
+  // Hudson FY2024/FY2025, Holyoke FY2025, Florida FY2025, Gill FY2025,
+  // Gosnold FY2025. ⚠ This number should NOT grow. It counts municipality-
+  // years that never filed Schedule A and so kept a Revenue-by-Source figure;
+  // when one of them files, the row moves BACK to a General Fund entry the way
+  // 20261114090000 moved four of them, and this count goes DOWN.
+  'ma-dls-rev-by-source-total-receipts': 6,
   // ⚠⚠ NEW 2026-09-11 alongside the fundScopeRegistry entry of the same id.
   // 106, MEASURED IN THE TABLE with the entry's own anchored pattern (106 rows /
   // 106 DISTINCT ids / 5 entities / FY2012-FY2025), not derived from the roster.

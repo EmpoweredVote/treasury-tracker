@@ -1425,6 +1425,41 @@ export const FUND_SCOPE_REGISTRY = [
   },
 
   {
+    // ⚠⚠ SIX ROWS USED TO MATCH THE ENTRY BELOW AND SHOULD NEVER HAVE. They
+    // were not the Excel workbook at all: they were `scrapeMaDLS.js` output
+    // from DLS's Revenue-by-Source report, whose total column is Total
+    // Receipts and whose breakdown carries a category literally named
+    // "Enterprise & CPA Funds". The workbook prints 0 for those
+    // municipality-years — they had not filed Schedule A — and the Excel
+    // loader skips a zero rather than writing one, so the older scrape was
+    // never overwritten. 20261114100000 renamed them out of that entry and
+    // into this one, which is why this entry exists rather than widening
+    // ma-dls-gf-rev-by-source to cover two different scopes.
+    id: 'ma-dls-rev-by-source-total-receipts',
+    match: / — MA DLS Revenue by Source \(Total Receipts\)$/,
+    scope: SCOPE.ALL_FUNDS,
+    evidence: {
+      document: 'MA DLS Gateway, RevenueBySource.RBS.RevbySource2 '
+              + '(https://dls-gw.dor.state.ma.us/reports/rdPage.aspx?rdReport='
+              + 'RevenueBySource.RBS.RevbySource2), read per municipality-year 2026-11-14. '
+              + 'The report\'s own column list — Tax Levy, State Aid, Local Receipts, All '
+              + 'Other, Enterprise & CPA Funds, Total Receipts — is reproduced verbatim in '
+              + 'scripts/scrapeMaDLS.js, which is what wrote these rows.',
+      figures: 'NOT general_fund, and the report says so itself: it prints TWO totals per '
+             + 'row, one excluding Enterprise & CPA Funds and one including them, and the '
+             + 'stored figure is the INCLUDING one every time. Hudson FY2025: '
+             + '66,774,365 + 18,868,011 + 8,538,475 + 8,977,748 = 103,158,599 without '
+             + 'enterprise, + 13,397,491 = 116,556,090 with it, and TT stores 116,556,090. '
+             + 'Enterprise funds are proprietary, so this is neither general_fund nor '
+             + 'total_governmental. All six rows tie component-by-component to the report '
+             + '(Hudson FY2024/FY2025, Holyoke FY2025, Florida FY2025, Gill FY2025, Gosnold '
+             + 'FY2025). ⚠ Florida prints 4,747,443 while its own five components sum to '
+             + '4,747,442; TT stores the component sum so the drill-down adds up, the same '
+             + 'choice acfrGF.py and extractBend.py make.',
+    },
+  },
+
+  {
     id: 'ma-dls-gf-rev-by-source',
     match: / — MA DLS General Fund Revenue by Source$/,
     scope: SCOPE.GENERAL_FUND,

@@ -1597,8 +1597,8 @@
       "linkless": 0
     },
     "Gill — MA DLS General Fund Revenue by Source": {
-      "unregisteredRows": 5,
-      "linkless": 1
+      "unregisteredRows": 4,
+      "linkless": 0
     },
     "Mashpee — MA General Fund Revenues": {
       "unregisteredRows": 19,
@@ -3201,8 +3201,8 @@
       "linkless": 1
     },
     "Hudson — MA DLS General Fund Revenue by Source": {
-      "unregisteredRows": 5,
-      "linkless": 2
+      "unregisteredRows": 3,
+      "linkless": 0
     },
     "Cummington — MA General Fund Revenues": {
       "unregisteredRows": 19,
@@ -4749,8 +4749,8 @@
       "linkless": 0
     },
     "Gosnold — MA DLS General Fund Revenue by Source": {
-      "unregisteredRows": 5,
-      "linkless": 1
+      "unregisteredRows": 4,
+      "linkless": 0
     },
     "Louisiana State ACFR — General Fund (FY2008 actual, GAAP basis)": {
       "unregisteredRows": 1,
@@ -5369,8 +5369,8 @@
       "linkless": 0
     },
     "Florida — MA DLS General Fund Revenue by Source": {
-      "unregisteredRows": 5,
-      "linkless": 1
+      "unregisteredRows": 4,
+      "linkless": 0
     },
     "Kentucky State ACFR — General Fund (FY2002 actual, GAAP basis)": {
       "unregisteredRows": 1,
@@ -5729,8 +5729,8 @@
       "linkless": 0
     },
     "Holyoke — MA DLS General Fund Revenue by Source": {
-      "unregisteredRows": 5,
-      "linkless": 1
+      "unregisteredRows": 4,
+      "linkless": 0
     },
     "WA State Auditor — Bainbridge Island Annual Financial Report FY2015 (General Fund, Revenue by Source)": {
       "unregisteredRows": 1,
@@ -15709,6 +15709,26 @@
       "linkless": 0
     },
     "Iowa State ACFR — General Fund (FY2023 actual, GAAP basis)": {
+      "unregisteredRows": 1,
+      "linkless": 0
+    },
+    "Hudson — MA DLS Revenue by Source (Total Receipts)": {
+      "unregisteredRows": 2,
+      "linkless": 0
+    },
+    "Holyoke — MA DLS Revenue by Source (Total Receipts)": {
+      "unregisteredRows": 1,
+      "linkless": 0
+    },
+    "Florida — MA DLS Revenue by Source (Total Receipts)": {
+      "unregisteredRows": 1,
+      "linkless": 0
+    },
+    "Gill — MA DLS Revenue by Source (Total Receipts)": {
+      "unregisteredRows": 1,
+      "linkless": 0
+    },
+    "Gosnold — MA DLS Revenue by Source (Total Receipts)": {
       "unregisteredRows": 1,
       "linkless": 0
     }
