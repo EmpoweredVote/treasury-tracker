@@ -20,9 +20,9 @@ import { familyOf } from '../scripts/lib/sourceUrlProbe.mjs';
 describe('the uncited baseline as shipped', () => {
   const total = Object.values(UNCITED_BASELINE.families).reduce((a, b) => a + b, 0);
 
-  it('carries 305 uncited budgets across 52 families', () => {
-    expect(total).toBe(305);
-    expect(Object.keys(UNCITED_BASELINE.families)).toHaveLength(52);
+  it('carries 299 uncited budgets across 51 families', () => {
+    expect(total).toBe(299);
+    expect(Object.keys(UNCITED_BASELINE.families)).toHaveLength(51);
   });
 
   it('⛔ does not carry the four families 20261113140000 cited', () => {
@@ -35,14 +35,20 @@ describe('the uncited baseline as shipped', () => {
       .toBeUndefined();
     expect(UNCITED_BASELINE.families['MA General Fund Revenues']).toBeUndefined();
     expect(UNCITED_BASELINE.families['MA General Fund Expenditures']).toBe(1);
-    // ⭐ 10 → 6 on 2026-11-14 (20261114090000). Four of the ten were never
-    // "a figure the publisher stopped printing" at all — they were stale
-    // Revenue-by-Source rows (Total Receipts, enterprise funds included) in a
-    // General Fund family, and those four municipalities have since filed
-    // Schedule A, so they now carry the publisher's own General Fund figure
-    // and tree. ⛔ The remaining SIX still have not filed; Schedule A prints
-    // zeros for them and there is nothing honest to adopt.
-    expect(UNCITED_BASELINE.families['MA DLS General Fund Revenue by Source']).toBe(6);
+    // ⭐⭐ 10 → 6 → GONE, over two migrations on 2026-11-14. None of the ten
+    // was "a figure the publisher stopped printing": all were stale
+    // Revenue-by-Source rows (Total Receipts, enterprise funds included)
+    // sitting in a General Fund family.
+    //   · 20261114090000 — four had since filed Schedule A and took the
+    //     publisher's own General Fund figure and tree.
+    //   · 20261114100000 — the other six have NOT filed, so instead of
+    //     inventing a General Fund figure they were told the truth: scope
+    //     all_funds, relabelled to "MA DLS Revenue by Source (Total
+    //     Receipts)", and cited to the report they actually came from after a
+    //     6/6 component-level tie. A cited row is not citation debt, so the
+    //     family leaves this file entirely.
+    expect(UNCITED_BASELINE.families['MA DLS General Fund Revenue by Source']).toBeUndefined();
+    expect(UNCITED_BASELINE.families['MA DLS Revenue by Source (Total Receipts)']).toBeUndefined();
   });
 
   it('⛔ does not carry the seven families #389 cited', () => {

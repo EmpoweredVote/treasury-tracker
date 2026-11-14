@@ -4,7 +4,7 @@
  * ⚠⚠⚠ THIS IS THE DEGENERATE CASE OF THE DEAD-CITATION DEFECT. A budget with a
  * broken `source_url` asks the reader to believe a figure and hands them a link
  * that fails; a budget with no `source_url` asks them to believe it and hands
- * them nothing. 305 budgets are in the second state, which is 0.05% of the
+ * them nothing. 299 budgets are in the second state, which is 0.05% of the
  * fleet (~585,300 rows: `pg_class.reltuples` for `treasury.budgets`, read
  * 2026-11-13) — so `verify:source-urls` failing on their EXISTENCE would be
  * red from the first run, and a gate that is red by design is a gate nobody
@@ -75,7 +75,7 @@
  * 32 of 32 live, exit 0 each — checkregister.plano.gov, friscotexas.gov,
  * mckinneytexas.org, controllerdata.lacity.org, data.bloomington.in.gov.
  *
- * ⭐⭐⭐ 2026-11-13, SECOND PASS: 24,806 → 309 (→ 305 on 2026-11-14), and the four families that
+ * ⭐⭐⭐ 2026-11-13, SECOND PASS: 24,806 → 309 (→ 299 on 2026-11-14), and the four families that
  * were 97.5% of this file are gone. MA General Fund Expenditures (8,408), CA
  * publicpay (7,682), MA General Fund Revenues (6,663) and MA DLS General Fund
  * Revenue by Source (1,755) — 24,497 budgets cited in one migration. CA cites
@@ -102,9 +102,18 @@
  * skips a zero rather than writing one.
  *
  * ⭐ FOUR have since been filed and now carry the publisher's General Fund
- * figure and tree (10 → 6). ⛔ SIX still have not: Schedule A prints zeros,
- * and writing 0 would publish "this town collected nothing", a worse falsehood
- * than the one being fixed. They stay named here until a person decides.
+ * figure and tree (10 → 6, `20261114090000`).
+ *
+ * ⭐⭐ AND THE OTHER SIX LEFT THIS FILE TOO, WITHOUT A FIGURE BEING INVENTED
+ * (`20261114100000`). They still have not filed, so there was no General Fund
+ * figure to adopt and writing 0 would have published "this town collected
+ * nothing" — a worse falsehood than the one being fixed. Nothing was wrong
+ * with their NUMBERS, only with the label on them, so all three false claims
+ * moved at once: `fund_scope` general_fund → all_funds, `data_source` → "MA
+ * DLS Revenue by Source (Total Receipts)", and a citation to the report they
+ * actually came from, tied 6/6 component-by-component first. ⭐ A cited row is
+ * not citation debt, which is why the family is gone from the list below
+ * rather than sitting at 6.
  *
  * ⚠ ABINGTON FY2025 IS A DIFFERENT CASE AND IS NOT A TT DEFECT: its stored
  * 69,061,344 matches docs/MA/GenFundExpenditures2025.xlsx to the dollar. The
@@ -121,7 +130,7 @@
  * families carry one `data_source` per town, 351 of them, three times over) and
  * the fiscal year is stripped wherever it sits, including the middle of the
  * federal names. That collapses every distinct `data_source` string still
- * carrying an uncited budget to these 52 families — small enough that every
+ * carrying an uncited budget to these 51 families — small enough that every
  * one is named here rather than hidden in a tail bucket, so a new uncited year
  * moves a COUNT a reviewer can see.
  *
@@ -137,7 +146,7 @@
  * (1,755) — 24,497 of those 24,508 budgets now carry a citation, and the
  * remaining 11 are figure defects named above rather than citation debt.
  *
- * ⚠ What is left is 305 budgets across 52 families, none of them over 50, so
+ * ⚠ What is left is 299 budgets across 51 families, none of them over 50, so
  * the next pay-down is one-by-one rather than wholesale: the three federal
  * OMB/MTS families (150), Bloomington's blocked checkbook (24 + 11), and what
  * remains of the laptop-path backlog — Sacramento 28, San Francisco 8,
@@ -158,12 +167,6 @@ export const UNCITED_BASELINE = {
     "Sacramento Operating Budget": 14,
     "Sacramento Revenue Budget": 14,
     "Bloomington Public Contracts": 11,
-    // ⭐ 10 → 6 on 2026-11-14 (20261114090000). The four that left were never
-    // a figure the publisher had stopped printing — they were stale
-    // Revenue-by-Source rows (Total Receipts, enterprise funds INCLUDED) in a
-    // General Fund family, and those municipalities have since filed Schedule
-    // A. ⛔ The six that remain still have not filed.
-    "MA DLS General Fund Revenue by Source": 6,
     "cambridge-open-data": 8,
     "Leonardtown Operating Budget": 6,
     "McKinney Revenue": 5,
