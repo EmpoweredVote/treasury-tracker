@@ -169,6 +169,60 @@ describe('probeUrl retries a name that did not resolve', () => {
     expect(calls.n).toBeGreaterThan(2);
   });
 
+  /**
+   * ⚠⚠⚠ THE SHAPE NODE ACTUALLY THROWS — AND THE REASON THE TESTS ABOVE ARE
+   * NOT ENOUGH ON THEIR OWN.
+   *
+   * Every test in this file hands `probeUrl` an Error whose MESSAGE is the
+   * interesting string. Node does not do that. Measured 2026-11-14 against a
+   * hostname that cannot resolve:
+   *
+   *     message : "fetch failed"
+   *     cause   : "getaddrinfo ENOTFOUND …"
+   *     code    : "ENOTFOUND"
+   *
+   * undici collapses every failure — DNS, refused socket, reset — into the one
+   * word "fetch failed" and hides the cause one level down. So a mocked
+   * `new Error('getaddrinfo ENOTFOUND …')` tests a string the live code never
+   * sees, and #399's ENOTFOUND token was dead on the node path from the hour
+   * it shipped. The retry still fired in the gate ONLY because curl's verbose
+   * error reaches `out.error` further down — which means the whole retry was
+   * silently load-bearing on `curlImpl` being wired.
+   *
+   * ⭐ These two pin the realistic shape, so the node path stands on its own.
+   */
+  it('⭐⭐ surfaces the CAUSE of node\'s "fetch failed", and retries on it', async () => {
+    const nodeDnsError = () => Object.assign(new TypeError('fetch failed'), {
+      cause: Object.assign(new Error('getaddrinfo ENOTFOUND publications.iowa.gov'),
+        { code: 'ENOTFOUND' }),
+    });
+    let n = 0;
+    const impl = async () => {
+      n += 1;
+      if (n >= 3) return { status: 200, headers: { get: () => 'application/pdf' } };
+      throw nodeDnsError();
+    };
+    const r = await probeUrl('https://publications.iowa.gov/10536/1/FY09_cafr.pdf',
+      { fetchImpl: impl, sleepImpl: noSleep });
+    expect(r.status).toBe(200);
+    expect(r.recoveredAfterRetry).toBe(true);
+  });
+
+  it('⭐ keeps the cause in the reported error, so a log line is diagnostic', async () => {
+    // ⚠ 2,067 identical "fetch failed" lines tell an operator nothing about
+    // which half of the network broke. The cause is the whole message.
+    const impl = async () => {
+      throw Object.assign(new TypeError('fetch failed'), {
+        cause: Object.assign(new Error('connect ECONNREFUSED 1.2.3.4:443'),
+          { code: 'ECONNREFUSED' }),
+      });
+    };
+    const r = await probeUrl('https://x.gov/a.pdf',
+      { fetchImpl: impl, sleepImpl: noSleep, retries: 1 });
+    expect(r.status).toBeNull();
+    expect(r.error).toMatch(/ECONNREFUSED/);
+  });
+
   it('⛔ CONFIRMATION IS NOT IMMUNITY — a name that is really gone still fails', async () => {
     // ⚠ This is the case the retry must NOT excuse. `ohioauditor.gov`'s apex
     // does not resolve at all (publisherOutages.mjs records curl exit 6), and
