@@ -33,6 +33,61 @@
  * partial run of 2026-11-12 and refusing hours later. Expect entries here to go
  * stale — that is the mechanism working, not a bug. Delete them when they do.
  *
+ * ══════════════════════════════════════════════════════════════════════════
+ * ⭐⭐⭐ 26 → 8: BEND'S EIGHTEEN WERE DELETED ON 2026-11-13, AND WHY THEY WERE
+ * EVER WRITTEN IS THE LESSON
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * Every Bend entry said the same thing: *"bendoregon.gov answers 403 text/html
+ * to every automated client tried — node and curl, with and without the
+ * Sec-Fetch headers."* That sentence was honest and it was wrong, because the
+ * client is not the only variable. Measured on the same URL in the same
+ * minute, 2026-11-13:
+ *
+ *   curl   Range: bytes=0-0   →  206 application/pdf          ✅
+ *   curl   full GET           →  403 + 1,575 B "Checking your browser…"
+ *   node   Range: bytes=0-0   →  403 + 103 B
+ *   node   HEAD / full GET    →  403
+ *
+ * ⚠⚠⚠ TWO INDEPENDENT REFUSALS, AND THE 2026-11-12 CHECK HIT BOTH AT ONCE:
+ *
+ *   1. **Node's fetch is fingerprinted and refused outright.** Not a rate
+ *      limit, not a header — the same shape `sourceUrlProbe.mjs` already
+ *      records for mckinneytexas.org (403) and web.archive.org (429). Headers
+ *      change nothing: curl serves with and without Sec-Fetch, node is refused
+ *      with and without it.
+ *   2. **Whole-file GETs are challenged** whatever the client, which is an
+ *      ordinary bandwidth policy and not a statement about the document.
+ *
+ * ⭐⭐ SO THE PROBE THAT ANSWERS IS THE ONE THAT ASKS FOR A BYTE. The missing
+ * variable on 2026-11-12 was never a header; it was `Range`. A reader clicking
+ * the link gets the PDF, and so does anything that asks the way a range
+ * request asks.
+ *
+ * ⛔⛔ AND THE GREEN RUN IS LOAD-BEARING ON THE curl FALLBACK. The gate reaches
+ * 206 on all eighteen only because `probeOnce` climbs HEAD → ranged GET → curl
+ * and the first two rungs are refused. Delete that fallback (#387) and
+ * eighteen correct Bend citations go red the same day.
+ *
+ * ⚠ A WRONG DIAGNOSIS WAS TRIED FIRST AND IS RECORDED SO IT IS NOT RETRIED:
+ * the 403s looked like a bot score provoked by downloading eighteen ACFRs in a
+ * burst, so the host was left in silence for fifteen minutes and re-asked
+ * cold. It answered 403 to all eighteen, because nothing was draining. The
+ * Archive's cumulative-limiter shape is real (#387) and this was not it.
+ *
+ * ⭐⭐⭐ NONE OF THE EIGHTEEN WAS DELETED ON A 206 ALONE. `extractBend.py` read
+ * these ACFRs out of `docs/Bend/` at load time and the files are still there,
+ * so the whole ladder was climbed without costing Bend a download:
+ *   · 32 of 36 budgets: the stored figure appears verbatim in that year's ACFR.
+ *   · 4 of 36 differ by exactly $1 — FY2010 revenue, FY2013 operating, FY2014
+ *     both — and all four are already registered in `extractBend.py`'s
+ *     `source_rounding` with that exact delta. They are Bend's own printed
+ *     total disagreeing with Bend's own printed components; the extractor
+ *     stores the component sum so the drill-down adds up.
+ *   · 18 of 18 `Content-Range` totals equal the local file's size byte for
+ *     byte, which is what makes the figure tie a statement about the document
+ *     AT THAT URL rather than about a file on one laptop.
+ *
  * @type {{id: string, url: string, why: string, checkedOn: string}[]}
  */
 export const SOURCE_URL_EXCEPTIONS = [
@@ -70,114 +125,6 @@ export const SOURCE_URL_EXCEPTIONS = [
     id: "ohio-oh-fy2024",
     url: "https://archives.obm.ohio.gov/Files/State_Accounting/Financial_Reporting/Comprehensive_Annual_Financial_Report/2024/ACFR_2024.pdf",
     why: "Ohio, OH FY2024 \u2014 archives.obm.ohio.gov omits its TLS intermediate certificate, so curl and node abort the handshake (\"unable to get local issuer certificate\"); browsers fetch the missing certificate themselves via AIA and the file serves. A person opened it in a browser on 2026-11-12 and the PDF renders; with the chain ignored the server returns 200 application/pdf, 11.7 MB. The defect is the publisher's to fix.",
-    checkedOn: '2026-11-12',
-  },
-  {
-    id: "bend-or-fy2014",
-    url: "https://bendoregon.gov/wp-content/uploads/2025/12/2013-2014-CAFR.pdf",
-    why: "Bend, OR FY2014 \u2014 bendoregon.gov answers 403 text/html to every automated client tried \u2014 node and curl, with and without the Sec-Fetch and Upgrade-Insecure-Requests headers this repo's own Oregon loader used to get through. A person opened it in a browser on 2026-11-12 and the PDF renders. A bot challenge tightened since the files were loaded, not a missing document.",
-    checkedOn: '2026-11-12',
-  },
-  {
-    id: "bend-or-fy2016",
-    url: "https://bendoregon.gov/wp-content/uploads/2025/12/20152016CAFR.pdf",
-    why: "Bend, OR FY2016 \u2014 bendoregon.gov answers 403 text/html to every automated client tried \u2014 node and curl, with and without the Sec-Fetch and Upgrade-Insecure-Requests headers this repo's own Oregon loader used to get through. A person opened it in a browser on 2026-11-12 and the PDF renders. A bot challenge tightened since the files were loaded, not a missing document.",
-    checkedOn: '2026-11-12',
-  },
-  {
-    id: "bend-or-fy2024",
-    url: "https://bendoregon.gov/wp-content/uploads/2025/12/2023-2024-Annual-Financial-Report-with-Links.pdf",
-    why: "Bend, OR FY2024 \u2014 bendoregon.gov answers 403 text/html to every automated client tried \u2014 node and curl, with and without the Sec-Fetch and Upgrade-Insecure-Requests headers this repo's own Oregon loader used to get through. A person opened it in a browser on 2026-11-12 and the PDF renders. A bot challenge tightened since the files were loaded, not a missing document.",
-    checkedOn: '2026-11-12',
-  },
-  {
-    id: "bend-or-fy2013",
-    url: "https://bendoregon.gov/wp-content/uploads/2025/12/CAFR-12_13-as-of-121613-Final-with-dividers-tabs.pdf",
-    why: "Bend, OR FY2013 \u2014 bendoregon.gov answers 403 text/html to every automated client tried \u2014 node and curl, with and without the Sec-Fetch and Upgrade-Insecure-Requests headers this repo's own Oregon loader used to get through. A person opened it in a browser on 2026-11-12 and the PDF renders. A bot challenge tightened since the files were loaded, not a missing document.",
-    checkedOn: '2026-11-12',
-  },
-  {
-    id: "bend-or-fy2019",
-    url: "https://bendoregon.gov/wp-content/uploads/2025/12/City-Of-Bend-Oregon-FY2018-2019-CAFR-FINAL-ORIGINAL.pdf",
-    why: "Bend, OR FY2019 \u2014 bendoregon.gov answers 403 text/html to every automated client tried \u2014 node and curl, with and without the Sec-Fetch and Upgrade-Insecure-Requests headers this repo's own Oregon loader used to get through. A person opened it in a browser on 2026-11-12 and the PDF renders. A bot challenge tightened since the files were loaded, not a missing document.",
-    checkedOn: '2026-11-12',
-  },
-  {
-    id: "bend-or-fy2025",
-    url: "https://bendoregon.gov/wp-content/uploads/2025/12/City-of-Bend-ACFR-FY20242025.pdf",
-    why: "Bend, OR FY2025 \u2014 bendoregon.gov answers 403 text/html to every automated client tried \u2014 node and curl, with and without the Sec-Fetch and Upgrade-Insecure-Requests headers this repo's own Oregon loader used to get through. A person opened it in a browser on 2026-11-12 and the PDF renders. A bot challenge tightened since the files were loaded, not a missing document.",
-    checkedOn: '2026-11-12',
-  },
-  {
-    id: "bend-or-fy2017",
-    url: "https://bendoregon.gov/wp-content/uploads/2025/12/City-of-Bend-CAFR-2016-2017.pdf",
-    why: "Bend, OR FY2017 \u2014 bendoregon.gov answers 403 text/html to every automated client tried \u2014 node and curl, with and without the Sec-Fetch and Upgrade-Insecure-Requests headers this repo's own Oregon loader used to get through. A person opened it in a browser on 2026-11-12 and the PDF renders. A bot challenge tightened since the files were loaded, not a missing document.",
-    checkedOn: '2026-11-12',
-  },
-  {
-    id: "bend-or-fy2011",
-    url: "https://bendoregon.gov/wp-content/uploads/2025/12/City-of-Bend-FY10-11-CAFR-12-20-11.pdf",
-    why: "Bend, OR FY2011 \u2014 bendoregon.gov answers 403 text/html to every automated client tried \u2014 node and curl, with and without the Sec-Fetch and Upgrade-Insecure-Requests headers this repo's own Oregon loader used to get through. A person opened it in a browser on 2026-11-12 and the PDF renders. A bot challenge tightened since the files were loaded, not a missing document.",
-    checkedOn: '2026-11-12',
-  },
-  {
-    id: "bend-or-fy2020",
-    url: "https://bendoregon.gov/wp-content/uploads/2025/12/CityOfBendOregonFY20192020.pdf",
-    why: "Bend, OR FY2020 \u2014 bendoregon.gov answers 403 text/html to every automated client tried \u2014 node and curl, with and without the Sec-Fetch and Upgrade-Insecure-Requests headers this repo's own Oregon loader used to get through. A person opened it in a browser on 2026-11-12 and the PDF renders. A bot challenge tightened since the files were loaded, not a missing document.",
-    checkedOn: '2026-11-12',
-  },
-  {
-    id: "bend-or-fy2021",
-    url: "https://bendoregon.gov/wp-content/uploads/2025/12/CityOfBendOregonFY20202021.pdf",
-    why: "Bend, OR FY2021 \u2014 bendoregon.gov answers 403 text/html to every automated client tried \u2014 node and curl, with and without the Sec-Fetch and Upgrade-Insecure-Requests headers this repo's own Oregon loader used to get through. A person opened it in a browser on 2026-11-12 and the PDF renders. A bot challenge tightened since the files were loaded, not a missing document.",
-    checkedOn: '2026-11-12',
-  },
-  {
-    id: "bend-or-fy2008",
-    url: "https://bendoregon.gov/wp-content/uploads/2025/12/City_of_Bend_07_08_CAFR_for_Web.pdf",
-    why: "Bend, OR FY2008 \u2014 bendoregon.gov answers 403 text/html to every automated client tried \u2014 node and curl, with and without the Sec-Fetch and Upgrade-Insecure-Requests headers this repo's own Oregon loader used to get through. A person opened it in a browser on 2026-11-12 and the PDF renders. A bot challenge tightened since the files were loaded, not a missing document.",
-    checkedOn: '2026-11-12',
-  },
-  {
-    id: "bend-or-fy2022",
-    url: "https://bendoregon.gov/wp-content/uploads/2025/12/CityofBend-ACFR-FY2021-2022.pdf",
-    why: "Bend, OR FY2022 \u2014 bendoregon.gov answers 403 text/html to every automated client tried \u2014 node and curl, with and without the Sec-Fetch and Upgrade-Insecure-Requests headers this repo's own Oregon loader used to get through. A person opened it in a browser on 2026-11-12 and the PDF renders. A bot challenge tightened since the files were loaded, not a missing document.",
-    checkedOn: '2026-11-12',
-  },
-  {
-    id: "bend-or-fy2023",
-    url: "https://bendoregon.gov/wp-content/uploads/2025/12/CityofBend-ACFR-FY2022-2023-for-Web_Updated.pdf",
-    why: "Bend, OR FY2023 \u2014 bendoregon.gov answers 403 text/html to every automated client tried \u2014 node and curl, with and without the Sec-Fetch and Upgrade-Insecure-Requests headers this repo's own Oregon loader used to get through. A person opened it in a browser on 2026-11-12 and the PDF renders. A bot challenge tightened since the files were loaded, not a missing document.",
-    checkedOn: '2026-11-12',
-  },
-  {
-    id: "bend-or-fy2006",
-    url: "https://bendoregon.gov/wp-content/uploads/2025/12/FY-2006-CAFR-for-web.pdf",
-    why: "Bend, OR FY2006 \u2014 bendoregon.gov answers 403 text/html to every automated client tried \u2014 node and curl, with and without the Sec-Fetch and Upgrade-Insecure-Requests headers this repo's own Oregon loader used to get through. A person opened it in a browser on 2026-11-12 and the PDF renders. A bot challenge tightened since the files were loaded, not a missing document.",
-    checkedOn: '2026-11-12',
-  },
-  {
-    id: "bend-or-fy2012",
-    url: "https://bendoregon.gov/wp-content/uploads/2025/12/FY-2011-12-City-of-Bend-CAFR-122112.pdf",
-    why: "Bend, OR FY2012 \u2014 bendoregon.gov answers 403 text/html to every automated client tried \u2014 node and curl, with and without the Sec-Fetch and Upgrade-Insecure-Requests headers this repo's own Oregon loader used to get through. A person opened it in a browser on 2026-11-12 and the PDF renders. A bot challenge tightened since the files were loaded, not a missing document.",
-    checkedOn: '2026-11-12',
-  },
-  {
-    id: "bend-or-fy2018",
-    url: "https://bendoregon.gov/wp-content/uploads/2025/12/FY17-18-CAFR-COB-FINAL.pdf",
-    why: "Bend, OR FY2018 \u2014 bendoregon.gov answers 403 text/html to every automated client tried \u2014 node and curl, with and without the Sec-Fetch and Upgrade-Insecure-Requests headers this repo's own Oregon loader used to get through. A person opened it in a browser on 2026-11-12 and the PDF renders. A bot challenge tightened since the files were loaded, not a missing document.",
-    checkedOn: '2026-11-12',
-  },
-  {
-    id: "bend-or-fy2009",
-    url: "https://bendoregon.gov/wp-content/uploads/2025/12/FY2008_09_City_of_Bend_CAFR.pdf",
-    why: "Bend, OR FY2009 \u2014 bendoregon.gov answers 403 text/html to every automated client tried \u2014 node and curl, with and without the Sec-Fetch and Upgrade-Insecure-Requests headers this repo's own Oregon loader used to get through. A person opened it in a browser on 2026-11-12 and the PDF renders. A bot challenge tightened since the files were loaded, not a missing document.",
-    checkedOn: '2026-11-12',
-  },
-  {
-    id: "bend-or-fy2010",
-    url: "https://bendoregon.gov/wp-content/uploads/2025/12/FY2009_10_City_of_Bend_Oregon_CAFR.pdf",
-    why: "Bend, OR FY2010 \u2014 bendoregon.gov answers 403 text/html to every automated client tried \u2014 node and curl, with and without the Sec-Fetch and Upgrade-Insecure-Requests headers this repo's own Oregon loader used to get through. A person opened it in a browser on 2026-11-12 and the PDF renders. A bot challenge tightened since the files were loaded, not a missing document.",
     checkedOn: '2026-11-12',
   },
   {
