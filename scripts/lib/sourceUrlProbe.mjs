@@ -235,8 +235,31 @@ export function judgeProbe({ url, status, contentType, error }) {
  * Gateway takes 25s and sometimes loses) would double this gate's worst-case
  * runtime for no gain in truth, and a timeout at least means something
  * answered the SYN.
+ *
+ * ── ⚠⚠⚠ A NAME THAT DID NOT RESOLVE NEVER GOT TO THE SOCKET AT ALL ────────
+ *
+ * `ENOTFOUND` and `curl: (6)` were missing here until 2026-11-14, and their
+ * absence made this gate report on itself for the FOURTH time — after #373's
+ * down publisher, #374's rate limit and #376's HEAD. Measured on a fleet run
+ * of cbb7164d: **23 citations failed in one run**, every one of them
+ * `publications.iowa.gov`, every one `curl: (6) Could not resolve host`. By
+ * hand, minutes later, four of them answered `206 application/pdf` in under
+ * 100 ms. The resolver on the machine blinked and 23 correct citations were
+ * reported as unaskable.
+ *
+ * ⚠ The set already carried `EAI_AGAIN` — the DNS error that SAYS it is
+ * temporary — which is the tell that the omission was an oversight rather
+ * than a judgement: the same failure reported by a different layer under a
+ * different name went down a different path.
+ *
+ * ⭐ AND A RETRY CANNOT EXCUSE A HOST THAT IS GENUINELY GONE. This is the
+ * HEAD→GET rule one rung down: confirmation is not immunity. A name that has
+ * really been withdrawn — `ohioauditor.gov`'s apex, which
+ * `publisherOutages.mjs` records as curl exit 6 — fails every attempt and
+ * still lands on `unreachable`. The cost is three extra requests, and only
+ * for a URL already on its way to being reported.
  */
-const CONNECTION_NEVER_MADE = /Failed to connect|Connection refused|ECONNREFUSED|ECONNRESET|socket hang up|EAI_AGAIN|Could not connect to server|curl: \(3[56]\)|curl: \(7\)/i;
+const CONNECTION_NEVER_MADE = /Failed to connect|Connection refused|ECONNREFUSED|ECONNRESET|socket hang up|EAI_AGAIN|ENOTFOUND|Could not resolve host|Could not connect to server|curl: \(3[56]\)|curl: \([67]\)/i;
 
 /**
  * ⭐⭐ WHY THIS RETRIES, AND WHY ONLY THIS CASE.

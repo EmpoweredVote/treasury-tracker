@@ -121,3 +121,63 @@ describe('probeUrl retries a connection that was never made', () => {
     expect(r.error).toBeNull();
   });
 });
+
+/**
+ * ⚠⚠⚠ A NAME THAT DID NOT RESOLVE IS NOT AN ANSWER EITHER — AND THE GATE
+ * REPORTED ON ITSELF A FOURTH TIME BECAUSE OF IT.
+ *
+ * #373 called a down publisher dead. #374 called a rate limit a refusal. #376
+ * let a HEAD condemn a document. Each time the gate measured its own trouble
+ * and filed it under the publisher's name.
+ *
+ * Measured 2026-11-14, fleet run on cbb7164d: **23 citations failed in one
+ * run**, every one of them `publications.iowa.gov`, every one of them
+ * `curl: (6) Could not resolve host`. Minutes later, by hand:
+ *
+ *     FY09_cafr.pdf   206 application/pdf  connect 0.09s
+ *     10_cafr.pdf     206 application/pdf  connect 0.06s
+ *     2004CAFR.pdf    206 application/pdf  connect 0.06s
+ *     2005CAFR.pdf    206 application/pdf  connect 0.08s
+ *
+ * The host was fine. The resolver on this machine blinked, and because
+ * `CONNECTION_NEVER_MADE` carried `EAI_AGAIN` and `curl: (7)` but NOT
+ * `ENOTFOUND` or `curl: (6)`, not one of the 23 was ever re-asked.
+ *
+ * ⭐ A retry cannot EXCUSE a host that is genuinely gone — the same logic as
+ * "confirmation is not immunity" one rung up. A removed name fails all four
+ * attempts and still lands on `unreachable`; the cost is three extra requests,
+ * and only for a URL already on its way to being reported.
+ */
+describe('probeUrl retries a name that did not resolve', () => {
+  it('⭐ re-asks node\'s ENOTFOUND and reports the recovery', async () => {
+    const { impl, calls } = fetchThatFails(
+      'getaddrinfo ENOTFOUND publications.iowa.gov', { succeedOnAttempt: 3 });
+    const r = await probeUrl('https://publications.iowa.gov/10536/1/FY09_cafr.pdf',
+      { fetchImpl: impl, sleepImpl: noSleep });
+    expect(r.status).toBe(200);
+    expect(r.recoveredAfterRetry).toBe(true);
+    expect(calls.n).toBeGreaterThan(2);
+  });
+
+  it('⭐ re-asks curl exit 6, the exact error the 2026-11-14 run reported', async () => {
+    const { impl, calls } = fetchThatFails(
+      'curl: (6) Could not resolve host: publications.iowa.gov', { succeedOnAttempt: 3 });
+    const r = await probeUrl('https://publications.iowa.gov/5516/1/2004CAFR.pdf',
+      { fetchImpl: impl, sleepImpl: noSleep });
+    expect(r.status).toBe(200);
+    expect(r.recoveredAfterRetry).toBe(true);
+    expect(calls.n).toBeGreaterThan(2);
+  });
+
+  it('⛔ CONFIRMATION IS NOT IMMUNITY — a name that is really gone still fails', async () => {
+    // ⚠ This is the case the retry must NOT excuse. `ohioauditor.gov`'s apex
+    // does not resolve at all (publisherOutages.mjs records curl exit 6), and
+    // an outage is declared on evidence, never on a probe giving up quietly.
+    const { impl } = fetchThatFails('curl: (6) Could not resolve host: ohioauditor.gov');
+    const r = await probeUrl('https://ohioauditor.gov/some/report.pdf',
+      { fetchImpl: impl, sleepImpl: noSleep, retries: 2 });
+    expect(r.status).toBeNull();
+    expect(r.error).toMatch(/Could not resolve host/);
+    expect(r.recoveredAfterRetry).toBeUndefined();
+  });
+});
