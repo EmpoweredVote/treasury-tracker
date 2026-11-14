@@ -54,17 +54,53 @@ export const PUBLISHER_OUTAGES = [
     id: 'ohio-aos-cyberattack-2026-10-25',
     host: 'www.ohioauditor.gov',
     began: '2026-10-25',
-    observedOn: '2026-11-09',
-    // ⚠ A month. Long enough not to churn on a recovery that is plainly not
-    // imminent — day 16 with no stated return date — and short enough that
-    // nobody inherits this as settled fact. ⛔ Do NOT extend it without
-    // re-probing a DATA path; the homepage is not the test (see below).
+    // ⭐ RECHECKED 2026-11-13 (day 19) — STILL DOWN, and the measurement is
+    // below. `observedOn` is the last date a person confirmed it, not the date
+    // it was first believed.
+    observedOn: '2026-11-13',
+    // ⚠ A month from the FIRST observation. Long enough not to churn on a
+    // recovery that is plainly not imminent — no stated return date — and
+    // short enough that nobody inherits this as settled fact. ⛔ Do NOT extend
+    // it without re-probing a DATA path; the homepage is not the test (below).
+    //
+    // ⛔⛔ DELIBERATELY NOT PUSHED OUT BY THE 2026-11-13 RECHECK, even though
+    // the publisher now looks settled in for a while (it has started posting
+    // audit releases weekly by hand "while our systems remain offline"). That
+    // inference is an argument for expecting a longer outage, which is exactly
+    // the argument a fence exists to refuse. The date stands; a person looks
+    // on 2026-12-10.
     recheckAfter: '2026-12-10',
+    // ── ⭐⭐ WHAT THE 2026-11-13 RECHECK MEASURED ─────────────────────────
+    //
+    //   ohioauditor.gov                        curl exit 6 — does not resolve
+    //   www.ohioauditor.gov/                   200  8,566 B maintenance page
+    //                                          Last-Modified Thu 12 Nov 2026
+    //   www.ohioauditor.gov/AuditReleases/     200  4,481 B  ⭐ NEW since Nov 5
+    //   …/references/SummarizedAnnualFinancialReports      404   (landing)
+    //   …/financialreporting/default.html                  404   (filing page)
+    //   all 60 stored citations                            404   60 of 60
+    //
+    // ⚠⚠ THE LAST LINE IS FENCE 2 AND IT HOLDS: not one of the sixty resolves,
+    // so the declaration still describes reality. ⭐ Probed with RANGED CURL,
+    // never node's fetch — #394 measured hosts that refuse node outright while
+    // serving curl, and a node 403 would be a fact about node.
+    //
+    // ⭐⭐⭐ AND THE SHAPE IS SHARPER THAN "THE PUBLISHER IS DOWN". The web
+    // server answers fine; what is missing is the whole financial-reporting
+    // section — its landing page, its filing page and all sixty files, while
+    // a hand-maintained releases page went UP during the outage. A 404 from a
+    // server that is simultaneously publishing a notice about being degraded
+    // is not the publisher saying the document is gone, which is the entire
+    // reason `dead` would be the wrong verdict here.
     evidence:
       'On Sunday Oct. 25, the web server of the Ohio Auditor of State’s office was attacked '
       + 'by overseas cybercriminals and potentially foreign state actors … we took the web '
       + 'server and online accounts offline while internal and external experts scrutinize the '
-      + 'threat activity. — Auditor Keith Faber',
+      + 'threat activity. — Auditor Keith Faber'
+      // ⭐ Read off the same page on 2026-11-13, and the freshest dated thing
+      // the publisher says about its own systems. ⚠ Quoted, never summarised.
+      + ' ‖ As of November 5, 2026, audit reports scheduled for release are being posted each '
+      + 'Thursday on this temporary page while our systems remain offline.',
     evidenceUrl: 'https://www.ohioauditor.gov/',
     citations: 60,
     budgets: 6616,

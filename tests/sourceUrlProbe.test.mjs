@@ -526,4 +526,20 @@ describe('the Ohio declaration itself', () => {
       expect(o.host).not.toMatch(/\//);
     }
   });
+
+  it('⛔ dates an outage can actually have — a future "observed" is nobody looking', () => {
+    // ⚠ The sibling rule already enforced on sourceUrlExceptions: `checkedOn`
+    // is the date a PERSON looked, so a date in the future is not evidence,
+    // it is a typo or a guess. `observedOn` carries exactly that weight here —
+    // the 2026-11-13 Ohio recheck moved it from 2026-11-09 — so it gets the
+    // same floor, plus the ordering that makes the three dates tell one story.
+    const today = new Date().toISOString().slice(0, 10);
+    for (const o of PUBLISHER_OUTAGES) {
+      expect(o.began, `${o.id} began`).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+      expect(o.observedOn, `${o.id} observedOn`).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+      expect(o.observedOn <= today, `${o.id} observedOn ${o.observedOn} is in the future`).toBe(true);
+      expect(o.began <= o.observedOn, `${o.id} was observed before it began`).toBe(true);
+      expect(o.recheckAfter > o.observedOn, `${o.id} expires on or before it was observed`).toBe(true);
+    }
+  });
 });
