@@ -161,6 +161,28 @@ export async function askWaybackAvailability(parsed, { fetchImpl = fetch, timeou
  * wrong mimetype too — see `sourceUrlProbe.mjs`, where a row that fails the
  * citation's promised type falls through to a real fetch instead of condemning
  * it.
+ *
+ * ── ⚠⚠⚠ TWO WAYS A CDX QUERY LIES BY RETURNING NOTHING ────────────────────
+ *
+ * Neither affects `cdxApiUrl` below, which asks for ONE exact URL. Both bite
+ * the moment somebody asks "is this directory archived at all?", which is
+ * exactly what the 2026-11-13 Ohio fallback check needed.
+ *
+ *   1. ⛔ **`url=path/*` SILENTLY RETURNS `[]`.** The documented wildcard does
+ *      not work here. Measured on the same path in the same minute:
+ *        url=ohioauditor.gov/references/*                 → 0 rows
+ *        url=ohioauditor.gov/references/ + matchType=prefix → 40 rows
+ *      Use `matchType=prefix` with NO asterisk. Every zero collected the other
+ *      way is an artifact, and it reads exactly like "nothing is archived".
+ *
+ *   2. ⛔ **AN OVERLOADED ARCHIVE SERVES HTML, NOT JSON.** `Temporarily
+ *      Offline` comes back with the same 200 a real answer has, and a parser
+ *      counting JSON rows scores it zero. Check the body before trusting a
+ *      count, and retry rather than record it.
+ *
+ * ⭐ And prove the instrument before believing any negative: ask for something
+ * known to be archived on the SAME code path. A control that returns rows is
+ * what separates "the Archive does not have it" from "I asked wrong".
  */
 export function cdxApiUrl({ timestamp, original } = {}) {
   return 'https://web.archive.org/cdx/search/cdx'
