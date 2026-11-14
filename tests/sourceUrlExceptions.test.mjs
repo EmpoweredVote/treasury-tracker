@@ -16,19 +16,25 @@ const isPdf = (u) => u.toLowerCase().endsWith('.pdf');
 const refused = (url) => ({ url, status: 403, contentType: 'text/html', error: null });
 
 describe('the declarations as shipped', () => {
-  it('declares the 26 citations the 2026-11-12 fleet run could not ask', () => {
+  it('declares the 8 citations still refused, on the three hosts still refusing', () => {
     const byHost = {};
     for (const e of SOURCE_URL_EXCEPTIONS) {
       const host = new URL(e.url).host;
       byHost[host] = (byHost[host] ?? 0) + 1;
     }
+    // ⚠⚠ bendoregon.gov IS DELIBERATELY ABSENT, AND SAYING SO IS THE POINT.
+    // Its 18 entries were written on 2026-11-12, when the host answered 403
+    // text/html to every automated client tried. On 2026-11-13 it answered the
+    // gate's own ranged probe with 206 application/pdf for all eighteen, so
+    // the file was carrying eighteen sentences about the web that were no
+    // longer true — the one thing this file's own docblock forbids.
     expect(byHost).toEqual({
-      'bendoregon.gov': 18,
       'archives.obm.ohio.gov': 6,
       'cms6.revize.com': 1,
       'data.virginia.gov': 1,
     });
-    expect(SOURCE_URL_EXCEPTIONS).toHaveLength(26);
+    expect(SOURCE_URL_EXCEPTIONS).toHaveLength(8);
+    expect(SOURCE_URL_EXCEPTIONS.some((e) => e.url.includes('bendoregon.gov'))).toBe(false);
   });
 
   it('declares a unique url per entry', () => {
@@ -62,7 +68,7 @@ describe('what a declaration does, measured against the real entries', () => {
   it('excuses each declared citation when its host refuses an automated client', () => {
     const obs = SOURCE_URL_EXCEPTIONS.map((e) => refused(e.url));
     const c = classifyCitations(obs, SOURCE_URL_EXCEPTIONS);
-    expect(c.confirmed).toHaveLength(26);
+    expect(c.confirmed).toHaveLength(8);
     expect(c.unreachable).toEqual([]);
     expect(c.stale).toEqual([]);
   });
@@ -74,7 +80,7 @@ describe('what a declaration does, measured against the real entries', () => {
       url: e.url, status: 404, contentType: 'text/html', error: null,
     }));
     const c = classifyCitations(obs, SOURCE_URL_EXCEPTIONS);
-    expect(c.dead).toHaveLength(26);
+    expect(c.dead).toHaveLength(8);
     expect(c.confirmed).toEqual([]);
   });
 
@@ -100,13 +106,13 @@ describe('what a declaration does, measured against the real entries', () => {
       error: null,
     }));
     const c = classifyCitations(obs, SOURCE_URL_EXCEPTIONS);
-    expect(c.stale).toHaveLength(26);
+    expect(c.stale).toHaveLength(8);
     expect(c.ok).toEqual([]);
   });
 
   it('goes stale when TT stops storing the url at all', () => {
     const c = classifyCitations([], SOURCE_URL_EXCEPTIONS);
-    expect(c.stale).toHaveLength(26);
+    expect(c.stale).toHaveLength(8);
     expect(c.stale.every((s) => s.verdict === 'absent')).toBe(true);
   });
 });

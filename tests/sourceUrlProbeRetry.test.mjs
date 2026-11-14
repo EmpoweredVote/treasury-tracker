@@ -88,8 +88,13 @@ describe('probeUrl retries a connection that was never made', () => {
   });
 
   it('⛔ NEVER re-asks an HTTP answer — a 403 is stable and means something', async () => {
-    // Bend, OR answers 403 to every client. Retrying it would treble this
-    // gate's runtime against ~20 citations to learn nothing new.
+    // Bend, OR answered 403 to every client on 2026-11-12. Retrying it would
+    // treble this gate's runtime against ~20 citations to learn nothing new.
+    //
+    // ⚠ The URL is a fixture, not a claim: `fetchImpl` supplies the 403, and
+    // what this pins is that ONE HTTP answer ends the asking. Bend itself
+    // relented on 2026-11-13 and its declarations were deleted — a host that
+    // changes its mind must not quietly change what this test asserts.
     let n = 0;
     const impl = async () => { n += 1; return { status: 403, headers: { get: () => 'text/html' } }; };
     const r = await probeUrl('https://bendoregon.gov/wp-content/uploads/2025/12/x.pdf',
