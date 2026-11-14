@@ -92,6 +92,43 @@ export const PUBLISHER_OUTAGES = [
     // server that is simultaneously publishing a notice about being degraded
     // is not the publisher saying the document is gone, which is the entire
     // reason `dead` would be the wrong verdict here.
+    //
+    // ══════════════════════════════════════════════════════════════════════
+    // ⛔⛔⛔ THERE IS NO ARCHIVE FALLBACK. CHECKED 2026-11-13, DO NOT RE-SURVEY.
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // #393 set the precedent: verify a fallback BEFORE the fence expires and
+    // record it, so the next session starts from evidence rather than a cold
+    // survey. Vermont's answer was "yes, and here are the two timestamps".
+    // Ohio's answer is NO, and that is worth just as much in December.
+    //
+    //   the 60 cited .XLSX files, exact-URL CDX, `www.` AND apex   0 captures
+    //   the whole SummarizedReports/ directory, prefix CDX         0 captures
+    //   …/SummarizedAnnualFinancialReports (the landing page)      2 captures
+    //                                       20200812062230, 20250527114147
+    //   anything under /references/                               40 captures
+    //
+    // So the Archive crawls this host and this path, and still holds not one
+    // of the sixty files. ⭐⭐ THE REASON IS STRUCTURAL, WHICH IS WHY RE-ASKING
+    // LATER WILL NOT HELP: the file links are not on the page. They are
+    // revealed by POSTing `entitytype=City` to its JS form (that is how this
+    // project found them — reference_ohio_aos_financial_data), and a crawler
+    // that follows links can never reach a URL that no link points to.
+    //
+    // ⚠⚠ THE NEGATIVE WAS NOT BELIEVED UNTIL THE INSTRUMENT WAS PROVED. This
+    // file's own machinery records that `/wayback/available` returned "no
+    // snapshot" 20/20 for a capture that exists, so an empty answer is a claim
+    // needing evidence. Two things earned it: POSITIVE CONTROLS on the same
+    // code path (the ohioauditor.gov homepage, and the Vermont ACFR proven
+    // archived in #393) both returned rows — and a CORRECTED QUERY SHAPE, see
+    // the asterisk trap in scripts/lib/waybackCitation.mjs, which had been
+    // silently producing false zeroes.
+    //
+    // ⭐ WHAT THIS LEAVES FOR 2026-12-10. The options are NOT {Archive,
+    // mirror} — mirrors are refused below and the Archive is empty. They are:
+    // extend the fence on fresh evidence, or decide what is honest to do with
+    // 6,616 budgets whose citations may not be recoverable. ⛔ That is a
+    // decision for a person, and it is now an informed one.
     evidence:
       'On Sunday Oct. 25, the web server of the Ohio Auditor of State’s office was attacked '
       + 'by overseas cybercriminals and potentially foreign state actors … we took the web '
