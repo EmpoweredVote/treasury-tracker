@@ -4,7 +4,7 @@
  * ⚠⚠⚠ THIS IS THE DEGENERATE CASE OF THE DEAD-CITATION DEFECT. A budget with a
  * broken `source_url` asks the reader to believe a figure and hands them a link
  * that fails; a budget with no `source_url` asks them to believe it and hands
- * them nothing. 299 budgets are in the second state, which is 0.05% of the
+ * them nothing. 298 budgets are in the second state, which is 0.05% of the
  * fleet (~585,300 rows: `pg_class.reltuples` for `treasury.budgets`, read
  * 2026-11-13) — so `verify:source-urls` failing on their EXISTENCE would be
  * red from the first run, and a gate that is red by design is a gate nobody
@@ -75,7 +75,7 @@
  * 32 of 32 live, exit 0 each — checkregister.plano.gov, friscotexas.gov,
  * mckinneytexas.org, controllerdata.lacity.org, data.bloomington.in.gov.
  *
- * ⭐⭐⭐ 2026-11-13, SECOND PASS: 24,806 → 309 (→ 299 on 2026-11-14), and the four families that
+ * ⭐⭐⭐ 2026-11-13, SECOND PASS: 24,806 → 309 (→ 298 on 2026-11-14), and the four families that
  * were 97.5% of this file are gone. MA General Fund Expenditures (8,408), CA
  * publicpay (7,682), MA General Fund Revenues (6,663) and MA DLS General Fund
  * Revenue by Source (1,755) — 24,497 budgets cited in one migration. CA cites
@@ -130,7 +130,7 @@
  * families carry one `data_source` per town, 351 of them, three times over) and
  * the fiscal year is stripped wherever it sits, including the middle of the
  * federal names. That collapses every distinct `data_source` string still
- * carrying an uncited budget to these 51 families — small enough that every
+ * carrying an uncited budget to these 50 families — small enough that every
  * one is named here rather than hidden in a tail bucket, so a new uncited year
  * moves a COUNT a reviewer can see.
  *
@@ -146,7 +146,7 @@
  * (1,755) — 24,497 of those 24,508 budgets now carry a citation, and the
  * remaining 11 are figure defects named above rather than citation debt.
  *
- * ⚠ What is left is 299 budgets across 51 families, none of them over 50, so
+ * ⚠ What is left is 298 budgets across 50 families, none of them over 50, so
  * the next pay-down is one-by-one rather than wholesale: the three federal
  * OMB/MTS families (150), Bloomington's blocked checkbook (24 + 11), and what
  * remains of the laptop-path backlog — Sacramento 28, San Francisco 8,
@@ -196,7 +196,6 @@ export const UNCITED_BASELINE = {
     "LA County Open Data - Employee Salaries": 1,
     "Longview Operating Budget": 1,
     "Longview Revenue": 1,
-    "MA General Fund Expenditures": 1,
     "Murphy Operating Budget": 1,
     "Norfolk County Operating Budget": 1,
     "platform exports": 1,
