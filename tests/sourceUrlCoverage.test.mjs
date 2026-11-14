@@ -20,22 +20,29 @@ import { familyOf } from '../scripts/lib/sourceUrlProbe.mjs';
 describe('the uncited baseline as shipped', () => {
   const total = Object.values(UNCITED_BASELINE.families).reduce((a, b) => a + b, 0);
 
-  it('carries 309 uncited budgets across 52 families', () => {
-    expect(total).toBe(309);
+  it('carries 305 uncited budgets across 52 families', () => {
+    expect(total).toBe(305);
     expect(Object.keys(UNCITED_BASELINE.families)).toHaveLength(52);
   });
 
   it('⛔ does not carry the four families 20261113140000 cited', () => {
     // 24,497 of 24,508 budgets across these four were cited on 2026-11-13.
     // Two of the four left nothing behind at all; the other two keep only the
-    // eleven rows whose figure the publisher no longer prints, which is why
-    // this asserts a CEILING rather than absence for them. Re-loading any of
+    // rows whose figure the publisher does not print, which is why this
+    // asserts a CEILING rather than absence for them. Re-loading any of
     // these linkless would otherwise land as a pay-down notice, not a failure.
     expect(UNCITED_BASELINE.families['Government Compensation in California (publicpay.ca.gov)'])
       .toBeUndefined();
     expect(UNCITED_BASELINE.families['MA General Fund Revenues']).toBeUndefined();
     expect(UNCITED_BASELINE.families['MA General Fund Expenditures']).toBe(1);
-    expect(UNCITED_BASELINE.families['MA DLS General Fund Revenue by Source']).toBe(10);
+    // ⭐ 10 → 6 on 2026-11-14 (20261114090000). Four of the ten were never
+    // "a figure the publisher stopped printing" at all — they were stale
+    // Revenue-by-Source rows (Total Receipts, enterprise funds included) in a
+    // General Fund family, and those four municipalities have since filed
+    // Schedule A, so they now carry the publisher's own General Fund figure
+    // and tree. ⛔ The remaining SIX still have not filed; Schedule A prints
+    // zeros for them and there is nothing honest to adopt.
+    expect(UNCITED_BASELINE.families['MA DLS General Fund Revenue by Source']).toBe(6);
   });
 
   it('⛔ does not carry the seven families #389 cited', () => {
