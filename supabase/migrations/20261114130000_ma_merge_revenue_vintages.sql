@@ -1,0 +1,115 @@
+-- MA DLS revenue: ONE series, not two. Merge the FY2021-2025 load vintage back
+-- into the family whose label is already true.
+--
+-- Applied 2026-11-14. Evidence of record: reference_ma_dls_schedule_a §"the two
+-- MA jobs", and the measurements reproduced below.
+--
+-- ── WHAT WAS WRONG ──────────────────────────────────────────────────────────
+--
+-- 1,749 rows carried `… — MA DLS General Fund Revenue by Source`, a label naming
+-- `RevenueBySource.RBS.RevbySource2` — a REAL and DIFFERENT DLS report, whose
+-- columns are Tax Levy / State Aid / Local Receipts / All Other / Enterprise &
+-- CPA Funds and whose total is Total Receipts at ALL-FUNDS scope.
+--
+-- These rows are not that. They are Schedule A General Fund revenue, the same
+-- product as the 6,663 rows labelled `… — MA General Fund Revenues`, split from
+-- them only by WHEN THEY WERE LOADED:
+--
+--     MA General Fund Revenues               FY2002-2020   6,663 rows   19 yrs
+--     MA DLS General Fund Revenue by Source  FY2021-2025   1,749 rows    5 yrs
+--
+-- ⛔ So this is a MERGE, not a rename. Inventing a third name would preserve a
+-- split that has no basis in the data. The fix is to give one continuous
+-- FY2002-2025 series the label that was already correct for 19 of its 24 years.
+--
+-- ── ⭐⭐ THE DECIDING EVIDENCE: THE CITATIONS ALREADY AGREED ─────────────────
+--
+-- Measured 2026-11-14 over all 8,412 rows of both families:
+--
+--     source_url LIKE 'https://dls-gw.dor.state.ma.us/reports/rdPage.aspx
+--                      ?rdReport=ScheduleA.GeneralFund…&islAmountType=Revenues'
+--         FY2002-2020 vintage   6,663 of 6,663
+--         FY2021-2025 vintage   1,749 of 1,749
+--
+-- Every row on BOTH sides already cites the identical report, at the identical
+-- scope, on the identical amount-type toggle. Those citations were written
+-- independently (#392, #397, #398, #400, #402) by asking the publisher. The
+-- data had been saying "one family" for some time; only the label disagreed.
+--
+-- ── EVERY OTHER AXIS WAS CHECKED BEFORE MERGING, NOT ASSUMED ────────────────
+--
+-- ⚠ A merge across two vintages that differ on ANY axis would hide that
+-- difference instead of fixing it. All of these were measured, both sides:
+--
+--     dataset_type              revenue          revenue
+--     fund_scope                general_fund     general_fund
+--     basis                     unknown          unknown
+--     period_label              NULL             NULL
+--     reporting_entity          unknown          unknown
+--     derivation                published        published
+--     audit_grade               unknown          unknown
+--     accounting_basis          unknown          unknown
+--     fiscal_year_start_month   7                7
+--     source_url                0 null           0 null
+--     category tree             flat, depth 0    flat, depth 0
+--     root-name vocabulary      the same 11      the same 11
+--     distinct municipalities   351              351
+--
+-- The 11 root names are Taxes · Service Charges · State Revenue · Licenses and
+-- Permits · Transfers · Miscellaneous · Federal Revenue · Other Financing
+-- Sources · Fines and Forfeitures · Revenue from Other Governments · Special
+-- Assessments. NOT ONE name appears in one vintage and not the other. (Which
+-- roots a given municipality-year carries varies within BOTH vintages alike —
+-- a town gets a root only where it had money — so that variation is the
+-- publisher's, not a seam between the two.)
+--
+-- ── WHY NO COLLISION IS POSSIBLE ────────────────────────────────────────────
+--
+-- `idx_budget_municipality_year_type` is UNIQUE on (municipality_id,
+-- fiscal_year, dataset_type, period_label, fund_scope, basis) NULLS NOT
+-- DISTINCT — and does NOT include data_source. Both families already share
+-- every one of those six columns, so the index ALREADY guaranteed no
+-- municipality can hold both labels in one year. Measured anyway:
+-- municipality-years present in both vintages = 0. The years are disjoint
+-- (2002-2020 vs 2021-2025).
+--
+-- The 351 name prefixes correspond one-to-one in both directions, on the same
+-- municipality_id (0 mismatches), so the rename produces exactly 351 merged
+-- strings, not 352.
+--
+-- ⭐ A direct UPDATE of `data_source` does NOT re-mint `budgets.id` — only the
+-- LOADER keys on the name. Citations, categories and ids all survive.
+--
+-- ── WHAT IS DELIBERATELY NOT TOUCHED ────────────────────────────────────────
+--
+--   `… — MA DLS Revenue by Source (Total Receipts)` — 6 rows, all_funds (#398).
+--     Those ARE the Revenue-by-Source report, at its own scope, and they keep
+--     their own label. The suffix below is end-anchored so it cannot reach
+--     them: "Revenue by Source (Total Receipts)" does not end with
+--     "General Fund Revenue by Source".
+--   `data_source_id` — 5 Cambridge rows carry d4e872cc…, which resolves to NO
+--     data_sources row. That dangling pointer is a FLEET-WIDE pre-existing
+--     condition (937 rows across 11 ids, mostly CA and federal), not an MA
+--     fact and not this change's business. Recorded, not quietly repaired.
+--
+-- SAFETY: one column, 1,749 rows, no figure touched. `figures_frozen` must be
+-- unchanged afterwards.
+
+UPDATE treasury.budgets
+   SET data_source = regexp_replace(
+         data_source,
+         ' — MA DLS General Fund Revenue by Source$',
+         ' — MA General Fund Revenues')
+ WHERE data_source LIKE '% — MA DLS General Fund Revenue by Source';
+
+-- REVERSAL (restores the split exactly — the years are disjoint, so the
+-- FY2021-2025 slice is addressable without a stored list of ids):
+--
+--   UPDATE treasury.budgets
+--      SET data_source = regexp_replace(
+--            data_source, ' — MA General Fund Revenues$',
+--            ' — MA DLS General Fund Revenue by Source')
+--    WHERE data_source LIKE '% — MA General Fund Revenues'
+--      AND fiscal_year BETWEEN 2021 AND 2025;
+--   -- then restore EXPECTED_ROWS to 6663 / 1749 and re-split the 351 pairs of
+--   -- provenanceDebtBaseline keys.

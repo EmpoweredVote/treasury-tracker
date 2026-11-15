@@ -479,12 +479,20 @@ export const EXPECTED_ROWS = Object.freeze({
   // ($992,181,320), the balanced-adopted-budget signature, and no FY2026 workbook
   // exists. It stays 'cambridge-open-data' and stays unknown.
   'ma-dls-gf-exp': 8408,
-  'ma-dls-gf-rev': 6663,
-  // ⚠⚠ 1,755 → 1,749 on 2026-11-14 (20261114100000), and the six that left did
-  // NOT leave the fleet — they were renamed into the entry below because they
-  // were never General Fund. MEASURED after the migration, not derived: the
-  // two numbers still sum to 1,755.
-  'ma-dls-gf-rev-by-source': 1749,
+  // ⚠⚠ 6,663 → 8,412 on 2026-11-14 (20261114130000), because the former
+  // `ma-dls-gf-rev-by-source` entry MERGED IN. Those 1,749 rows were never a
+  // different product — same Schedule A report, same scope, same 11 root names,
+  // same 351 municipalities, and all 8,412 rows already cited the identical
+  // ScheduleA.GeneralFund URL on islAmountType=Revenues. They were split from
+  // these only by load vintage (FY2021-2025 vs FY2002-2020).
+  // MEASURED after the migration, not derived: 6,663 + 1,749 = 8,412, over one
+  // continuous FY2002-2025 series, 351 distinct source strings.
+  'ma-dls-gf-rev': 8412,
+  // ⛔ `ma-dls-gf-rev-by-source` IS GONE (20261114130000) — merged into
+  // ma-dls-gf-rev above, not deleted from the fleet. Do not re-add it: an
+  // expectation whose registry entry no longer exists is a measurement of
+  // nothing, dressed as a covered family. Nothing caught that until this merge,
+  // so tests/fundScope.test.mjs now checks BOTH directions.
   // ⭐ MEASURED 2026-11-14 with the entry's own anchored pattern: 6 rows —
   // Hudson FY2024/FY2025, Holyoke FY2025, Florida FY2025, Gill FY2025,
   // Gosnold FY2025. ⚠ This number should NOT grow. It counts municipality-

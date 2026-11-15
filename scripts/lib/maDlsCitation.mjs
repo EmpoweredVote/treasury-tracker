@@ -3,11 +3,25 @@
  *
  * NO SHEBANG — library module under scripts/lib/.
  *
- * All 351 municipalities, FY2002-FY2025, across three families:
+ * All 351 municipalities, FY2002-FY2025. As of 2026-11-14 that is TWO families
+ * plus a six-row remainder:
  *
  *     MA General Fund Expenditures            8,408   operating   FY2002-2025
- *     MA General Fund Revenues                6,663   revenue     FY2002-2020
- *     MA DLS General Fund Revenue by Source   1,755   revenue     FY2021-2025
+ *     MA General Fund Revenues                8,412   revenue     FY2002-2025
+ *     MA DLS Revenue by Source (Total Receipts)   6   revenue     FY2024-2025
+ *
+ * ⚠⚠ IT WAS THREE FAMILIES UNTIL 2026-11-14, and the third was mislabelled.
+ * 1,749 rows carried `MA DLS General Fund Revenue by Source` — a label naming
+ * the RevenueBySource report below — while holding Schedule A General Fund
+ * revenue, split from `MA General Fund Revenues` by load vintage (FY2021-2025)
+ * and by nothing else. 20261114130000 merged them in, giving one continuous
+ * FY2002-2025 series. The six rows that genuinely ARE the RevenueBySource
+ * report keep their own label at all_funds scope (#398).
+ *
+ * ⭐ The merge was decided by the CITATIONS, which this module writes: all 8,412
+ * rows of both vintages already pointed at the identical ScheduleA.GeneralFund
+ * URL on islAmountType=Revenues. Asking the publisher per row had, as a
+ * side-effect, already proved the two families were one.
  *
  * Every one carried `source_url = NULL`, and their `data_sources.base_url` was
  * `https://www.mass.gov/orgs/division-of-local-services` — a department's
@@ -27,10 +41,16 @@
  * 2026-11-13 — the Schedule A page links only to these reports, and says the
  * data is "extracted real-time based on the municipal submission").
  *
- * ── ⚠⚠⚠ AND ALL THREE FAMILIES READ THE SAME REPORT, WHATEVER THE THIRD IS
- *        CALLED ───────────────────────────────────────────────────────────
+ * ── ⚠⚠⚠ ALL THREE FAMILIES READ THE SAME REPORT, WHATEVER THE THIRD WAS
+ *        CALLED — AND THAT IS WHY THERE ARE NOW TWO ──────────────────────
  *
- * "MA DLS General Fund Revenue by Source" is named after
+ * ⭐ This section was written on 2026-11-13 to explain why a citation does not
+ * match its label. On 2026-11-14 it became the argument for fixing the label:
+ * if the figure, the report and the scope are all Schedule A's, the row IS
+ * Schedule A, and the only thing saying otherwise was a string. 20261114130000
+ * merged the family away. The reasoning is kept because it is still the proof.
+ *
+ * "MA DLS General Fund Revenue by Source" was named after
  * `RevenueBySource.RBS.RevbySource2`, which is a REAL and DIFFERENT report —
  * Tax Levy / State Aid / Local Receipts / All Other / Enterprise & CPA, summing
  * to "Total Receipts". Its Boston FY2024 total is 4,397,284,371. TT stores

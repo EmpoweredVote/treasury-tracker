@@ -10,7 +10,12 @@ import {
 
 const EXP = 'Abington — MA General Fund Expenditures';
 const REV = 'Abington — MA General Fund Revenues';
-const RBS = 'Abington — MA DLS General Fund Revenue by Source';
+// ⛔ NOT the old 'Abington — MA DLS General Fund Revenue by Source'. That label
+// was merged away on 2026-11-14 (20261114130000) and no row wears it any more.
+// RBS is now the family that genuinely IS the Revenue-by-Source report — the six
+// all_funds rows #398 split out, which had NO family entry until the merge.
+const RBS = 'Hudson — MA DLS Revenue by Source (Total Receipts)';
+const DEAD_RBS = 'Abington — MA DLS General Fund Revenue by Source';
 const CAM = 'cambridge-open-data';
 const CTY = 'Barnstable County Operating Budget FY2025';
 
@@ -46,9 +51,33 @@ describe('Massachusetts fiscal calendar — direction and scope', () => {
     expect(IN_SCOPE_ENTITY_TYPES.has('state')).toBe(false);
   });
 
-  it('records the budgets baseline: 8,408 + 6,663 + 1,755 + 8 + 5 = 16,839', () => {
-    expect(FAMILIES.map((f) => f.rows)).toEqual([8408, 6663, 1755, 8, 5]);
+  it('records the budgets baseline: 8,408 + 8,412 + 6 + 8 + 5 = 16,839', () => {
+    // ⚠⚠ The TOTAL is the invariant, not the split. Two 2026-11-14 migrations
+    // moved rows between labels without adding or dropping one: #398 took 6 rows
+    // out of General Fund revenue into an all_funds family, and 20261114130000
+    // merged the FY2021-2025 revenue vintage into FY2002-2020. Was
+    // [8408, 6663, 1755, 8, 5]; 6,663 + 1,749 = 8,412 and 1,755 - 1,749 = 6.
+    expect(FAMILIES.map((f) => f.rows)).toEqual([8408, 8412, 6, 8, 5]);
     expect(SWEEP_ROWS).toBe(16839);
+  });
+
+  it('knows a family for EVERY MA label that exists today', () => {
+    // ⛔⛔ THE REGRESSION THIS PINS: #398 minted
+    // " — MA DLS Revenue by Source (Total Receipts)" and told no one, so
+    // familyFor() returned null and fixMAFiscalYearStartMonth.mjs reported those
+    // six rows as `unknown data_source` ERRORS rather than sweeping them. A
+    // migration that mints a new data_source must update every registry keyed on
+    // labels, including this one.
+    for (const s of [EXP, REV, RBS, CAM, CTY]) {
+      expect(familyFor(s), `no family for "${s}"`).toBeTruthy();
+    }
+  });
+
+  it('no longer matches the merged-away label, and that is the point', () => {
+    // A pattern that matches nothing is a green check over no data, so the entry
+    // was removed rather than left in place pointing at an empty set.
+    expect(familyFor(DEAD_RBS)).toBeFalsy();
+    expect(FAMILIES.map((f) => f.key)).not.toContain('ma-dls-gf-rev-by-source');
   });
 
   it('records the data_sources baseline: 702 + 702 + 5 = 1,409', () => {
@@ -66,7 +95,7 @@ describe('family matching', () => {
   it('matches each of the five families', () => {
     expect(familyFor(EXP).key).toBe('ma-dls-gf-exp');
     expect(familyFor(REV).key).toBe('ma-dls-gf-rev');
-    expect(familyFor(RBS).key).toBe('ma-dls-gf-rev-by-source');
+    expect(familyFor(RBS).key).toBe('ma-dls-rev-by-source-total-receipts');
     expect(familyFor(CAM).key).toBe('cambridge-open-data');
     expect(familyFor(CTY).key).toBe('ma-county-budget-doc');
   });

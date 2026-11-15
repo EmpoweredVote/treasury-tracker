@@ -426,8 +426,27 @@ describe('the shipped registry', () => {
       .toEqual({ scope: SCOPE.GENERAL_FUND, entryId: 'ma-dls-gf-exp' });
     expect(classify('Acton — MA General Fund Revenues', FUND_SCOPE_REGISTRY))
       .toEqual({ scope: SCOPE.GENERAL_FUND, entryId: 'ma-dls-gf-rev' });
+  });
+
+  it('leaves the MERGED-AWAY "General Fund Revenue by Source" label unclassified', () => {
+    // 20261114130000. Those 1,749 rows were Schedule A General Fund revenue all
+    // along, split from ma-dls-gf-rev by load vintage (FY2021-2025) and nothing
+    // else: same report, same scope, same 11 root names, same 351 municipalities,
+    // and every row on BOTH sides already cited the identical
+    // ScheduleA.GeneralFund URL on islAmountType=Revenues. They were merged in,
+    // and the entry that matched this string was deleted rather than left
+    // matching an empty set.
+    //
+    // ⚠ Same scope either way, so nothing a reader sees changed — which is
+    // exactly why only a test can keep the dead pattern from creeping back.
     expect(classify('Adams — MA DLS General Fund Revenue by Source', FUND_SCOPE_REGISTRY))
-      .toEqual({ scope: SCOPE.GENERAL_FUND, entryId: 'ma-dls-gf-rev-by-source' });
+      .toEqual({ scope: SCOPE.UNKNOWN, entryId: null });
+    expect(FUND_SCOPE_REGISTRY.map((e) => e.id)).not.toContain('ma-dls-gf-rev-by-source');
+    // ⛔ The report this label NAMED is real and still has its own entry, at the
+    // all_funds scope it actually carries. Deleting the wrong label must not
+    // delete the right one.
+    expect(classify('Hudson — MA DLS Revenue by Source (Total Receipts)', FUND_SCOPE_REGISTRY))
+      .toEqual({ scope: SCOPE.ALL_FUNDS, entryId: 'ma-dls-rev-by-source-total-receipts' });
   });
 
   it('leaves the FALSE "Special Revenue Funds" label UNCLASSIFIED, deliberately', () => {
@@ -693,5 +712,20 @@ describe('EXPECTED_ROWS covers every statewide family', () => {
       .map((e) => e.id)
       .filter((id) => EXPECTED_ROWS[id] === undefined);
     expect(missing, `registry entries with no EXPECTED_ROWS: ${missing.join(', ')}`).toEqual([]);
+  });
+
+  it('and leaves NO expectation behind when a registry entry goes', () => {
+    // ⚠⚠ THE OTHER DIRECTION, AND IT WAS NOT CHECKED UNTIL 2026-11-14. The test
+    // above catches a registry entry nobody measured. Nothing caught a
+    // MEASUREMENT OF NOTHING — an expectation whose entry had been deleted or
+    // renamed, counting rows no pattern will ever claim again. It reads as a
+    // covered family in a file whose whole job is to say what is covered.
+    //
+    // Found while merging ma-dls-gf-rev-by-source into ma-dls-gf-rev
+    // (20261114130000): removing the entry would have left its 1,749-row
+    // expectation sitting here, and every gate would still have been green.
+    const ids = new Set(FUND_SCOPE_REGISTRY.map((e) => e.id));
+    const orphans = Object.keys(EXPECTED_ROWS).filter((id) => !ids.has(id));
+    expect(orphans, `EXPECTED_ROWS with no registry entry: ${orphans.join(', ')}`).toEqual([]);
   });
 });
