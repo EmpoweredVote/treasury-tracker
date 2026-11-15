@@ -87,10 +87,39 @@
 --     their own label. The suffix below is end-anchored so it cannot reach
 --     them: "Revenue by Source (Total Receipts)" does not end with
 --     "General Fund Revenue by Source".
---   `data_source_id` — 5 Cambridge rows carry d4e872cc…, which resolves to NO
---     data_sources row. That dangling pointer is a FLEET-WIDE pre-existing
---     condition (937 rows across 11 ids, mostly CA and federal), not an MA
---     fact and not this change's business. Recorded, not quietly repaired.
+--   `data_source_id` — 5 Cambridge rows carry d4e872cc…, left pointing at the
+--     old `cambridge-open-data` attribution when 20260818000400 moved their
+--     LABEL. Not this change's business. Recorded, not quietly repaired.
+--
+--     ⛔⛔ CORRECTION, 2026-11-14 (same day, by the author): the sentence that
+--     stood here called that pointer DANGLING and generalised it to "a
+--     FLEET-WIDE pre-existing condition, 937 rows across 11 ids". **BOTH
+--     CLAIMS WERE FALSE, AND THE MEASUREMENT BEHIND THEM JOINED THE WRONG
+--     TABLE.** `budgets.data_source_id` does not reference
+--     `treasury.data_sources`; it references `treasury.source_registry` —
+--     ev-accounts joins `LEFT JOIN treasury.source_registry sr
+--     ON sr.id = b.data_source_id`. Re-measured against the right table:
+--     **0 dangling rows fleet-wide.** All 859 resolve, Cambridge's included
+--     (d4e872cc… is "City of Cambridge Open Data").
+--
+--     ⭐ THE LESSON, KEPT BECAUSE IT WAS EXPENSIVE: a column named
+--     `data_source_id` beside a table named `data_sources` is not evidence
+--     that they are related. READ THE JOIN THE CODE ACTUALLY RUNS before
+--     measuring referential integrity — a wrong-table anti-join returns a
+--     confident, plausible, entirely fictional number, and nothing about its
+--     output looks wrong. (`treasury.data_sources` IS still joined, but by
+--     (name, municipality_id), in a LATERAL, for base_url/last_synced_at only.)
+--
+--     ⚠ What is REAL: those 10 Cambridge rows are attributed to the wrong
+--     PUBLISHER. Their chip reads "City of Cambridge Open Data" while linking
+--     to the MA DLS Gateway — a name contradicting its own link, for figures
+--     20260818000400 proved are DLS Schedule A. The fix is to NULL
+--     `data_source_id` on them so they fall through to the municipal branch;
+--     it must wait until ev-accounts #1474 is DEPLOYED, because all 10 carry
+--     no `source_date` and before that fix an undated row served no chip.
+--
+--     ⚠ The merged commit message for #403 carries the original wrong claim
+--     and cannot be edited. This comment is the correction of record.
 --
 -- SAFETY: one column, 1,749 rows, no figure touched. `figures_frozen` must be
 -- unchanged afterwards.
