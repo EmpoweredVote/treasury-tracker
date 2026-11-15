@@ -152,8 +152,21 @@ export const IN_SCOPE_ENTITY_TYPES = new Set(['city', 'county']);
  * that merely CONTAINS the phrase cannot slip in.
  *
  * Counts were measured at sweep time (2026-08-25) and independently corroborated:
- * 8,408 / 6,663 / 1,755 are the same three numbers `scripts/classifyFundScope.mjs`
+ * 8,408 / 6,663 / 1,755 were the same three numbers `scripts/classifyFundScope.mjs`
  * arrived at by its own separate census of the 3,824 distinct source strings.
+ *
+ * ⚠⚠ TWO LATER MIGRATIONS MOVED ROWS BETWEEN LABELS, AND THE TOTAL IS UNCHANGED.
+ * These numbers are kept CURRENT rather than frozen at the sweep date, because
+ * `fixMAFiscalYearStartMonth.mjs --verify` compares them against what it measures
+ * today and prints "⚠ MEASURED n" when they disagree. A stale number here is a
+ * permanent false alarm; a missing family is worse — see the entry below.
+ *
+ *     2026-08-25 sweep   8,408 + 6,663 + 1,755 + 8 + 5           = 16,839
+ *     today              8,408 + 8,412 +     6 + 8 + 5           = 16,839
+ *
+ * 20261114100000 moved 6 rows out of the General Fund revenue family into a new
+ * all_funds one; 20261114130000 merged the FY2021-2025 revenue vintage into
+ * FY2002-2020. The same rows are in scope throughout — only their labels moved.
  */
 export const FAMILIES = [
   {
@@ -169,23 +182,46 @@ export const FAMILIES = [
       + 'their respective charters".',
   },
   {
+    // ⚠⚠ 6,663 → 8,412 on 2026-11-14. This family ABSORBED the former
+    // `ma-dls-gf-rev-by-source` (20261114130000): the same Schedule A product,
+    // split from this one by load vintage (FY2021-2025) and by nothing else.
+    // The sweep covered those rows under the old key; it still covers them,
+    // under this one. SWEEP_ROWS is unchanged — see the note below the array.
     key: 'ma-dls-gf-rev',
     kind: 'suffix',
     pattern: ' — MA General Fund Revenues',
     entityTypes: ['city'],
-    rows: 6663,
+    rows: 8412,
     sources: 351,
     entities: 351,
     authority: 'Mass. Gen. Laws ch. 44 §§ 56, 56A.',
   },
   {
-    key: 'ma-dls-gf-rev-by-source',
+    // ⛔⛔ THIS FAMILY HAD NO ENTRY AT ALL UNTIL 2026-11-14, AND ITS SIX ROWS
+    // WERE REPORTED AS `unknown data_source` ERRORS. 20261114100000 (#398)
+    // relabelled six rows out of the General Fund families and into this one,
+    // and nothing told FAMILIES about the new string — so `familyFor()` matched
+    // nothing and fixMAFiscalYearStartMonth.mjs counted them as errors rather
+    // than as swept rows. Found 2026-11-14 while merging the two revenue
+    // vintages, by asking familyFor() about every MA label that now exists.
+    //
+    // ⭐ The lesson generalises: a migration that MINTS A NEW data_source must
+    // check every registry keyed on the old one, not just the registry it was
+    // aimed at. This file is keyed on labels and was not on #398's checklist.
+    //
+    // ⚠ Scope is all_funds and these are the Revenue-by-Source report proper —
+    // but the FISCAL CALENDAR does not care about scope: ch. 44 §§ 56, 56A sets
+    // July for every municipality whatever report its figures come from.
+    // MEASURED 2026-11-14, not derived: 6 rows / 5 distinct source strings /
+    // 5 municipalities. ⚠ sources is 5, NOT 6 — Hudson carries both FY2024 and
+    // FY2025 under one per-municipality label.
+    key: 'ma-dls-rev-by-source-total-receipts',
     kind: 'suffix',
-    pattern: ' — MA DLS General Fund Revenue by Source',
+    pattern: ' — MA DLS Revenue by Source (Total Receipts)',
     entityTypes: ['city'],
-    rows: 1755,
-    sources: 351,
-    entities: 351,
+    rows: 6,
+    sources: 5,
+    entities: 5,
     authority: 'Mass. Gen. Laws ch. 44 §§ 56, 56A.',
   },
   {

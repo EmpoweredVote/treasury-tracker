@@ -1392,12 +1392,30 @@ export const FUND_SCOPE_REGISTRY = [
   },
 
   {
+    // ⭐⭐ FY2002-2025 IN ONE ENTRY SINCE 2026-11-14 (20261114130000). Until then
+    // the same series was split across TWO entries — this one for FY2002-2020
+    // and `ma-dls-gf-rev-by-source` for FY2021-2025 — by nothing but the label a
+    // later load vintage stamped. The second entry named a REAL and DIFFERENT
+    // DLS report (RevenueBySource.RBS.RevbySource2, Total Receipts, all_funds),
+    // which these rows are not.
+    //
+    // ⭐ The deciding evidence was the CITATIONS, not the figures: all 8,412 rows
+    // of both vintages already cited the identical ScheduleA.GeneralFund report
+    // on islAmountType=Revenues (6,663 of 6,663 and 1,749 of 1,749, measured
+    // 2026-11-14). Every other axis was measured equal on both sides before the
+    // merge — dataset_type, fund_scope, basis, period_label, reporting_entity,
+    // derivation, audit_grade, accounting_basis, fiscal_year_start_month, a flat
+    // depth-0 tree, the same 11 root names and the same 351 municipalities. The
+    // merge was done only because nothing distinguished the two but the label.
     id: 'ma-dls-gf-rev',
     match: / — MA General Fund Revenues$/,
     scope: SCOPE.GENERAL_FUND,
     evidence: {
       document: 'Same two towns and same source family as ma-dls-gf-exp; source workbooks '
-              + 'docs/MA/GenFundRevenues{YYYY}.xlsx. MA-01-RECON.md §4, §4b.',
+              + 'docs/MA/GenFundRevenues{YYYY}.xlsx. MA-01-RECON.md §4, §4b. '
+              + 'Covers FY2002-2025: the FY2021-2025 rows merged in from the former '
+              + 'ma-dls-gf-rev-by-source entry on 2026-11-14 (20261114130000), which held '
+              + 'the same product under a label naming a different DLS report.',
       figures: 'The workbook has ELEVEN revenue columns summing to Total Revenues, and TWO of '
              + 'them are NOT revenue: "Other Financing Sources" and "Transfers". It is the '
              + 'REVENUE-PROPER subtotal (total less those two) that corresponds to the ACFR\'s '
@@ -1420,7 +1438,19 @@ export const FUND_SCOPE_REGISTRY = [
              + '~2-4 within 1% of any target, so a lone close number proves nothing. Two '
              + 'proximity matches during this recon were coincidences — one landed on an '
              + 'expenditure subtotal, one on a Total OPEB Liability. Every figure quoted here was '
-             + 'read from a labelled line.',
+             + 'read from a labelled line. '
+             + '⭐ CARRIED OVER FROM ma-dls-gf-rev-by-source WHEN IT MERGED IN (20261114130000), '
+             + 'because it is the evidence for the FY2021-2025 half of this entry: the Lexington '
+             + 'ties quoted above (0.017% / 0.094% / 0.055%) are ties against those rows '
+             + 'specifically, and FY2020-2025 was verified byte-exact against the workbooks — '
+             + '2,096 of 2,106 rows match their workbook cell to the cent. '
+             + '⚠ The 10 that did not were rows where the WORKBOOK HELD 0 and the database held '
+             + 'a figure, because those municipalities had not filed Schedule A when the workbook '
+             + 'was captured and loadMaGFExcel.js skips a zero row rather than writing one, so an '
+             + 'older portal scrape was never overwritten. THAT IS NOW RESOLVED and none of the '
+             + 'ten is still in this entry: 20261114090000 took Schedule A\'s own figure for the '
+             + 'four that had since filed, and 20261114100000 relabelled the other six to '
+             + 'ma-dls-rev-by-source-total-receipts, where they belong at all_funds scope.',
     },
   },
 
@@ -1459,31 +1489,18 @@ export const FUND_SCOPE_REGISTRY = [
     },
   },
 
-  {
-    id: 'ma-dls-gf-rev-by-source',
-    match: / — MA DLS General Fund Revenue by Source$/,
-    scope: SCOPE.GENERAL_FUND,
-    evidence: {
-      document: 'Identical source and reconciliation to ma-dls-gf-rev — the same '
-              + 'docs/MA/GenFundRevenues{YYYY}.xlsx workbooks, differing only in the label a '
-              + 'later load vintage stamped. Kept as its own entry rather than relabelled '
-              + 'because, unlike the Special Revenue Funds string, THIS LABEL IS TRUE: the '
-              + 'workbook really is General Fund revenue broken out by source. MA-01-RECON.md '
-              + '§4, §4b.',
-      figures: 'Covers FY2021-2025, the years the Lexington confirmation is drawn from, so the '
-             + 'ties quoted in ma-dls-gf-rev (0.017% / 0.094% / 0.055%) are ties against THIS '
-             + 'entry\'s rows specifically. Verified byte-exact against the workbooks for '
-             + 'FY2020-2025: 2,096 of 2,106 rows match their workbook cell to the cent. '
-             + '⚠ The 10 that do not are rows where the WORKBOOK HOLDS 0 and the database holds '
-             + 'a figure — FY2024 Holyoke $205,834,091 and Hudson $107,521,743, plus 8 in FY2025. '
-             + 'Those towns had not filed when the workbook was captured, so those particular '
-             + 'figures came from the portal scrape and are NOT covered by this reconciliation. '
-             + 'They are classified with the rest — Chris\'s explicit decision on 2026-08-18, not '
-             + 'a default — because the SOURCE is the same DLS General Fund product and scope is '
-             + 'a property of the source. The FIGURES remain unreconciled; the caveat is recorded '
-             + 'here so it survives the decision rather than being erased by it.',
-    },
-  },
+  // ⛔ `ma-dls-gf-rev-by-source` WAS HERE AND IS GONE ON PURPOSE (2026-11-14,
+  // 20261114130000). It matched ` — MA DLS General Fund Revenue by Source`, a
+  // label naming RevenueBySource.RBS.RevbySource2 — a real, different DLS report
+  // at all_funds scope. The 1,749 rows wearing it were Schedule A General Fund
+  // revenue all along, split from ma-dls-gf-rev by load vintage (FY2021-2025 vs
+  // FY2002-2020) and by nothing else. They were merged into ma-dls-gf-rev, which
+  // now covers FY2002-2025, and its evidence block carries this entry's.
+  //
+  // ⚠ Do NOT re-add a pattern for that string. Nothing in the fleet wears it any
+  // more, and a pattern matching nothing is a green check over no data. The rows
+  // that genuinely ARE the Revenue-by-Source report keep their own entry above,
+  // `ma-dls-rev-by-source-total-receipts`, at the all_funds scope it states.
 
   // ── NOT YET EVIDENCED ─────────────────────────────────────────────────────
   // Deliberately absent, each for a stated reason. RECON §1.8 tracks what each
