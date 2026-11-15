@@ -46,6 +46,7 @@ vi.mock('./components/dashboard/BudgetSearch', () => probeModule('BudgetSearch')
 vi.mock('./components/federal/FederalLanding', () => probeModule('FederalLanding'));
 vi.mock('./components/federal/LensToggle', () => probeModule('LensToggle'));
 vi.mock('./components/federal/SourceChip', () => probeModule('SourceChip'));
+vi.mock('./components/PublisherOutageNotice', () => probeModule('PublisherOutageNotice'));
 vi.mock('./components/federal/MethodologyPanel', () => probeModule('MethodologyPanel'));
 vi.mock('./components/federal/ComparabilityNote', () => probeModule('ComparabilityNote'));
 vi.mock('./components/federal/ScaleToggle', () => probeModule('ScaleToggle'));
@@ -552,5 +553,60 @@ describe('entity index', () => {
     await mountAt('');
     expect(h.props.AlphaLanding.indexLoading).toBe(false);
     expect(h.props.AlphaLanding.municipalities).toEqual([]);
+  });
+});
+
+/**
+ * ⚠⚠⚠ THE CHAIN, NOT THE COMPONENT.
+ *
+ * `figureFlags.ts` records the lesson this follows: a reader-facing notice has
+ * several links — data, lookup, render site — and **all of them or it is
+ * invisible**. Every flag TT had recorded was invisible until something
+ * rendered it, and the same was true of publisher outages until 2026-11-15:
+ * `scripts/data/publisherOutages.mjs` had described Ohio's outage since
+ * 2026-11-09 and no UI code read it, so 6,616 budgets sent readers to an
+ * unexplained 404.
+ *
+ * These assert what APP decides, which is the link a unit test of the notice
+ * cannot reach.
+ */
+describe('a publisher outage reaches the reader', () => {
+  /** Serve every budget with one citation, so the test varies only the host. */
+  const citedTo = (url: string) => {
+    h.impl.loadBudgetData = async (year: number, name: string, _s: string, dataset: string) => {
+      const b = budget(name, dataset, year);
+      return {
+        ...b,
+        metadata: {
+          ...b.metadata,
+          // ⚠ fetchedAt null on purpose: these citations carry a source_url and
+          // no source_date, which is the shape ev-accounts#1474 had to stop
+          // withholding a chip for.
+          dataSourceInfo: { displayName: 'Ohio AOS Summarized Reports', url, datasetUrl: url, fetchedAt: null },
+        },
+      };
+    };
+  };
+
+  it('tells the reader WHY the citation 404s, instead of leaving them to guess', async () => {
+    citedTo('https://www.ohioauditor.gov/references/SummarizedAnnualFinancialReports'
+      + '/SummarizedReports/City_2016_CASH_Summarized.XLSX');
+    await mountAt('?entity=alpha-city-in');
+    expect(h.props.PublisherOutageNotice, 'App rendered no outage notice for a down publisher')
+      .toBeTruthy();
+    expect(h.props.PublisherOutageNotice.outage.id).toBe('ohio-aos-cyberattack-2026-10-25');
+  });
+
+  it('⭐ leaves the chip its live href — that is how a reader checks for themselves', async () => {
+    citedTo('https://www.ohioauditor.gov/x.XLSX');
+    await mountAt('?entity=alpha-city-in');
+    expect(h.props.SourceChip.sourceUrl).toBe('https://www.ohioauditor.gov/x.XLSX');
+  });
+
+  it('⛔ shows NOTHING for a publisher that is up — the notice is not decoration', async () => {
+    citedTo('https://dls-gw.dor.state.ma.us/reports/rdPage.aspx?rdReport=ScheduleA.GeneralFund');
+    await mountAt('?entity=alpha-city-in');
+    expect(h.props.PublisherOutageNotice).toBeFalsy();
+    expect(h.props.SourceChip).toBeTruthy();
   });
 });
