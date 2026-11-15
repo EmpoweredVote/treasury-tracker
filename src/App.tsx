@@ -46,6 +46,8 @@ import {
 } from './data/seriesSelection';
 import { createRequestSequence } from './data/latestRequest';
 import { showsSourceChip } from './data/sourceChipTypes';
+import { outageForUrl } from './data/publisherOutages';
+import PublisherOutageNotice from './components/PublisherOutageNotice';
 import { SERIES_TOGGLE_COPY } from './data/fundScopeVocabulary';
 import type { SeriesKey } from './data/budgetSeries';
 import { resolveUrlSync } from './utils/spaUrl';
@@ -1917,17 +1919,31 @@ function App() {
                   source_url + source_date + data_source columns when data_source_id is
                   null (treasuryService.ts, deployed 2026-06-16) — so this chip is live. */}
               {showsSourceChip(selectedEntity?.entity_type)
-                && budgetData.metadata.dataSourceInfo && (
-                <div className="flex items-center gap-3 flex-wrap">
-                  <SourceChip
-                    sourceName={budgetData.metadata.dataSourceInfo.displayName}
-                    sourceUrl={
-                      (budgetData.metadata.dataSourceInfo.datasetUrl || budgetData.metadata.dataSourceInfo.url) || ''
-                    }
-                    fetchDate={budgetData.metadata.dataSourceInfo.fetchedAt}
-                  />
-                </div>
-              )}
+                && budgetData.metadata.dataSourceInfo && (() => {
+                  const chipUrl = (budgetData.metadata.dataSourceInfo.datasetUrl
+                    || budgetData.metadata.dataSourceInfo.url) || '';
+                  // ⚠⚠ THE GATE KNEW THIS AND THE READER DID NOT. 60 citations
+                  // over 6,616 budgets have 404'd since Ohio's Auditor of State
+                  // was attacked on 2026-10-25, recorded in
+                  // scripts/data/publisherOutages.mjs since 2026-11-09 and
+                  // surfaced nowhere. Without this the reader clicks a correct
+                  // citation and lands on an unexplained 404.
+                  // ⭐ The chip keeps its href: the URL is still right, and it
+                  // is how a reader checks whether the publisher is back.
+                  const outage = outageForUrl(chipUrl);
+                  return (
+                    <div>
+                      <div className="flex items-center gap-3 flex-wrap">
+                        <SourceChip
+                          sourceName={budgetData.metadata.dataSourceInfo.displayName}
+                          sourceUrl={chipUrl}
+                          fetchDate={budgetData.metadata.dataSourceInfo.fetchedAt}
+                        />
+                      </div>
+                      {outage && <PublisherOutageNotice outage={outage} />}
+                    </div>
+                  );
+                })()}
               {/* Comparability / definition-drift note (CTX-02): on historical annual
                   years only — suppressed on the current/default year (clean headline)
                   and on the TQ (which gets its own note in FederalLanding). How OMB
