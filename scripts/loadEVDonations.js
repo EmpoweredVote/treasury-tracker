@@ -129,6 +129,59 @@ export function parseBenevity(rows, fy, basisColumn = 'Disbursement Date') {
 // category display. NO PII (names / emails / addresses) in any return value.
 
 /**
+ * How recently a donor must have given to count as still supporting EV.
+ *
+ * Monthly givers charge on their own anniversary, so a window shorter than a
+ * full cycle would drop active people at random; 45 days clears one cycle plus
+ * roughly two weeks of grace for a late or retried charge.
+ *
+ * ⚠ THE WINDOW IS NOT ALWAYS A COMFORTABLE FIT, AND THAT WAS MEASURED, NOT
+ * ASSUMED. Against the Nov 2026 data the margin is wide -- the two donors who
+ * stopped were last seen 6 and 3 months before the horizon, and every active
+ * donor gave within 18 days. But against the June 2026 export the same donor
+ * sits EXACTLY on the boundary: horizon 2026-06-20, last charge 2026-05-06,
+ * 45 days to the day. One day either way flips them. The locked test below
+ * records that case deliberately.
+ *
+ * Erring long overcounts, which is the bug this replaces; erring short
+ * undercounts, which is the safer direction for a transparency page. 45 days
+ * is the compromise, not a measured optimum -- revisit it with real churn data
+ * rather than by tuning it until a fixture agrees.
+ */
+export const ACTIVE_WINDOW_DAYS = 45;
+
+/**
+ * Split a Map of donorKey -> { amount, last } into FY-wide and still-active
+ * views, judged against the data's OWN horizon rather than the wall clock.
+ *
+ * ⚠ Using the horizon, not today's date, is deliberate: re-running the same
+ * export next month must not quietly reclassify donors as lapsed. It also
+ * means a stale export reports confidently about a period it cannot see, so
+ * `horizon` is returned and persisted for the reader's benefit.
+ */
+function withActivity(seen) {
+  const entries = [...seen.values()];
+  const dated = entries.map(e => e.last).filter(Boolean).sort();
+  const horizon = dated.length ? dated[dated.length - 1] : null;
+
+  let cutoff = null;
+  if (horizon) {
+    const d = new Date(`${horizon}T00:00:00Z`);
+    d.setUTCDate(d.getUTCDate() - ACTIVE_WINDOW_DAYS);
+    cutoff = d.toISOString().slice(0, 10);
+  }
+  const active = cutoff ? entries.filter(e => e.last && e.last >= cutoff) : entries;
+
+  return {
+    count: entries.length,
+    typicalAmounts: entries.map(e => e.amount),
+    activeCount: active.length,
+    activeAmounts: active.map(e => e.amount),
+    horizon,
+  };
+}
+
+/**
  * Count distinct active recurring GiveButter donors in the target FY.
  * Deduplication key: Contact ID (preferred) falling back to Contact Email.
  * Only rows that have a Plan ID (i.e., a recurring plan charge) are counted.
@@ -146,13 +199,13 @@ export function giveButterRecurringDonors(rows, fy) {
   fy2026Rows.sort((a, b) =>
     (b['Transaction Date (UTC)'] || '').localeCompare(a['Transaction Date (UTC)'] || '')
   );
-  const seen = new Map(); // dedup key → most-recent amount
+  const seen = new Map(); // dedup key → { amount, last } of the most-recent charge
   for (const r of fy2026Rows) {
     const key = (r['Contact ID'] || '').trim() || (r['Contact Email'] || '').trim();
     if (!key) continue;
-    if (!seen.has(key)) seen.set(key, money(r['Amount']));
+    if (!seen.has(key)) seen.set(key, { amount: money(r['Amount']), last: isoDate(r['Transaction Date (UTC)']) });
   }
-  return { count: seen.size, typicalAmounts: [...seen.values()] };
+  return withActivity(seen);
 }
 
 /**
@@ -162,19 +215,38 @@ export function giveButterRecurringDonors(rows, fy) {
  * Returns: { count, typicalAmounts }
  *   typicalAmounts = most-recent Member charge amount per patron in FY
  */
+/**
+ * Normalize one Patreon per-member row to { date, type, memberId, amount }.
+ *
+ * Patreon ships the same facts under two different column sets, and has
+ * renamed its exports more than once:
+ *   detailed-earnings         Date / Event type / Member charge amount
+ *   member_transaction_history  Transaction charge date / Transaction type /
+ *                               Total member charge (member currency)
+ * Accepting both means an export rename cannot silently strand the loader on
+ * older per-member data -- which is exactly what let a patron who stopped in
+ * August keep counting as active.
+ */
+export function normalizePatreonMemberRow(r) {
+  const isDetailed = r['Date'] !== undefined || r['Member charge amount'] !== undefined;
+  return isDetailed
+    ? { date: r['Date'], type: (r['Event type'] || '').trim(),
+        memberId: (r['Member user ID'] || '').trim(), amount: money(r['Member charge amount']) }
+    : { date: r['Transaction charge date'], type: (r['Transaction type'] || '').trim(),
+        memberId: (r['Member user ID'] || '').trim(),
+        amount: money(r['Total member charge (member currency)']) };
+}
+
 export function patreonDistinctPatrons(rows, fy) {
-  const fyRows = rows.filter(r =>
-    isoYear(r['Date']) === fy &&
-    (r['Event type'] || '').trim() === 'Payment'
-  );
-  fyRows.sort((a, b) => (b['Date'] || '').localeCompare(a['Date'] || ''));
-  const seen = new Map(); // member user ID → most-recent charge amount
+  const fyRows = rows.map(normalizePatreonMemberRow)
+    .filter(r => isoYear(r.date) === fy && r.type === 'Payment');
+  fyRows.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  const seen = new Map(); // member user ID → { amount, last } of most-recent charge
   for (const r of fyRows) {
-    const id = (r['Member user ID'] || '').trim();
-    if (!id) continue;
-    if (!seen.has(id)) seen.set(id, money(r['Member charge amount']));
+    if (!r.memberId) continue;
+    if (!seen.has(r.memberId)) seen.set(r.memberId, { amount: r.amount, last: isoDate(r.date) });
   }
-  return { count: seen.size, typicalAmounts: [...seen.values()] };
+  return withActivity(seen);
 }
 
 /**
@@ -215,7 +287,10 @@ function sizeBucket(amount) {
  * @param {object[]} gbRows   GiveButter transaction CSV rows
  * @param {object[]} patRows  Patreon detailed-earnings CSV rows
  * @param {number}   fy       Fiscal year (calendar year)
- * @returns {{ recurring_supporters: number, typical_monthly: number, buckets: object, as_of_fy: number }}
+ * @returns {{ recurring_supporters: number, fy_supporters: number, typical_monthly: number,
+ *             buckets: object, as_of_fy: number, data_through: string|null }}
+ *          `recurring_supporters` is the ACTIVE count; `fy_supporters` is everyone
+ *          who gave at any point in the FY.
  *          No PII keys in the returned object.
  */
 export function computeRecurringAggregates(gbRows, patRows, fy) {
@@ -228,19 +303,36 @@ export function computeRecurringAggregates(gbRows, patRows, fy) {
   const benevityCount = 1;
   const benevityTypical = 0; // excluded from median (company-match atypical of the micro-donation story)
 
-  const recurring_supporters = gb.count + pat.count + benevityCount;
+  // ⭐ `recurring_supporters` is the count of supporters STILL GIVING, not
+  // everyone who gave at some point this year. The micro-donations spec asks
+  // for "the honest current count of distinct ACTIVE recurring supporters" so
+  // that "[N] people give ~$[X]/month" is exactly true. The year-wide figure is
+  // kept alongside it as `fy_supporters` rather than discarded -- it is a real
+  // statistic, just not a present-tense one.
+  const recurring_supporters = gb.activeCount + pat.activeCount + benevityCount;
+  const fy_supporters        = gb.count + pat.count + benevityCount;
 
-  // Typical monthly = median over per-supporter representative monthly amounts.
-  // GiveButter and Patreon donors contribute their most-recent charge in the FY.
+  // ⚠ Benevity counts as 1 in BOTH. A disbursement report cannot tell us
+  // whether a company match has stopped or is simply batched -- EV's last
+  // Benevity money arrived 2026-08-10, which may mean either. Guessing
+  // "lapsed" from a quiet quarter would be worse than the known hardcode.
+
+  // Typical monthly = median over ACTIVE supporters' most-recent charge.
+  // A donor who stopped in May must not drag the "typical" figure upward.
   // Benevity is excluded from the median (see above).
-  const allAmounts = [...gb.typicalAmounts, ...pat.typicalAmounts];
+  const allAmounts = [...gb.activeAmounts, ...pat.activeAmounts];
   const typical_monthly = round2(median(allAmounts));
 
   // Size buckets (counts only — no PII)
   const buckets = { lt5: 0, b5to9: 0, b10to24: 0, b25to49: 0, gte50: 0 };
   for (const a of allAmounts) buckets[sizeBucket(a)]++;
 
-  return { recurring_supporters, typical_monthly, buckets, as_of_fy: fy };
+  // The latest donation either platform can see. Activity is judged against
+  // this, so publishing it is what lets a reader tell a quiet month from a
+  // stale export.
+  const data_through = [gb.horizon, pat.horizon].filter(Boolean).sort().pop() || null;
+
+  return { recurring_supporters, fy_supporters, typical_monthly, buckets, as_of_fy: fy, data_through };
 }
 
 // ── GiveButter dedup (pure, D-04) ────────────────────────────────────────────
@@ -569,8 +661,10 @@ export async function writeDonationsAggregate(sb, budgetId, aggregates) {
   const newDescription = JSON.stringify({
     _evMicro: {
       recurring_supporters: aggregates.recurring_supporters,
+      fy_supporters:        aggregates.fy_supporters,
       typical_monthly:      aggregates.typical_monthly,
       as_of_fy:             aggregates.as_of_fy,
+      data_through:         aggregates.data_through,
     },
   });
 
@@ -681,6 +775,11 @@ async function main() {
   const patFile = findFile(dir, /patreon.*analytics-earnings.*\.csv$/i, 'Patreon earnings');
   // detailed earnings — used for distinct patron count (Phase 81.5)
   const patDetailFile = findFile(dir, /patreon.*detailed-earnings.*\.csv$/i, 'Patreon detailed-earnings');
+  // A second per-member shape Patreon now offers. It is a DATE RANGE export, so
+  // it does not replace detailed-earnings (a patron who left before the range
+  // starts would vanish from the FY count) -- the two are unioned, exactly as
+  // the bank and Benevity exports are. Optional: absent is fine.
+  const patMemberFile = findFile(dir, /patreon.*member.*transaction.*history.*\.csv$/i, 'Patreon member-transaction history');
   const benFile = findFile(dir, /benevity.*disbursement.*\.csv$/i, 'Benevity disbursement');
   if (!gbFile || !patFile || !benFile) {
     console.error('Missing export(s):', { gbFile, patFile, benFile });
@@ -696,7 +795,10 @@ async function main() {
   const ben = parseBenevity(benRows, fyArg, 'Disbursement Date');
 
   // Recurring-supporter aggregates (Phase 81.5 — anonymized, no PII)
-  const patDetailRows = patDetailFile ? readCsvRows(patDetailFile) : [];
+  const patDetailRows = [
+    ...(patDetailFile ? readCsvRows(patDetailFile) : []),
+    ...(patMemberFile ? readCsvRows(patMemberFile) : []),
+  ];
   const aggregates = computeRecurringAggregates(gbRows, patDetailRows, fyArg);
 
   const bySource = {
@@ -719,7 +821,8 @@ async function main() {
   console.log(`Platform fees (gross->net story, D-09): $${totalFees.toFixed(2)} total\n`);
 
   console.log(`Recurring-supporter aggregates (FY${fyArg}):`);
-  console.log(`  ${aggregates.recurring_supporters} recurring supporters, typical $${aggregates.typical_monthly}/month`);
+  console.log(`  ${aggregates.recurring_supporters} recurring supporters STILL GIVING, typical $${aggregates.typical_monthly}/month`);
+  console.log(`  ${aggregates.fy_supporters} gave at some point in FY${fyArg} (${aggregates.fy_supporters - aggregates.recurring_supporters} since lapsed), activity judged through ${aggregates.data_through ?? 'unknown'}`);
   console.log(`  Buckets: ${JSON.stringify(aggregates.buckets)}\n`);
 
   if (dryRun) { console.log('Dry-run -- no writes.'); printTree(categories); return; }
