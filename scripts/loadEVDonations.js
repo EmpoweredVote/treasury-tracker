@@ -87,14 +87,39 @@ export function readCsvRows(filePath) {
 // ── Per-platform parsers (pure) ──────────────────────────────────────────────
 // Each returns { gross, fee, count, asOf } for the target fiscal year.
 
+/**
+ * Sum succeeded, non-refunded GiveButter donations for the fiscal year.
+ *
+ * ⛔ DEDUP BY `Reference Number` IS LOAD-BEARING — DO NOT REMOVE.
+ * Givebutter's Transactions export ships in two shapes. One has a row per
+ * LINE ITEM (a `donation` row and a `fee` row per transaction), and BOTH rows
+ * carry the transaction-level `Amount` and `Fee`. Summing per row therefore
+ * counts every fee-covered donation twice. That published FY2026 Give Butter
+ * income of $1,946 against a real $973 — exactly 2x — and the page served it
+ * for nine weeks before anyone noticed, because a single, fresh file with the
+ * right columns trips none of the guards in evSourceFiles.js.
+ *
+ * ⭐ Signature of the bug: the raw-row sum is an exact small multiple of the
+ * unique-`Reference Number` sum.
+ *
+ * A one-row-per-transaction export has distinct refs throughout, so the dedup
+ * is a no-op there. Rows with no ref are each kept — an empty key must never
+ * collapse unrelated donations into one.
+ */
 export function parseGiveButter(rows, fy) {
   let gross = 0, fee = 0, count = 0, asOf = null;
+  const seenRefs = new Set();
   for (const r of rows) {
     if ((r['Status Friendly'] || '') !== 'Succeeded') continue;
     if ((r['Refund Date (UTC)'] || '').trim()) continue; // skip refunded
     const d = isoDate(r['Transaction Date (UTC)']);
     if (d && (!asOf || d > asOf)) asOf = d; // export coverage horizon (over all succeeded rows)
     if (isoYear(r['Transaction Date (UTC)']) !== fy) continue;
+    const ref = (r['Reference Number'] || '').trim();
+    if (ref) {
+      if (seenRefs.has(ref)) continue; // additional line item of a transaction already counted
+      seenRefs.add(ref);
+    }
     gross += money(r['Amount']);
     fee += money(r['Fee']);
     count++;
