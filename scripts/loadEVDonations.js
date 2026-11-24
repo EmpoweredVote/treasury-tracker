@@ -114,14 +114,16 @@ export function parsePatreon(rows, fy) {
 }
 
 export function parseBenevity(rows, fy, basisColumn = 'Disbursement Date') {
-  let gross = 0, fee = 0, count = 0;
+  let gross = 0, fee = 0, count = 0, lastDisbursement = null;
   for (const r of rows) {
     if (isoYear(r[basisColumn]) !== fy) continue;
     gross += money(r['Donation Amount']) + money(r['Match Amount']);
     fee += money(r['Cause Support Fee']) + money(r['Merchant Fee']) + money(r['Check Fee']);
+    const d = isoDate(r[basisColumn]);
+    if (d && (!lastDisbursement || d > lastDisbursement)) lastDisbursement = d;
     count++;
   }
-  return { gross, fee, count };
+  return { gross, fee, count, lastDisbursement };
 }
 
 // ── Micro-donation aggregate helpers (pure, Phase 81.5) ─────────────────────
@@ -159,17 +161,21 @@ export const ACTIVE_WINDOW_DAYS = 45;
  * means a stale export reports confidently about a period it cannot see, so
  * `horizon` is returned and persisted for the reader's benefit.
  */
+/** The date on or after which a gift still counts as current, given the
+ *  freshest date the data can see. Null when there is nothing to judge against. */
+function activeCutoff(horizon) {
+  if (!horizon) return null;
+  const d = new Date(`${horizon}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() - ACTIVE_WINDOW_DAYS);
+  return d.toISOString().slice(0, 10);
+}
+
 function withActivity(seen) {
   const entries = [...seen.values()];
   const dated = entries.map(e => e.last).filter(Boolean).sort();
   const horizon = dated.length ? dated[dated.length - 1] : null;
 
-  let cutoff = null;
-  if (horizon) {
-    const d = new Date(`${horizon}T00:00:00Z`);
-    d.setUTCDate(d.getUTCDate() - ACTIVE_WINDOW_DAYS);
-    cutoff = d.toISOString().slice(0, 10);
-  }
+  const cutoff = activeCutoff(horizon);
   const active = cutoff ? entries.filter(e => e.last && e.last >= cutoff) : entries;
 
   return {
@@ -280,20 +286,25 @@ function sizeBucket(amount) {
  * Rules:
  *   - GiveButter: dedup by Contact ID / Contact Email; count donors with Plan ID.
  *   - Patreon: dedup by Member user ID; count Payment events only.
- *   - Benevity: EXACTLY 1 supporter regardless of row count.
+ *   - Benevity: EXACTLY 1 supporter regardless of row count, and current only
+ *     while its disbursements are still arriving.
  *     (Chris Andrew's company-matched recurring giving — 61 disbursement rows,
  *      one donor. Hard rule per Phase 81.5 CONTEXT.md auto-memory guardrail.)
  *
- * @param {object[]} gbRows   GiveButter transaction CSV rows
- * @param {object[]} patRows  Patreon detailed-earnings CSV rows
- * @param {number}   fy       Fiscal year (calendar year)
+ * @param {object[]}    gbRows   GiveButter transaction CSV rows
+ * @param {object[]}    patRows  Patreon detailed-earnings CSV rows
+ * @param {number}      fy       Fiscal year (calendar year)
+ * @param {string|null} benevityLast  ISO date of the latest Benevity disbursement
+ *                      in `fy`, from parseBenevity().lastDisbursement. Omit it and
+ *                      Benevity is assumed current, which is the pre-existing
+ *                      behaviour and the overcounting direction — pass it.
  * @returns {{ recurring_supporters: number, fy_supporters: number, typical_monthly: number,
  *             buckets: object, as_of_fy: number, data_through: string|null }}
  *          `recurring_supporters` is the ACTIVE count; `fy_supporters` is everyone
  *          who gave at any point in the FY.
  *          No PII keys in the returned object.
  */
-export function computeRecurringAggregates(gbRows, patRows, fy) {
+export function computeRecurringAggregates(gbRows, patRows, fy, benevityLast = null) {
   const gb  = giveButterRecurringDonors(gbRows, fy);
   const pat = patreonDistinctPatrons(patRows, fy);
 
@@ -301,7 +312,6 @@ export function computeRecurringAggregates(gbRows, patRows, fy) {
   // recurring giving via Cisco Benevity. The export contains 61 disbursement
   // rows but represents one real donor. Hard-coded per Phase 81.5 memory guardrail.
   const benevityCount = 1;
-  const benevityTypical = 0; // excluded from median (company-match atypical of the micro-donation story)
 
   // ⭐ `recurring_supporters` is the count of supporters STILL GIVING, not
   // everyone who gave at some point this year. The micro-donations spec asks
@@ -309,13 +319,23 @@ export function computeRecurringAggregates(gbRows, patRows, fy) {
   // that "[N] people give ~$[X]/month" is exactly true. The year-wide figure is
   // kept alongside it as `fy_supporters` rather than discarded -- it is a real
   // statistic, just not a present-tense one.
-  const recurring_supporters = gb.activeCount + pat.activeCount + benevityCount;
+  // ⭐ Benevity is judged against the GiveButter/Patreon horizon, never its own.
+  // Measured from its own last row it would always look current. A disbursement
+  // report still cannot say WHY the money stopped -- for EV it stopped because
+  // the one matched donor left the employer running the match, which Chris
+  // confirmed -- but "no disbursement for a whole cycle" is the same evidence
+  // used for every other donor, so Benevity is held to the same rule rather
+  // than to a second hardcode. If a new matched donor signs up, the next
+  // disbursement brings Benevity back with no code change.
+  const platformHorizon  = [gb.horizon, pat.horizon].filter(Boolean).sort().pop() || null;
+  const cutoff           = activeCutoff(platformHorizon);
+  const benevityActive   = (benevityLast && cutoff) ? (benevityLast >= cutoff ? 1 : 0) : benevityCount;
+
+  const recurring_supporters = gb.activeCount + pat.activeCount + benevityActive;
   const fy_supporters        = gb.count + pat.count + benevityCount;
 
-  // ⚠ Benevity counts as 1 in BOTH. A disbursement report cannot tell us
-  // whether a company match has stopped or is simply batched -- EV's last
-  // Benevity money arrived 2026-08-10, which may mean either. Guessing
-  // "lapsed" from a quiet quarter would be worse than the known hardcode.
+  // ⚠ Benevity counts 1 in fy_supporters whether or not it is still current:
+  // the money genuinely arrived this fiscal year.
 
   // Typical monthly = median over ACTIVE supporters' most-recent charge.
   // A donor who stopped in May must not drag the "typical" figure upward.
@@ -330,7 +350,7 @@ export function computeRecurringAggregates(gbRows, patRows, fy) {
   // The latest donation either platform can see. Activity is judged against
   // this, so publishing it is what lets a reader tell a quiet month from a
   // stale export.
-  const data_through = [gb.horizon, pat.horizon].filter(Boolean).sort().pop() || null;
+  const data_through = platformHorizon;
 
   return { recurring_supporters, fy_supporters, typical_monthly, buckets, as_of_fy: fy, data_through };
 }
@@ -799,7 +819,7 @@ async function main() {
     ...(patDetailFile ? readCsvRows(patDetailFile) : []),
     ...(patMemberFile ? readCsvRows(patMemberFile) : []),
   ];
-  const aggregates = computeRecurringAggregates(gbRows, patDetailRows, fyArg);
+  const aggregates = computeRecurringAggregates(gbRows, patDetailRows, fyArg, ben.lastDisbursement);
 
   const bySource = {
     'Give Butter': { gross: gb.gross, fee: gb.fee },
@@ -882,7 +902,7 @@ async function main() {
   // --verify-aggregates: recompute from raw CSVs and assert they match what was just persisted
   if (verifyAggregates) {
     console.log('--- Aggregate verification (--verify-aggregates) ---');
-    const freshAgg = computeRecurringAggregates(gbRows, patDetailRows, fyArg);
+    const freshAgg = computeRecurringAggregates(gbRows, patDetailRows, fyArg, ben.lastDisbursement);
     const { data: catCheck } = await sb
       .from('budget_categories')
       .select('item_count, description')

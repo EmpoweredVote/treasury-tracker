@@ -323,6 +323,39 @@ test('computeRecurringAggregates: reports the data horizon it judged activity ag
   assert.equal(r.data_through, '2026-11-20');
 });
 
+test('computeRecurringAggregates: Benevity stops counting as current once the match ends', () => {
+  // EV's Benevity money is one donor's company match. He left the employer that
+  // ran the match, so the disbursements stopped -- a fact no disbursement report
+  // can state, which is why the date is passed in rather than inferred.
+  const gbRows = [
+    { 'Status Friendly': 'Succeeded', 'Refund Date (UTC)': '', 'Transaction Date (UTC)': '2026-11-20 10:00:00', 'Plan ID': 'P1', Amount: '$10.00', 'Contact ID': 'A', 'Contact Email': '' },
+  ];
+  const r = computeRecurringAggregates(gbRows, [], 2026, '2026-08-10');
+  assert.equal(r.recurring_supporters, 1, 'only the GiveButter donor is still giving');
+  assert.equal(r.fy_supporters, 2, 'Benevity still gave during the fiscal year');
+});
+
+test('computeRecurringAggregates: Benevity counts as current while disbursements keep arriving', () => {
+  // The channel is still open -- a new matched donor must bring Benevity back
+  // without anyone editing the loader.
+  const gbRows = [
+    { 'Status Friendly': 'Succeeded', 'Refund Date (UTC)': '', 'Transaction Date (UTC)': '2026-11-20 10:00:00', 'Plan ID': 'P1', Amount: '$10.00', 'Contact ID': 'A', 'Contact Email': '' },
+  ];
+  const r = computeRecurringAggregates(gbRows, [], 2026, '2026-11-01');
+  assert.equal(r.recurring_supporters, 2, 'Benevity disbursed inside the window');
+  assert.equal(r.fy_supporters, 2);
+});
+
+test('computeRecurringAggregates: Benevity is excluded from the median either way', () => {
+  const gbRows = [
+    { 'Status Friendly': 'Succeeded', 'Refund Date (UTC)': '', 'Transaction Date (UTC)': '2026-11-20 10:00:00', 'Plan ID': 'P1', Amount: '$10.00', 'Contact ID': 'A', 'Contact Email': '' },
+  ];
+  const lapsed = computeRecurringAggregates(gbRows, [], 2026, '2026-08-10');
+  const active = computeRecurringAggregates(gbRows, [], 2026, '2026-11-01');
+  assert.equal(lapsed.typical_monthly, 10);
+  assert.equal(active.typical_monthly, 10, 'the company match never enters the median');
+});
+
 // Live-export reconciliation gate — reads the actual FY2026 CSV exports.
 // Numbers must match the production computation; if exports are re-exported
 // and the counts change, update this test AND the SUMMARY accordingly.
