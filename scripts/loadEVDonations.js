@@ -337,6 +337,23 @@ export function computeRecurringAggregates(gbRows, patRows, fy, benevityLast = n
   // ⚠ Benevity counts 1 in fy_supporters whether or not it is still current:
   // the money genuinely arrived this fiscal year.
 
+  // ⚠⚠ BOTH COUNTS ARE PER-PLATFORM RELATIONSHIPS, NOT DISTINCT PEOPLE. There is
+  // no cross-platform identity matching here, and there should not be one built
+  // from donor names or emails. A supporter who moves from Patreon to GiveButter
+  // is two IDs and counts twice.
+  //
+  // This is not hypothetical and is about to get worse: EV is deliberately
+  // migrating supporters off Patreon with a view to sunsetting it. One migration
+  // is already in the FY2026 data -- a $50/mo Patreon patron whose last charge was
+  // 2026-08-01 and who restarted on GiveButter at $50/mo on 2026-08-12. So
+  // fy_supporters reads 10 where there are 9 people.
+  //
+  // ⛔ The ACTIVE count is exposed too, not just the year-wide one. An 11-day
+  // changeover sits well inside ACTIVE_WINDOW_DAYS, so for up to 45 days after a
+  // migration the same human is "still giving" on both platforms at once. Any
+  // deliberate migration therefore inflates recurring_supporters while it runs.
+  // Do not read a rise in this number during a platform move as growth.
+
   // Typical monthly = median over ACTIVE supporters' most-recent charge.
   // A donor who stopped in May must not drag the "typical" figure upward.
   // Benevity is excluded from the median (see above).
