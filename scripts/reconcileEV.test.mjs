@@ -1,7 +1,7 @@
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { classifyDeposit, extractDeposits } from './lib/evBankDeposits.js';
-import { monthlyBurn, runway, buildIncome, reconcile } from './reconcileEV.js';
+import { monthlyBurn, runway, buildIncome, reconcile, buildSummaryRow } from './reconcileEV.js';
 
 test('classifyDeposit maps the four descriptors + unmatched fallback (D-04)', () => {
   assert.deepEqual(classifyDeposit('External Deposit Givebutter  - Givebutter  ST-Q9'), { kind: 'platform', source: 'Give Butter' });
@@ -118,4 +118,67 @@ test('recon_explanation: a sub-dollar gap gets no driver sentence at all', () =>
   const deposits = [{ iso: '2026-11-24', desc: 'External Deposit Givebutter', amount: 1158.20 }];
   const r = reconcile(SRC, deposits);
   assert.doesNotMatch(r.recon_explanation, /Largest gap/);
+});
+
+// ── Reconciliation is operator working-out, not public copy ──────────────────
+test('buildSummaryRow publishes no reconciliation narrative or variance', () => {
+  // Chris, 2026-11-25: "I don't think that sentence breeds confidence ... it'd
+  // make me wary to donate which is terrible." A variance is payout timing, not
+  // a discrepancy, and a reader has no way to evaluate it. Publishing the bare
+  // number without the sentence would be worse, so all three go.
+  const s = {
+    fiscal_year: 2026, balance: 2179.46, balance_as_of: '2026-11-24',
+    monthly_burn: 573.66, burn_window_months: 3, runway_months: 3.8,
+    income_gross: 5445, income_fees: 238.23, income_net: 5206.77,
+    income_by_source: [{ source: 'Give Butter', gross: 1205, fee: 46.51, net: 1158.49 }],
+    recon_variance: -545.59,
+    recon_explanation: 'Platform net ... Largest gap is Give Butter ...',
+    recon_by_source: [{ source: 'Give Butter', variance: -548.34, platform_net: 1158.49, bank_deposits: 1706.83 }],
+    unmatched_deposits: [], goal_amount: null, goal_label: null,
+  };
+  const row = buildSummaryRow('muni-1', s);
+
+  // Explicitly null, NOT omitted: an upsert that omits a column leaves the old
+  // value live, so the sentence already published would simply stay there.
+  assert.equal(row.recon_explanation, null);
+  assert.equal(row.recon_variance, null);
+  assert.equal(row.recon_by_source, null);
+  assert.ok('recon_explanation' in row, 'must be sent as null to clear the stored value');
+
+  const json = JSON.stringify(row);
+  assert.doesNotMatch(json, /Largest gap/);
+  assert.doesNotMatch(json, /bank_deposits/);
+  assert.doesNotMatch(json, /548\.34|545\.59/);
+});
+
+test('buildSummaryRow still publishes unmatched deposits — the real anomaly signal', () => {
+  // Silence must mean "everything matched". Money we cannot explain still surfaces.
+  const s = {
+    fiscal_year: 2026, balance: 100, balance_as_of: '2026-11-24',
+    monthly_burn: 10, burn_window_months: 3, runway_months: 10,
+    income_gross: 0, income_fees: 0, income_net: 0, income_by_source: [],
+    recon_variance: 0, recon_explanation: 'x', recon_by_source: [],
+    unmatched_deposits: [{ date: '2026-04-10', amount: 500, description: 'Check Deposit Grant' }],
+    goal_amount: null, goal_label: null,
+  };
+  const row = buildSummaryRow('muni-1', s);
+  assert.equal(row.unmatched_deposits.length, 1);
+  assert.equal(row.unmatched_deposits[0].amount, 500);
+});
+
+test('buildSummaryRow keeps the figures the page actually shows', () => {
+  const s = {
+    fiscal_year: 2026, balance: 2179.46, balance_as_of: '2026-11-24',
+    monthly_burn: 573.66, burn_window_months: 3, runway_months: 3.8,
+    income_gross: 5445, income_fees: 238.23, income_net: 5206.77,
+    income_by_source: [{ source: 'Patreon', gross: 595, fee: 98.77, net: 496.23 }],
+    recon_variance: 0, recon_explanation: 'x', recon_by_source: [],
+    unmatched_deposits: [], goal_amount: null, goal_label: null,
+  };
+  const row = buildSummaryRow('muni-1', s);
+  assert.equal(row.balance, 2179.46);
+  assert.equal(row.income_net, 5206.77);
+  assert.equal(row.income_by_source[0].source, 'Patreon');
+  assert.equal(row.municipality_id, 'muni-1');
+  assert.equal(row.source_name, 'Beneficial State Bank + platform exports');
 });
