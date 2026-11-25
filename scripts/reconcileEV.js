@@ -258,9 +258,16 @@ function printSummary(s) {
  * received that cannot be traced to a platform payout — is still published, and
  * must stay published. Silence there means everything matched.
  *
- * ⚠ NULL, never omitted. An upsert that omits a column leaves the previous value
- * in place, so omitting these would simply leave the already-published sentence
- * live. The full reconciliation is still computed and printed on every run.
+ * ⚠ NULL/[] , never omitted. An upsert that omits a column leaves the previous
+ * value in place, so omitting these would simply leave the already-published
+ * sentence live.
+ *
+ * ⛔ `recon_by_source` is NOT NULL in the database (default '[]'::jsonb), so it
+ * takes an empty array, not null — a null there fails the upsert outright. The
+ * two text/numeric columns are nullable. A unit test on the row shape cannot
+ * catch this; only a real run can, which is how it was found.
+ *
+ * The full reconciliation is still computed and printed on every run.
  */
 export function buildSummaryRow(muniId, s) {
   return {
@@ -269,7 +276,7 @@ export function buildSummaryRow(muniId, s) {
     monthly_burn: s.monthly_burn, burn_window_months: s.burn_window_months, runway_months: s.runway_months,
     income_gross: s.income_gross, income_fees: s.income_fees, income_net: s.income_net,
     income_by_source: s.income_by_source,
-    recon_variance: null, recon_explanation: null, recon_by_source: null,
+    recon_variance: null, recon_explanation: null, recon_by_source: [],
     unmatched_deposits: s.unmatched_deposits,
     goal_amount: s.goal_amount, goal_label: s.goal_label,
     source_name: 'Beneficial State Bank + platform exports', source_url: null,

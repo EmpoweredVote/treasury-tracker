@@ -142,8 +142,11 @@ test('buildSummaryRow publishes no reconciliation narrative or variance', () => 
   // value live, so the sentence already published would simply stay there.
   assert.equal(row.recon_explanation, null);
   assert.equal(row.recon_variance, null);
-  assert.equal(row.recon_by_source, null);
-  assert.ok('recon_explanation' in row, 'must be sent as null to clear the stored value');
+  // NOT NULL in the database with default '[]'::jsonb -- a null here fails the
+  // upsert outright, so this one is emptied rather than nulled.
+  assert.deepEqual(row.recon_by_source, []);
+  assert.ok('recon_explanation' in row, 'must be sent, not omitted, to clear the stored value');
+  assert.ok('recon_by_source' in row);
 
   const json = JSON.stringify(row);
   assert.doesNotMatch(json, /Largest gap/);
