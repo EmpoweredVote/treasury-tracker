@@ -48,6 +48,47 @@ test('parseGiveButter: gross/fee, filters status + refunds + FY, computes asOf',
   assert.equal(r.asOf, '2026-06-20'); // max succeeded, non-refunded date
 });
 
+test('parseGiveButter: a line-item export counts each transaction ONCE', () => {
+  // Givebutter sometimes ships the Transactions export with one row PER LINE
+  // ITEM -- a `donation` row and a `fee` row for the same transaction -- and
+  // both carry the transaction-level `Amount` and `Fee`. Summing per row
+  // doubled FY2026 Give Butter income to $1,946 against a real $973, and the
+  // page published it for nine weeks. Only `Item *` columns differ.
+  const rows = [
+    { 'Reference Number': 'ABC123', 'Item Subtype': 'donation', 'Item Total': '$50.00',
+      'Status Friendly': 'Succeeded', 'Refund Date (UTC)': '', 'Transaction Date (UTC)': '2026-06-20 10:00:00', Amount: '$50.00', Fee: '$1.80' },
+    { 'Reference Number': 'ABC123', 'Item Subtype': 'fee', 'Item Total': '$1.80',
+      'Status Friendly': 'Succeeded', 'Refund Date (UTC)': '', 'Transaction Date (UTC)': '2026-06-20 10:00:00', Amount: '$50.00', Fee: '$1.80' },
+  ];
+  const r = parseGiveButter(rows, 2026);
+  assert.equal(r.gross, 50);
+  assert.equal(Number(r.fee.toFixed(2)), 1.80);
+  assert.equal(r.count, 1);
+});
+
+test('parseGiveButter: one-row-per-transaction export is unaffected by dedup', () => {
+  // The Nov 2026 shape has no Item columns and one row per transaction. Dedup
+  // must be a no-op here, not a silent collapse of distinct donations.
+  const rows = [
+    { 'Reference Number': 'AAA', 'Status Friendly': 'Succeeded', 'Refund Date (UTC)': '', 'Transaction Date (UTC)': '2026-06-20 10:00:00', Amount: '$10.00', Fee: '$0.61' },
+    { 'Reference Number': 'BBB', 'Status Friendly': 'Succeeded', 'Refund Date (UTC)': '', 'Transaction Date (UTC)': '2026-07-20 10:00:00', Amount: '$25.00', Fee: '$1.00' },
+  ];
+  const r = parseGiveButter(rows, 2026);
+  assert.equal(r.gross, 35);
+  assert.equal(r.count, 2);
+});
+
+test('parseGiveButter: rows with no Reference Number are each kept', () => {
+  // An empty key must not collapse unrelated donations into one.
+  const rows = [
+    { 'Reference Number': '', 'Status Friendly': 'Succeeded', 'Refund Date (UTC)': '', 'Transaction Date (UTC)': '2026-06-20 10:00:00', Amount: '$10.00', Fee: '$0.61' },
+    { 'Reference Number': '', 'Status Friendly': 'Succeeded', 'Refund Date (UTC)': '', 'Transaction Date (UTC)': '2026-07-20 10:00:00', Amount: '$25.00', Fee: '$1.00' },
+  ];
+  const r = parseGiveButter(rows, 2026);
+  assert.equal(r.gross, 35);
+  assert.equal(r.count, 2);
+});
+
 test('parsePatreon: sums monthly gross + abs(fees) for FY', () => {
   const rows = [
     { Month: '2025-12', 'Total gross revenue': '100.00', 'Total platform fee': '-11.00', 'Total payment fee': '-3.00' }, // prior FY
