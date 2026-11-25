@@ -110,11 +110,11 @@ export function reconcile(income_by_source, deposits) {
   const recon_variance = round2(totalNet - totalBank);
   // Largest single-source absolute variance, for an honest, direction-neutral explanation.
   const worst = recon_by_source.reduce((a, c) => (Math.abs(c.variance) > Math.abs(a.variance) ? c : a), { variance: 0, source: null });
-  // ⛔ THIS STRING IS PUBLISHED TO A PUBLIC TRANSPARENCY PAGE. It is read by
-  // someone who has no access to any export and cannot act on a maintenance
-  // instruction. It previously ended "refresh that export if the gap is
-  // unexpected" -- operator copy, shipped to readers, for nine weeks. Keep
-  // operator guidance in the console (see the caller), never in here.
+  // ℹ Operator-facing only since 2026-11-25 — buildSummaryRow no longer persists
+  // this. It was published to the public API for ~9 weeks, and for most of that
+  // it ended "refresh that export if the gap is unexpected": a maintenance
+  // instruction shown to readers who have no export. Kept here because the
+  // console still prints it on every run.
   //
   // The direction carries the meaning, so say which way it runs:
   //   variance < 0  bank received MORE than this year's net — money raised in an
@@ -227,8 +227,8 @@ function printSummary(s) {
   for (const r of s.recon_by_source) console.log(`  ${r.source.padEnd(12)} net $${r.platform_net.toFixed(2)}  vs bank $${r.bank_deposits.toFixed(2)}  Δ $${r.variance.toFixed(2)}`);
   console.log(`  total variance: $${s.recon_variance.toFixed(2)}`);
   console.log(`  ${s.recon_explanation}`);
-  // Operator-only guidance. Deliberately NOT part of recon_explanation, which is
-  // published verbatim to the public page.
+  // Operator-only. The whole reconciliation now stops here: buildSummaryRow
+  // sends recon_* as null, so none of this reaches the API payload.
   if (Math.abs(s.recon_variance) >= 1) {
     console.log(`  ℹ Operator: a variance is normal. Check the source exports only if the`);
     console.log(`    direction surprises you — platform net ahead of the bank means funds are`);
@@ -241,19 +241,44 @@ function printSummary(s) {
   } else console.log('\nUnmatched deposits: none');
 }
 
-async function upsertSummary(sb, muniId, s) {
-  const row = {
+/**
+ * The row written to treasury.org_financial_summary, which the PUBLIC
+ * unauthenticated API serves verbatim at
+ * /api/treasury/orgs/:id/financial-summary.
+ *
+ * ⛔ RECONCILIATION IS NOT PUBLISHED. recon_variance, recon_explanation and
+ * recon_by_source are sent as NULL on purpose.
+ *
+ * A variance is payout timing, not a discrepancy — platforms pay out in
+ * batches, so the two sides never tie exactly. A reader cannot evaluate that
+ * and reasonably reads a "$548 gap" as books that do not balance. Chris,
+ * 2026-11-25: "it'd make me wary to donate which is terrible."
+ *
+ * ⭐ The rule is publish ANOMALIES, not ARITHMETIC. `unmatched_deposits` — money
+ * received that cannot be traced to a platform payout — is still published, and
+ * must stay published. Silence there means everything matched.
+ *
+ * ⚠ NULL, never omitted. An upsert that omits a column leaves the previous value
+ * in place, so omitting these would simply leave the already-published sentence
+ * live. The full reconciliation is still computed and printed on every run.
+ */
+export function buildSummaryRow(muniId, s) {
+  return {
     municipality_id: muniId, fiscal_year: s.fiscal_year,
     balance: s.balance, balance_as_of: s.balance_as_of,
     monthly_burn: s.monthly_burn, burn_window_months: s.burn_window_months, runway_months: s.runway_months,
     income_gross: s.income_gross, income_fees: s.income_fees, income_net: s.income_net,
     income_by_source: s.income_by_source,
-    recon_variance: s.recon_variance, recon_explanation: s.recon_explanation,
-    recon_by_source: s.recon_by_source, unmatched_deposits: s.unmatched_deposits,
+    recon_variance: null, recon_explanation: null, recon_by_source: null,
+    unmatched_deposits: s.unmatched_deposits,
     goal_amount: s.goal_amount, goal_label: s.goal_label,
     source_name: 'Beneficial State Bank + platform exports', source_url: null,
     source_date: s.balance_as_of, updated_at: new Date().toISOString(),
   };
+}
+
+async function upsertSummary(sb, muniId, s) {
+  const row = buildSummaryRow(muniId, s);
   const { error } = await sb.from('org_financial_summary').upsert(row, { onConflict: 'municipality_id,fiscal_year' });
   if (error) throw new Error('Upsert failed: ' + error.message);
 }
