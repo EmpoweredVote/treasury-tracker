@@ -309,6 +309,94 @@ test('computeRecurringAggregates: typical_monthly is the median of GB+Patreon am
   assert.equal(result.typical_monthly, 10);
 });
 
+test('patreonDistinctPatrons: reads the member-transaction-history column shape', () => {
+  // Patreon ships this export with different column names for the same facts.
+  // Without it the loader can only see per-member data as fresh as the
+  // detailed-earnings file, which is what let a patron who left in August
+  // still count as active.
+  const rows = [
+    { 'Transaction charge date': '2026-11-01 10:50:47', 'Transaction type': 'Payment',
+      'Member user ID': 'M1', 'Total member charge (member currency)': '5.00' },
+    { 'Transaction charge date': '2026-10-01 10:50:47', 'Transaction type': 'Payment',
+      'Member user ID': 'M1', 'Total member charge (member currency)': '5.00' },
+    { 'Transaction charge date': '2026-11-01 10:50:47', 'Transaction type': 'Payment',
+      'Member user ID': 'M2', 'Total member charge (member currency)': '10.00' },
+  ];
+  const { count, typicalAmounts } = patreonDistinctPatrons(rows, 2026);
+  assert.equal(count, 2);
+  assert.deepEqual(typicalAmounts.sort((a, b) => a - b), [5, 10]);
+});
+
+test('computeRecurringAggregates: a lapsed donor leaves recurring_supporters but stays in fy_supporters', () => {
+  // The spec calls for "the honest current count of distinct ACTIVE recurring
+  // supporters". Counting everyone who gave anywhere in the FY published 10
+  // when 8 were still giving -- a $100/mo GiveButter donor stopped in May and
+  // a $50/mo Patreon patron stopped in August.
+  const gbRows = [
+    { 'Status Friendly': 'Succeeded', 'Refund Date (UTC)': '', 'Transaction Date (UTC)': '2026-05-06 10:00:00', 'Plan ID': 'P1', Amount: '$100.00', 'Contact ID': 'LAPSED', 'Contact Email': '' },
+    { 'Status Friendly': 'Succeeded', 'Refund Date (UTC)': '', 'Transaction Date (UTC)': '2026-11-20 10:00:00', 'Plan ID': 'P2', Amount: '$10.00', 'Contact ID': 'ACTIVE', 'Contact Email': '' },
+  ];
+  const patRows = [];
+  const r = computeRecurringAggregates(gbRows, patRows, 2026);
+  assert.equal(r.recurring_supporters, 2, '1 active GB donor + Benevity');
+  assert.equal(r.fy_supporters, 3, '2 GB donors seen this year + Benevity');
+});
+
+test('computeRecurringAggregates: typical_monthly and buckets ignore lapsed donors', () => {
+  // The lapsed $100 donor must not drag the "typical" figure upward.
+  const gbRows = [
+    { 'Status Friendly': 'Succeeded', 'Refund Date (UTC)': '', 'Transaction Date (UTC)': '2026-05-06 10:00:00', 'Plan ID': 'P1', Amount: '$100.00', 'Contact ID': 'LAPSED', 'Contact Email': '' },
+    { 'Status Friendly': 'Succeeded', 'Refund Date (UTC)': '', 'Transaction Date (UTC)': '2026-11-20 10:00:00', 'Plan ID': 'P2', Amount: '$10.00', 'Contact ID': 'A', 'Contact Email': '' },
+    { 'Status Friendly': 'Succeeded', 'Refund Date (UTC)': '', 'Transaction Date (UTC)': '2026-11-12 10:00:00', 'Plan ID': 'P3', Amount: '$6.00', 'Contact ID': 'B', 'Contact Email': '' },
+  ];
+  const r = computeRecurringAggregates(gbRows, [], 2026);
+  assert.equal(r.typical_monthly, 8, 'median of the two active amounts [6, 10]');
+  assert.equal(r.buckets.gte50, 0, 'the lapsed $100 donor is not bucketed');
+  assert.equal(r.buckets.b5to9, 1);
+  assert.equal(r.buckets.b10to24, 1);
+});
+
+test('computeRecurringAggregates: reports the data horizon it judged activity against', () => {
+  const gbRows = [
+    { 'Status Friendly': 'Succeeded', 'Refund Date (UTC)': '', 'Transaction Date (UTC)': '2026-11-20 10:00:00', 'Plan ID': 'P1', Amount: '$10.00', 'Contact ID': 'A', 'Contact Email': '' },
+  ];
+  const r = computeRecurringAggregates(gbRows, [], 2026);
+  assert.equal(r.data_through, '2026-11-20');
+});
+
+test('computeRecurringAggregates: Benevity stops counting as current once the match ends', () => {
+  // EV's Benevity money is one donor's company match. He left the employer that
+  // ran the match, so the disbursements stopped -- a fact no disbursement report
+  // can state, which is why the date is passed in rather than inferred.
+  const gbRows = [
+    { 'Status Friendly': 'Succeeded', 'Refund Date (UTC)': '', 'Transaction Date (UTC)': '2026-11-20 10:00:00', 'Plan ID': 'P1', Amount: '$10.00', 'Contact ID': 'A', 'Contact Email': '' },
+  ];
+  const r = computeRecurringAggregates(gbRows, [], 2026, '2026-08-10');
+  assert.equal(r.recurring_supporters, 1, 'only the GiveButter donor is still giving');
+  assert.equal(r.fy_supporters, 2, 'Benevity still gave during the fiscal year');
+});
+
+test('computeRecurringAggregates: Benevity counts as current while disbursements keep arriving', () => {
+  // The channel is still open -- a new matched donor must bring Benevity back
+  // without anyone editing the loader.
+  const gbRows = [
+    { 'Status Friendly': 'Succeeded', 'Refund Date (UTC)': '', 'Transaction Date (UTC)': '2026-11-20 10:00:00', 'Plan ID': 'P1', Amount: '$10.00', 'Contact ID': 'A', 'Contact Email': '' },
+  ];
+  const r = computeRecurringAggregates(gbRows, [], 2026, '2026-11-01');
+  assert.equal(r.recurring_supporters, 2, 'Benevity disbursed inside the window');
+  assert.equal(r.fy_supporters, 2);
+});
+
+test('computeRecurringAggregates: Benevity is excluded from the median either way', () => {
+  const gbRows = [
+    { 'Status Friendly': 'Succeeded', 'Refund Date (UTC)': '', 'Transaction Date (UTC)': '2026-11-20 10:00:00', 'Plan ID': 'P1', Amount: '$10.00', 'Contact ID': 'A', 'Contact Email': '' },
+  ];
+  const lapsed = computeRecurringAggregates(gbRows, [], 2026, '2026-08-10');
+  const active = computeRecurringAggregates(gbRows, [], 2026, '2026-11-01');
+  assert.equal(lapsed.typical_monthly, 10);
+  assert.equal(active.typical_monthly, 10, 'the company match never enters the median');
+});
+
 // Live-export reconciliation gate — reads the actual FY2026 CSV exports.
 // Numbers must match the production computation; if exports are re-exported
 // and the counts change, update this test AND the SUMMARY accordingly.
@@ -345,7 +433,14 @@ test('computeRecurringAggregates: FY2026 real export data — 9 supporters, medi
   const gbRows  = readCsvRows(gbExportFile);
   const patRows = readCsvRows(patDetailExportFile);
   const result  = computeRecurringAggregates(gbRows, patRows, 2026);
-  assert.equal(result.recurring_supporters, 9,  'FY2026: 3 GB + 5 Patreon + 1 Benevity = 9');
+  assert.equal(result.recurring_supporters, 9,  'FY2026 as of the June export: 3 GB + 5 Patreon + 1 Benevity = 9');
+  assert.equal(result.fy_supporters, 9, 'nobody had lapsed yet as of the June export');
+  // ⚠ BOUNDARY CASE, RECORDED ON PURPOSE. The $100/mo GiveButter donor's last
+  // charge is 2026-05-06 and this export's horizon is 2026-06-20 -- exactly
+  // ACTIVE_WINDOW_DAYS apart, so they count as active by a single day. The
+  // November export puts them 6 months out and they drop to lapsed. If this
+  // assertion ever flips, the window moved; do not "fix" it by widening.
+  assert.equal(result.data_through, '2026-06-20');
   assert.equal(result.typical_monthly,      10, 'FY2026: median of [5,5,5,10,10,50,50,100] = 10');
   assert.equal(result.as_of_fy, 2026);
   // Buckets: GB $10=b10to24, GB $50=gte50, GB $100=gte50
