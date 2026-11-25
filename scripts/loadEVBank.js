@@ -37,6 +37,14 @@ const VENDOR_RULES = [
   { re: /TECHSOUP/i,                category: 'Infrastructure & Hosting', vendor: 'TechSoup' },
   { re: /AWS|AMAZON WEB/i,          category: 'Infrastructure & Hosting', vendor: 'AWS' },
   { re: /GODADDY|NAMECHEAP/i,       category: 'Domains',                vendor: 'GoDaddy' },
+  { re: /GITHUB/i,                  category: 'Infrastructure & Hosting', vendor: 'GitHub' },
+  // MEISTERLABS is MindMeister's billing name. The spelling matters beyond
+  // readability: BRAND_BAR_COLORS and CategoryList's CATEGORY_LOGOS both key on
+  // the exact string 'MindMeister', so the logo tile and brand colour were dead
+  // for as long as this published as 'MEISTERLABS INC'. Same for 'Read.ai'.
+  { re: /MEISTERLABS|MINDMEISTER/i, category: 'Operations',             vendor: 'MindMeister' },
+  { re: /READ ?\.? ?AI|READ - MEETING/i, category: 'Operations',        vendor: 'Read.ai' },
+  { re: /SECRETARY OF STA/i,        category: 'Operations',             vendor: 'CA Secretary of State' },
   { re: /INTERNATIONAL FEE/i,       category: 'Bank Fees',              vendor: 'International Fee (foreign txn)' },
 ];
 function classify(description) {
