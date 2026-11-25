@@ -110,13 +110,30 @@ export function reconcile(income_by_source, deposits) {
   const recon_variance = round2(totalNet - totalBank);
   // Largest single-source absolute variance, for an honest, direction-neutral explanation.
   const worst = recon_by_source.reduce((a, c) => (Math.abs(c.variance) > Math.abs(a.variance) ? c : a), { variance: 0, source: null });
-  const driver = worst.source && Math.abs(worst.variance) >= 1
-    ? ` Largest gap is ${worst.source} (Δ $${worst.variance.toFixed(2)}) — likely the platform export's FY window and the bank payout batch cover slightly different donation sets; refresh that export if the gap is unexpected.`
-    : '';
+  // ⛔ THIS STRING IS PUBLISHED TO A PUBLIC TRANSPARENCY PAGE. It is read by
+  // someone who has no access to any export and cannot act on a maintenance
+  // instruction. It previously ended "refresh that export if the gap is
+  // unexpected" -- operator copy, shipped to readers, for nine weeks. Keep
+  // operator guidance in the console (see the caller), never in here.
+  //
+  // The direction carries the meaning, so say which way it runs:
+  //   variance < 0  bank received MORE than this year's net — money raised in an
+  //                 earlier year paid out during this one.
+  //   variance > 0  raised but not yet deposited — still sitting on the platform.
+  // For EV the gap is expected and permanent: the Givebutter wallet is kept
+  // funded on purpose to stay eligible for donor-matching deals, so a reader
+  // must not be told this looks like an error.
+  let driver = '';
+  if (worst.source && Math.abs(worst.variance) >= 1) {
+    const amount = `$${Math.abs(worst.variance).toFixed(2)}`;
+    driver = worst.variance < 0
+      ? ` Largest gap is ${worst.source}: the bank received ${amount} more than this year's donations net out to, which is what happens when money raised before this year is paid out during it.`
+      : ` Largest gap is ${worst.source}: ${amount} raised has not yet reached the bank — platform payouts arrive in batches, and funds can sit in the platform balance until they are transferred.`;
+  }
   const recon_explanation =
     `Platform net (gross − fees) $${totalNet.toFixed(2)} vs. matched bank payout deposits $${totalBank.toFixed(2)} ` +
-    `(Δ $${recon_variance.toFixed(2)}). Variance reflects payout timing (export FY window vs. bank deposit timing) ` +
-    `plus fee-estimation differences; bank payout deposits are matched-and-excluded, never re-added as income.${driver}`;
+    `(Δ $${recon_variance.toFixed(2)}). Platforms pay out in batches, so the two sides rarely line up exactly ` +
+    `within a single year; bank payout deposits are matched-and-excluded, never re-added as income.${driver}`;
   return { recon_by_source, recon_variance, recon_explanation, unmatched_deposits, interest };
 }
 
@@ -210,6 +227,13 @@ function printSummary(s) {
   for (const r of s.recon_by_source) console.log(`  ${r.source.padEnd(12)} net $${r.platform_net.toFixed(2)}  vs bank $${r.bank_deposits.toFixed(2)}  Δ $${r.variance.toFixed(2)}`);
   console.log(`  total variance: $${s.recon_variance.toFixed(2)}`);
   console.log(`  ${s.recon_explanation}`);
+  // Operator-only guidance. Deliberately NOT part of recon_explanation, which is
+  // published verbatim to the public page.
+  if (Math.abs(s.recon_variance) >= 1) {
+    console.log(`  ℹ Operator: a variance is normal. Check the source exports only if the`);
+    console.log(`    direction surprises you — platform net ahead of the bank means funds are`);
+    console.log(`    still on the platform; the bank ahead means earlier money landed this year.`);
+  }
   console.log(`\nBank interest (re-homed to revenue by loadEVDonations in 75-03): $${(s._interest || 0).toFixed(2)}`);
   if (s.unmatched_deposits.length) {
     console.log('\n⚠ Unmatched deposits (flag for manual entry, D-07):');

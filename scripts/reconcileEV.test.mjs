@@ -77,3 +77,45 @@ test('reconcile: variance = platform_net − matched bank deposits; interest + u
   assert.equal(r.unmatched_deposits.length, 1);   // the check → flagged
   assert.equal(r.unmatched_deposits[0].amount, 500);
 });
+
+// ── recon_explanation is PUBLIC copy, not an operator note ───────────────────
+const SRC = [
+  { source: 'Give Butter', gross: 1205, fee: 46.51, net: 1158.49 },
+];
+
+test('recon_explanation never tells a reader to refresh an export they cannot reach', () => {
+  // It published "refresh that export if the gap is unexpected" to a public
+  // transparency page for nine weeks. A reader has no export to refresh, and
+  // for EV the gap is expected and permanent -- the Givebutter wallet is kept
+  // funded on purpose, to stay eligible for donor-matching deals.
+  const deposits = [{ iso: '2026-11-24', desc: 'External Deposit Givebutter', amount: 1706.83 }];
+  const r = reconcile(SRC, deposits);
+  assert.doesNotMatch(r.recon_explanation, /refresh/i);
+  assert.doesNotMatch(r.recon_explanation, /export/i);
+});
+
+test('recon_explanation: bank ahead of platform net reads as money from outside this year', () => {
+  // Negative variance = the bank received MORE than this year's donations net
+  // out to, which is what happens when earlier donations are paid out now.
+  const deposits = [{ iso: '2026-11-24', desc: 'External Deposit Givebutter', amount: 1706.83 }];
+  const r = reconcile(SRC, deposits);
+  assert.ok(r.recon_variance < 0, 'precondition: bank ahead');
+  assert.match(r.recon_explanation, /Give Butter/);
+  assert.match(r.recon_explanation, /\$548\.34/);
+  assert.match(r.recon_explanation, /before this year|earlier/i);
+});
+
+test('recon_explanation: platform net ahead of bank reads as money not yet arrived', () => {
+  // Positive variance = raised but still sitting on the platform.
+  const deposits = [{ iso: '2026-11-24', desc: 'External Deposit Givebutter', amount: 900 }];
+  const r = reconcile(SRC, deposits);
+  assert.ok(r.recon_variance > 0, 'precondition: platform ahead');
+  assert.match(r.recon_explanation, /\$258\.49/);
+  assert.match(r.recon_explanation, /not .*reached the bank|still/i);
+});
+
+test('recon_explanation: a sub-dollar gap gets no driver sentence at all', () => {
+  const deposits = [{ iso: '2026-11-24', desc: 'External Deposit Givebutter', amount: 1158.20 }];
+  const r = reconcile(SRC, deposits);
+  assert.doesNotMatch(r.recon_explanation, /Largest gap/);
+});
